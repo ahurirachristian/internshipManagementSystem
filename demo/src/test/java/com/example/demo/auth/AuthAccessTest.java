@@ -18,7 +18,7 @@ class AuthAccessTest {
     private MockMvc mockMvc;
 
     @Test
-    @WithMockUser(username = "student", roles = "STUDENT")
+    @WithMockUser(username = "student", authorities = "STUDENT")
     void studentCanAccessStudentAreaButNotAdminArea() throws Exception {
         mockMvc.perform(get("/student/dashboard"))
                 .andExpect(status().isOk());
@@ -28,14 +28,14 @@ class AuthAccessTest {
     }
 
     @Test
-    @WithMockUser(username = "supervisor", roles = "SUPERVISOR")
+    @WithMockUser(username = "supervisor", authorities = "SUPERVISOR")
     void supervisorCanAccessSupervisorArea() throws Exception {
         mockMvc.perform(get("/supervisor/dashboard"))
                 .andExpect(status().isOk());
     }
 
     @Test
-    @WithMockUser(username = "admin", roles = "ADMIN")
+    @WithMockUser(username = "admin", authorities = "ADMIN")
     void adminCanAccessAllAreas() throws Exception {
         mockMvc.perform(get("/admin/dashboard"))
                 .andExpect(status().isOk());

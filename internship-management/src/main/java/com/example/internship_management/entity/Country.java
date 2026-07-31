@@ -1,7 +1,5 @@
 package com.example.internship_management.entity;
 
-package com.example.internship.entity;
-
 import jakarta.persistence.*;
 import lombok.*;
 
