@@ -13,9 +13,11 @@
 <div class="box">
     <h2>Welcome, <span th:text="${username}"></span>!</h2>
     <p>Choose your role area:</p>
-    <a href="/student/dashboard">Student Area</a>
-    <a href="/supervisor/dashboard">Supervisor Area</a>
-    <a href="/admin/dashboard">Admin Area</a>
+    <div>
+        <a th:if="${showStudentLink}" href="/student/dashboard">Student Area</a>
+        <a th:if="${showSupervisorLink}" href="/supervisor/dashboard">Supervisor Area</a>
+        <a th:if="${showAdminLink}" href="/admin/dashboard">Admin Area</a>
+    </div>
     <form th:action="@{/logout}" method="post" style="margin-top: 16px;">
         <button type="submit">Logout</button>
     </form>
