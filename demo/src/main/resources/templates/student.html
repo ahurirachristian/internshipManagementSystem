@@ -1,9 +1,177 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
-<head><meta charset="UTF-8"><title>Student</title></head>
+<head>
+    <meta charset="UTF-8">
+    <title>Student Profile</title>
+    <style>
+        body { font-family: Arial, sans-serif; background: #eef2ff; margin: 0; padding: 32px; color: #0f172a; }
+        .container { max-width: 980px; margin: 0 auto; }
+        .card { background: white; border-radius: 20px; box-shadow: 0 18px 60px rgba(15, 23, 42, 0.12); overflow: hidden; }
+        .hero { display: grid; grid-template-columns: 160px 1fr; gap: 24px; padding: 32px; align-items: center; }
+        .avatar { width: 160px; height: 160px; border-radius: 24px; object-fit: cover; border: 4px solid #4f46e5; }
+        .hero h1 { margin: 0 0 10px; font-size: 2.25rem; }
+        .hero p { margin: 0; color: #475569; line-height: 1.7; }
+        .badge { display: inline-flex; align-items: center; gap: 8px; margin-top: 12px; padding: 10px 14px; background: #eef2ff; color: #4338ca; border-radius: 999px; font-weight: 600; }
+        .grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; padding: 0 32px 32px; }
+        .field { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 18px; padding: 18px; }
+        .field label { font-size: 0.95rem; font-weight: 700; color: #334155; display: block; margin-bottom: 10px; }
+        .field span { display: block; color: #0f172a; font-size: 1rem; line-height: 1.6; }
+        .actions { padding: 0 32px 32px; display: flex; gap: 14px; flex-wrap: wrap; }
+        .button { display: inline-flex; align-items: center; justify-content: center; padding: 14px 22px; background: #4f46e5; color: white; border-radius: 14px; text-decoration: none; font-weight: 600; cursor: pointer; border: none; }
+        .secondary { background: #e2e8f0; color: #0f172a; }
+        .modal { display: none; position: fixed; z-index: 100; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(15, 23, 42, 0.55); backdrop-filter: blur(2px); }
+        .modal-content { background: white; margin: 40px auto; border-radius: 22px; width: min(920px, calc(100% - 40px)); padding: 24px; box-shadow: 0 24px 60px rgba(15, 23, 42, 0.18); }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .close-button { font-size: 28px; cursor: pointer; color: #475569; }
+        .modal-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
+        .modal-grid .field { padding: 14px; }
+        .modal-grid input, .modal-grid select { width: 100%; padding: 12px 14px; border: 1px solid #cbd5e1; border-radius: 12px; font-size: 0.95rem; }
+        .modal-actions { margin-top: 20px; display: flex; gap: 14px; flex-wrap: wrap; }
+        .toast {
+            position: fixed;
+            top: 24px;
+            right: 24px;
+            background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+            color: white;
+            padding: 18px 24px;
+            border-radius: 18px;
+            box-shadow: 0 18px 60px rgba(15, 23, 42, 0.25);
+            min-width: 280px;
+            font-weight: 700;
+            z-index: 200;
+            opacity: 0;
+            transform: translateY(-20px);
+            transition: opacity 0.3s ease, transform 0.3s ease;
+        }
+        .toast.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        .hidden-input { display: none; }
+    </style>
+</head>
 <body>
-<h2>Student Page</h2>
-<p th:text="${message}"></p>
-<a href="/dashboard">Back to dashboard</a>
+<div class="container">
+    <div class="card">
+        <div th:if="${successMessage}" class="toast" id="save-toast" th:text="${successMessage}">Student profile saved successfully.</div>
+        <div class="hero">
+            <img th:src="${student.pictureUrl}" src="/images/student-placeholder.svg" alt="Student photo" class="avatar" />
+            <div>
+                <h1 th:text="${student.firstName} + ' ' + ${student.lastName}">Alex Johnson</h1>
+                <p th:text="${student.degreeProgram} + ' • Year ' + ${student.yearOfStudy}">Computer Science • Year 3</p>
+                <p th:text="${student.internshipCompany}">TechCorp Solutions</p>
+                <div class="badge">Internship Student</div>
+            </div>
+        </div>
+        <div class="grid">
+            <div class="field"><label>Username</label><span id="display-username" th:text="${student.username}">student</span></div>
+            <div class="field"><label>Email</label><span id="display-email" th:text="${student.email}">alex.johnson@example.com</span></div>
+            <div class="field"><label>Student Number</label><span id="display-studentNumber" th:text="${student.studentNumber}">STU-2026-001</span></div>
+            <div class="field"><label>Registration Number</label><span id="display-registrationNumber" th:text="${student.registrationNumber}">REG-1001</span></div>
+            <div class="field"><label>Phone Number</label><span id="display-phoneNumber" th:text="${student.phoneNumber}">+1 555 123 4567</span></div>
+            <div class="field"><label>Company ID</label><span id="display-companyId" th:text="${student.companyId}">COMP-2024</span></div>
+            <div class="field"><label>University Supervisor</label><span id="display-universitySupervisor" th:text="${student.universitySupervisor}">Dr. Emily Carter</span></div>
+            <div class="field"><label>Industrial Supervisor ID</label><span id="display-industrialSupervisorId" th:text="${student.industrialSupervisorId}">IND-3456</span></div>
+            <div class="field" style="grid-column: span 2;"><label>Internship Company</label><span id="display-internshipCompany" th:text="${student.internshipCompany}">TechCorp Solutions</span></div>
+        </div>
+        <div class="actions">
+            <button type="button" class="button" onclick="openModal('edit')">Edit Profile</button>
+            <button type="button" class="button secondary" onclick="openModal('add')">Add New</button>
+            <a href="/dashboard" class="button secondary">Back to dashboard</a>
+        </div>
+    </div>
+</div>
+
+<div id="profile-modal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2 id="modal-title">Edit Student Details</h2>
+            <span class="close-button" onclick="closeModal()">&times;</span>
+        </div>
+        <form id="profile-form" th:action="@{/student/profile/edit}" method="post">
+            <input type="hidden" id="form-username" name="username" th:value="${student.username}" />
+            <div class="modal-grid">
+                <div class="field"><label>First Name</label><input type="text" id="form-firstName" name="firstName" th:value="${student.firstName}" required/></div>
+                <div class="field"><label>Last Name</label><input type="text" id="form-lastName" name="lastName" th:value="${student.lastName}" required/></div>
+                <div class="field"><label>Email</label><input type="email" id="form-email" name="email" th:value="${student.email}" required/></div>
+                <div class="field"><label>Phone Number</label><input type="text" id="form-phoneNumber" name="phoneNumber" th:value="${student.phoneNumber}" required/></div>
+                <div class="field"><label>Student Number</label><input type="text" id="form-studentNumber" name="studentNumber" th:value="${student.studentNumber}" required/></div>
+                <div class="field"><label>Registration Number</label><input type="text" id="form-registrationNumber" name="registrationNumber" th:value="${student.registrationNumber}" required/></div>
+                <div class="field"><label>Degree Program</label><input type="text" id="form-degreeProgram" name="degreeProgram" th:value="${student.degreeProgram}" required/></div>
+                <div class="field"><label>Year of Study</label><select id="form-yearOfStudy" name="yearOfStudy" required>
+                    <option value="1" th:selected="${student.yearOfStudy == 1}">1</option>
+                    <option value="2" th:selected="${student.yearOfStudy == 2}">2</option>
+                    <option value="3" th:selected="${student.yearOfStudy == 3}">3</option>
+                    <option value="4" th:selected="${student.yearOfStudy == 4}">4</option>
+                    <option value="5" th:selected="${student.yearOfStudy == 5}">5</option>
+                </select></div>
+                <div class="field"><label>Internship Company</label><input type="text" id="form-internshipCompany" name="internshipCompany" th:value="${student.internshipCompany}" required/></div>
+                <div class="field"><label>University Supervisor</label><input type="text" id="form-universitySupervisor" name="universitySupervisor" th:value="${student.universitySupervisor}" required/></div>
+                <div class="field"><label>Industrial Supervisor ID</label><input type="text" id="form-industrialSupervisorId" name="industrialSupervisorId" th:value="${student.industrialSupervisorId}" required/></div>
+                <div class="field"><label>Company ID</label><input type="text" id="form-companyId" name="companyId" th:value="${student.companyId}" required/></div>
+                <div class="field full-width"><label>Picture URL</label><input type="text" id="form-pictureUrl" name="pictureUrl" th:value="${student.pictureUrl}"/></div>
+            </div>
+            <div class="modal-actions">
+                <button type="submit" class="button">Save</button>
+                <button type="button" class="button secondary" onclick="closeModal()">Cancel</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    const modal = document.getElementById('profile-modal');
+    const modalTitle = document.getElementById('modal-title');
+    const formFields = {
+        username: document.getElementById('form-username'),
+        firstName: document.getElementById('form-firstName'),
+        lastName: document.getElementById('form-lastName'),
+        email: document.getElementById('form-email'),
+        phoneNumber: document.getElementById('form-phoneNumber'),
+        studentNumber: document.getElementById('form-studentNumber'),
+        registrationNumber: document.getElementById('form-registrationNumber'),
+        degreeProgram: document.getElementById('form-degreeProgram'),
+        yearOfStudy: document.getElementById('form-yearOfStudy'),
+        internshipCompany: document.getElementById('form-internshipCompany'),
+        universitySupervisor: document.getElementById('form-universitySupervisor'),
+        industrialSupervisorId: document.getElementById('form-industrialSupervisorId'),
+        companyId: document.getElementById('form-companyId'),
+        pictureUrl: document.getElementById('form-pictureUrl')
+    };
+
+    function openModal(mode) {
+        if (mode === 'add') {
+            modalTitle.textContent = 'Add New Student Details';
+            Object.entries(formFields).forEach(([key, input]) => {
+                if (input.tagName === 'SELECT') {
+                    input.value = '1';
+                } else if (input.type === 'hidden') {
+                    input.value = '';
+                } else {
+                    input.value = key === 'pictureUrl' ? '/images/student-placeholder.svg' : '';
+                }
+            });
+        } else {
+            modalTitle.textContent = 'Edit Student Details';
+        }
+        modal.style.display = 'block';
+    }
+
+    function closeModal() {
+        modal.style.display = 'none';
+    }
+
+    window.addEventListener('click', (event) => {
+        if (event.target === modal) {
+            closeModal();
+        }
+    });
+
+    const toast = document.getElementById('save-toast');
+    if (toast) {
+        toast.classList.add('show');
+        setTimeout(() => toast.classList.remove('show'), 4500);
+    }
+</script>
 </body>
 </html>
