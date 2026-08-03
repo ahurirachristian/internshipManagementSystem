@@ -14,11 +14,6 @@ public class AuthController {
         return "login";
     }
 
-    @GetMapping("/")
-    public String home() {
-        return "redirect:/login";
-    }
-
     @GetMapping("/dashboard")
     public String dashboard(Principal principal, Model model) {
         model.addAttribute("username", principal.getName());
