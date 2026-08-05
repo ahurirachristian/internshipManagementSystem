@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Internship Management System
 
 A Spring Boot application for managing internships, reorganized into `backend/` and `frontend/` folders.
@@ -76,3 +77,6 @@ Reserved for frontend assets and code. Currently empty.
 - **Java 17+**
 - **Maven 3.6+** (or use the included Maven wrapper `./mvnw`)
 - **MySQL** (create database `internshipManagementSystem_db` before running)
+=======
+# internshipManagementSystem
+>>>>>>> 1170dc09a1fd6d981c294ae91cd7607cba403cb5
