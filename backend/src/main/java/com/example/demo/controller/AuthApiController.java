@@ -1,4 +1,4 @@
-package com.example.demo.auth;
+package com.example.demo.controller;
 
 import java.security.Principal;
 import java.util.Map;

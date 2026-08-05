@@ -1,4 +1,4 @@
-package com.example.demo.auth;
+package com.example.demo.controller;
 
 import java.security.Principal;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -6,38 +6,24 @@ import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import com.example.demo.service.DashboardService;
+import com.example.demo.service.StudentService;
 
 @Controller
-public class AuthController {
+public class DashboardController {
 
-    @GetMapping("/login")
-    public String login() {
-        return "login";
+    private final DashboardService dashboardService;
+    private final StudentService studentService;
+
+    public DashboardController(DashboardService dashboardService, StudentService studentService) {
+        this.dashboardService = dashboardService;
+        this.studentService = studentService;
     }
 
     @GetMapping("/dashboard")
     public String dashboard(Principal principal, Authentication authentication, Model model) {
-        model.addAttribute("username", principal.getName());
-        boolean isStudent = authentication.getAuthorities().stream()
-                .anyMatch(authority -> authority.getAuthority().equals("STUDENT")
-                        || authority.getAuthority().equals("ADMIN")
-                        || authority.getAuthority().equals("SUPERVISOR"));
-        boolean isSupervisor = authentication.getAuthorities().stream()
-                .anyMatch(authority -> authority.getAuthority().equals("SUPERVISOR")
-                        || authority.getAuthority().equals("ADMIN"));
-        boolean isAdmin = authentication.getAuthorities().stream()
-                .anyMatch(authority -> authority.getAuthority().equals("ADMIN"));
-
-        model.addAttribute("showStudentLink", isStudent);
-        model.addAttribute("showSupervisorLink", isSupervisor);
-        model.addAttribute("showAdminLink", isAdmin);
+        model.addAllAttributes(dashboardService.getDashboardAttributes(principal, authentication));
         return "dashboard";
-    }
-
-    private final com.example.demo.student.StudentService studentService;
-
-    public AuthController(com.example.demo.student.StudentService studentService) {
-        this.studentService = studentService;
     }
 
     @GetMapping("/student/dashboard")
