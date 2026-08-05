@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # Internship Management System
 
 A Spring Boot application for managing internships, reorganized into `backend/` and `frontend/` folders.
@@ -9,10 +8,10 @@ A Spring Boot application for managing internships, reorganized into `backend/` 
 
 ```
 internshipManagementSystem/
-â”œâ”€â”€ backend/          â”‚  Working backend (Spring Boot demo reference implementation)
-â”œâ”€â”€ frontend/         â”‚  Reserved for frontend (currently empty)
-â”œâ”€â”€ README.md
-â””â”€â”€ .history/         â”‚  Git history backups
+├── backend/          ─ Working backend (Spring Boot demo reference implementation)
+├── frontend/         ─ Reserved for frontend (currently empty)
+├── README.md
+└── .history/         ─ Git history backups
 ```
 
 ---
@@ -77,6 +76,44 @@ Reserved for frontend assets and code. Currently empty.
 - **Java 17+**
 - **Maven 3.6+** (or use the included Maven wrapper `./mvnw`)
 - **MySQL** (create database `internshipManagementSystem_db` before running)
-=======
-# internshipManagementSystem
->>>>>>> 1170dc09a1fd6d981c294ae91cd7607cba403cb5
+
+---
+
+## Contributing
+
+All team members must follow this branching workflow:
+
+1. **Start from `developer`** — always pull the latest changes from the `developer` branch before starting work:
+   ```bash
+   git checkout developer
+   git pull origin developer
+   ```
+
+2. **Create your own branch** — create a feature branch from `developer` with a descriptive name:
+   ```bash
+   git checkout -b feature/your-feature-name
+   ```
+
+3. **Push your branch** — push your branch to the remote repository:
+   ```bash
+   git push origin feature/your-feature-name
+   ```
+
+4. **Open a Pull Request** — open a PR from your feature branch to the `developer` branch. Include a clear description of the changes.
+
+5. **Pull before pushing** — before pushing any new commits to your branch, always pull the latest from `developer` first to avoid conflicts:
+   ```bash
+   git checkout developer
+   git pull origin developer
+   git checkout feature/your-feature-name
+   git rebase developer
+   git push origin feature/your-feature-name --force
+   ```
+
+### Branch Strategy
+
+| Branch | Purpose |
+|--------|---------|
+| `developer` | Integration branch — all PRs target this branch |
+| `feature/*` | Individual feature branches — created from `developer` |
+| `main` | Production-ready releases |
