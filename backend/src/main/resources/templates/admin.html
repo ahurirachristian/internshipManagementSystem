@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard</title>
+    <style>
+        :root { --primary-color: #2c3e50; --accent-color: #3498db; --bg-color: #f4f7f6; --card-bg: #ffffff; --text-light: #7f8c8d; }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: var(--bg-color); min-height: 100vh; }
+        .top-bar { background-color: var(--primary-color); color: white; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .top-bar h1 { font-size: 1.4rem; }
+        .top-bar .nav-links a { color: #bdc3c7; text-decoration: none; margin-left: 20px; padding: 8px 14px; border-radius: 4px; transition: 0.3s; }
+        .top-bar .nav-links a:hover { background-color: var(--accent-color); color: white; }
+        .container { max-width: 1000px; margin: 40px auto; padding: 0 20px; }
+        .page-header { margin-bottom: 30px; }
+        .page-header h2 { color: var(--primary-color); font-size: 1.8rem; }
+        .page-header p { color: var(--text-light); margin-top: 8px; }
+        .role-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; }
+        .role-card { background-color: var(--card-bg); border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); padding: 30px; text-align: center; transition: transform 0.3s, box-shadow 0.3s; }
+        .role-card:hover { transform: translateY(-4px); box-shadow: 0 8px 25px rgba(0,0,0,0.12); }
+        .role-icon { font-size: 2.5rem; margin-bottom: 15px; }
+        .role-card h3 { color: var(--primary-color); margin-bottom: 10px; font-size: 1.2rem; }
+        .role-card p { color: var(--text-light); font-size: 0.9rem; margin-bottom: 20px; line-height: 1.5; }
+        .btn { display: inline-block; padding: 10px 20px; background-color: var(--accent-color); color: white; text-decoration: none; border-radius: 6px; font-weight: 600; transition: 0.3s; }
+        .btn:hover { opacity: 0.85; }
+        .logout-form { margin-top: 30px; text-align: center; }
+        .btn-logout { background-color: #e74c3c; color: white; padding: 10px 20px; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; }
+    </style>
+</head>
+<body>
+    <div class="top-bar">
+        <h1>Internship Management System</h1>
+        <div class="nav-links">
+            <a href="/dashboard">Dashboard</a>
+            <a href="/company">Companies</a>
+            <a href="/student/dashboard">Students</a>
+            <a href="/logout">Logout</a>
+        </div>
+    </div>
+    <div class="container">
+        <div class="page-header">
+            <h2>Admin Dashboard</h2>
+            <p th:text="${message}">Admin area</p>
+        </div>
+        <div class="role-grid">
+            <div class="role-card">
+                <div class="role-icon">&#128104;&#8205;&#128188;</div>
+                <h3>Supervisor Area</h3>
+                <p>Manage supervisors, view their dashboards, and oversee their assigned students.</p>
+                <a href="/supervisor/dashboard" class="btn">Go to Supervisor Area</a>
+            </div>
+            <div class="role-card">
+                <div class="role-icon">&#127891;</div>
+                <h3>Student Area</h3>
+                <p>View and manage student profiles, internships, and academic progress.</p>
+                <a href="/student/dashboard" class="btn">Go to Student Area</a>
+            </div>
+            <div class="role-card">
+                <div class="role-icon">&#127970;</div>
+                <h3>Company Area</h3>
+                <p>Browse all partner companies, view their profiles, and manage partnerships.</p>
+                <a href="/company" class="btn">Go to Company Area</a>
+            </div>
+        </div>
+        <form th:action="@{/logout}" method="post" class="logout-form">
+            <input type="hidden" th:if="${_csrf}" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+            <button type="submit" class="btn-logout">Logout</button>
+        </form>
+    </div>
+</body>
+</html>
