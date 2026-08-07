@@ -9,20 +9,25 @@ import org.springframework.stereotype.Service;
 public class DashboardService {
 
     public Map<String, Object> getDashboardAttributes(Principal principal, Authentication authentication) {
-        boolean isStudent = authentication.getAuthorities().stream()
-                .anyMatch(authority -> authority.getAuthority().equals("STUDENT")
-                        || authority.getAuthority().equals("ADMIN")
-                        || authority.getAuthority().equals("SUPERVISOR"));
-        boolean isSupervisor = authentication.getAuthorities().stream()
-                .anyMatch(authority -> authority.getAuthority().equals("SUPERVISOR")
-                        || authority.getAuthority().equals("ADMIN"));
         boolean isAdmin = authentication.getAuthorities().stream()
                 .anyMatch(authority -> authority.getAuthority().equals("ADMIN"));
+        boolean isSupervisor = authentication.getAuthorities().stream()
+                .anyMatch(authority -> authority.getAuthority().equals("SUPERVISOR"));
+        boolean isStudent = authentication.getAuthorities().stream()
+                .anyMatch(authority -> authority.getAuthority().equals("STUDENT"));
+
+        // Admin can access all areas (Supervisor, Student, Company)
+        boolean showSupervisorLink = isAdmin || isSupervisor;
+        // Supervisor and Admin can access Student area; Students can access their own area
+        boolean showStudentLink = isAdmin || isSupervisor || isStudent;
+        // Admin and Supervisor can access Company area
+        boolean showCompanyLink = isAdmin || isSupervisor;
 
         return Map.of(
                 "username", principal.getName(),
-                "showStudentLink", isStudent,
-                "showSupervisorLink", isSupervisor,
+                "showStudentLink", showStudentLink,
+                "showSupervisorLink", showSupervisorLink,
+                "showCompanyLink", showCompanyLink,
                 "showAdminLink", isAdmin
         );
     }
