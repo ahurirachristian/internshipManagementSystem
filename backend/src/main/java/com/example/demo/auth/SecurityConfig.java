@@ -24,7 +24,7 @@ public class SecurityConfig {
         http
             .csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/", "/login", "/css/**", "/js/**", "/h2-console/**").permitAll()
+                .requestMatchers("/", "/login", "/css/**", "/js/**", "/images/**", "/assets/**", "/app.js", "/favicon.ico", "/h2-console/**").permitAll()
                 .requestMatchers("/admin/**").hasAuthority("ADMIN")
                 .requestMatchers("/supervisor/**").hasAnyAuthority("SUPERVISOR", "ADMIN")
                 .requestMatchers("/student/**").hasAnyAuthority("STUDENT", "SUPERVISOR", "ADMIN")
