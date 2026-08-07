@@ -10,7 +10,7 @@
 
 body{
     font-family:'Poppins',sans-serif;
-    background:#f4f6f9;
+    background:#ccdbf1;
     padding:40px;
 }
 
@@ -57,39 +57,41 @@ body{
 table{
     width:100%;
     border-collapse:collapse;
-    background:white;
+    background:#ffffff;
     border-radius:10px;
     overflow:hidden;
-    box-shadow:0 5px 15px rgba(0,0,0,.08);
+    box-shadow:0 1px 3px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.06);
 }
 
 thead{
-    background:white;
+    background: #f1f3f5;
 }
 
 thead th{
-
-    text-align:left;
-    padding:18px;
-    border-bottom:2px solid #222;
-    font-weight:600;
-    color:#333;
+  font-size: 15px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #1a1d1f;
+  padding: 14px 20px;
+  border-bottom: 2px solid #e9ecef;
+   
 }
 
-tbody td{
-
-    padding:18px;
-    border-bottom:1px solid #eee;
+tbody td {
+  padding: 16px 20px;
+  border-bottom: 1px solid #f1f3f5;
+  font-size: 14px;
+  color: #212529;
 }
 
-tbody tr{
-
-    transition:.3s;
+tbody tr:nth-child(even) {
+  background-color: #fafbfc;
 }
 
-tbody tr:hover{
-
-    background:#f9fbfd;
+tbody tr:hover {
+  background-color: #99acbc;
+  transition: background-color 0.15s ease;
 }
 
 /* ===========================
@@ -98,13 +100,15 @@ tbody tr:hover{
 
 .edit-btn,
 .delete-btn{
-
-    border:none;
-    background:none;
-    cursor:pointer;
-    font-size:17px;
-    margin-right:10px;
-    transition:.3s;
+ display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+   
 }
 
 .edit-btn{
@@ -113,7 +117,7 @@ tbody tr:hover{
 }
 
 .edit-btn:hover{
-
+ background-color: #e7f1ff;
     transform:scale(1.2);
 }
 
@@ -123,9 +127,10 @@ tbody tr:hover{
 }
 
 .delete-btn:hover{
-
+ background-color: #e7f1ff;
     transform:scale(1.2);
 }
+
 
 /* ===========================
    MODAL
@@ -460,4 +465,26 @@ width:95%;
 
 }
 
+}
+.empty-state {
+  text-align: center;
+  padding: 60px 20px;
+}
+
+.empty-icon {
+  font-size: 40px;
+  margin-bottom: 12px;
+}
+
+.empty-title {
+  font-weight: 600;
+  font-size: 16px;
+  color: #212529;
+  margin-bottom: 4px;
+}
+
+.empty-subtitle {
+  color: #6c757d;
+  font-size: 14px;
+  margin-bottom: 16px;
 }

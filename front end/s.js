@@ -20,6 +20,7 @@ const tbody = document.querySelector("#companyTable tbody");
 const companyName = document.getElementById("companyName");
 const companyEmail = document.getElementById("companyEmail");
 const country = document.getElementById("country");
+const branch = document.getElementById("branch");
 const website = document.getElementById("website");
 const postalAddress = document.getElementById("postalAddress");
 const physicalAddress = document.getElementById("physicalAddress");
@@ -185,9 +186,9 @@ form.addEventListener("submit", function (e) {
     const company = {
         name: companyName.value.trim(),
          country: country.value.trim(),
+         branch:branch.value.trim(),
         email: companyEmail.value.trim(),
-         
-        website: website.value.trim(),
+          website: website.value.trim(),
         postal: postalAddress.value.trim(),
         physical: physicalAddress.value.trim()
     };
@@ -217,7 +218,6 @@ form.addEventListener("submit", function (e) {
 
    
 
-
 // =================================
 // LOAD TABLE
 // =================================
@@ -231,8 +231,9 @@ function loadTable() {
 
         row.innerHTML = `
             <td>${company.name}</td>
-            <td>${company.email}</td>
             <td>${company.country}</td>
+            <td>${company.branch}</td>
+            <td>${company.email}</td>
             <td>
                 <a href="${company.website}" target="_blank">
                     ${company.website}
