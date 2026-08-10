@@ -2,6 +2,8 @@
 // ELEMENTS
 // ===============================
 
+const API_BASE = "http://localhost:8082";
+
 const modal = document.getElementById("companyModal");
 const addBtn = document.getElementById("addBtn");
 const closeBtn = document.getElementById("closeModal");
@@ -28,9 +30,8 @@ const physicalAddress = document.getElementById("physicalAddress");
 const formTitle = document.getElementById("formTitle");
 
 let currentStep = 0;
-let editIndex = -1;
-
-let companies = JSON.parse(localStorage.getItem("companies")) || [];
+let editId = null;
+let companies = [];
 
 
 // =================================
@@ -44,9 +45,9 @@ loadTable();
 // OPEN MODAL
 // =================================
 
-addBtn.onclick = () => {
+addBtn.onclick = async () => {
 
-    editIndex = -1;
+    editId = null;
 
     form.reset();
 
@@ -144,7 +145,8 @@ updateSteps();
 // =================================
 // SUBMIT FORM
 // =================================
-form.addEventListener("submit", function (e) {
+
+form.addEventListener("submit", async function (e) {
 
     e.preventDefault();
 
@@ -183,70 +185,123 @@ form.addEventListener("submit", function (e) {
         return;
     }
 
-    const company = {
+    const body = {
         name: companyName.value.trim(),
-         country: country.value.trim(),
-         branch:branch.value.trim(),
+        country: country.value.trim(),
+        branch: branch.value.trim(),
         email: companyEmail.value.trim(),
-          website: website.value.trim(),
-        postal: postalAddress.value.trim(),
-        physical: physicalAddress.value.trim()
+        website: website.value.trim(),
+        postalAddress: postalAddress.value.trim(),
+        physicalAddress: physicalAddress.value.trim()
     };
 
-    if (editIndex === -1) {
-        companies.push(company);
-    } else {
-        companies[editIndex] = company;
+    try {
+        let response;
+        if (editId === null) {
+            response = await fetch(API_BASE + "/api/companies", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                credentials: "include",
+                body: JSON.stringify(body)
+            });
+        } else {
+            response = await fetch(API_BASE + "/api/companies/" + editId, {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                credentials: "include",
+                body: JSON.stringify(body)
+            });
+        }
+
+        if (!response.ok) {
+            const error = await response.json().catch(() => ({}));
+            alert(error.message || error.error || "Failed to save company");
+            return;
+        }
+
+        await loadTable();
+
+        form.reset();
+
+        editId = null;
+
+        currentStep = 0;
+
+        updateSteps();
+
+        modal.style.display = "none";
+
+    } catch (error) {
+        alert("Cannot reach the server. Make sure the backend is running on " + API_BASE + ".");
     }
-
-    localStorage.setItem("companies", JSON.stringify(companies));
-
-    loadTable();
-
-    form.reset();
-
-    editIndex = -1;
-
-    currentStep = 0;
-
-    updateSteps();
-
-    modal.style.display = "none";
 
 });
 
 
-   
-
 // =================================
 // LOAD TABLE
 // =================================
-function loadTable() {
+
+async function loadTable() {
+
+    try {
+        const response = await fetch(API_BASE + "/api/companies", {
+            method: "GET",
+            credentials: "include"
+        });
+
+        if (response.ok) {
+            companies = await response.json();
+        } else if (response.status === 401 || response.status === 403) {
+            companies = [];
+        } else {
+            companies = [];
+        }
+    } catch (error) {
+        companies = [];
+    }
 
     tbody.innerHTML = "";
 
-    companies.forEach((company, index) => {
+    if (companies.length === 0) {
+        const emptyRow = document.createElement("tr");
+        emptyRow.className = "empty-row";
+        emptyRow.innerHTML = `
+            <td colspan="8">
+                <div class="empty-state">
+                    <div class="empty-icon">🏢</div>
+                    <p class="empty-title">No companies yet</p>
+                    <p class="empty-subtitle">Get started by adding your first company</p>
+                    <button class="btn-primary" onclick="document.getElementById('addBtn').click()">+ Add Company</button>
+                </div>
+            </td>
+        `;
+        tbody.appendChild(emptyRow);
+        return;
+    }
+
+    companies.forEach((company) => {
 
         let row = document.createElement("tr");
 
         row.innerHTML = `
             <td>${company.name}</td>
-            <td>${company.country}</td>
-            <td>${company.branch}</td>
+            <td>${company.location}</td>
+            <td>${company.department}</td>
             <td>${company.email}</td>
             <td>
                 <a href="${company.website}" target="_blank">
                     ${company.website}
                 </a>
             </td>
-            <td>${company.postal}</td>
-            <td>${company.physical}</td>
+            <td>${company.profile ? company.profile.split(" | ")[0] : ""}</td>
+            <td>${company.profile ? company.profile.split(" | ")[1] : ""}</td>
             <td>
-                <button class="edit-btn" onclick="editCompany(${index})">
+                <button class="edit-btn" onclick="editCompany(${company.id})">
                     <i class="fa-solid fa-pen"></i>
                 </button>
 
-                <button class="delete-btn" onclick="deleteCompany(${index})">
+                <button class="delete-btn" onclick="deleteCompany(${company.id})">
                     <i class="fa-solid fa-trash"></i>
                 </button>
             </td>
@@ -259,39 +314,28 @@ function loadTable() {
 }
 
 
-     
-
-
-// =================================
-// SAVE
-// =================================
-
-function saveCompanies(){
-
-    localStorage.setItem(
-
-        "companies",
-
-        JSON.stringify(companies)
-
-    );
-
-}
-
-
 // =================================
 // DELETE
 // =================================
 
-function deleteCompany(index){
+async function deleteCompany(id){
 
     if(confirm("Delete this company?")){
 
-        companies.splice(index,1);
+        try {
+            const response = await fetch(API_BASE + "/api/companies/" + id, {
+                method: "DELETE",
+                credentials: "include"
+            });
 
-        saveCompanies();
-
-        loadTable();
+            if (response.ok || response.status === 204) {
+                await loadTable();
+            } else {
+                alert("Failed to delete company");
+            }
+        } catch (error) {
+            alert("Cannot reach the server. Make sure the backend is running on " + API_BASE + ".");
+        }
 
     }
 
@@ -302,22 +346,22 @@ function deleteCompany(index){
 // EDIT
 // =================================
 
-function editCompany(index){
+async function editCompany(id){
 
-    const company = companies[index];
+    const company = companies.find(c => c.id === id);
 
-    editIndex = index;
+    if (!company) return;
+
+    editId = id;
 
     companyName.value = company.name;
-
     companyEmail.value = company.email;
-    country.value = company.country;
-
-    website.value = company.website;
-
-    postalAddress.value = company.postal;
-
-    physicalAddress.value = company.physical;
+    country.value = company.location || "";
+    branch.value = company.department || "";
+    website.value = company.website || "";
+    const parts = (company.profile || "").split(" | ");
+    postalAddress.value = parts[0] || "";
+    physicalAddress.value = parts[1] || "";
 
     formTitle.innerText = "Edit Company";
 
