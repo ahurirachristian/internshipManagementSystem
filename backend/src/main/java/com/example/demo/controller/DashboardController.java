@@ -40,11 +40,4 @@ public class DashboardController {
         model.addAttribute("message", "Supervisor area");
         return "supervisor";
     }
-
-    @GetMapping("/admin/dashboard")
-    @PreAuthorize("hasAuthority('ADMIN')")
-    public String adminDashboard(Model model) {
-        model.addAttribute("message", "Admin area");
-        return "admin";
-    }
 }

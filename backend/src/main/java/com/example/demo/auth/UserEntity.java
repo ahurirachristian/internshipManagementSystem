@@ -27,6 +27,12 @@ public class UserEntity {
     @Column(nullable = false)
     private Role role;
 
+    @Column(nullable = true)
+    private String provider;
+
+    @Column(nullable = true, unique = true)
+    private String providerId;
+
     public UserEntity() {
     }
 
@@ -34,6 +40,14 @@ public class UserEntity {
         this.username = username;
         this.password = password;
         this.role = role;
+    }
+
+    public UserEntity(String username, String password, Role role, String provider, String providerId) {
+        this.username = username;
+        this.password = password;
+        this.role = role;
+        this.provider = provider;
+        this.providerId = providerId;
     }
 
     public Long getId() {
@@ -62,5 +76,21 @@ public class UserEntity {
 
     public void setRole(Role role) {
         this.role = role;
+    }
+
+    public String getProvider() {
+        return provider;
+    }
+
+    public void setProvider(String provider) {
+        this.provider = provider;
+    }
+
+    public String getProviderId() {
+        return providerId;
+    }
+
+    public void setProviderId(String providerId) {
+        this.providerId = providerId;
     }
 }

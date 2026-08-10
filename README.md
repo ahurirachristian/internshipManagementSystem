@@ -23,7 +23,7 @@ The `backend/` folder contains the complete reference implementation from the or
 ### Stack
 - **Spring Boot 3.x** (Spring Web, Spring Security, Spring Data JPA, Thymeleaf)
 - **Java 17**
-- **MySQL** (production database)
+- **MySQL** (production database) or **H2** (in-memory, for local development)
 - **Maven** (with wrapper)
 
 ### Features
@@ -35,16 +35,44 @@ The `backend/` folder contains the complete reference implementation from the or
 - Access control tests
 
 ### Demo Users
-- `student` / `student123`
-- `supervisor` / `supervisor123`
-- `admin` / `admin123`
+
+| Username | Password | Role |
+|----------|----------|------|
+| `student` | `student123` | STUDENT |
+| `supervisor` | `supervisor123` | SUPERVISOR |
+| `admin` | `admin123` | ADMIN |
+
+### Admin Dashboard
+The admin dashboard at `/admin/dashboard` provides full user management:
+- **Add User** — create new users with username, role, and auto-generated password (`{username}123`)
+- **Edit User** — update username and role inline
+- **Delete User** — remove users with confirmation
+
+### OAuth2 Social Login
+Login with Google, LinkedIn, or X/Twitter is available on the login page. OAuth2 client credentials need to be configured in `application-dev.properties` or `application-mysql.properties` (see API Reference).
 
 ### How to Run
+
+**Default (dev profile with H2 in-memory database):**
+
+Just run the app — no database setup needed:
 
 ```bash
 cd backend
 ./mvnw spring-boot:run
 ```
+
+**Production (MySQL):**
+
+1. Install MySQL and create the database:
+   ```bash
+   mysql -u root -p -e "CREATE DATABASE IF NOT EXISTS internshipManagementSystem_db;"
+   ```
+2. Run with the MySQL profile:
+   ```bash
+   cd backend
+   ./mvnw spring-boot:run -Dspring-boot.run.profiles=mysql
+   ```
 
 Or package and run the JAR:
 
@@ -54,7 +82,7 @@ cd backend
 java -jar target/demo-0.0.1-SNAPSHOT.jar
 ```
 
-Then open [http://localhost:8080](http://localhost:8080).
+Then open [http://localhost:8081](http://localhost:8081).
 
 ### Running Tests
 
@@ -75,11 +103,24 @@ Reserved for frontend assets and code. Currently empty.
 
 - **Java 17+**
 - **Maven 3.6+** (or use the included Maven wrapper `./mvnw`)
-- **MySQL** (create database `internshipManagementSystem_db` before running)
+- **MySQL** (optional, only needed for production; H2 is used by default for local development)
 
 ---
 
 ## Contributing
+
+### Setup for New Contributors
+
+1. Clone the repository
+2. Ensure **Java 17+** and **Maven 3.6+** are installed
+3. Run the app with the default dev profile (H2 in-memory database, no extra setup needed):
+   ```bash
+   cd backend
+   ./mvnw spring-boot:run
+   ```
+4. Open [http://localhost:8081](http://localhost:8081)
+
+If you want to use MySQL instead, create the database and run with the `mysql` profile as described above.
 
 All team members must follow this branching workflow:
 

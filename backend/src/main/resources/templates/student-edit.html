@@ -16,10 +16,6 @@
         label { font-weight: 700; color: #334155; }
         input, select { border: 1px solid #cbd5e1; border-radius: 12px; padding: 10px 12px; font-size: 0.95rem; width: 100%; max-width: 320px; }
         .full-width { grid-column: span 2; }
-        .dropdown { position: relative; }
-        .dropdown-list { position: absolute; top: 100%; left: 0; right: 0; background: white; border: 1px solid #cbd5e1; border-radius: 10px; max-height: 220px; overflow-y: auto; z-index: 10; }
-        .dropdown-item { padding: 10px 14px; cursor: pointer; }
-        .dropdown-item:hover { background: #eef2ff; }
         .actions { padding: 0 32px 32px; display: flex; gap: 14px; align-items: center; flex-wrap: wrap; }
         .button { min-width: 140px; }
         .button { background: #2563eb; color: white; border: none; border-radius: 12px; padding: 14px 20px; font-size: 1rem; cursor: pointer; text-decoration: none; }
@@ -54,9 +50,10 @@
                 </select></div>
                 <div class="field"><label>Internship Company</label><input type="text" th:field="*{internshipCompany}" required/></div>
                 <div class="field full-width"><label>University</label>
-                    <input id="university-search" type="text" placeholder="Start typing a university..." value="" autocomplete="off"/>
-                    <input type="hidden" th:field="*{universitySupervisor}" id="universitySupervisor" />
-                    <div id="university-results" class="dropdown"></div>
+                    <select th:field="*{universitySupervisor}" required>
+                        <option value="">-- Select University --</option>
+                        <option th:each="university : ${universities}" th:value="${university.name}" th:text="${university.name}"></option>
+                    </select>
                 </div>
                 <div class="field"><label>Industrial Supervisor ID</label><input type="text" th:field="*{industrialSupervisorId}" required/></div>
                 <div class="field"><label>Company ID</label><input type="text" th:field="*{companyId}" required/></div>
@@ -69,59 +66,5 @@
         </form>
     </div>
 </div>
-<script>
-    const searchInput = document.getElementById('university-search');
-    const resultsContainer = document.getElementById('university-results');
-    const hiddenField = document.getElementById('universitySupervisor');
-
-    let timeout = null;
-
-    function closeResults() {
-        resultsContainer.innerHTML = '';
-    }
-
-    function renderResults(items) {
-        if (!items.length) {
-            resultsContainer.innerHTML = '<div class="dropdown-list"><div class="dropdown-item">No universities found</div></div>';
-            return;
-        }
-        const list = items.map(item =>
-            `<div class="dropdown-item" data-name="${item.name}">${item.name}</div>`
-        ).join('');
-        resultsContainer.innerHTML = `<div class="dropdown-list">${list}</div>`;
-        resultsContainer.querySelectorAll('.dropdown-item').forEach(el => {
-            el.addEventListener('click', () => {
-                const name = el.dataset.name;
-                searchInput.value = name;
-                hiddenField.value = name;
-                closeResults();
-            });
-        });
-    }
-
-    searchInput.addEventListener('input', () => {
-        const query = searchInput.value.trim();
-        hiddenField.value = query;
-        if (timeout) clearTimeout(timeout);
-        if (!query) {
-            closeResults();
-            return;
-        }
-        timeout = setTimeout(() => {
-            fetch(`/student/universities/search?q=${encodeURIComponent(query)}`)
-                .then(response => response.json())
-                .then(renderResults)
-                .catch(() => {
-                    resultsContainer.innerHTML = '<div class="dropdown-list"><div class="dropdown-item">Unable to search</div></div>';
-                });
-        }, 250);
-    });
-
-    document.addEventListener('click', event => {
-        if (!resultsContainer.contains(event.target) && event.target !== searchInput) {
-            closeResults();
-        }
-    });
-</script>
 </body>
 </html>
