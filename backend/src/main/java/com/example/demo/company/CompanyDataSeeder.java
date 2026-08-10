@@ -1,21 +1,31 @@
 package com.example.demo.company;
 
+import com.example.demo.auth.Role;
+import com.example.demo.auth.UserEntity;
+import com.example.demo.auth.UserRepository;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
 @Component
 public class CompanyDataSeeder implements CommandLineRunner {
 
     private final CompanyRepository companyRepository;
+    private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
 
-    public CompanyDataSeeder(CompanyRepository companyRepository) {
+    public CompanyDataSeeder(CompanyRepository companyRepository,
+            UserRepository userRepository,
+            PasswordEncoder passwordEncoder) {
         this.companyRepository = companyRepository;
+        this.userRepository = userRepository;
+        this.passwordEncoder = passwordEncoder;
     }
 
     @Override
     public void run(String... args) throws Exception {
         if (companyRepository.count() == 0) {
-            companyRepository.save(new Company(
+            Company airtel = companyRepository.save(new Company(
                 "Airtel Uganda", 
                 "Kampala", 
                 "info@airtel.co.ug", 
@@ -27,7 +37,7 @@ public class CompanyDataSeeder implements CommandLineRunner {
                 "Software Development Intern"
             ));
 
-            companyRepository.save(new Company(
+            Company mtn = companyRepository.save(new Company(
                 "MTN Uganda", 
                 "Kampala", 
                 "support@mtn.co.ug", 
@@ -38,6 +48,15 @@ public class CompanyDataSeeder implements CommandLineRunner {
                 "Jane Smith", 
                 "Network Engineering Intern"
             ));
+
+            // Seed a company user account linked to the Airtel company (id 1)
+            if (userRepository.findByUsername("airtel").isEmpty()) {
+                userRepository.save(new UserEntity("airtel",
+                        passwordEncoder.encode("company123"),
+                        Role.COMPANY,
+                        airtel.getId(),
+                        null));
+            }
         }
     }
 }

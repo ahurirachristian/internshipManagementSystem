@@ -1,127 +1,170 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Edit Student Profile</title>
-    <style>
-        body { font-family: Arial, sans-serif; background: #f4f7fb; padding: 36px; }
-        .container { max-width: 940px; margin: 0 auto; }
-        .card { background: white; border-radius: 18px; box-shadow: 0 16px 40px rgba(15, 23, 42, 0.12); overflow: hidden; }
-        .hero { display: flex; gap: 22px; align-items: center; padding: 32px; border-bottom: 1px solid #e2e8f0; }
-        .avatar { width: 120px; height: 120px; border-radius: 18px; object-fit: cover; border: 3px solid #2563eb; }
-        .hero h1 { margin: 0; font-size: 2rem; }
-        .hero p { margin: 8px 0 0; color: #475569; }
-        .form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; padding: 32px; }
-        .field { display: flex; flex-direction: column; gap: 8px; max-width: 360px; }
-        label { font-weight: 700; color: #334155; }
-        input, select { border: 1px solid #cbd5e1; border-radius: 12px; padding: 10px 12px; font-size: 0.95rem; width: 100%; max-width: 320px; }
-        .full-width { grid-column: span 2; }
-        .dropdown { position: relative; }
-        .dropdown-list { position: absolute; top: 100%; left: 0; right: 0; background: white; border: 1px solid #cbd5e1; border-radius: 10px; max-height: 220px; overflow-y: auto; z-index: 10; }
-        .dropdown-item { padding: 10px 14px; cursor: pointer; }
-        .dropdown-item:hover { background: #eef2ff; }
-        .actions { padding: 0 32px 32px; display: flex; gap: 14px; align-items: center; flex-wrap: wrap; }
-        .button { min-width: 140px; }
-        .button { background: #2563eb; color: white; border: none; border-radius: 12px; padding: 14px 20px; font-size: 1rem; cursor: pointer; text-decoration: none; }
-        .secondary { background: #e2e8f0; color: #0f172a; }
-    </style>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Student - Internship Management System</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+    <link rel="stylesheet" th:href="@{/css/riho.css}">
 </head>
 <body>
-<div class="container">
-    <div class="card">
-        <div class="hero">
-            <img th:src="${student.pictureUrl}" src="/images/student-placeholder.svg" alt="Student photo" class="avatar" />
+    <div class="sidebar">
+        <div class="sidebar-brand">
+            <div class="brand-logo"><i class="fa-solid fa-graduation-cap"></i></div>
             <div>
-                <h1>Edit Profile</h1>
-                <p>Update your internship profile information and save changes.</p>
+                <div class="brand-name">IMS Portal</div>
+                <div class="brand-sub">Internship Management</div>
             </div>
         </div>
-        <form th:action="@{/student/profile/edit}" th:object="${student}" method="post">
-            <div class="form-grid">
-                <div class="field"><label>First Name</label><input type="text" th:field="*{firstName}" required/></div>
-                <div class="field"><label>Last Name</label><input type="text" th:field="*{lastName}" required/></div>
-                <div class="field"><label>Email</label><input type="email" th:field="*{email}" required/></div>
-                <div class="field"><label>Phone Number</label><input type="text" th:field="*{phoneNumber}" required/></div>
-                <div class="field"><label>Student Number</label><input type="text" th:field="*{studentNumber}" required/></div>
-                <div class="field"><label>Registration Number</label><input type="text" th:field="*{registrationNumber}" required/></div>
-                <div class="field"><label>Degree Program</label><input type="text" th:field="*{degreeProgram}" required/></div>
-                <div class="field"><label>Year of Study</label><select th:field="*{yearOfStudy}" required>
-                    <option th:value="1">1</option>
-                    <option th:value="2">2</option>
-                    <option th:value="3">3</option>
-                    <option th:value="4">4</option>
-                    <option th:value="5">5</option>
-                </select></div>
-                <div class="field"><label>Internship Company</label><input type="text" th:field="*{internshipCompany}" required/></div>
-                <div class="field full-width"><label>University</label>
-                    <input id="university-search" type="text" placeholder="Start typing a university..." value="" autocomplete="off"/>
-                    <input type="hidden" th:field="*{universitySupervisor}" id="universitySupervisor" />
-                    <div id="university-results" class="dropdown"></div>
+        <nav class="sidebar-nav">
+            <div class="nav-label">Main</div>
+            <th:block th:if="${userRole == 'ADMIN' || userRole == 'SUPERVISOR'}">
+                <div class="nav-dropdown">
+                    <button type="button" class="nav-link nav-dropdown-toggle" aria-expanded="false">
+                        <i class="fa-solid fa-gauge"></i> Dashboard <i class="fa-solid fa-chevron-down nav-caret"></i>
+                    </button>
+                    <div class="nav-submenu">
+                        <a th:href="@{/university/dashboard}"><i class="fa-solid fa-user-tie"></i> University Area</a>
+                        <a th:href="@{/student/dashboard}"><i class="fa-solid fa-user-graduate"></i> Student Area</a>
+                        <a th:href="@{/company/dashboard}"><i class="fa-solid fa-building"></i> Company Area</a>
+                    </div>
                 </div>
-                <div class="field"><label>Industrial Supervisor ID</label><input type="text" th:field="*{industrialSupervisorId}" required/></div>
-                <div class="field"><label>Company ID</label><input type="text" th:field="*{companyId}" required/></div>
-                <div class="field full-width"><label>Picture URL</label><input type="text" th:field="*{pictureUrl}" placeholder="/images/student-placeholder.svg"/></div>
-            </div>
-            <div class="actions">
-                <button type="submit" class="button">Save Profile</button>
-                <a href="/student/dashboard" class="button secondary">Next Page</a>
-            </div>
-        </form>
+            </th:block>
+            <a th:if="${userRole != 'ADMIN' && userRole != 'SUPERVISOR'}" class="nav-link" href="/student/dashboard"><i class="fa-solid fa-gauge"></i> My Dashboard</a>
+            <div class="nav-label">Management</div>
+            <a th:if="${userRole == 'COMPANY'}" class="nav-link" href="/company/dashboard"><i class="fa-solid fa-building-flag"></i> My Company</a>
+            <a th:if="${userRole != 'COMPANY'}" class="nav-link" href="/company"><i class="fa-solid fa-building-flag"></i> Companies</a>
+            <a class="nav-link active" href="/student/dashboard"><i class="fa-solid fa-user-graduate"></i> Students</a>
+            <a class="nav-link" href="/university/dashboard"><i class="fa-solid fa-user-tie"></i> University</a>
+            <div class="nav-label">Account</div>
+            <a class="nav-link" href="/logout"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
+        </nav>
+        <div class="sidebar-footer">
+            <a class="nav-link" href="/logout"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
+        </div>
     </div>
-</div>
-<script>
-    const searchInput = document.getElementById('university-search');
-    const resultsContainer = document.getElementById('university-results');
-    const hiddenField = document.getElementById('universitySupervisor');
-
-    let timeout = null;
-
-    function closeResults() {
-        resultsContainer.innerHTML = '';
-    }
-
-    function renderResults(items) {
-        if (!items.length) {
-            resultsContainer.innerHTML = '<div class="dropdown-list"><div class="dropdown-item">No universities found</div></div>';
-            return;
-        }
-        const list = items.map(item =>
-            `<div class="dropdown-item" data-name="${item.name}">${item.name}</div>`
-        ).join('');
-        resultsContainer.innerHTML = `<div class="dropdown-list">${list}</div>`;
-        resultsContainer.querySelectorAll('.dropdown-item').forEach(el => {
-            el.addEventListener('click', () => {
-                const name = el.dataset.name;
-                searchInput.value = name;
-                hiddenField.value = name;
-                closeResults();
+    <div class="main">
+        <header class="topbar">
+            <div class="topbar-search">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input type="text" placeholder="Search..." aria-label="Search" />
+            </div>
+            <div class="topbar-actions">
+                <button type="button" class="icon-btn" title="Notifications">
+                    <i class="fa-regular fa-bell"></i>
+                    <span class="notif-dot"></span>
+                </button>
+                <div class="user-chip">
+                    <div class="avatar"><i class="fa-solid fa-user-graduate"></i></div>
+                    <div>
+                        <div class="user-name" th:text="${student.firstName + ' ' + student.lastName}">Student</div>
+                        <div class="user-role">Student</div>
+                    </div>
+                </div>
+            </div>
+        </header>
+        <div class="content">
+            <div class="page-header">
+                <div>
+                    <h1 class="page-title">Edit Student</h1>
+                    <p class="page-subtitle" th:text="${student.firstName + ' ' + student.lastName + ' · ' + student.studentNumber}">Student details</p>
+                </div>
+                <div class="page-actions">
+                    <a th:href="${backUrl}" class="btn btn-outline"><i class="fa-solid fa-arrow-left"></i> Back to Dashboard</a>
+                </div>
+            </div>
+            <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div>
+            <div th:if="${errorMessage}" class="alert alert-error" th:text="${errorMessage}"></div>
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title"><i class="fa-solid fa-user-pen"></i> Student Details</span>
+                </div>
+                <div class="card-body">
+                    <form th:action="@{/students/edit/{id}(id=${student.id})}" th:object="${student}" method="post">
+                        <input type="hidden" name="_method" value="put" />
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label>First Name</label>
+                                <input type="text" th:field="*{firstName}" class="form-input" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Last Name</label>
+                                <input type="text" th:field="*{lastName}" class="form-input" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Email</label>
+                                <input type="email" th:field="*{email}" class="form-input" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Student Number</label>
+                                <input type="text" th:field="*{studentNumber}" class="form-input" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Registration Number</label>
+                                <input type="text" th:field="*{registrationNumber}" class="form-input" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Degree Program</label>
+                                <input type="text" th:field="*{degreeProgram}" class="form-input" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Year of Study</label>
+                                <input type="number" th:field="*{yearOfStudy}" class="form-input" min="1" max="6" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Phone Number</label>
+                                <input type="text" th:field="*{phoneNumber}" class="form-input" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Internship Company</label>
+                                <input type="text" th:field="*{internshipCompany}" class="form-input" required>
+                            </div>
+                            <div class="form-group">
+                                <label>University Supervisor</label>
+                                <input type="text" th:field="*{universitySupervisor}" class="form-input" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Company Supervisor</label>
+                                <input type="text" th:field="*{industrialSupervisorId}" class="form-input" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Company ID</label>
+                                <input type="text" th:field="*{companyId}" class="form-input" required>
+                            </div>
+                            <div class="form-group full">
+                                <label>Picture URL</label>
+                                <input type="text" th:field="*{pictureUrl}" class="form-input">
+                            </div>
+                        </div>
+                        <div class="form-actions">
+                            <button type="submit" class="btn btn-primary"><i class="fa-solid fa-save"></i> Save Changes</button>
+                            <a th:href="${backUrl}" class="btn btn-outline"><i class="fa-solid fa-xmark"></i> Cancel</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        document.querySelectorAll('.nav-dropdown').forEach(function (dropdown) {
+            var toggle = dropdown.querySelector('.nav-dropdown-toggle');
+            if (!toggle) return;
+            toggle.addEventListener('click', function () {
+                var open = dropdown.classList.toggle('open');
+                toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
             });
         });
-    }
-
-    searchInput.addEventListener('input', () => {
-        const query = searchInput.value.trim();
-        hiddenField.value = query;
-        if (timeout) clearTimeout(timeout);
-        if (!query) {
-            closeResults();
-            return;
-        }
-        timeout = setTimeout(() => {
-            fetch(`/student/universities/search?q=${encodeURIComponent(query)}`)
-                .then(response => response.json())
-                .then(renderResults)
-                .catch(() => {
-                    resultsContainer.innerHTML = '<div class="dropdown-list"><div class="dropdown-item">Unable to search</div></div>';
-                });
-        }, 250);
-    });
-
-    document.addEventListener('click', event => {
-        if (!resultsContainer.contains(event.target) && event.target !== searchInput) {
-            closeResults();
-        }
-    });
-</script>
+        document.addEventListener('click', function (event) {
+            document.querySelectorAll('.nav-dropdown.open').forEach(function (dropdown) {
+                if (!dropdown.contains(event.target)) {
+                    dropdown.classList.remove('open');
+                    var t = dropdown.querySelector('.nav-dropdown-toggle');
+                    if (t) t.setAttribute('aria-expanded', 'false');
+                }
+            });
+        });
+    </script>
 </body>
 </html>

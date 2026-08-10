@@ -35,9 +35,17 @@ The `backend/` folder contains the complete reference implementation from the or
 - Access control tests
 
 ### Demo Users
-- `student` / `student123`
-- `supervisor` / `supervisor123`
-- `admin` / `admin123`
+- `student` / `student123` — Student dashboard
+- `university` / `university123` — University (SUPERVISOR) dashboard
+- `airtel` / `company123` — Company portal (COMPANY role)
+- `admin` / `admin123` — Admin dashboard
+
+| Role       | Home URL                | Access                                  |
+|------------|-------------------------|-----------------------------------------|
+| STUDENT    | `/student/dashboard`    | Personal dashboard, day-diary           |
+| SUPERVISOR | `/university/dashboard` | University portal, student registration |
+| COMPANY    | `/company/dashboard`    | Company profile + intern management     |
+| ADMIN      | `/admin/dashboard`      | Admin console                           |
 
 ### How to Run
 

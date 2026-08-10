@@ -27,6 +27,12 @@ public class UserEntity {
     @Column(nullable = false)
     private Role role;
 
+    @Column(name = "company_id", nullable = true)
+    private Long companyId;
+
+    @Column(name = "university_id", nullable = true)
+    private Long universityId;
+
     public UserEntity() {
     }
 
@@ -34,6 +40,14 @@ public class UserEntity {
         this.username = username;
         this.password = password;
         this.role = role;
+    }
+
+    public UserEntity(String username, String password, Role role, Long companyId, Long universityId) {
+        this.username = username;
+        this.password = password;
+        this.role = role;
+        this.companyId = companyId;
+        this.universityId = universityId;
     }
 
     public Long getId() {
@@ -62,5 +76,21 @@ public class UserEntity {
 
     public void setRole(Role role) {
         this.role = role;
+    }
+
+    public Long getCompanyId() {
+        return companyId;
+    }
+
+    public void setCompanyId(Long companyId) {
+        this.companyId = companyId;
+    }
+
+    public Long getUniversityId() {
+        return universityId;
+    }
+
+    public void setUniversityId(Long universityId) {
+        this.universityId = universityId;
     }
 }

@@ -1,9 +1,12 @@
 package com.example.demo.service;
 
+import java.util.List;
 import java.util.Optional;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import com.example.demo.dto.StudentProfileDto;
+import com.example.demo.student.DayDiary;
+import com.example.demo.student.DayDiaryRepository;
 import com.example.demo.student.StudentProfile;
 import com.example.demo.student.StudentProfileRepository;
 
@@ -12,9 +15,11 @@ import com.example.demo.student.StudentProfileRepository;
 public class StudentService {
 
     private final StudentProfileRepository studentProfileRepository;
+    private final DayDiaryRepository dayDiaryRepository;
 
-    public StudentService(StudentProfileRepository studentProfileRepository) {
+    public StudentService(StudentProfileRepository studentProfileRepository, DayDiaryRepository dayDiaryRepository) {
         this.studentProfileRepository = studentProfileRepository;
+        this.dayDiaryRepository = dayDiaryRepository;
     }
 
     public Optional<StudentProfile> findByUsername(String username) {
@@ -81,5 +86,13 @@ public class StudentService {
 
     public StudentProfile save(StudentProfile profile) {
         return studentProfileRepository.save(profile);
+    }
+
+    public DayDiary saveDayDiary(DayDiary diaryEntry) {
+        return dayDiaryRepository.save(diaryEntry);
+    }
+
+    public List<DayDiary> findDiaryEntriesByUsername(String username) {
+        return dayDiaryRepository.findByStudentProfileUsernameOrderByDateDesc(username);
     }
 }

@@ -4,537 +4,54 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Student Profile - Internship Management System</title>
-    <style>
-        :root {
-            --primary-color: #2c3e50;
-            --primary-dark: #1a252f;
-            --accent-color: #3498db;
-            --bg-color: #f0f4f8;
-            --card-bg: #ffffff;
-            --text-dark: #1a1a2e;
-            --text-light: #6b7280;
-            --border-color: #e5e7eb;
-            --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.06);
-            --shadow-md: 0 8px 30px rgba(0, 0, 0, 0.10);
-            --shadow-lg: 0 16px 48px rgba(0, 0, 0, 0.14);
-        }
-
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-
-        body {
-            font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, 'Helvetica Neue', Arial, sans-serif;
-            background: linear-gradient(135deg, #f0f4f8 0%, #e8edf2 100%);
-            margin: 0;
-            display: flex;
-            min-height: 100vh;
-            color: var(--text-dark);
-        }
-
-        /* ===== Sidebar Navigation ===== */
-        .sidebar {
-            width: 260px;
-            background: linear-gradient(180deg, var(--primary-dark) 0%, var(--primary-color) 100%);
-            color: white;
-            display: flex;
-            flex-direction: column;
-            padding-top: 20px;
-            box-shadow: 2px 0 15px rgba(0, 0, 0, 0.15);
-            position: sticky;
-            top: 0;
-            height: 100vh;
-            flex-shrink: 0;
-        }
-        .sidebar-header {
-            padding: 20px 24px;
-            font-size: 1.25rem;
-            font-weight: 700;
-            text-align: center;
-            letter-spacing: 0.5px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-            margin-bottom: 10px;
-        }
-        .nav-links { flex: 1; }
-        .nav-links a {
-            padding: 14px 24px;
-            display: block;
-            color: #bdc3c7;
-            text-decoration: none;
-            transition: all 0.3s ease;
-            border-left: 3px solid transparent;
-            font-size: 0.95rem;
-        }
-        .nav-links a:hover,
-        .nav-links a.active {
-            background-color: rgba(52, 152, 219, 0.15);
-            color: white;
-            border-left-color: var(--accent-color);
-        }
-
-        /* ===== Main Content Area ===== */
-        .main-content {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            min-width: 0;
-        }
-
-        /* ===== Top Header Bar ===== */
-        .top-bar {
-            background-color: var(--card-bg);
-            padding: 16px 32px;
-            border-bottom: 1px solid var(--border-color);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            box-shadow: var(--shadow-sm);
-            position: sticky;
-            top: 0;
-            z-index: 10;
-        }
-        .top-bar .welcome-text {
-            font-size: 1rem;
-            color: var(--text-light);
-        }
-        .top-bar .welcome-text strong {
-            color: var(--primary-color);
-        }
-        .user-menu {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
-        .user-badge {
-            background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
-            color: white;
-            padding: 8px 16px;
-            border-radius: 20px;
-            font-size: 0.85rem;
-            font-weight: 600;
-        }
-        .btn-logout {
-            background-color: #e74c3c;
-            color: white;
-            padding: 8px 16px;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            text-decoration: none;
-            font-weight: 600;
-            font-size: 0.85rem;
-            transition: all 0.3s ease;
-        }
-        .btn-logout:hover {
-            background-color: #c0392b;
-            transform: translateY(-1px);
-        }
-
-        /* ===== Profile Container ===== */
-        .profile-container {
-            padding: 40px;
-            flex: 1;
-            max-width: 1100px;
-            width: 100%;
-            margin: 0 auto;
-        }
-
-        .page-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 30px;
-            flex-wrap: wrap;
-            gap: 16px;
-        }
-        .page-header h1 {
-            font-size: 1.8rem;
-            color: var(--primary-color);
-            font-weight: 700;
-            letter-spacing: -0.5px;
-        }
-        .page-header .subtitle {
-            color: var(--text-light);
-            font-size: 0.9rem;
-            margin-top: 4px;
-        }
-
-        /* ===== Action Buttons (Dark Theme) ===== */
-        .action-buttons {
-            display: flex;
-            gap: 12px;
-            flex-wrap: wrap;
-        }
-        .btn {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            padding: 11px 22px;
-            background-color: var(--primary-color);
-            color: white;
-            text-decoration: none;
-            border-radius: 8px;
-            font-weight: 600;
-            font-size: 0.9rem;
-            border: none;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 2px 8px rgba(44, 62, 80, 0.25);
-        }
-        .btn:hover {
-            background-color: var(--primary-dark);
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(44, 62, 80, 0.35);
-        }
-        .btn:active {
-            transform: translateY(0);
-            box-shadow: 0 2px 4px rgba(44, 62, 80, 0.2);
-        }
-        .btn-secondary {
-            background-color: #34495e;
-        }
-        .btn-secondary:hover {
-            background-color: var(--primary-color);
-        }
-
-        /* ===== Premium Profile Card ===== */
-        .profile-card {
-            background-color: var(--card-bg);
-            border-radius: 16px;
-            box-shadow: var(--shadow-lg);
-            overflow: hidden;
-            border: 1px solid rgba(255, 255, 255, 0.8);
-            position: relative;
-        }
-        .profile-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 4px;
-            background: linear-gradient(90deg, var(--primary-color), var(--accent-color), var(--primary-color));
-            z-index: 1;
-        }
-
-        .card-header {
-            padding: 28px 36px;
-            border-bottom: 1px solid var(--border-color);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background: linear-gradient(180deg, #fafbfc 0%, #ffffff 100%);
-        }
-        .card-header .header-title {
-            font-size: 1.3rem;
-            font-weight: 700;
-            color: var(--primary-color);
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-        .card-header .header-title .header-icon {
-            width: 36px;
-            height: 36px;
-            background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-size: 1rem;
-        }
-        .btn-edit {
-            background: linear-gradient(135deg, var(--accent-color), #2980b9);
-            color: white;
-            padding: 10px 20px;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            text-decoration: none;
-            font-weight: 600;
-            font-size: 0.9rem;
-            transition: all 0.3s ease;
-            box-shadow: 0 2px 8px rgba(52, 152, 219, 0.3);
-        }
-        .btn-edit:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 16px rgba(52, 152, 219, 0.4);
-        }
-
-        /* ===== Student Identity Section ===== */
-        .student-identity {
-            display: flex;
-            align-items: center;
-            gap: 24px;
-            padding: 32px 36px;
-            background: linear-gradient(135deg, #f8fafc 0%, #ffffff 100%);
-            border-bottom: 1px solid var(--border-color);
-            flex-wrap: wrap;
-        }
-
-        .avatar-frame {
-            width: 92px;
-            height: 92px;
-            border-radius: 50%;
-            background: #f0f4f8;
-            border: 3px solid var(--accent-color);
-            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-shrink: 0;
-            overflow: hidden;
-        }
-        .avatar-frame img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-
-        .student-name-block {
-            flex: 1;
-            min-width: 200px;
-        }
-        .student-name-block .student-name {
-            font-size: 1.6rem;
-            font-weight: 700;
-            color: var(--text-dark);
-            letter-spacing: -0.5px;
-            margin-bottom: 4px;
-        }
-        .student-name-block .student-degree {
-            color: var(--text-light);
-            font-size: 0.9rem;
-        }
-        .badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            margin-top: 12px;
-            padding: 8px 16px;
-            background: linear-gradient(135deg, var(--accent-color), #2980b9);
-            color: white;
-            border-radius: 999px;
-            font-weight: 600;
-            font-size: 0.82rem;
-            box-shadow: 0 2px 8px rgba(52, 152, 219, 0.3);
-        }
-
-        /* ===== Two-Column Data Grid ===== */
-        .profile-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 0;
-            padding: 8px 36px 36px;
-        }
-
-        .info-group {
-            padding: 20px 24px;
-            transition: background-color 0.2s ease;
-        }
-        .info-group:hover {
-            background-color: #f8fafc;
-        }
-
-        /* Row separators: items 1-8 form 4 rows */
-        .info-group:nth-child(-n+8) {
-            border-bottom: 1px solid var(--border-color);
-        }
-        /* Column separator: left column */
-        .info-group:nth-child(odd) {
-            border-right: 1px solid var(--border-color);
-        }
-        /* Full-width item */
-        .info-group.full-width {
-            grid-column: 1 / -1;
-            border-right: none;
-            border-bottom: none;
-            margin-top: 8px;
-            padding-top: 28px;
-        }
-
-        .info-label {
-            font-size: 0.75rem;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.8px;
-            color: var(--text-light);
-            margin-bottom: 8px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        .info-label .label-icon {
-            width: 26px;
-            height: 26px;
-            background: #f0f4f8;
-            border-radius: 6px;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 0.8rem;
-            flex-shrink: 0;
-        }
-
-        .info-value {
-            font-size: 1.05rem;
-            color: var(--text-dark);
-            font-weight: 600;
-            line-height: 1.5;
-            word-break: break-word;
-        }
-
-        /* ===== Modal ===== */
-        .modal {
-            display: none;
-            position: fixed;
-            z-index: 200;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            overflow: auto;
-            background-color: rgba(26, 37, 47, 0.55);
-            -webkit-backdrop-filter: blur(2px);
-            backdrop-filter: blur(2px);
-        }
-        .modal-content {
-            background: white;
-            margin: 40px auto;
-            border-radius: 16px;
-            width: min(920px, calc(100% - 40px));
-            padding: 28px;
-            box-shadow: var(--shadow-lg);
-            position: relative;
-        }
-        .modal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-            padding-bottom: 16px;
-            border-bottom: 1px solid var(--border-color);
-        }
-        .modal-header h2 {
-            font-size: 1.3rem;
-            color: var(--primary-color);
-        }
-        .close-button {
-            font-size: 1.6rem;
-            cursor: pointer;
-            color: var(--text-light);
-            transition: color 0.2s ease;
-            background: none;
-            border: none;
-        }
-        .close-button:hover {
-            color: var(--text-dark);
-        }
-        .modal-grid {
-            display: grid;
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-            gap: 16px;
-        }
-        .modal-grid .field {
-            background: #f8fafc;
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
-            padding: 14px 16px;
-        }
-        .modal-grid .field label {
-            font-size: 0.8rem;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            color: var(--text-light);
-            display: block;
-            margin-bottom: 8px;
-        }
-        .modal-grid input,
-        .modal-grid select {
-            width: 100%;
-            padding: 10px 12px;
-            border: 1px solid #cbd5e1;
-            border-radius: 8px;
-            font-size: 0.92rem;
-            font-family: inherit;
-            background: white;
-            color: var(--text-dark);
-        }
-        .modal-grid input:focus,
-        .modal-grid select:focus {
-            outline: none;
-            border-color: var(--accent-color);
-            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.15);
-        }
-        .modal-grid .field.full-width {
-            grid-column: 1 / -1;
-        }
-        .modal-actions {
-            margin-top: 24px;
-            display: flex;
-            gap: 14px;
-            flex-wrap: wrap;
-        }
-        .hidden-input { display: none; }
-
-        /* ===== Toast ===== */
-        .toast {
-            position: fixed;
-            top: 24px;
-            right: 24px;
-            background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
-            color: white;
-            padding: 18px 24px;
-            border-radius: 12px;
-            box-shadow: var(--shadow-lg);
-            min-width: 280px;
-            font-weight: 700;
-            z-index: 300;
-            opacity: 0;
-            transform: translateY(-20px);
-            transition: opacity 0.3s ease, transform 0.3s ease;
-        }
-        .toast.show {
-            opacity: 1;
-            transform: translateY(0);
-        }
-
-        /* ===== Responsive ===== */
-        @media (max-width: 900px) {
-            .sidebar { display: none; }
-            .profile-grid { grid-template-columns: 1fr; padding: 8px 20px 20px; }
-            .info-group:nth-child(odd) { border-right: none; }
-            .info-group:nth-child(-n+8) { border-bottom: 1px solid var(--border-color); }
-            .info-group:last-child { border-bottom: none; }
-            .profile-container { padding: 20px; }
-            .student-identity { flex-direction: column; text-align: center; padding: 24px 20px; }
-            .page-header { flex-direction: column; align-items: flex-start; }
-            .card-header { padding: 20px; flex-direction: column; gap: 12px; align-items: flex-start; }
-            .modal-grid { grid-template-columns: 1fr; }
-        }
-    </style>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+    <link rel="stylesheet" th:href="@{/css/riho.css}">
 </head>
 <body>
 
     <!-- Sidebar Navigation -->
     <div class="sidebar">
-        <div class="sidebar-header">IMS Portal</div>
-        <nav class="nav-links">
-            <a href="/dashboard">Dashboard</a>
-            <a href="/student/dashboard" class="active">My Profile</a>
-            <a href="/company">Companies</a>
-            <a href="/supervisor/dashboard">Supervisors</a>
+        <div class="sidebar-brand">
+            <div class="brand-logo"><i class="fa-solid fa-graduation-cap"></i></div>
+            <div>
+                <div class="brand-name">IMS Portal</div>
+                <div class="brand-sub">Internship Management</div>
+            </div>
+        </div>
+        <nav class="sidebar-nav">
+            <div class="nav-label">Main</div>
+            <a class="nav-link" href="/student/dashboard"><i class="fa-solid fa-gauge"></i> My Dashboard</a>
+            <a class="nav-link active" href="/student/dashboard"><i class="fa-solid fa-id-card"></i> My Profile</a>
+            <a class="nav-link" href="/company"><i class="fa-solid fa-building"></i> Companies</a>
+            <a class="nav-link" href="/university/dashboard"><i class="fa-solid fa-user-tie"></i> University</a>
         </nav>
+        <div class="sidebar-footer">
+            <a class="nav-link" href="/logout"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
+        </div>
     </div>
 
     <!-- Main Content -->
-    <div class="main-content">
-        <!-- Top Bar -->
-        <header class="top-bar">
-            <div class="welcome-text">Welcome, <strong th:text="${student.firstName} + ' ' + ${student.lastName}">Student Name</strong></div>
-            <div class="user-menu">
-                <span class="user-badge" th:text="${student.firstName} + ' ' + ${student.lastName}">Student Name</span>
-                <a href="/logout" class="btn-logout">Logout</a>
+    <div class="main">
+        <!-- Topbar -->
+        <header class="topbar">
+            <div class="topbar-search">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input type="text" placeholder="Search profile..." aria-label="Search" />
+            </div>
+            <div class="topbar-actions">
+                <button type="button" class="icon-btn" title="Notifications">
+                    <i class="fa-regular fa-bell"></i>
+                    <span class="notif-dot"></span>
+                </button>
+                <div class="user-chip">
+                    <div class="avatar"><i class="fa-solid fa-user"></i></div>
+                    <div>
+                        <div class="user-name" th:text="${student.firstName} + ' ' + ${student.lastName}">Student Name</div>
+                        <div class="user-role">Student</div>
+                    </div>
+                </div>
             </div>
         </header>
 
@@ -542,87 +59,153 @@
         <div th:if="${successMessage}" class="toast" id="save-toast" th:text="${successMessage}">Student profile saved successfully.</div>
 
         <!-- Profile Details Section -->
-        <div class="profile-container">
+        <div class="content">
             <div class="page-header">
                 <div>
-                    <h1>Student Dashboard</h1>
-                    <p class="subtitle">View and manage your student profile information</p>
+                    <h1 class="page-title">Student Dashboard</h1>
+                    <p class="page-subtitle">View and manage your student profile information</p>
                 </div>
-                <div class="action-buttons">
-                    <button type="button" class="btn" onclick="openModal('edit')">Edit Profile</button>
-                    <button type="button" class="btn btn-secondary" onclick="openModal('add')">Add New</button>
-                    <a href="/dashboard" class="btn btn-secondary">Back to dashboard</a>
+                <div class="page-actions">
+                    <button type="button" class="btn btn-primary" onclick="openModal('edit')"><i class="fa-solid fa-pen"></i> Edit Profile</button>
+                    <button type="button" class="btn btn-outline" onclick="openModal('add')"><i class="fa-solid fa-plus"></i> Add New</button>
+                    <a href="/student/dashboard" class="btn btn-outline"><i class="fa-solid fa-arrow-left"></i> Back to dashboard</a>
                 </div>
             </div>
 
             <!-- Premium Elevated Card -->
-            <div class="profile-card">
+            <div class="card" style="margin-bottom:24px;">
                 <div class="card-header">
-                    <span class="header-title">
-                        <span class="header-icon">&#127891;</span>
-                        Student Details
-                    </span>
-                    <button type="button" class="btn-edit" onclick="openModal('edit')">Edit Profile</button>
+                    <span class="card-title"><i class="fa-solid fa-id-card"></i> Student Details</span>
+                    <button type="button" class="btn btn-primary" onclick="openModal('edit')"><i class="fa-solid fa-pen"></i> Edit Profile</button>
                 </div>
 
                 <!-- Student Identity -->
-                <div class="student-identity">
+                <div class="identity">
                     <div class="avatar-frame">
                         <img th:src="${student.pictureUrl}" src="/images/student-placeholder.svg" alt="Student photo" />
                     </div>
-                    <div class="student-name-block">
-                        <div class="student-name" th:text="${student.firstName} + ' ' + ${student.lastName}">Student Name</div>
-                        <div class="student-degree" th:text="${student.degreeProgram} + ' • Year ' + ${student.yearOfStudy}">Computer Science • Year 3</div>
-                        <div class="badge">Internship Student</div>
+                    <div class="identity-block">
+                        <div class="identity-name" th:text="${student.firstName} + ' ' + ${student.lastName}">Student Name</div>
+                        <div class="identity-tagline" th:text="${student.degreeProgram} + ' • Year ' + ${student.yearOfStudy}">Computer Science • Year 3</div>
+                        <div class="badge badge-success" style="margin-top:12px;">
+                            <span class="dot"></span> Internship Student
+                        </div>
                     </div>
                 </div>
 
                 <!-- Two-Column Data Grid -->
-                <div class="profile-grid">
+                <div class="info-grid">
                     <!-- Row 1 -->
                     <div class="info-group">
-                        <span class="info-label"><span class="label-icon">&#128100;</span> Username</span>
+                        <span class="info-label"><span class="label-icon"><i class="fa-solid fa-user"></i></span> Username</span>
                         <span class="info-value" id="display-username" th:text="${student.username}">student</span>
                     </div>
                     <div class="info-group">
-                        <span class="info-label"><span class="label-icon">&#9993;</span> Email</span>
+                        <span class="info-label"><span class="label-icon"><i class="fa-solid fa-envelope"></i></span> Email</span>
                         <span class="info-value" id="display-email" th:text="${student.email}">student@example.com</span>
                     </div>
 
                     <!-- Row 2 -->
                     <div class="info-group">
-                        <span class="info-label"><span class="label-icon">&#128196;</span> Student Number</span>
+                        <span class="info-label"><span class="label-icon"><i class="fa-solid fa-hashtag"></i></span> Student Number</span>
                         <span class="info-value" id="display-studentNumber" th:text="${student.studentNumber}">STU-2026-001</span>
                     </div>
                     <div class="info-group">
-                        <span class="info-label"><span class="label-icon">&#128220;</span> Registration Number</span>
+                        <span class="info-label"><span class="label-icon"><i class="fa-solid fa-registered"></i></span> Registration Number</span>
                         <span class="info-value" id="display-registrationNumber" th:text="${student.registrationNumber}">REG-1001</span>
                     </div>
 
                     <!-- Row 3 -->
                     <div class="info-group">
-                        <span class="info-label"><span class="label-icon">&#128222;</span> Phone Number</span>
+                        <span class="info-label"><span class="label-icon"><i class="fa-solid fa-phone"></i></span> Phone Number</span>
                         <span class="info-value" id="display-phoneNumber" th:text="${student.phoneNumber}">+1 555 123 4567</span>
                     </div>
                     <div class="info-group">
-                        <span class="info-label"><span class="label-icon">&#127970;</span> Company ID</span>
+                        <span class="info-label"><span class="label-icon"><i class="fa-solid fa-building"></i></span> Company ID</span>
                         <span class="info-value" id="display-companyId" th:text="${student.companyId}">COMP-2024</span>
                     </div>
 
                     <!-- Row 4 -->
                     <div class="info-group">
-                        <span class="info-label"><span class="label-icon">&#128188;</span> University Supervisor</span>
-                        <span class="info-value" id="display-universitySupervisor" th:text="${student.universitySupervisor}">Dr. Emily Carter</span>
+                        <span class="info-label"><span class="label-icon"><i class="fa-solid fa-user-tie"></i></span> University</span>
+                        <span class="info-value" id="display-universitySupervisor" th:text="${student.universitySupervisor}">MIT</span>
                     </div>
                     <div class="info-group">
-                        <span class="info-label"><span class="label-icon">&#128100;</span> Industrial Supervisor ID</span>
+                        <span class="info-label"><span class="label-icon"><i class="fa-solid fa-user-tie"></i></span> Industrial Supervisor ID</span>
                         <span class="info-value" id="display-industrialSupervisorId" th:text="${student.industrialSupervisorId}">IND-3456</span>
                     </div>
 
                     <!-- Full-width row -->
                     <div class="info-group full-width">
-                        <span class="info-label"><span class="label-icon">&#127891;</span> Internship Company</span>
+                        <span class="info-label"><span class="label-icon"><i class="fa-solid fa-briefcase"></i></span> Internship Company</span>
                         <span class="info-value" id="display-internshipCompany" th:text="${student.internshipCompany}">TechCorp Solutions</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Day Diary -->
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title"><i class="fa-solid fa-book-open"></i> Day Diary</span>
+                    <span class="card-hint">Log daily activities and review previous entries</span>
+                </div>
+                <div class="diary-grid">
+                    <div class="diary-form">
+                        <form th:action="@{/student/diary/save}" method="post">
+                            <div class="form-group">
+                                <label for="date">Date</label>
+                                <input type="date" id="date" name="date" class="form-input" th:value="${diaryEntry.date}" required />
+                            </div>
+                            <div class="form-group">
+                                <label for="dailyActivities">Daily Activities</label>
+                                <textarea id="dailyActivities" name="dailyActivities" class="form-input" required th:text="${diaryEntry.dailyActivities}"></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label for="knowledgeAndSkillsGained">Knowledge and Skills Gained</label>
+                                <textarea id="knowledgeAndSkillsGained" name="knowledgeAndSkillsGained" class="form-input" required th:text="${diaryEntry.knowledgeAndSkillsGained}"></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label for="accomplishments">Accomplishments</label>
+                                <textarea id="accomplishments" name="accomplishments" class="form-input" required th:text="${diaryEntry.accomplishments}"></textarea>
+                            </div>
+                            <div class="form-actions">
+                                <button type="submit" class="btn btn-primary"><i class="fa-solid fa-floppy-disk"></i> Save Entry</button>
+                                <button type="reset" class="btn btn-outline">Clear</button>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="diary-entries">
+                        <span class="card-title" style="margin-bottom:12px;display:flex;"><i class="fa-solid fa-clock-rotate-left"></i> Previous Entries</span>
+                        <div class="table-responsive">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Summary</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr th:each="entry : ${diaryEntries}">
+                                        <td th:text="${entry.date}">2026-01-01</td>
+                                        <td>
+                                            <div class="entry-summary">
+                                                <strong th:text="${entry.dailyActivities}">Daily activities summary</strong>
+                                                <span><strong>Skills:</strong> <span th:text="${entry.knowledgeAndSkillsGained}">Skills learned</span></span>
+                                                <span><strong>Accomplishments:</strong> <span th:text="${entry.accomplishments}">Accomplishments text</span></span>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr th:if="${#lists.isEmpty(diaryEntries)}">
+                                        <td colspan="2">
+                                            <div class="empty-state" style="padding:30px 20px;">
+                                                <div class="empty-icon">&#128221;</div>
+                                                <p>No diary entries recorded yet. Add your first entry using the form.</p>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -638,30 +221,30 @@
             </div>
             <form id="profile-form" th:action="@{/student/profile/edit}" method="post">
                 <input type="hidden" id="form-username" name="username" th:value="${student.username}" />
-                <div class="modal-grid">
-                    <div class="field"><label>First Name</label><input type="text" id="form-firstName" name="firstName" th:value="${student.firstName}" required/></div>
-                    <div class="field"><label>Last Name</label><input type="text" id="form-lastName" name="lastName" th:value="${student.lastName}" required/></div>
-                    <div class="field"><label>Email</label><input type="email" id="form-email" name="email" th:value="${student.email}" required/></div>
-                    <div class="field"><label>Phone Number</label><input type="text" id="form-phoneNumber" name="phoneNumber" th:value="${student.phoneNumber}" required/></div>
-                    <div class="field"><label>Student Number</label><input type="text" id="form-studentNumber" name="studentNumber" th:value="${student.studentNumber}" required/></div>
-                    <div class="field"><label>Registration Number</label><input type="text" id="form-registrationNumber" name="registrationNumber" th:value="${student.registrationNumber}" required/></div>
-                    <div class="field"><label>Degree Program</label><input type="text" id="form-degreeProgram" name="degreeProgram" th:value="${student.degreeProgram}" required/></div>
-                    <div class="field"><label>Year of Study</label><select id="form-yearOfStudy" name="yearOfStudy" required>
+                <div class="form-grid">
+                    <div class="form-group"><label>First Name</label><input type="text" id="form-firstName" name="firstName" class="form-input" th:value="${student.firstName}" required/></div>
+                    <div class="form-group"><label>Last Name</label><input type="text" id="form-lastName" name="lastName" class="form-input" th:value="${student.lastName}" required/></div>
+                    <div class="form-group"><label>Email</label><input type="email" id="form-email" name="email" class="form-input" th:value="${student.email}" required/></div>
+                    <div class="form-group"><label>Phone Number</label><input type="text" id="form-phoneNumber" name="phoneNumber" class="form-input" th:value="${student.phoneNumber}" required/></div>
+                    <div class="form-group"><label>Student Number</label><input type="text" id="form-studentNumber" name="studentNumber" class="form-input" th:value="${student.studentNumber}" required/></div>
+                    <div class="form-group"><label>Registration Number</label><input type="text" id="form-registrationNumber" name="registrationNumber" class="form-input" th:value="${student.registrationNumber}" required/></div>
+                    <div class="form-group"><label>Degree Program</label><input type="text" id="form-degreeProgram" name="degreeProgram" class="form-input" th:value="${student.degreeProgram}" required/></div>
+                    <div class="form-group"><label>Year of Study</label><select id="form-yearOfStudy" name="yearOfStudy" class="form-input" required>
                         <option value="1" th:selected="${student.yearOfStudy == 1}">1</option>
                         <option value="2" th:selected="${student.yearOfStudy == 2}">2</option>
                         <option value="3" th:selected="${student.yearOfStudy == 3}">3</option>
                         <option value="4" th:selected="${student.yearOfStudy == 4}">4</option>
                         <option value="5" th:selected="${student.yearOfStudy == 5}">5</option>
                     </select></div>
-                    <div class="field"><label>Internship Company</label><input type="text" id="form-internshipCompany" name="internshipCompany" th:value="${student.internshipCompany}" required/></div>
-                    <div class="field"><label>University Supervisor</label><input type="text" id="form-universitySupervisor" name="universitySupervisor" th:value="${student.universitySupervisor}" required/></div>
-                    <div class="field"><label>Industrial Supervisor ID</label><input type="text" id="form-industrialSupervisorId" name="industrialSupervisorId" th:value="${student.industrialSupervisorId}" required/></div>
-                    <div class="field"><label>Company ID</label><input type="text" id="form-companyId" name="companyId" th:value="${student.companyId}" required/></div>
-                    <div class="field full-width"><label>Picture URL</label><input type="text" id="form-pictureUrl" name="pictureUrl" th:value="${student.pictureUrl}"/></div>
+                    <div class="form-group"><label>Internship Company</label><input type="text" id="form-internshipCompany" name="internshipCompany" class="form-input" th:value="${student.internshipCompany}" required/></div>
+                    <div class="form-group"><label>University</label><input type="text" id="form-universitySupervisor" name="universitySupervisor" class="form-input" th:value="${student.universitySupervisor}" required/></div>
+                    <div class="form-group"><label>Industrial Supervisor ID</label><input type="text" id="form-industrialSupervisorId" name="industrialSupervisorId" class="form-input" th:value="${student.industrialSupervisorId}" required/></div>
+                    <div class="form-group"><label>Company ID</label><input type="text" id="form-companyId" name="companyId" class="form-input" th:value="${student.companyId}" required/></div>
+                    <div class="form-group full"><label>Picture URL</label><input type="text" id="form-pictureUrl" name="pictureUrl" class="form-input" th:value="${student.pictureUrl}"/></div>
                 </div>
-                <div class="modal-actions">
-                    <button type="submit" class="btn">Save</button>
-                    <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary"><i class="fa-solid fa-floppy-disk"></i> Save</button>
+                    <button type="button" class="btn btn-outline" onclick="closeModal()">Cancel</button>
                 </div>
             </form>
         </div>

@@ -3,14 +3,19 @@ package com.example.demo.company;
 import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Optional;
+import com.example.demo.student.StudentProfile;
+import com.example.demo.student.StudentProfileRepository;
 
 @Service
 public class CompanyService {
 
     private final CompanyRepository companyRepository;
+    private final StudentProfileRepository studentProfileRepository;
 
-    public CompanyService(CompanyRepository companyRepository) {
+    public CompanyService(CompanyRepository companyRepository,
+            StudentProfileRepository studentProfileRepository) {
         this.companyRepository = companyRepository;
+        this.studentProfileRepository = studentProfileRepository;
     }
 
     // Method to get all companies (used by the list view)
@@ -41,5 +46,9 @@ public class CompanyService {
 
     public void deleteById(Long id) {
         companyRepository.deleteById(id);
+    }
+
+    public List<StudentProfile> findStudentsByCompanyId(Long companyId) {
+        return studentProfileRepository.findByCompanyId(String.valueOf(companyId));
     }
 }
