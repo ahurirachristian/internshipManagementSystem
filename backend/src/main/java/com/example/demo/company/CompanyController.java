@@ -1,6 +1,7 @@
 package com.example.demo.company;
 
 import java.util.List;
+import com.example.demo.dto.CompanyRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -45,21 +46,31 @@ public class CompanyController {
 
     // POST /api/companies - create a new company
     @PostMapping
-    public ResponseEntity<Company> createCompany(@RequestBody Company company) {
+    public ResponseEntity<Company> createCompany(@RequestBody CompanyRequest request) {
+        Company company = new Company();
+        company.setName(request.getName());
+        company.setLocation(request.getCountry());
+        company.setEmail(request.getEmail());
+        company.setWebsite(request.getWebsite());
+        company.setProfile((request.getPostalAddress() != null ? request.getPostalAddress() : "") + " | " + (request.getPhysicalAddress() != null ? request.getPhysicalAddress() : ""));
+        company.setDepartment(request.getBranch());
+        company.setFieldSupervisor("");
+        company.setRoles("");
         Company saved = companyService.save(company);
         return ResponseEntity.status(HttpStatus.CREATED).body(saved);
     }
 
     // PUT /api/companies/{id} - update an existing company
     @PutMapping("/{id}")
-    public ResponseEntity<Company> updateCompany(@PathVariable Long id, @RequestBody Company company) {
+    public ResponseEntity<Company> updateCompany(@PathVariable Long id, @RequestBody CompanyRequest request) {
         return companyService.findById(id)
                 .map(existing -> {
-                    existing.setName(company.getName());
-                    existing.setLocation(company.getLocation());
-                    existing.setProfile(company.getProfile());
-                    existing.setDepartment(company.getDepartment());
-                    existing.setFieldSupervisor(company.getFieldSupervisor());
+                    existing.setName(request.getName());
+                    existing.setLocation(request.getCountry());
+                    existing.setEmail(request.getEmail());
+                    existing.setWebsite(request.getWebsite());
+                    existing.setProfile((request.getPostalAddress() != null ? request.getPostalAddress() : "") + " | " + (request.getPhysicalAddress() != null ? request.getPhysicalAddress() : ""));
+                    existing.setDepartment(request.getBranch());
                     return ResponseEntity.ok(companyService.save(existing));
                 })
                 .orElse(ResponseEntity.notFound().build());
