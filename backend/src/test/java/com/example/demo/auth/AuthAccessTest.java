@@ -29,7 +29,7 @@ class AuthAccessTest {
 
     @Test
     void supervisorCanAccessSupervisorArea() throws Exception {
-        mockMvc.perform(get("/supervisor/dashboard").with(user("supervisor").authorities(new SimpleGrantedAuthority("SUPERVISOR"))))
+        mockMvc.perform(get("/university/dashboard").with(user("supervisor").authorities(new SimpleGrantedAuthority("SUPERVISOR"))))
                 .andExpect(status().isOk());
     }
 

@@ -19,7 +19,7 @@ public class DataSeeder implements CommandLineRunner {
     public void run(String... args) {
         if (userRepository.count() == 0) {
             userRepository.save(new UserEntity("student", passwordEncoder.encode("student123"), Role.STUDENT));
-            userRepository.save(new UserEntity("supervisor", passwordEncoder.encode("supervisor123"), Role.SUPERVISOR));
+            userRepository.save(new UserEntity("university", passwordEncoder.encode("university123"), Role.SUPERVISOR));
             userRepository.save(new UserEntity("admin", passwordEncoder.encode("admin123"), Role.ADMIN));
         }
     }
