@@ -4,6 +4,7 @@
     const form = document.getElementById("loginForm");
     const usernameInput = document.getElementById("username");
     const passwordInput = document.getElementById("password");
+    const roleSelect = document.getElementById("role");
     const loginBtn = document.getElementById("loginBtn");
     const alertBox = document.getElementById("alertBox");
     const togglePassword = document.getElementById("togglePassword");
@@ -51,9 +52,10 @@
 
         const username = usernameInput.value.trim();
         const password = passwordInput.value;
+        const role = roleSelect ? roleSelect.value : "STUDENT";
 
-        if (!username || !password) {
-            showAlert("Please enter both username and password.", "error");
+        if (!username || !password || !role) {
+            showAlert("Please enter username, password, and role.", "error");
             return;
         }
 
@@ -66,27 +68,29 @@
         loginBtn.textContent = "Signing in...";
 
         try {
-            const response = await fetch(API_BASE + "/login", {
+            const response = await fetch(API_BASE + "/api/login", {
                 method: "POST",
                 headers: { "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8" },
                 credentials: "include",
-                redirect: "follow",
                 body: body.toString()
             });
 
-            const finalUrl = response.url || "";
-
-            if (finalUrl.indexOf("/login") !== -1 && finalUrl.indexOf("error") !== -1) {
-                showAlert("Invalid username or password.", "error");
-                return;
-            }
+            const data = await response.json().catch(() => ({}));
 
             if (response.ok) {
-                window.location.href = finalUrl || "/";
+                if (data.redirect) {
+                    window.location.href = data.redirect;
+                } else {
+                    window.location.href = "/";
+                }
                 return;
             }
 
-            showAlert("Login failed. Please try again.", "error");
+            if (data.error) {
+                showAlert(data.error, "error");
+            } else {
+                showAlert("Invalid username or password.", "error");
+            }
         } catch (error) {
             showAlert("Cannot reach the server. Make sure the backend is running on " + API_BASE + ".", "error");
         } finally {

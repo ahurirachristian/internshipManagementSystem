@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register - Internship Management System</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+    <style>
+        /* Shared full-screen login/register/reset styles */
+        *{margin:0;padding:0;box-sizing:border-box}
+        html,body{width:100%;min-height:100vh;margin:0;padding:0;overflow:auto;background:transparent;font-family:'Poppins',sans-serif}
+        .split-login{position:relative;min-height:100vh;width:100%;overflow:visible}
+        .background{position:fixed;top:0;left:0;width:100%;height:100%;background:linear-gradient(135deg,#0b5c53 0%,#0e7a6d 25%,#12897a 50%,#1aa08f 75%,#2cc9b5 100%);background-size:400% 400%;animation:gradientShift 12s ease infinite;z-index:1}
+        @keyframes gradientShift{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
+        #particleCanvas{position:fixed;top:0;left:0;width:100%;height:100%;z-index:2;cursor:crosshair}
+        .login-wrapper{position:relative;z-index:3;min-height:100vh;display:flex;align-items:flex-start;justify-content:center;padding:40px 20px 80px}
+        @media(min-width:992px){.login-wrapper{align-items:center}}
+        .login-card{background:rgba(255,255,255,0.95);border-radius:24px;box-shadow:0 32px 80px rgba(0,0,0,0.16);width:100%;max-width:480px;padding:42px 38px;margin:40px 0;border:none}
+        .login-header{text-align:center;margin-bottom:32px}
+        .login-header .logo{width:64px;height:64px;margin:0 auto 16px;background:linear-gradient(135deg,#0b5c53,#07473f);border-radius:18px;display:flex;align-items:center;justify-content:center;box-shadow:0 8px 24px rgba(11,92,83,0.35)}
+        .login-header .logo i{font-size:28px;color:#fff}
+        .login-header h1{font-size:26px;font-weight:700;color:#1e293b;margin:0 0 8px}
+        .login-header p{font-size:14px;color:#64748b;margin:0}
+        .alert{display:none;padding:12px 16px;border-radius:10px;margin-bottom:20px;font-size:14px;font-weight:500;text-align:center}
+        .alert.show{display:block}
+        .alert-success{background:#d1fae5;color:#065f46;border:1px solid #a7f3d0}
+        .alert-error{background:#fee2e2;color:#991b1b;border:1px solid #fecaca}
+        .form-group{margin-bottom:20px}
+        .form-group label{display:block;font-size:14px;font-weight:500;color:#374151;margin-bottom:8px}
+        .form-control{width:100%;padding:12px 44px;border:2px solid #e5e7eb;border-radius:10px;font-size:15px;background:#f9fafb;color:#1f2937}
+        .form-control:focus{outline:none;border-color:#0b5c53;background:#fff;box-shadow:0 0 0 4px rgba(11,92,83,0.12)}
+        .btn-login{width:100%;padding:14px;background:linear-gradient(135deg,#0b5c53,#07473f);color:#fff;border:none;border-radius:10px;font-size:16px;font-weight:600;cursor:pointer;box-shadow:0 4px 14px rgba(11,92,83,0.4)}
+        .btn-login:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(11,92,83,0.5)}
+        .login-links{display:flex;justify-content:center;gap:10px;margin-top:20px;color:#475569}
+        .login-links a{color:#0b5c53;text-decoration:none;font-weight:600}
+        .login-links a:hover{color:#07473f}
+        @media(max-width:991.98px){.login-wrapper{padding:20px}.login-card{padding:32px}}
+    </style>
+            padding: 12px 14px;
+            border: 2px solid #e5e7eb;
+            border-radius: 10px;
+            font-size: 15px;
+            font-family: 'Poppins', sans-serif;
+            transition: all 0.2s;
+            background: #f9fafb;
+            color: #1f2937;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: #0b5c53;
+            background: #ffffff;
+            box-shadow: 0 0 0 4px rgba(11, 92, 83, 0.12);
+        }
+
+        .btn-login {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #0b5c53, #07473f);
+            color: #ffffff;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            font-family: 'Poppins', sans-serif;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 4px 14px rgba(11, 92, 83, 0.4);
+            margin-top: 8px;
+        }
+
+        .btn-login:hover {
+            background: linear-gradient(135deg, #0a524a, #06352f);
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px rgba(11, 92, 83, 0.5);
+        }
+
+        .btn-login:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .login-links {
+            text-align: center;
+            margin-top: 20px;
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            color: #475569;
+            font-size: 14px;
+        }
+
+        .login-links a {
+            color: #0b5c53;
+            text-decoration: none;
+            font-weight: 600;
+            transition: color 0.2s;
+        }
+
+        .login-links a:hover {
+            color: #07473f;
+        }
+
+        .login-links span {
+            color: #94a3b8;
+        }
+    </style>
+</head>
+<body>
+    <div class="split-login">
+        <div class="background">
+            <canvas id="particleCanvas"></canvas>
+        </div>
+        <div class="login-wrapper">
+            <div class="login-card">
+                <div class="login-header">
+                    <div class="logo"><i class="fa-solid fa-graduation-cap"></i></div>
+                    <h1>Create Account</h1>
+                    <p>Sign up to manage your internship portal.</p>
+                </div>
+
+                <div id="alertBox" class="alert"></div>
+
+                <form id="registerForm">
+                    <div class="form-group">
+                        <label for="username">Username</label>
+                        <input id="username" name="username" type="text" class="form-control" placeholder="Enter username" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="role">Role</label>
+                        <select id="role" name="role" class="form-control" required>
+                            <option value="STUDENT">Student</option>
+                            <option value="SUPERVISOR">Supervisor</option>
+                            <option value="COMPANY">Company</option>
+                            <option value="ADMIN">Admin</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="password">Password</label>
+                        <input id="password" name="password" type="password" class="form-control" placeholder="Enter password" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="confirmPassword">Confirm Password</label>
+                        <input id="confirmPassword" name="confirmPassword" type="password" class="form-control" placeholder="Confirm password" required>
+                    </div>
+                    <button id="registerBtn" type="submit" class="btn-login">Register</button>
+                </form>
+
+                <div class="login-links">
+                    <a href="login.html">Sign in</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="assets/libs/particles.js/particles.js"></script>
+    <script src="register.js"></script>
+</body>
+</html>

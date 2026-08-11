@@ -1,31 +1,27 @@
 package com.example.demo.company;
 
-import com.example.demo.auth.Role;
-import com.example.demo.auth.UserEntity;
 import com.example.demo.auth.UserRepository;
 import org.springframework.boot.CommandLineRunner;
-import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
 @Component
+@Order(3)
 public class CompanyDataSeeder implements CommandLineRunner {
 
     private final CompanyRepository companyRepository;
     private final UserRepository userRepository;
-    private final PasswordEncoder passwordEncoder;
 
     public CompanyDataSeeder(CompanyRepository companyRepository,
-            UserRepository userRepository,
-            PasswordEncoder passwordEncoder) {
+            UserRepository userRepository) {
         this.companyRepository = companyRepository;
         this.userRepository = userRepository;
-        this.passwordEncoder = passwordEncoder;
     }
 
     @Override
     public void run(String... args) throws Exception {
         if (companyRepository.count() == 0) {
-            Company airtel = companyRepository.save(new Company(
+            companyRepository.save(new Company(
                 "Airtel Uganda", 
                 "Kampala", 
                 "info@airtel.co.ug", 
@@ -37,7 +33,7 @@ public class CompanyDataSeeder implements CommandLineRunner {
                 "Software Development Intern"
             ));
 
-            Company mtn = companyRepository.save(new Company(
+            companyRepository.save(new Company(
                 "MTN Uganda", 
                 "Kampala", 
                 "support@mtn.co.ug", 
@@ -48,15 +44,20 @@ public class CompanyDataSeeder implements CommandLineRunner {
                 "Jane Smith", 
                 "Network Engineering Intern"
             ));
+        }
 
-            // Seed a company user account linked to the Airtel company (id 1)
-            if (userRepository.findByUsername("airtel").isEmpty()) {
-                userRepository.save(new UserEntity("airtel",
-                        passwordEncoder.encode("company123"),
-                        Role.COMPANY,
-                        airtel.getId(),
-                        null));
-            }
+        // Ensure the seeded company user is linked to the first company (idempotent),
+        // even when the companies already exist in the database.
+        Company firstCompany = companyRepository.findAll().stream()
+                .min((a, b) -> Long.compare(a.getId(), b.getId()))
+                .orElse(null);
+        if (firstCompany != null) {
+            userRepository.findByUsername("airtel").ifPresent(user -> {
+                if (user.getCompanyId() == null) {
+                    user.setCompanyId(firstCompany.getId());
+                    userRepository.save(user);
+                }
+            });
         }
     }
 }

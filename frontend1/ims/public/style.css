@@ -399,6 +399,52 @@ background:#5b6268;
 
 }
 
+/* ===========================
+   AUTH FORM (login / register / reset)
+=========================== */
+
+.form-wrapper{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  min-height:70vh;
+  padding:40px 20px;
+}
+
+.form-card{
+  background:#ffffff;
+  border-radius:20px;
+  box-shadow:0 25px 50px -12px rgba(0,0,0,0.15);
+  width:100%;
+  max-width:540px;
+  padding:36px 40px;
+}
+
+.form-card h2{
+  margin-bottom:8px;
+  color:#0f1724;
+}
+
+.form-card p{ color:#6b7280; margin-bottom:18px; }
+
+.input-box{ margin-bottom:14px; }
+.input-box label{ display:block; margin-bottom:6px; font-weight:600; color:#111827; }
+.input-box input,
+.input-box select{ width:100%; padding:12px 14px; border-radius:10px; border:1px solid #e6eef6; font-size:15px; }
+
+.btn-login, .form-card button{ background:#0b5c53; color:#fff; border:none; padding:12px 18px; border-radius:10px; cursor:pointer; font-size:15px; }
+.form-card button:hover{ opacity:0.95; }
+
+.alert{ display:none; padding:10px 12px; border-radius:8px; margin-bottom:12px; }
+.alert.show{ display:block; }
+.alert-success{ background:#d1fae5; color:#065f46; }
+.alert-error{ background:#fee2e2; color:#7f1d1d; }
+
+.text-center{ text-align:center; margin-top:12px; color:#475569; }
+
+/* ensure login-card never shows inner scrollbars */
+.login-card{ overflow: visible !important; }
+
 #nextBtn{
 
 background:#007bff;

@@ -12,15 +12,18 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import com.example.demo.dto.StudentProfileDto;
 import com.example.demo.service.StudentService;
+import com.example.demo.auth.UserRepository;
 
 @Controller
 @RequestMapping("/student")
 public class StudentProfileController {
 
     private final StudentService studentService;
+    private final UserRepository userRepository;
 
-    public StudentProfileController(StudentService studentService) {
+    public StudentProfileController(StudentService studentService, UserRepository userRepository) {
         this.studentService = studentService;
+        this.userRepository = userRepository;
     }
 
     @GetMapping("/profile/edit")
@@ -30,6 +33,7 @@ public class StudentProfileController {
                 .map(studentService::toDto)
                 .orElse(new StudentProfileDto());
         model.addAttribute("student", profile);
+        model.addAttribute("userRole", userRepository.findByUsername(principal.getName()).map(u -> u.getRole().name()).orElse("STUDENT"));
         return "student-edit";
     }
 
@@ -43,6 +47,27 @@ public class StudentProfileController {
         }
         studentService.saveProfile(profileDto, principal.getName());
         redirectAttributes.addFlashAttribute("successMessage", "Student profile saved successfully.");
-        return "redirect:/student/dashboard";
+        return "redirect:/student/details";
+    }
+
+    @GetMapping("/details")
+    @PreAuthorize("hasAnyAuthority('STUDENT', 'ADMIN')")
+    public String details(Principal principal, Model model) {
+        StudentProfileDto profile = studentService.findOrCreateByUsername(principal.getName())
+                .map(studentService::toDto)
+                .orElse(new StudentProfileDto());
+        model.addAttribute("student", profile);
+        model.addAttribute("userRole", userRepository.findByUsername(principal.getName()).map(u -> u.getRole().name()).orElse("STUDENT"));
+        return "student-details";
+    }
+
+    @GetMapping("/diary")
+    @PreAuthorize("hasAnyAuthority('STUDENT', 'ADMIN')")
+    public String diary(Principal principal, Model model) {
+        model.addAttribute("diaryEntry", new com.example.demo.student.DayDiary());
+        model.addAttribute("diaryEntries", studentService.findDiaryEntriesByUsername(principal.getName()));
+        model.addAttribute("student", studentService.findByUsername(principal.getName()).map(studentService::toDto).orElse(new StudentProfileDto()));
+        model.addAttribute("userRole", userRepository.findByUsername(principal.getName()).map(u -> u.getRole().name()).orElse("STUDENT"));
+        return "student-diary";
     }
 }
