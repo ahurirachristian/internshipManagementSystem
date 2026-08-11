@@ -35,6 +35,7 @@ The `backend/` folder contains the complete reference implementation from the or
 - Access control tests
 
 ### Demo Users
+<<<<<<< HEAD
 
 | Username | Password | Role |
 |----------|----------|------|
@@ -50,6 +51,19 @@ The admin dashboard at `/admin/dashboard` provides full user management:
 
 ### OAuth2 Social Login
 Login with Google, LinkedIn, or X/Twitter is available on the login page. OAuth2 client credentials need to be configured in `application-dev.properties` or `application-mysql.properties` (see API Reference).
+=======
+- `student` / `student123` — Student dashboard
+- `university` / `university123` — University (SUPERVISOR) dashboard
+- `airtel` / `company123` — Company portal (COMPANY role)
+- `admin` / `admin123` — Admin dashboard
+
+| Role       | Home URL                | Access                                  |
+|------------|-------------------------|-----------------------------------------|
+| STUDENT    | `/student/dashboard`    | Personal dashboard, day-diary           |
+| SUPERVISOR | `/university/dashboard` | University portal, student registration |
+| COMPANY    | `/company/dashboard`    | Company profile + intern management     |
+| ADMIN      | `/admin/dashboard`      | Admin console                           |
+>>>>>>> a7c5463aec85f195e051f8868f6977e6e9e0f264
 
 ### How to Run
 

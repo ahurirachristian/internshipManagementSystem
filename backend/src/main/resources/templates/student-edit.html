@@ -1,7 +1,8 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
 <head>
     <meta charset="UTF-8">
+<<<<<<< HEAD
     <title>Edit Student Profile</title>
     <style>
         body { font-family: Arial, sans-serif; background: #f4f7fb; padding: 36px; }
@@ -21,17 +22,25 @@
         .button { background: #2563eb; color: white; border: none; border-radius: 12px; padding: 14px 20px; font-size: 1rem; cursor: pointer; text-decoration: none; }
         .secondary { background: #e2e8f0; color: #0f172a; }
     </style>
+=======
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Student - Internship Management System</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+    <link rel="stylesheet" th:href="@{/css/riho.css}">
+>>>>>>> a7c5463aec85f195e051f8868f6977e6e9e0f264
 </head>
 <body>
-<div class="container">
-    <div class="card">
-        <div class="hero">
-            <img th:src="${student.pictureUrl}" src="/images/student-placeholder.svg" alt="Student photo" class="avatar" />
+    <div class="sidebar">
+        <div class="sidebar-brand">
+            <div class="brand-logo"><i class="fa-solid fa-graduation-cap"></i></div>
             <div>
-                <h1>Edit Profile</h1>
-                <p>Update your internship profile information and save changes.</p>
+                <div class="brand-name">IMS Portal</div>
+                <div class="brand-sub">Internship Management</div>
             </div>
         </div>
+<<<<<<< HEAD
         <form th:action="@{/student/profile/edit}" th:object="${student}" method="post">
             <div class="form-grid">
                 <div class="field"><label>First Name</label><input type="text" th:field="*{firstName}" required/></div>
@@ -54,17 +63,159 @@
                         <option value="">-- Select University --</option>
                         <option th:each="university : ${universities}" th:value="${university.name}" th:text="${university.name}"></option>
                     </select>
+=======
+        <nav class="sidebar-nav">
+            <div class="nav-label">Main</div>
+            <th:block th:if="${userRole == 'ADMIN' || userRole == 'SUPERVISOR'}">
+                <div class="nav-dropdown">
+                    <button type="button" class="nav-link nav-dropdown-toggle" aria-expanded="false">
+                        <i class="fa-solid fa-gauge"></i> Dashboard <i class="fa-solid fa-chevron-down nav-caret"></i>
+                    </button>
+                    <div class="nav-submenu">
+                        <a th:href="@{/university/dashboard}"><i class="fa-solid fa-user-tie"></i> University Area</a>
+                        <a th:href="@{/student/dashboard}"><i class="fa-solid fa-user-graduate"></i> Student Area</a>
+                        <a th:href="@{/company/dashboard}"><i class="fa-solid fa-building"></i> Company Area</a>
+                    </div>
+>>>>>>> a7c5463aec85f195e051f8868f6977e6e9e0f264
                 </div>
-                <div class="field"><label>Industrial Supervisor ID</label><input type="text" th:field="*{industrialSupervisorId}" required/></div>
-                <div class="field"><label>Company ID</label><input type="text" th:field="*{companyId}" required/></div>
-                <div class="field full-width"><label>Picture URL</label><input type="text" th:field="*{pictureUrl}" placeholder="/images/student-placeholder.svg"/></div>
-            </div>
-            <div class="actions">
-                <button type="submit" class="button">Save Profile</button>
-                <a href="/student/dashboard" class="button secondary">Next Page</a>
-            </div>
-        </form>
+            </th:block>
+            <a th:if="${userRole != 'ADMIN' && userRole != 'SUPERVISOR'}" class="nav-link" href="/student/dashboard"><i class="fa-solid fa-gauge"></i> My Dashboard</a>
+            <div class="nav-label">Management</div>
+            <a th:if="${userRole == 'COMPANY'}" class="nav-link" href="/company/dashboard"><i class="fa-solid fa-building-flag"></i> My Company</a>
+            <a th:if="${userRole != 'COMPANY'}" class="nav-link" href="/company"><i class="fa-solid fa-building-flag"></i> Companies</a>
+            <a class="nav-link active" href="/student/dashboard"><i class="fa-solid fa-user-graduate"></i> Students</a>
+            <a class="nav-link" href="/university/dashboard"><i class="fa-solid fa-user-tie"></i> University</a>
+            <div class="nav-label">Account</div>
+            <a class="nav-link" href="/logout"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
+        </nav>
+        <div class="sidebar-footer">
+            <a class="nav-link" href="/logout"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
+        </div>
     </div>
+<<<<<<< HEAD
 </div>
+=======
+    <div class="main">
+        <header class="topbar">
+            <div class="topbar-search">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input type="text" placeholder="Search..." aria-label="Search" />
+            </div>
+            <div class="topbar-actions">
+                <button type="button" class="icon-btn" title="Notifications">
+                    <i class="fa-regular fa-bell"></i>
+                    <span class="notif-dot"></span>
+                </button>
+                <div class="user-chip">
+                    <div class="avatar"><i class="fa-solid fa-user-graduate"></i></div>
+                    <div>
+                        <div class="user-name" th:text="${student.firstName + ' ' + student.lastName}">Student</div>
+                        <div class="user-role">Student</div>
+                    </div>
+                </div>
+            </div>
+        </header>
+        <div class="content">
+            <div class="page-header">
+                <div>
+                    <h1 class="page-title">Edit Student</h1>
+                    <p class="page-subtitle" th:text="${student.firstName + ' ' + student.lastName + ' · ' + student.studentNumber}">Student details</p>
+                </div>
+                <div class="page-actions">
+                    <a th:href="${backUrl}" class="btn btn-outline"><i class="fa-solid fa-arrow-left"></i> Back to Dashboard</a>
+                </div>
+            </div>
+            <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div>
+            <div th:if="${errorMessage}" class="alert alert-error" th:text="${errorMessage}"></div>
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title"><i class="fa-solid fa-user-pen"></i> Student Details</span>
+                </div>
+                <div class="card-body">
+                    <form th:action="@{/students/edit/{id}(id=${student.id})}" th:object="${student}" method="post">
+                        <input type="hidden" name="_method" value="put" />
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label>First Name</label>
+                                <input type="text" th:field="*{firstName}" class="form-input" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Last Name</label>
+                                <input type="text" th:field="*{lastName}" class="form-input" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Email</label>
+                                <input type="email" th:field="*{email}" class="form-input" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Student Number</label>
+                                <input type="text" th:field="*{studentNumber}" class="form-input" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Registration Number</label>
+                                <input type="text" th:field="*{registrationNumber}" class="form-input" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Degree Program</label>
+                                <input type="text" th:field="*{degreeProgram}" class="form-input" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Year of Study</label>
+                                <input type="number" th:field="*{yearOfStudy}" class="form-input" min="1" max="6" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Phone Number</label>
+                                <input type="text" th:field="*{phoneNumber}" class="form-input" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Internship Company</label>
+                                <input type="text" th:field="*{internshipCompany}" class="form-input" required>
+                            </div>
+                            <div class="form-group">
+                                <label>University Supervisor</label>
+                                <input type="text" th:field="*{universitySupervisor}" class="form-input" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Company Supervisor</label>
+                                <input type="text" th:field="*{industrialSupervisorId}" class="form-input" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Company ID</label>
+                                <input type="text" th:field="*{companyId}" class="form-input" required>
+                            </div>
+                            <div class="form-group full">
+                                <label>Picture URL</label>
+                                <input type="text" th:field="*{pictureUrl}" class="form-input">
+                            </div>
+                        </div>
+                        <div class="form-actions">
+                            <button type="submit" class="btn btn-primary"><i class="fa-solid fa-save"></i> Save Changes</button>
+                            <a th:href="${backUrl}" class="btn btn-outline"><i class="fa-solid fa-xmark"></i> Cancel</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        document.querySelectorAll('.nav-dropdown').forEach(function (dropdown) {
+            var toggle = dropdown.querySelector('.nav-dropdown-toggle');
+            if (!toggle) return;
+            toggle.addEventListener('click', function () {
+                var open = dropdown.classList.toggle('open');
+                toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+            });
+        });
+        document.addEventListener('click', function (event) {
+            document.querySelectorAll('.nav-dropdown.open').forEach(function (dropdown) {
+                if (!dropdown.contains(event.target)) {
+                    dropdown.classList.remove('open');
+                    var t = dropdown.querySelector('.nav-dropdown-toggle');
+                    if (t) t.setAttribute('aria-expanded', 'false');
+                }
+            });
+        });
+    </script>
+>>>>>>> a7c5463aec85f195e051f8868f6977e6e9e0f264
 </body>
 </html>

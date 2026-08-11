@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Company Profile - Internship Management System</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+    <link rel="stylesheet" th:href="@{/css/riho.css}">
+</head>
+<body>
+
+    <!-- Sidebar Navigation -->
+    <div class="sidebar">
+        <div class="sidebar-brand">
+            <div class="brand-logo"><i class="fa-solid fa-graduation-cap"></i></div>
+            <div>
+                <div class="brand-name">IMS Portal</div>
+                <div class="brand-sub">Internship Management</div>
+            </div>
+        </div>
+        <nav class="sidebar-nav">
+            <div class="nav-label">Main</div>
+            <th:block th:if="${userRole == 'ADMIN' || userRole == 'SUPERVISOR'}">
+                <div class="nav-dropdown">
+                    <button type="button" class="nav-link nav-dropdown-toggle" aria-expanded="false">
+                        <i class="fa-solid fa-gauge"></i> Dashboard <i class="fa-solid fa-chevron-down nav-caret"></i>
+                    </button>
+                    <div class="nav-submenu">
+                        <a th:href="@{/university/dashboard}"><i class="fa-solid fa-user-tie"></i> University Area</a>
+                        <a th:href="@{/student/dashboard}"><i class="fa-solid fa-user-graduate"></i> Student Area</a>
+                        <a th:href="@{/company}"><i class="fa-solid fa-building"></i> Company Area</a>
+                    </div>
+                </div>
+            </th:block>
+            <a th:if="${userRole != 'ADMIN' && userRole != 'SUPERVISOR'}" class="nav-link" href="/student/dashboard"><i class="fa-solid fa-gauge"></i> My Dashboard</a>
+            <a class="nav-link active" href="/company-profile/edit"><i class="fa-solid fa-building-flag"></i> Companies</a>
+            <a class="nav-link" href="/student/dashboard"><i class="fa-solid fa-user-graduate"></i> Students</a>
+        </nav>
+        <div class="sidebar-footer">
+            <a class="nav-link" href="/logout"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main">
+        <!-- Topbar -->
+        <header class="topbar">
+            <div class="topbar-search">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input type="text" placeholder="Search profile..." aria-label="Search" />
+            </div>
+            <div class="topbar-actions">
+                <button type="button" class="icon-btn" title="Notifications">
+                    <i class="fa-regular fa-bell"></i>
+                    <span class="notif-dot"></span>
+                </button>
+                <div class="user-chip">
+                    <div class="avatar"><i class="fa-solid fa-building"></i></div>
+                    <div>
+                        <div class="user-name" th:text="${company.name}">Company Name</div>
+                        <div class="user-role">Company</div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Profile Details Section -->
+        <div class="content">
+            <div class="page-header">
+                <div>
+                    <h1 class="page-title">Company Dashboard</h1>
+                    <p class="page-subtitle">View and manage your company profile information</p>
+                </div>
+                <div class="page-actions">
+                    <a th:href="@{/company/{id}(id=${company.id})}" class="btn btn-outline"><i class="fa-solid fa-rotate"></i> Refresh</a>
+                    <a th:href="@{/student/dashboard}" th:if="${userRole != 'ADMIN' && userRole != 'SUPERVISOR'}" class="btn btn-outline"><i class="fa-solid fa-arrow-left"></i> Back to dashboard</a>
+                    <a th:href="@{/university/dashboard}" th:if="${userRole == 'ADMIN' || userRole == 'SUPERVISOR'}" class="btn btn-outline"><i class="fa-solid fa-arrow-left"></i> Back to dashboard</a>
+                </div>
+            </div>
+
+            <!-- Premium Elevated Card -->
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title"><i class="fa-solid fa-building"></i> Profile Details</span>
+                    <a href="/company-profile/edit" class="btn btn-primary"><i class="fa-solid fa-pen"></i> Edit Profile</a>
+                </div>
+
+                <!-- Company Identity: Airtel Uganda Logo + Name -->
+                <div class="identity">
+                    <div class="logo-frame">
+                        <!-- Airtel Uganda Logo (Inline SVG) -->
+                        <svg viewBox="0 0 120 120" width="76" height="76" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Airtel Uganda Logo">
+                            <!-- Red circular badge -->
+                            <circle cx="60" cy="60" r="56" fill="#E40000"/>
+                            <circle cx="60" cy="60" r="56" fill="none" stroke="#B80000" stroke-width="2"/>
+                            <!-- Inner subtle highlight ring -->
+                            <circle cx="60" cy="60" r="50" fill="none" stroke="rgba(255,255,255,0.25)" stroke-width="1.5"/>
+                            <!-- Stylized "A" monogram -->
+                            <path d="M 60 20 L 92 100 L 78 100 L 60 52 L 42 100 L 28 100 Z" fill="white"/>
+                            <!-- Curved swoosh (Airtel signature) -->
+                            <path d="M 28 104 Q 60 116 92 104" stroke="white" stroke-width="5" fill="none" stroke-linecap="round"/>
+                        </svg>
+                    </div>
+                    <div class="identity-block">
+                        <div class="identity-name" th:text="${company.name}">Company Name</div>
+                        <div class="identity-tagline">Airtel Uganda &middot; Partner Company</div>
+                    </div>
+                </div>
+
+                <!-- Two-Column Data Grid -->
+                <div class="info-grid">
+                    <!-- Row 1 -->
+                    <div class="info-group">
+                        <span class="info-label"><span class="label-icon"><i class="fa-solid fa-building"></i></span> Company Name</span>
+                        <span class="info-value" th:text="${company.name}">Company Name</span>
+                    </div>
+                    <div class="info-group">
+                        <span class="info-label"><span class="label-icon"><i class="fa-solid fa-location-dot"></i></span> Location</span>
+                        <span class="info-value" th:text="${company.location}">Location</span>
+                    </div>
+
+                    <!-- Row 2 -->
+                    <div class="info-group">
+                        <span class="info-label"><span class="label-icon"><i class="fa-solid fa-envelope"></i></span> Email</span>
+                        <span class="info-value" th:text="${company.email}">email@example.com</span>
+                    </div>
+                    <div class="info-group">
+                        <span class="info-label"><span class="label-icon"><i class="fa-solid fa-phone"></i></span> Phone</span>
+                        <span class="info-value" th:text="${company.phone}">0700000000</span>
+                    </div>
+
+                    <!-- Row 3 -->
+                    <div class="info-group">
+                        <span class="info-label"><span class="label-icon"><i class="fa-solid fa-globe"></i></span> Website</span>
+                        <span class="info-value" th:text="${company.website}">www.example.com</span>
+                    </div>
+                    <div class="info-group">
+                        <span class="info-label"><span class="label-icon"><i class="fa-solid fa-briefcase"></i></span> Department</span>
+                        <span class="info-value" th:text="${company.department}">Department</span>
+                    </div>
+
+                    <!-- Row 4 -->
+                    <div class="info-group">
+                        <span class="info-label"><span class="label-icon"><i class="fa-solid fa-user-tie"></i></span> Field Supervisor</span>
+                        <span class="info-value" th:text="${company.fieldSupervisor}">Supervisor Name</span>
+                    </div>
+                    <div class="info-group">
+                        <span class="info-label"><span class="label-icon"><i class="fa-solid fa-handshake"></i></span> Partnership Roles</span>
+                        <span class="info-value" th:text="${company.roles}">Roles</span>
+                    </div>
+
+                    <!-- Full-width row -->
+                    <div class="info-group full-width">
+                        <span class="info-label"><span class="label-icon"><i class="fa-solid fa-file-lines"></i></span> Company Profile / Industry</span>
+                        <p class="info-value long-text" th:text="${company.profile}">Description</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.querySelectorAll('.nav-dropdown').forEach(function (dropdown) {
+            var toggle = dropdown.querySelector('.nav-dropdown-toggle');
+            if (!toggle) return;
+            toggle.addEventListener('click', function () {
+                var open = dropdown.classList.toggle('open');
+                toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+            });
+        });
+        document.addEventListener('click', function (event) {
+            document.querySelectorAll('.nav-dropdown.open').forEach(function (dropdown) {
+                if (!dropdown.contains(event.target)) {
+                    dropdown.classList.remove('open');
+                    var t = dropdown.querySelector('.nav-dropdown-toggle');
+                    if (t) t.setAttribute('aria-expanded', 'false');
+                }
+            });
+        });
+    </script>
+</body>
+</html>

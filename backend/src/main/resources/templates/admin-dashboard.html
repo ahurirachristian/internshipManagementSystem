@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - Internship Management System</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+    <link rel="stylesheet" th:href="@{/css/riho.css}">
+</head>
+<body>
+
+    <!-- Sidebar Navigation -->
+    <div class="sidebar">
+        <div class="sidebar-brand">
+            <div class="brand-logo"><i class="fa-solid fa-graduation-cap"></i></div>
+            <div>
+                <div class="brand-name">IMS Portal</div>
+                <div class="brand-sub">Internship Management</div>
+            </div>
+        </div>
+        <nav class="sidebar-nav">
+            <div class="nav-label">Main</div>
+            <div class="nav-dropdown">
+                <button type="button" class="nav-link nav-dropdown-toggle" aria-expanded="false">
+                    <i class="fa-solid fa-gauge"></i> Dashboard <i class="fa-solid fa-chevron-down nav-caret"></i>
+                </button>
+                <div class="nav-submenu">
+                    <a th:href="@{/university/dashboard}"><i class="fa-solid fa-user-tie"></i> University Area</a>
+                    <a th:href="@{/student/dashboard}"><i class="fa-solid fa-user-graduate"></i> Student Area</a>
+                    <a th:href="@{/company}"><i class="fa-solid fa-building"></i> Company Area</a>
+                </div>
+            </div>
+            <a class="nav-link active" href="/admin/dashboard"><i class="fa-solid fa-shield-halved"></i> Admin Dashboard</a>
+            <a class="nav-link" href="/admin/students"><i class="fa-solid fa-user-graduate"></i> Students</a>
+            <a class="nav-link" href="/admin/diaries"><i class="fa-solid fa-book-open"></i> Day Diary Logs</a>
+            <div class="nav-label">Areas</div>
+            <a class="nav-link" href="/company"><i class="fa-solid fa-building"></i> Companies</a>
+            <a class="nav-link" href="/student/dashboard"><i class="fa-solid fa-id-card"></i> Student Area</a>
+        </nav>
+        <div class="sidebar-footer">
+            <a class="nav-link" href="/logout"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main">
+        <!-- Topbar -->
+        <header class="topbar">
+            <div class="topbar-search">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input type="text" placeholder="Search dashboard..." aria-label="Search" />
+            </div>
+            <div class="topbar-actions">
+                <button type="button" class="icon-btn" title="Notifications">
+                    <i class="fa-regular fa-bell"></i>
+                    <span class="notif-dot"></span>
+                </button>
+                <div class="user-chip">
+                    <div class="avatar">AD</div>
+                    <div>
+                        <div class="user-name">Administrator</div>
+                        <div class="user-role">Admin</div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <div class="content">
+            <div class="page-header">
+                <div>
+                    <h1 class="page-title">Admin Dashboard</h1>
+                    <p class="page-subtitle">Monitor registered students and review all submitted day diary logs</p>
+                </div>
+                <div class="page-actions">
+                    <a href="/admin/dashboard" class="btn btn-outline"><i class="fa-solid fa-arrow-left"></i> Back to Dashboard</a>
+                </div>
+            </div>
+
+            <!-- Summary Metrics -->
+            <div class="metric-grid">
+                <div class="card metric-card">
+                    <div class="metric-icon brand"><i class="fa-solid fa-user-graduate"></i></div>
+                    <div>
+                        <div class="metric-value" th:text="${totalStudents}">0</div>
+                        <div class="metric-label">Registered Students</div>
+                    </div>
+                </div>
+                <div class="card metric-card">
+                    <div class="metric-icon blue"><i class="fa-solid fa-book-open"></i></div>
+                    <div>
+                        <div class="metric-value" th:text="${totalDiaryEntries}">0</div>
+                        <div class="metric-label">Day Diary Logs Submitted</div>
+                    </div>
+                </div>
+                <div class="card metric-card">
+                    <div class="metric-icon green"><i class="fa-solid fa-circle-check"></i></div>
+                    <div>
+                        <div class="metric-value" th:text="${activeStudents}">0</div>
+                        <div class="metric-label">Active Students</div>
+                    </div>
+                </div>
+                <div class="card metric-card">
+                    <div class="metric-icon amber"><i class="fa-solid fa-chart-line"></i></div>
+                    <div>
+                        <div class="metric-value" th:text="${#numbers.formatDecimal(averageDiaryEntriesPerStudent, 1, 1)}">0</div>
+                        <div class="metric-label">Avg Logs per Student</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tabs -->
+            <div class="tabs">
+                <a class="tab" th:classappend="${activeTab == 'students'} ? 'active'" th:href="@{/admin/students}">
+                    <i class="fa-solid fa-user-graduate"></i> Students
+                    <span class="tab-count" th:text="${totalStudents}">0</span>
+                </a>
+                <a class="tab" th:classappend="${activeTab == 'diaries'} ? 'active'" th:href="@{/admin/diaries}">
+                    <i class="fa-solid fa-book-open"></i> Day Diary Logs
+                    <span class="tab-count" th:text="${totalDiaryEntries}">0</span>
+                </a>
+            </div>
+
+            <!-- Students Table -->
+            <div class="card" th:if="${activeTab == 'students'}">
+                <div class="card-header">
+                    <span class="card-title"><i class="fa-solid fa-user-graduate"></i> Registered Students</span>
+                    <span class="card-hint">All registered student profiles and their diary activity</span>
+                </div>
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Student</th>
+                                <th>Student No.</th>
+                                <th>Email</th>
+                                <th>Degree Program</th>
+                                <th>Internship Company</th>
+                                <th>Diary Entries</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="student : ${students}">
+                                <td>
+                                    <div class="cell-user">
+                                        <div class="avatar">
+                                            <img th:src="${student.pictureUrl}" src="/images/student-placeholder.svg" alt="Student photo" />
+                                        </div>
+                                        <div>
+                                            <div class="u-name" th:text="${student.firstName} + ' ' + ${student.lastName}">John Doe</div>
+                                            <div class="u-sub" th:text="${student.studentNumber}">STU-2026-001</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td th:text="${student.studentNumber}">STU-2026-001</td>
+                                <td th:text="${student.email}">student@example.com</td>
+                                <td th:text="${student.degreeProgram}">Computer Science</td>
+                                <td th:text="${student.internshipCompany}">TechCorp Solutions</td>
+                                <td>
+                                    <span class="count-chip" th:text="${diaryCounts[student.username] ?: 0}">0</span>
+                                </td>
+                                <td th:with="count=${diaryCounts[student.username] ?: 0}">
+                                    <span class="badge" th:classappend="${count > 0 ? 'badge-success' : 'badge-warning'}">
+                                        <span class="dot"></span>
+                                        <span th:text="${count > 0 ? 'Active' : 'No Activity'}">Active</span>
+                                    </span>
+                                </td>
+                            </tr>
+                            <tr th:if="${#lists.isEmpty(students)}">
+                                <td colspan="7">
+                                    <div class="empty-state">
+                                        <div class="empty-icon">&#128100;</div>
+                                        <h3>No registered students</h3>
+                                        <p>No registered students found.</p>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Day Diary Logs Table -->
+            <div class="card" th:if="${activeTab == 'diaries'}">
+                <div class="card-header">
+                    <span class="card-title"><i class="fa-solid fa-book-open"></i> Day Diary Logs</span>
+                    <span class="card-hint">All submitted day diary entries across every student</span>
+                </div>
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Student</th>
+                                <th>Daily Activities</th>
+                                <th>Skills Gained</th>
+                                <th>Accomplishments</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="entry : ${diaryEntries}">
+                                <td th:text="${entry.date}" class="u-name">2026-01-01</td>
+                                <td>
+                                    <div class="cell-user">
+                                        <div class="avatar"><i class="fa-solid fa-user"></i></div>
+                                        <div>
+                                            <div class="u-name" th:text="${entry.studentProfile.firstName} + ' ' + ${entry.studentProfile.lastName}">John Doe</div>
+                                            <div class="u-sub" th:text="${entry.studentProfile.studentNumber}">STU-2026-001</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td th:text="${entry.dailyActivities}">Daily activities summary</td>
+                                <td th:text="${entry.knowledgeAndSkillsGained}">Skills learned</td>
+                                <td th:text="${entry.accomplishments}">Accomplishments text</td>
+                            </tr>
+                            <tr th:if="${#lists.isEmpty(diaryEntries)}">
+                                <td colspan="5">
+                                    <div class="empty-state">
+                                        <div class="empty-icon">&#128221;</div>
+                                        <h3>No diary entries</h3>
+                                        <p>No day diary entries have been submitted yet.</p>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        document.querySelectorAll('.nav-dropdown').forEach(function (dropdown) {
+            var toggle = dropdown.querySelector('.nav-dropdown-toggle');
+            if (!toggle) return;
+            toggle.addEventListener('click', function () {
+                var open = dropdown.classList.toggle('open');
+                toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+            });
+        });
+        document.addEventListener('click', function (event) {
+            document.querySelectorAll('.nav-dropdown.open').forEach(function (dropdown) {
+                if (!dropdown.contains(event.target)) {
+                    dropdown.classList.remove('open');
+                    var t = dropdown.querySelector('.nav-dropdown-toggle');
+                    if (t) t.setAttribute('aria-expanded', 'false');
+                }
+            });
+        });
+    </script>
+</body>
+</html>

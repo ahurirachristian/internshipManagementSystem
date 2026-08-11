@@ -27,11 +27,19 @@ public class UserEntity {
     @Column(nullable = false)
     private Role role;
 
+<<<<<<< HEAD
     @Column(nullable = true)
     private String provider;
 
     @Column(nullable = true, unique = true)
     private String providerId;
+=======
+    @Column(name = "company_id", nullable = true)
+    private Long companyId;
+
+    @Column(name = "university_id", nullable = true)
+    private Long universityId;
+>>>>>>> a7c5463aec85f195e051f8868f6977e6e9e0f264
 
     public UserEntity() {
     }
@@ -42,12 +50,21 @@ public class UserEntity {
         this.role = role;
     }
 
+<<<<<<< HEAD
     public UserEntity(String username, String password, Role role, String provider, String providerId) {
         this.username = username;
         this.password = password;
         this.role = role;
         this.provider = provider;
         this.providerId = providerId;
+=======
+    public UserEntity(String username, String password, Role role, Long companyId, Long universityId) {
+        this.username = username;
+        this.password = password;
+        this.role = role;
+        this.companyId = companyId;
+        this.universityId = universityId;
+>>>>>>> a7c5463aec85f195e051f8868f6977e6e9e0f264
     }
 
     public Long getId() {
@@ -78,6 +95,7 @@ public class UserEntity {
         this.role = role;
     }
 
+<<<<<<< HEAD
     public String getProvider() {
         return provider;
     }
@@ -92,5 +110,21 @@ public class UserEntity {
 
     public void setProviderId(String providerId) {
         this.providerId = providerId;
+=======
+    public Long getCompanyId() {
+        return companyId;
+    }
+
+    public void setCompanyId(Long companyId) {
+        this.companyId = companyId;
+    }
+
+    public Long getUniversityId() {
+        return universityId;
+    }
+
+    public void setUniversityId(Long universityId) {
+        this.universityId = universityId;
+>>>>>>> a7c5463aec85f195e051f8868f6977e6e9e0f264
     }
 }

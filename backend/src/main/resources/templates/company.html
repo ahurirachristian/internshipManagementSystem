@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Company - Internship Management System</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+    <link rel="stylesheet" th:href="@{/css/riho.css}">
+</head>
+<body>
+
+    <!-- Sidebar Navigation -->
+    <div class="sidebar">
+        <div class="sidebar-brand">
+            <div class="brand-logo"><i class="fa-solid fa-graduation-cap"></i></div>
+            <div>
+                <div class="brand-name">IMS Portal</div>
+                <div class="brand-sub">Internship Management</div>
+            </div>
+        </div>
+        <nav class="sidebar-nav">
+            <div class="nav-label">Main</div>
+            <th:block th:if="${userRole == 'ADMIN' || userRole == 'SUPERVISOR'}">
+                <div class="nav-dropdown">
+                    <button type="button" class="nav-link nav-dropdown-toggle" aria-expanded="false">
+                        <i class="fa-solid fa-gauge"></i> Dashboard <i class="fa-solid fa-chevron-down nav-caret"></i>
+                    </button>
+                    <div class="nav-submenu">
+                        <a th:href="@{/university/dashboard}"><i class="fa-solid fa-user-tie"></i> University Area</a>
+                        <a th:href="@{/student/dashboard}"><i class="fa-solid fa-user-graduate"></i> Student Area</a>
+                        <a th:href="@{/company/dashboard}"><i class="fa-solid fa-building"></i> Company Area</a>
+                    </div>
+                </div>
+            </th:block>
+            <a th:if="${userRole != 'ADMIN' && userRole != 'SUPERVISOR'}" class="nav-link" href="/student/dashboard"><i class="fa-solid fa-gauge"></i> My Dashboard</a>
+
+            <div class="nav-label">Management</div>
+            <a th:if="${userRole == 'COMPANY'}" class="nav-link active" href="/company/dashboard"><i class="fa-solid fa-building-flag"></i> My Company</a>
+            <a th:if="${userRole != 'COMPANY'}" class="nav-link active" href="/company"><i class="fa-solid fa-building-flag"></i> Companies</a>
+            <a class="nav-link" href="/student/dashboard"><i class="fa-solid fa-user-graduate"></i> Students</a>
+            <a class="nav-link" href="/university/dashboard"><i class="fa-solid fa-user-tie"></i> University</a>
+
+            <div class="nav-label">Account</div>
+            <a class="nav-link" href="/logout"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
+        </nav>
+        <div class="sidebar-footer">
+            <a class="nav-link" href="/logout"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main">
+        <!-- Topbar -->
+        <header class="topbar">
+            <div class="topbar-search">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input type="text" placeholder="Search..." aria-label="Search" />
+            </div>
+            <div class="topbar-actions">
+                <button type="button" class="icon-btn" title="Notifications">
+                    <i class="fa-regular fa-bell"></i>
+                    <span class="notif-dot"></span>
+                </button>
+                <div class="user-chip">
+                    <div class="avatar"><i class="fa-solid fa-building"></i></div>
+                    <div>
+                        <div class="user-name" th:text="${company != null ? company.name : 'Company User'}">Company Name</div>
+                        <div class="user-role">Company</div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <div class="content">
+            <div class="page-header">
+                <div>
+                    <h1 class="page-title" th:text="${company != null ? 'Company Dashboard' : 'Partner Companies'}">Company Dashboard</h1>
+                    <p class="page-subtitle" th:text="${company != null ? 'View your company profile and manage your interns' : 'Browse registered partner companies'}">
+                        View your company profile and manage your interns
+                    </p>
+                </div>
+                <div class="page-actions">
+                    <a th:href="${company != null ? '/company/dashboard' : '/company'}" class="btn btn-outline"><i class="fa-solid fa-rotate"></i> Refresh</a>
+                    <a th:href="@{/university/dashboard}" th:if="${userRole == 'ADMIN' || userRole == 'SUPERVISOR'}" class="btn btn-outline"><i class="fa-solid fa-arrow-left"></i> Back to dashboard</a>
+                </div>
+            </div>
+
+            <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div>
+            <div th:if="${errorMessage}" class="alert alert-error" th:text="${errorMessage}"></div>
+
+            <!-- ============ COMPANY DASHBOARD VIEW (company user) ============ -->
+            <th:block th:if="${company != null}">
+                <!-- Company Profile Section -->
+                <div class="card" style="margin-bottom: 26px;">
+                    <div class="card-header">
+                        <span class="card-title"><i class="fa-solid fa-building"></i> Company Profile</span>
+                        <a th:href="@{/company/{id}(id=${company.id})}" class="btn btn-outline btn-sm"><i class="fa-solid fa-eye"></i> View Full Profile</a>
+                    </div>
+                    <div class="identity">
+                        <div class="logo-frame">
+                            <svg viewBox="0 0 120 120" width="76" height="76" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Company Logo">
+                                <circle cx="60" cy="60" r="56" fill="var(--riho-accent)"/>
+                                <path d="M 60 20 L 92 100 L 78 100 L 60 52 L 42 100 L 28 100 Z" fill="white"/>
+                                <path d="M 28 104 Q 60 116 92 104" stroke="white" stroke-width="5" fill="none" stroke-linecap="round"/>
+                            </svg>
+                        </div>
+                        <div class="identity-block">
+                            <div class="identity-name" th:text="${company.name}">Company Name</div>
+                            <div class="identity-tagline" th:text="${company.department != null ? company.department + ' &middot; ' + company.location : company.location}">Department &middot; Location</div>
+                        </div>
+                    </div>
+                    <div class="info-grid" style="padding: 6px 22px 22px;">
+                        <div class="info-group">
+                            <span class="info-label"><span class="label-icon"><i class="fa-solid fa-location-dot"></i></span> Location</span>
+                            <span class="info-value" th:text="${company.location}">Location</span>
+                        </div>
+                        <div class="info-group">
+                            <span class="info-label"><span class="label-icon"><i class="fa-solid fa-envelope"></i></span> Email</span>
+                            <span class="info-value" th:text="${company.email}">email@example.com</span>
+                        </div>
+                        <div class="info-group">
+                            <span class="info-label"><span class="label-icon"><i class="fa-solid fa-user-tie"></i></span> Field Supervisor</span>
+                            <span class="info-value" th:text="${company.fieldSupervisor}">Supervisor Name</span>
+                        </div>
+                        <div class="info-group">
+                            <span class="info-label"><span class="label-icon"><i class="fa-solid fa-briefcase"></i></span> Department</span>
+                            <span class="info-value" th:text="${company.department}">Department</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Empty State (no students at this company) -->
+                <div th:if="${students == null or students.empty}" class="card">
+                    <div class="empty-state">
+                        <div class="empty-icon">&#128100;</div>
+                        <h3>No interns at this company</h3>
+                        <p th:text="'There are no students currently placed at ' + ${company.name} + '.'">There are no students currently placed at this company.</p>
+                    </div>
+                </div>
+
+                <!-- Students Table Card -->
+                <div th:unless="${students == null or students.empty}" class="card">
+                    <div class="card-header">
+                        <span class="card-title"><i class="fa-solid fa-user-graduate"></i> My Interns</span>
+                        <span class="card-hint" th:text="${students.size() + ' student(s) interning at this company'}">Students interning at this company</span>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table" id="studentsTable">
+                            <thead>
+                                <tr>
+                                    <th>Student Name</th>
+                                    <th>Reg No / Course</th>
+                                    <th>Academic Supervisor</th>
+                                    <th>Company Supervisor</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr class="student-row" th:each="student : ${students}" th:attr="data-name=${student.firstName + ' ' + student.lastName}">
+                                    <td>
+                                        <div class="cell-user">
+                                            <div class="avatar">
+                                                <span th:text="${#strings.substring(student.firstName, 0, 1)}">A</span>
+                                            </div>
+                                            <div>
+                                                <div class="u-name" th:text="${student.firstName + ' ' + student.lastName}">Student Name</div>
+                                                <div class="u-sub" th:text="${student.email}">student@example.com</div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div th:text="${student.registrationNumber}">REG-1001</div>
+                                        <div class="u-sub" th:text="${student.degreeProgram}">Course</div>
+                                    </td>
+                                    <td th:text="${student.universitySupervisor}">Academic Supervisor</td>
+                                    <td th:text="${student.industrialSupervisorId}">Company Supervisor</td>
+                                    <td>
+                                        <div class="action-cell">
+                                            <a class="btn btn-primary btn-sm" th:href="@{/students/edit/{id}(id=${student.id})}" title="Edit student">
+                                                <i class="fa-solid fa-pen"></i> Edit
+                                            </a>
+                                            <form th:action="@{/students/delete/{id}(id=${student.id})}" method="post"
+                                                  onsubmit="return confirm('Delete this student? This action cannot be undone.');" style="display:inline;">
+                                                <input type="hidden" name="_method" value="delete" />
+                                                <button type="submit" class="btn btn-ghost btn-icon btn-delete" title="Delete student">
+                                                    <i class="fa-solid fa-trash"></i>
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </th:block>
+
+            <!-- ============ COMPANIES LIST VIEW (admin/supervisor) ============ -->
+            <th:block th:if="${company == null}">
+                <div th:if="${companies == null or companies.empty}" class="card">
+                    <div class="empty-state">
+                        <div class="empty-icon">&#127970;</div>
+                        <h3>No companies found</h3>
+                        <p>There are no companies registered yet.</p>
+                    </div>
+                </div>
+
+                <div th:unless="${companies == null or companies.empty}" class="card">
+                    <div class="card-header">
+                        <span class="card-title"><i class="fa-solid fa-building"></i> All Companies</span>
+                        <span class="card-hint">Browse registered partner companies</span>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table" id="companiesTable">
+                            <thead>
+                                <tr>
+                                    <th>Company</th>
+                                    <th>Location</th>
+                                    <th>Email</th>
+                                    <th>Phone</th>
+                                    <th>Department</th>
+                                    <th>Supervisor</th>
+                                    <th>Roles</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr class="company-row" th:each="comp : ${companies}" th:attr="data-name=${comp.name}">
+                                    <td>
+                                        <div class="cell-user">
+                                            <div class="avatar">
+                                                <i class="fa-solid fa-building"></i>
+                                            </div>
+                                            <div>
+                                                <div class="u-name" th:text="${comp.name}">Company Name</div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td th:text="${comp.location}">Location</td>
+                                    <td th:text="${comp.email}">email@example.com</td>
+                                    <td th:text="${comp.phone}">0700000000</td>
+                                    <td th:text="${comp.department}">Department</td>
+                                    <td th:text="${comp.fieldSupervisor}">Supervisor</td>
+                                    <td th:text="${comp.roles}">Roles</td>
+                                    <td>
+                                        <div class="action-cell">
+                                            <a class="btn btn-primary btn-sm" th:href="@{/company/{id}(id=${comp.id})}">
+                                                View Profile <i class="fa-solid fa-arrow-right"></i>
+                                            </a>
+                                            <th:block th:if="${userRole == 'ADMIN' || userRole == 'SUPERVISOR'}">
+                                                <a class="btn btn-ghost btn-icon" th:href="@{/company/edit/{id}(id=${comp.id})}" title="Edit company">
+                                                    <i class="fa-solid fa-pen"></i>
+                                                </a>
+                                                <a class="btn btn-ghost btn-icon btn-delete" th:href="@{/company/delete/{id}(id=${comp.id})}" title="Delete company"
+                                                   onclick="return confirm('Delete this company? This action cannot be undone.');">
+                                                    <i class="fa-solid fa-trash"></i>
+                                                </a>
+                                            </th:block>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </th:block>
+        </div>
+    </div>
+
+    <script>
+        const searchInput = document.querySelector('.topbar-search input');
+        const rows = document.querySelectorAll('.student-row, .company-row');
+
+        if (searchInput) {
+            searchInput.addEventListener('input', function () {
+                const query = this.value.trim().toLowerCase();
+                rows.forEach(function (row) {
+                    const name = (row.getAttribute('data-name') || '').toLowerCase();
+                    const matches = query === '' || name.includes(query);
+                    row.style.display = matches ? '' : 'none';
+                });
+            });
+        }
+
+        document.querySelectorAll('.nav-dropdown').forEach(function (dropdown) {
+            var toggle = dropdown.querySelector('.nav-dropdown-toggle');
+            if (!toggle) return;
+            toggle.addEventListener('click', function () {
+                var open = dropdown.classList.toggle('open');
+                toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+            });
+        });
+        document.addEventListener('click', function (event) {
+            document.querySelectorAll('.nav-dropdown.open').forEach(function (dropdown) {
+                if (!dropdown.contains(event.target)) {
+                    dropdown.classList.remove('open');
+                    var t = dropdown.querySelector('.nav-dropdown-toggle');
+                    if (t) t.setAttribute('aria-expanded', 'false');
+                }
+            });
+        });
+    </script>
+</body>
+</html>
