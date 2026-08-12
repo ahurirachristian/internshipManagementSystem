@@ -264,7 +264,6 @@ public class DashboardController {
                 .ifPresent(student -> {
                     redirectAttributes.addFlashAttribute(
                             "successMessage", "Student \"" + student.getFirstName() + " " + student.getLastName() + "\" deleted successfully.");
-                    // Clean up related diary entries to avoid FK constraint failures
                     dayDiaryRepository.findAll().stream()
                             .filter(diary -> diary.getStudentProfile() != null
                                     && diary.getStudentProfile().getId().equals(student.getId()))
