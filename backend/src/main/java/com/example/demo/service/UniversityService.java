@@ -40,6 +40,10 @@ public class UniversityService {
         return universityRepository.findByNameStartingWithIgnoreCase(query);
     }
 
+    public List<University> getAllUniversities() {
+        return universityRepository.findAll();
+    }
+
     public UniversityDto toDto(University university) {
         return new UniversityDto(university.getId(), university.getName());
     }

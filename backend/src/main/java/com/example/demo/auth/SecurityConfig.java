@@ -1,6 +1,10 @@
 package com.example.demo.auth;
 
+<<<<<<< HEAD
+import org.springframework.beans.factory.annotation.Autowired;
+=======
 import java.util.List;
+>>>>>>> a7c5463aec85f195e051f8868f6977e6e9e0f264
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -13,20 +17,29 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+<<<<<<< HEAD
+import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
+=======
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+>>>>>>> a7c5463aec85f195e051f8868f6977e6e9e0f264
 
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
 public class SecurityConfig {
 
+<<<<<<< HEAD
+    @Autowired
+    private CustomAuthenticationSuccessHandler customAuthenticationSuccessHandler;
+=======
     private final RoleBasedAuthenticationSuccessHandler authenticationSuccessHandler;
 
     public SecurityConfig(RoleBasedAuthenticationSuccessHandler authenticationSuccessHandler) {
         this.authenticationSuccessHandler = authenticationSuccessHandler;
     }
+>>>>>>> a7c5463aec85f195e051f8868f6977e6e9e0f264
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -59,7 +72,11 @@ public class SecurityConfig {
             .csrf(csrf -> csrf.disable())
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
             .authorizeHttpRequests(auth -> auth
+<<<<<<< HEAD
+                .requestMatchers("/", "/login", "/admin/login", "/register", "/css/**", "/js/**", "/h2-console/**").permitAll()
+=======
                 .requestMatchers("/", "/login", "/api/login", "/css/**", "/js/**", "/images/**", "/assets/**", "/app.js", "/favicon.ico", "/h2-console/**").permitAll()
+>>>>>>> a7c5463aec85f195e051f8868f6977e6e9e0f264
                 .requestMatchers("/admin/**").hasAuthority("ADMIN")
                 .requestMatchers("/university/universities/search").hasAnyAuthority("STUDENT", "SUPERVISOR", "ADMIN")
                 .requestMatchers("/university/**", "/supervisor/**").hasAnyAuthority("SUPERVISOR", "ADMIN")
@@ -69,7 +86,11 @@ public class SecurityConfig {
             )
             .formLogin(form -> form
                 .loginPage("/login")
+<<<<<<< HEAD
+                .successHandler(customAuthenticationSuccessHandler)
+=======
                 .successHandler(authenticationSuccessHandler)
+>>>>>>> a7c5463aec85f195e051f8868f6977e6e9e0f264
                 .permitAll()
             )
             .logout(logout -> logout

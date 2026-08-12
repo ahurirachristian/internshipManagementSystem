@@ -83,6 +83,8 @@ public class DashboardController {
     public String universityOverview() {
         return "redirect:" + UNIVERSITY_HOME;
     }
+<<<<<<< HEAD
+=======
 
     @GetMapping("/company/dashboard")
     @PreAuthorize("hasAnyAuthority('COMPANY', 'ADMIN', 'SUPERVISOR')")
@@ -236,4 +238,5 @@ public class DashboardController {
         }
         return "STUDENT";
     }
+>>>>>>> a7c5463aec85f195e051f8868f6977e6e9e0f264
 }
