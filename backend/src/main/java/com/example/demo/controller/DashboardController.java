@@ -83,8 +83,6 @@ public class DashboardController {
     public String universityOverview() {
         return "redirect:" + UNIVERSITY_HOME;
     }
-<<<<<<< HEAD
-=======
 
     @GetMapping("/company/dashboard")
     @PreAuthorize("hasAnyAuthority('COMPANY', 'ADMIN', 'SUPERVISOR')")
@@ -191,7 +189,6 @@ public class DashboardController {
                 .ifPresent(student -> {
                     redirectAttributes.addFlashAttribute(
                             "successMessage", "Student \"" + student.getFirstName() + " " + student.getLastName() + "\" deleted successfully.");
-                    // Clean up related diary entries to avoid FK constraint failures
                     dayDiaryRepository.findAll().stream()
                             .filter(diary -> diary.getStudentProfile() != null
                                     && diary.getStudentProfile().getId().equals(student.getId()))
@@ -238,5 +235,4 @@ public class DashboardController {
         }
         return "STUDENT";
     }
->>>>>>> a7c5463aec85f195e051f8868f6977e6e9e0f264
 }

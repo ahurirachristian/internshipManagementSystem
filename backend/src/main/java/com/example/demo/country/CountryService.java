@@ -16,6 +16,10 @@ public class CountryService {
         return countryRepository.findAll();
     }
 
+    public List<Country> searchByName(String query) {
+        return countryRepository.findByNameContainingIgnoreCase(query);
+    }
+
     public Country save(Country country) {
         return countryRepository.save(country);
     }

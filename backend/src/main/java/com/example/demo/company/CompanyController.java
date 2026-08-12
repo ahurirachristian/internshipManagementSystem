@@ -2,6 +2,7 @@ package com.example.demo.company;
 
 import java.util.List;
 import com.example.demo.dto.CompanyRequest;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -46,7 +47,7 @@ public class CompanyController {
 
     // POST /api/companies - create a new company
     @PostMapping
-    public ResponseEntity<Company> createCompany(@RequestBody CompanyRequest request) {
+    public ResponseEntity<Company> createCompany(@Valid @RequestBody CompanyRequest request) {
         Company company = new Company();
         company.setName(request.getName());
         company.setLocation(request.getCountry());
@@ -62,7 +63,7 @@ public class CompanyController {
 
     // PUT /api/companies/{id} - update an existing company
     @PutMapping("/{id}")
-    public ResponseEntity<Company> updateCompany(@PathVariable Long id, @RequestBody CompanyRequest request) {
+    public ResponseEntity<Company> updateCompany(@PathVariable Long id, @Valid @RequestBody CompanyRequest request) {
         return companyService.findById(id)
                 .map(existing -> {
                     existing.setName(request.getName());
