@@ -1,13 +1,32 @@
 package com.example.demo.dto;
 
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
+
 public class CompanyRequest {
 
+    @NotBlank(message = "Company name is required")
+    @Size(min = 2, max = 100, message = "Company name must be between 2 and 100 characters")
     private String name;
+
+    @NotBlank(message = "Country is required")
     private String country;
+
+    @NotBlank(message = "Branch is required")
     private String branch;
+
+    @NotBlank(message = "Email is required")
+    @Email(message = "Email should be valid")
     private String email;
+
+    @NotBlank(message = "Website is required")
     private String website;
+
+    @NotBlank(message = "Postal address is required")
     private String postalAddress;
+
+    @NotBlank(message = "Physical address is required")
     private String physicalAddress;
 
     public CompanyRequest() {
