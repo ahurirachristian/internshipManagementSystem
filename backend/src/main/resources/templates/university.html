@@ -23,21 +23,20 @@
         <nav class="sidebar-nav">
             <div class="nav-label">Main</div>
             <div class="nav-dropdown">
-                <button type="button" class="nav-link nav-dropdown-toggle" aria-expanded="false">
-                    <i class="fa-solid fa-gauge"></i> Dashboard <i class="fa-solid fa-chevron-down nav-caret"></i>
-                </button>
-                <div class="nav-submenu">
-                    <a class="active" th:href="@{/university/dashboard}"><i class="fa-solid fa-user-tie"></i> University Area</a>
-                    <a th:href="@{/student/dashboard}"><i class="fa-solid fa-user-graduate"></i> Student Area</a>
-                    <a th:href="@{/company}"><i class="fa-solid fa-building"></i> Company Area</a>
+                    <button type="button" class="nav-link nav-dropdown-toggle" aria-expanded="true">
+                        <i class="fa-solid fa-gauge"></i> Dashboard <i class="fa-solid fa-chevron-down nav-caret"></i>
+                    </button>
+                    <div class="nav-submenu">
+                        <a th:href="@{/university/dashboard}" th:classappend="${activePage == 'university'} ? ' active' : ''"><i class="fa-solid fa-user-tie"></i> University Area</a>
+                        <a th:href="@{/student/dashboard}" th:classappend="${activePage == 'student'} ? ' active' : ''"><i class="fa-solid fa-user-graduate"></i> Student Area</a>
+                        <a th:href="@{/company}" th:classappend="${activePage == 'company'} ? ' active' : ''"><i class="fa-solid fa-building"></i> Company Area</a>
+                    </div>
                 </div>
-            </div>
 
             <div class="nav-label">Management</div>
-            <a class="nav-link active" href="/university/dashboard"><i class="fa-solid fa-user-tie"></i> University</a>
-            <a class="nav-link" href="/student/dashboard"><i class="fa-solid fa-user-graduate"></i> Students</a>
-            <a class="nav-link" href="/company"><i class="fa-solid fa-building"></i> Companies</a>
-
+            <a class="nav-link" th:href="@{/university/dashboard}" th:classappend="${activePage == 'university'} ? ' active' : ''"><i class="fa-solid fa-user-tie"></i> University</a>
+            <a class="nav-link" th:href="@{/student/dashboard}" th:classappend="${activePage == 'student'} ? ' active' : ''"><i class="fa-solid fa-user-graduate"></i> Students</a>
+            <a class="nav-link" th:href="@{/company}" th:classappend="${activePage == 'company'} ? ' active' : ''"><i class="fa-solid fa-building"></i> Companies</a>
             <div class="nav-label">Student Registration</div>
             <a class="nav-link" href="/university/dashboard"><i class="fa-solid fa-user-plus"></i> Student Registration</a>
             <a class="nav-link" href="/student/dashboard"><i class="fa-solid fa-chalkboard-user"></i> Supervisors</a>

@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Day Diary - Internship Management System</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+    <link rel="stylesheet" th:href="@{/css/riho.css}">
+</head>
+<body>
+    <div class="sidebar">
+        <div class="sidebar-brand">
+            <div class="brand-logo"><i class="fa-solid fa-graduation-cap"></i></div>
+            <div>
+                <div class="brand-name">IMS Portal</div>
+                <div class="brand-sub">Internship Management</div>
+            </div>
+        </div>
+        <nav class="sidebar-nav">
+            <div class="nav-label">Main</div>
+            <a class="nav-link" href="/student/dashboard"><i class="fa-solid fa-gauge"></i> My Dashboard</a>
+            <a class="nav-link" href="/student/details"><i class="fa-solid fa-id-card"></i> Student Details</a>
+            <a class="nav-link active" href="/student/diary"><i class="fa-solid fa-book-open"></i> Day Diary</a>
+            <div class="nav-label">Account</div>
+            <a class="nav-link" href="/logout"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
+        </nav>
+        <div class="sidebar-footer">
+            <a class="nav-link" href="/logout"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
+        </div>
+    </div>
+
+    <div class="main">
+        <header class="topbar">
+            <div class="topbar-search">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input type="text" placeholder="Search diary entries..." aria-label="Search" />
+            </div>
+            <div class="topbar-actions">
+                <button type="button" class="icon-btn" title="Notifications">
+                    <i class="fa-regular fa-bell"></i>
+                    <span class="notif-dot"></span>
+                </button>
+                <div class="user-chip">
+                    <div class="avatar"><i class="fa-solid fa-user"></i></div>
+                    <div>
+                        <div class="user-name" th:text="${student.firstName} + ' ' + ${student.lastName}">Student Name</div>
+                        <div class="user-role">Student</div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <div class="content">
+            <div class="page-header">
+                <div>
+                    <h1 class="page-title">Day Diary</h1>
+                    <p class="page-subtitle">Log daily activities and review previous entries</p>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title"><i class="fa-solid fa-book-open"></i> Add Diary Entry</span>
+                </div>
+                <div class="diary-grid">
+                    <div class="diary-form">
+                        <form th:action="@{/student/diary/save}" method="post">
+                            <div class="form-group">
+                                <label for="date">Date</label>
+                                <input type="date" id="date" name="date" class="form-input" th:value="${diaryEntry.date}" required />
+                            </div>
+                            <div class="form-group">
+                                <label for="dailyActivities">Daily Activities</label>
+                                <textarea id="dailyActivities" name="dailyActivities" class="form-input" required th:text="${diaryEntry.dailyActivities}"></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label for="knowledgeAndSkillsGained">Knowledge and Skills Gained</label>
+                                <textarea id="knowledgeAndSkillsGained" name="knowledgeAndSkillsGained" class="form-input" required th:text="${diaryEntry.knowledgeAndSkillsGained}"></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label for="accomplishments">Accomplishments</label>
+                                <textarea id="accomplishments" name="accomplishments" class="form-input" required th:text="${diaryEntry.accomplishments}"></textarea>
+                            </div>
+                            <div class="form-actions">
+                                <button type="submit" class="btn btn-primary"><i class="fa-solid fa-floppy-disk"></i> Save Entry</button>
+                                <button type="reset" class="btn btn-outline">Clear</button>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="diary-entries">
+                        <span class="card-title" style="margin-bottom:12px;display:flex;"><i class="fa-solid fa-clock-rotate-left"></i> Previous Entries</span>
+                        <div class="table-responsive">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Summary</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr th:each="entry : ${diaryEntries}">
+                                        <td th:text="${entry.date}">2026-01-01</td>
+                                        <td>
+                                            <div class="entry-summary">
+                                                <strong th:text="${entry.dailyActivities}">Daily activities summary</strong>
+                                                <span><strong>Skills:</strong> <span th:text="${entry.knowledgeAndSkillsGained}">Skills learned</span></span>
+                                                <span><strong>Accomplishments:</strong> <span th:text="${entry.accomplishments}">Accomplishments text</span></span>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr th:if="${#lists.isEmpty(diaryEntries)}">
+                                        <td colspan="2">
+                                            <div class="empty-state" style="padding:30px 20px;">
+                                                <div class="empty-icon">&#128221;</div>
+                                                <p>No diary entries recorded yet. Add your first entry using the form.</p>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

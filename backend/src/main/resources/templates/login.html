@@ -18,6 +18,8 @@
     <h2>Sign in</h2>
     <div th:if="${param.error}" class="error">Invalid username or password.</div>
     <div th:if="${param.logout}" style="color: green;">You have been logged out.</div>
+    <div th:if="${param.registered}" style="color: green;">Account created successfully. Please sign in.</div>
+    <div th:if="${param.reset}" style="color: green;">Password updated successfully. Please sign in.</div>
     <form th:action="@{/login}" method="post">
         <label>Username</label>
         <input id="username" type="text" name="username" required>
@@ -26,14 +28,13 @@
         <button type="submit">Login</button>
     </form>
     <p id="message"></p>
-<<<<<<< HEAD
-    <p>Demo users: student/student123, supervisor/supervisor123, admin/admin123</p>
-    <div class="link">
-        <a href="/register">Create a new account</a>
-    </div>
-    <div class="link" style="margin-top: 8px;">
+    <p style="text-align: center; font-size: 13px; margin-top: 12px;">
+        <a th:href="@{/register}">Create an account</a>
+        &nbsp;|&nbsp;
+        <a th:href="@{/forgot-password}">Forgot password?</a>
+        &nbsp;|&nbsp;
         <a href="/admin/login">Admin Login</a>
-    </div>
+    </p>
     <div style="margin-top: 24px; text-align: center;">
         <p style="color: #64748b; margin-bottom: 12px;">Or sign in with</p>
         <div style="display: flex; gap: 12px; justify-content: center;">
@@ -48,9 +49,7 @@
             </a>
         </div>
     </div>
-=======
     <p>Demo users: student/student123, university/university123, admin/admin123</p>
->>>>>>> a7c5463aec85f195e051f8868f6977e6e9e0f264
 </div>
 <script src="/app.js"></script>
 </body>

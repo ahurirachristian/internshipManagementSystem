@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>University Portal</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+    <link rel="stylesheet" th:href="@{/css/riho.css}">
+</head>
+<body>
+    <div class="sidebar">
+        <div class="sidebar-brand">
+            <div class="brand-logo"><i class="fa-solid fa-graduation-cap"></i></div>
+            <div>
+                <div class="brand-name">IMS Portal</div>
+                <div class="brand-sub">Internship Management</div>
+            </div>
+        </div>
+        <nav class="sidebar-nav">
+            <div class="nav-label">Main</div>
+            <div class="nav-dropdown">
+                <button type="button" class="nav-link nav-dropdown-toggle" aria-expanded="true">
+                    <i class="fa-solid fa-gauge"></i> Dashboard <i class="fa-solid fa-chevron-down nav-caret"></i>
+                </button>
+                <div class="nav-submenu">
+                    <a th:href="@{/university/credentials}" th:classappend="${activePage == 'credentials'} ? ' active' : ''"><i class="fa-solid fa-key"></i> Student Credentials</a>
+                    <a th:href="@{/university/students}" th:classappend="${activePage == 'students'} ? ' active' : ''"><i class="fa-solid fa-user-graduate"></i> Registered Students</a>
+                    <a th:href="@{/company}" th:classappend="${activePage == 'company'} ? ' active' : ''"><i class="fa-solid fa-building"></i> Company Area</a>
+                </div>
+            </div>
+
+            <div class="nav-label">Management</div>
+            <a class="nav-link" th:href="@{/university/credentials}" th:classappend="${activePage == 'credentials'} ? ' active' : ''"><i class="fa-solid fa-key"></i> Credentials</a>
+            <a class="nav-link" th:href="@{/university/students}" th:classappend="${activePage == 'students'} ? ' active' : ''"><i class="fa-solid fa-user-graduate"></i> Students</a>
+            <a class="nav-link" href="/company"><i class="fa-solid fa-building"></i> Companies</a>
+
+            <div class="nav-label">Student Registration</div>
+            <a class="nav-link" th:href="@{/university/credentials}" th:classappend="${activePage == 'credentials'} ? ' active' : ''"><i class="fa-solid fa-user-plus"></i> Student Registration</a>
+            <a class="nav-link" href="/student/dashboard"><i class="fa-solid fa-chalkboard-user"></i> Supervisors</a>
+
+            <div class="nav-label">Account</div>
+            <a class="nav-link" href="/logout"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
+        </nav>
+        <div class="sidebar-footer">
+            <a class="nav-link" href="/logout"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
+        </div>
+    </div>
+
+    <div class="main">
+        <header class="topbar">
+            <div class="topbar-search">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input type="text" placeholder="Search university portal..." aria-label="Search" />
+            </div>
+            <div class="topbar-actions">
+                <button type="button" class="icon-btn" title="Notifications">
+                    <i class="fa-regular fa-bell"></i>
+                    <span class="notif-dot"></span>
+                </button>
+                <div class="user-chip">
+                    <div class="avatar"><i class="fa-solid fa-user-tie"></i></div>
+                    <div>
+                        <div class="user-name" th:text="${university != null ? university.name : currentUser}">University User</div>
+                        <div class="user-role">University User</div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <div class="content">
+            <div class="page-header">
+                <div>
+                    <h1 class="page-title">Registered Students</h1>
+                    <p class="page-subtitle">Review the students created under this university.</p>
+                </div>
+                <div class="page-actions">
+                    <a href="/university/students" class="btn btn-outline"><i class="fa-solid fa-rotate"></i> Refresh</a>
+                    <a href="/university/credentials" class="btn btn-outline"><i class="fa-solid fa-key"></i> Student Credentials</a>
+                </div>
+            </div>
+
+            <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div>
+            <div th:if="${errorMessage}" class="alert alert-error" th:text="${errorMessage}"></div>
+
+            <div th:if="${university != null}" class="card" style="margin-bottom: 26px;">
+                <div class="card-header">
+                    <span class="card-title"><i class="fa-solid fa-school"></i> University Profile</span>
+                </div>
+                <div class="identity" style="padding: 24px 28px;">
+                    <div class="logo-frame">
+                        <i class="fa-solid fa-school" style="font-size: 2.2rem; color: var(--riho-accent);"></i>
+                    </div>
+                    <div class="identity-block">
+                        <div class="identity-name" th:text="${university.name}">University Name</div>
+                        <div class="identity-tagline">Partner University &middot; Internship Management</div>
+                    </div>
+                </div>
+                <div class="info-grid" style="padding: 6px 22px 22px;">
+                    <div class="info-group">
+                        <span class="info-label"><span class="label-icon"><i class="fa-solid fa-building-columns"></i></span> University Name</span>
+                        <span class="info-value" th:text="${university.name}">University Name</span>
+                    </div>
+                    <div class="info-group">
+                        <span class="info-label"><span class="label-icon"><i class="fa-solid fa-id-badge"></i></span> University ID</span>
+                        <span class="info-value" th:text="${university.id}">1</span>
+                    </div>
+                    <div class="info-group">
+                        <span class="info-label"><span class="label-icon"><i class="fa-solid fa-user-tie"></i></span> Administrator</span>
+                        <span class="info-value" th:text="${currentUser}">university</span>
+                    </div>
+                    <div class="info-group">
+                        <span class="info-label"><span class="label-icon"><i class="fa-solid fa-user-graduate"></i></span> Registered Students</span>
+                        <span class="info-value" th:text="${students.size()}">0</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title"><i class="fa-solid fa-user-graduate"></i> Registered Students</span>
+                    <span class="card-hint" th:text="${students.size() + ' student(s)'}">0 student(s)</span>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Student Name</th>
+                                    <th>Student ID / Reg No</th>
+                                    <th>Department</th>
+                                    <th>Assigned Company</th>
+                                    <th>Academic Supervisor</th>
+                                    <th>Company Supervisor</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:each="student : ${students}">
+                                    <td>
+                                        <div class="cell-user">
+                                            <div class="avatar">
+                                                <span th:text="${#strings.substring(student.firstName, 0, 1)}">A</span>
+                                            </div>
+                                            <div>
+                                                <div class="u-name" th:text="${student.firstName + ' ' + student.lastName}">Student Name</div>
+                                                <div class="u-sub" th:text="${student.email}">student@example.com</div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div th:text="${student.studentNumber}">STU-2026-001</div>
+                                        <div class="u-sub" th:text="${student.registrationNumber}">REG-1001</div>
+                                    </td>
+                                    <td th:text="${student.degreeProgram}">Department</td>
+                                    <td>
+                                        <div th:text="${student.internshipCompany}">Company</div>
+                                        <div class="u-sub" th:text="${student.companyId != 'Pending' ? 'Company ID: ' + student.companyId : 'Not assigned'}">Company ID</div>
+                                    </td>
+                                    <td th:text="${student.universitySupervisor}">Academic Supervisor</td>
+                                    <td th:text="${student.industrialSupervisorId}">Company Supervisor</td>
+                                    <td>
+                                        <div class="action-cell">
+                                            <a class="btn btn-primary btn-sm" th:href="@{/students/edit/{id}(id=${student.id})}" title="Edit student">
+                                                <i class="fa-solid fa-pen"></i> Edit
+                                            </a>
+                                            <form th:action="@{/students/delete/{id}(id=${student.id})}" method="post"
+                                                  onsubmit="return confirm('Delete this student? This action cannot be undone.');" style="display:inline;">
+                                                <input type="hidden" name="_method" value="delete" />
+                                                <button type="submit" class="btn btn-ghost btn-icon btn-delete" title="Delete student">
+                                                    <i class="fa-solid fa-trash"></i>
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr th:if="${#lists.isEmpty(students)}">
+                                    <td colspan="7">
+                                        <div class="empty-state" style="padding:30px 20px;">
+                                            <div class="empty-icon">&#128100;</div>
+                                            <p>No registered students yet.</p>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        document.querySelectorAll('.nav-dropdown').forEach(function (dropdown) {
+            var toggle = dropdown.querySelector('.nav-dropdown-toggle');
+            if (!toggle) return;
+            toggle.addEventListener('click', function () {
+                var open = dropdown.classList.toggle('open');
+                toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+            });
+        });
+        document.addEventListener('click', function (event) {
+            document.querySelectorAll('.nav-dropdown.open').forEach(function (dropdown) {
+                if (!dropdown.contains(event.target)) {
+                    dropdown.classList.remove('open');
+                    var t = dropdown.querySelector('.nav-dropdown-toggle');
+                    if (t) t.setAttribute('aria-expanded', 'false');
+                }
+            });
+        });
+    </script>
+</body>
+</html>
