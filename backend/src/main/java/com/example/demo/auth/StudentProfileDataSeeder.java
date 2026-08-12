@@ -30,7 +30,6 @@ public class StudentProfileDataSeeder implements CommandLineRunner {
         }
 
         if (studentProfileRepository.count() == 0) {
-            // Student assigned to the Airtel Uganda company (companyId "1")
             studentProfileRepository.save(new StudentProfile(
                     "student",
                     "Alex",
@@ -44,11 +43,10 @@ public class StudentProfileDataSeeder implements CommandLineRunner {
                     "Airtel Uganda",
                     "university",
                     "IND-3456",
-                    "1",
+                    1L,
                     "/images/student-placeholder.png"
             ));
 
-            // Additional students at the same company so the company dashboard table is populated
             studentProfileRepository.save(new StudentProfile(
                     "sarah.owen@example.com",
                     "Sarah",
@@ -62,7 +60,7 @@ public class StudentProfileDataSeeder implements CommandLineRunner {
                     "Airtel Uganda",
                     "university",
                     "IND-3456",
-                    "1",
+                    1L,
                     "/images/student-placeholder.png"
             ));
 
@@ -79,7 +77,7 @@ public class StudentProfileDataSeeder implements CommandLineRunner {
                     "MTN Uganda",
                     "university",
                     "IND-7890",
-                    "2",
+                    2L,
                     "/images/student-placeholder.png"
             ));
         }

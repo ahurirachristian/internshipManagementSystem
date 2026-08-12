@@ -2,12 +2,34 @@
 <html xmlns:th="http://www.thymeleaf.org" lang="en">
 <head>
     <meta charset="UTF-8">
+<<<<<<< HEAD
+    <title>Edit Student Profile</title>
+    <style>
+        body { font-family: Arial, sans-serif; background: #f4f7fb; padding: 36px; }
+        .container { max-width: 940px; margin: 0 auto; }
+        .card { background: white; border-radius: 18px; box-shadow: 0 16px 40px rgba(15, 23, 42, 0.12); overflow: hidden; }
+        .hero { display: flex; gap: 22px; align-items: center; padding: 32px; border-bottom: 1px solid #e2e8f0; }
+        .avatar { width: 120px; height: 120px; border-radius: 18px; object-fit: cover; border: 3px solid #2563eb; }
+        .hero h1 { margin: 0; font-size: 2rem; }
+        .hero p { margin: 8px 0 0; color: #475569; }
+        .form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; padding: 32px; }
+        .field { display: flex; flex-direction: column; gap: 8px; max-width: 360px; }
+        label { font-weight: 700; color: #334155; }
+        input, select { border: 1px solid #cbd5e1; border-radius: 12px; padding: 10px 12px; font-size: 0.95rem; width: 100%; max-width: 320px; }
+        .full-width { grid-column: span 2; }
+        .actions { padding: 0 32px 32px; display: flex; gap: 14px; align-items: center; flex-wrap: wrap; }
+        .button { min-width: 140px; }
+        .button { background: #2563eb; color: white; border: none; border-radius: 12px; padding: 14px 20px; font-size: 1rem; cursor: pointer; text-decoration: none; }
+        .secondary { background: #e2e8f0; color: #0f172a; }
+    </style>
+=======
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Edit Student - Internship Management System</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
     <link rel="stylesheet" th:href="@{/css/riho.css}">
+>>>>>>> a7c5463aec85f195e051f8868f6977e6e9e0f264
 </head>
 <body>
     <div class="sidebar">
@@ -18,6 +40,30 @@
                 <div class="brand-sub">Internship Management</div>
             </div>
         </div>
+<<<<<<< HEAD
+        <form th:action="@{/student/profile/edit}" th:object="${student}" method="post">
+            <div class="form-grid">
+                <div class="field"><label>First Name</label><input type="text" th:field="*{firstName}" required/></div>
+                <div class="field"><label>Last Name</label><input type="text" th:field="*{lastName}" required/></div>
+                <div class="field"><label>Email</label><input type="email" th:field="*{email}" required/></div>
+                <div class="field"><label>Phone Number</label><input type="text" th:field="*{phoneNumber}" required/></div>
+                <div class="field"><label>Student Number</label><input type="text" th:field="*{studentNumber}" required/></div>
+                <div class="field"><label>Registration Number</label><input type="text" th:field="*{registrationNumber}" required/></div>
+                <div class="field"><label>Degree Program</label><input type="text" th:field="*{degreeProgram}" required/></div>
+                <div class="field"><label>Year of Study</label><select th:field="*{yearOfStudy}" required>
+                    <option th:value="1">1</option>
+                    <option th:value="2">2</option>
+                    <option th:value="3">3</option>
+                    <option th:value="4">4</option>
+                    <option th:value="5">5</option>
+                </select></div>
+                <div class="field"><label>Internship Company</label><input type="text" th:field="*{internshipCompany}" required/></div>
+                <div class="field full-width"><label>University</label>
+                    <select th:field="*{universitySupervisor}" required>
+                        <option value="">-- Select University --</option>
+                        <option th:each="university : ${universities}" th:value="${university.name}" th:text="${university.name}"></option>
+                    </select>
+=======
         <nav class="sidebar-nav">
             <div class="nav-label">Main</div>
             <th:block th:if="${userRole == 'ADMIN' || userRole == 'SUPERVISOR'}">
@@ -30,6 +76,7 @@
                         <a th:href="@{/student/dashboard}"><i class="fa-solid fa-user-graduate"></i> Student Area</a>
                         <a th:href="@{/company/dashboard}"><i class="fa-solid fa-building"></i> Company Area</a>
                     </div>
+>>>>>>> a7c5463aec85f195e051f8868f6977e6e9e0f264
                 </div>
             </th:block>
             <a th:if="${userRole != 'ADMIN' && userRole != 'SUPERVISOR'}" class="nav-link" href="/student/dashboard"><i class="fa-solid fa-gauge"></i> My Dashboard</a>
@@ -45,6 +92,9 @@
             <a class="nav-link" href="/logout"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
         </div>
     </div>
+<<<<<<< HEAD
+</div>
+=======
     <div class="main">
         <header class="topbar">
             <div class="topbar-search">
@@ -166,5 +216,6 @@
             });
         });
     </script>
+>>>>>>> a7c5463aec85f195e051f8868f6977e6e9e0f264
 </body>
 </html>

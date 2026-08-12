@@ -40,6 +40,10 @@ public class UniversityService {
         return universityRepository.findByNameStartingWithIgnoreCase(query);
     }
 
+    public List<University> getAllUniversities() {
+        return universityRepository.findAll();
+    }
+
     public UniversityDto toDto(University university) {
         return new UniversityDto(university.getId(), university.getName());
     }
@@ -88,7 +92,7 @@ public class UniversityService {
         profile.setInternshipCompany("Pending");
         profile.setUniversitySupervisor(supervisorUsername);
         profile.setIndustrialSupervisorId("Pending");
-        profile.setCompanyId("Pending");
+        profile.setCompanyId(null);
         profile.setPictureUrl("/images/default-profile.png");
         studentProfileRepository.save(profile);
 

@@ -9,6 +9,8 @@
         input { width: 100%; padding: 10px; margin: 8px 0 12px; border-radius: 6px; border: 1px solid #ccc; }
         button { width: 100%; padding: 10px; background: #2563eb; color: white; border: none; border-radius: 6px; cursor: pointer; }
         .error { color: red; margin-bottom: 12px; }
+        .link { text-align: center; margin-top: 12px; }
+        .link a { color: #2563eb; text-decoration: none; }
     </style>
 </head>
 <body>
@@ -24,7 +26,31 @@
         <button type="submit">Login</button>
     </form>
     <p id="message"></p>
+<<<<<<< HEAD
+    <p>Demo users: student/student123, supervisor/supervisor123, admin/admin123</p>
+    <div class="link">
+        <a href="/register">Create a new account</a>
+    </div>
+    <div class="link" style="margin-top: 8px;">
+        <a href="/admin/login">Admin Login</a>
+    </div>
+    <div style="margin-top: 24px; text-align: center;">
+        <p style="color: #64748b; margin-bottom: 12px;">Or sign in with</p>
+        <div style="display: flex; gap: 12px; justify-content: center;">
+            <a href="/oauth2/authorization/google" style="display: inline-block; padding: 10px 20px; background: #ffffff; border: 1px solid #ddd; border-radius: 6px; text-decoration: none; color: #333; font-size: 0.9rem;">
+                <img src="https://www.google.com/favicon.ico" alt="Google" style="width: 20px; vertical-align: middle; margin-right: 6px;"> Google
+            </a>
+            <a href="/oauth2/authorization/linkedin" style="display: inline-block; padding: 10px 20px; background: #0a66c2; border: none; border-radius: 6px; text-decoration: none; color: white; font-size: 0.9rem;">
+                LinkedIn
+            </a>
+            <a href="/oauth2/authorization/twitter" style="display: inline-block; padding: 10px 20px; background: #1da1f2; border: none; border-radius: 6px; text-decoration: none; color: white; font-size: 0.9rem;">
+                X / Twitter
+            </a>
+        </div>
+    </div>
+=======
     <p>Demo users: student/student123, university/university123, admin/admin123</p>
+>>>>>>> a7c5463aec85f195e051f8868f6977e6e9e0f264
 </div>
 <script src="/app.js"></script>
 </body>
