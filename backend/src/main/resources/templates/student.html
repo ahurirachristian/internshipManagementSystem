@@ -24,8 +24,14 @@
             <div class="nav-label">Main</div>
             <a class="nav-link" href="/student/dashboard"><i class="fa-solid fa-gauge"></i> My Dashboard</a>
             <a class="nav-link active" href="/student/dashboard"><i class="fa-solid fa-id-card"></i> My Profile</a>
-            <a class="nav-link" href="/company"><i class="fa-solid fa-building"></i> Companies</a>
-            <a class="nav-link" href="/university/dashboard"><i class="fa-solid fa-user-tie"></i> University</a>
+            <th:block th:if="${userRole == 'STUDENT'}">
+                <a class="nav-link" href="/student/details"><i class="fa-solid fa-id-card"></i> Student Details</a>
+                <a class="nav-link" href="/student/diary"><i class="fa-solid fa-book-open"></i> Day Diary</a>
+            </th:block>
+            <th:block th:unless="${userRole == 'STUDENT'}">
+                <a class="nav-link" href="/company"><i class="fa-solid fa-building"></i> Companies</a>
+                <a class="nav-link" href="/university/dashboard"><i class="fa-solid fa-user-tie"></i> University</a>
+            </th:block>
         </nav>
         <div class="sidebar-footer">
             <a class="nav-link" href="/logout"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>

@@ -793,6 +793,7 @@ select.form-input { cursor: pointer; }
 }
 .alert-success { background: rgba(22, 163, 74, 0.1); color: var(--riho-success-dark); border: 1px solid rgba(22, 163, 74, 0.2); }
 .alert-error { background: rgba(220, 38, 38, 0.1); color: var(--riho-danger-dark); border: 1px solid rgba(220, 38, 38, 0.2); }
+.alert-warning { background: rgba(217, 119, 6, 0.13); color: var(--riho-warning-dark); border: 1px solid rgba(217, 119, 6, 0.25); }
 
 .empty-state { text-align: center; padding: 60px 24px; color: var(--riho-muted); }
 .empty-state .empty-icon { font-size: 2.6rem; margin-bottom: 12px; }

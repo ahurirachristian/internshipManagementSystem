@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Details - Internship Management System</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+    <link rel="stylesheet" th:href="@{/css/riho.css}">
+</head>
+<body>
+    <!-- reuse the same sidebar/topbar as other student pages -->
+    <div class="sidebar">
+        <div class="sidebar-brand">
+            <div class="brand-logo"><i class="fa-solid fa-graduation-cap"></i></div>
+            <div>
+                <div class="brand-name">IMS Portal</div>
+                <div class="brand-sub">Internship Management</div>
+            </div>
+        </div>
+        <nav class="sidebar-nav">
+            <div class="nav-label">Main</div>
+            <a class="nav-link" href="/student/dashboard"><i class="fa-solid fa-gauge"></i> My Dashboard</a>
+            <a class="nav-link active" href="/student/details"><i class="fa-solid fa-id-card"></i> My Profile</a>
+            <th:block th:if="${userRole == 'STUDENT'}">
+                <a class="nav-link" href="/student/diary"><i class="fa-solid fa-book-open"></i> Day Diary</a>
+            </th:block>
+            <th:block th:unless="${userRole == 'STUDENT'}">
+                <a class="nav-link" href="/company"><i class="fa-solid fa-building"></i> Companies</a>
+                <a class="nav-link" href="/university/dashboard"><i class="fa-solid fa-user-tie"></i> University</a>
+            </th:block>
+            <div class="nav-label">Account</div>
+            <a class="nav-link" href="/logout"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
+        </nav>
+        <div class="sidebar-footer">
+            <a class="nav-link" href="/logout"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
+        </div>
+    </div>
+
+    <div class="main">
+        <header class="topbar">
+            <div class="topbar-search">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input type="text" placeholder="Search profile..." aria-label="Search" />
+            </div>
+            <div class="topbar-actions">
+                <button type="button" class="icon-btn" title="Notifications">
+                    <i class="fa-regular fa-bell"></i>
+                    <span class="notif-dot"></span>
+                </button>
+                <div class="user-chip">
+                    <div class="avatar"><i class="fa-solid fa-user"></i></div>
+                    <div>
+                        <div class="user-name" th:text="${student.firstName} + ' ' + ${student.lastName}">Student Name</div>
+                        <div class="user-role">Student</div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <div class="content">
+            <div class="page-header">
+                <div>
+                    <h1 class="page-title">Student Details</h1>
+                    <p class="page-subtitle">View and edit your student profile information</p>
+                </div>
+                <div class="page-actions">
+                    <button type="button" class="btn btn-primary" onclick="openModal('edit')"><i class="fa-solid fa-pen"></i> Edit Profile</button>
+                    <a href="/student/diary" class="btn btn-outline"><i class="fa-solid fa-book-open"></i> Day Diary</a>
+                </div>
+            </div>
+
+            <div class="card" style="margin-bottom:24px;">
+                <div class="card-header">
+                    <span class="card-title"><i class="fa-solid fa-id-card"></i> Student Details</span>
+                </div>
+
+                <div class="identity">
+                    <div class="avatar-frame">
+                        <img th:src="${student.pictureUrl}" src="/images/student-placeholder.svg" alt="Student photo" />
+                    </div>
+                    <div class="identity-block">
+                        <div class="identity-name" th:text="${student.firstName} + ' ' + ${student.lastName}">Student Name</div>
+                        <div class="identity-tagline" th:text="${student.degreeProgram} + ' • Year ' + ${student.yearOfStudy}">Computer Science • Year 3</div>
+                        <div class="badge badge-success" style="margin-top:12px;"><span class="dot"></span> Internship Student</div>
+                    </div>
+                </div>
+
+                <div class="info-grid">
+                    <div class="info-group">
+                        <span class="info-label">Username</span>
+                        <span class="info-value" th:text="${student.username}">student</span>
+                    </div>
+                    <div class="info-group">
+                        <span class="info-label">Email</span>
+                        <span class="info-value" th:text="${student.email}">student@example.com</span>
+                    </div>
+                    <div class="info-group">
+                        <span class="info-label">Student Number</span>
+                        <span class="info-value" th:text="${student.studentNumber}">STU-2026-001</span>
+                    </div>
+                    <div class="info-group">
+                        <span class="info-label">Registration Number</span>
+                        <span class="info-value" th:text="${student.registrationNumber}">REG-1001</span>
+                    </div>
+                    <div class="info-group">
+                        <span class="info-label">Phone Number</span>
+                        <span class="info-value" th:text="${student.phoneNumber}">+1 555 123 4567</span>
+                    </div>
+                    <div class="info-group">
+                        <span class="info-label">Company ID</span>
+                        <span class="info-value" th:text="${student.companyId}">COMP-2024</span>
+                    </div>
+                    <div class="info-group full-width">
+                        <span class="info-label">Internship Company</span>
+                        <span class="info-value" th:text="${student.internshipCompany}">TechCorp Solutions</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Modal (reuse fields from student-edit) -->
+    <div id="profile-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modal-title">Edit Student Details</h2>
+                <button type="button" class="close-button" onclick="closeModal()">&times;</button>
+            </div>
+            <form id="profile-form" th:action="@{/student/profile/edit}" method="post">
+                <input type="hidden" id="form-username" name="username" th:value="${student.username}" />
+                <div class="form-grid">
+                    <div class="form-group"><label>First Name</label><input type="text" id="form-firstName" name="firstName" class="form-input" th:value="${student.firstName}" required/></div>
+                    <div class="form-group"><label>Last Name</label><input type="text" id="form-lastName" name="lastName" class="form-input" th:value="${student.lastName}" required/></div>
+                    <div class="form-group"><label>Email</label><input type="email" id="form-email" name="email" class="form-input" th:value="${student.email}" required/></div>
+                    <div class="form-group"><label>Phone Number</label><input type="text" id="form-phoneNumber" name="phoneNumber" class="form-input" th:value="${student.phoneNumber}" required/></div>
+                    <div class="form-group"><label>Student Number</label><input type="text" id="form-studentNumber" name="studentNumber" class="form-input" th:value="${student.studentNumber}" required/></div>
+                    <div class="form-group"><label>Registration Number</label><input type="text" id="form-registrationNumber" name="registrationNumber" class="form-input" th:value="${student.registrationNumber}" required/></div>
+                    <div class="form-group"><label>Degree Program</label><input type="text" id="form-degreeProgram" name="degreeProgram" class="form-input" th:value="${student.degreeProgram}" required/></div>
+                    <div class="form-group"><label>Year of Study</label><select id="form-yearOfStudy" name="yearOfStudy" class="form-input" required>
+                        <option value="1" th:selected="${student.yearOfStudy == 1}">1</option>
+                        <option value="2" th:selected="${student.yearOfStudy == 2}">2</option>
+                        <option value="3" th:selected="${student.yearOfStudy == 3}">3</option>
+                        <option value="4" th:selected="${student.yearOfStudy == 4}">4</option>
+                        <option value="5" th:selected="${student.yearOfStudy == 5}">5</option>
+                    </select></div>
+                    <div class="form-group"><label>Internship Company</label><input type="text" id="form-internshipCompany" name="internshipCompany" class="form-input" th:value="${student.internshipCompany}" required/></div>
+                    <div class="form-group"><label>University</label><input type="text" id="form-universitySupervisor" name="universitySupervisor" class="form-input" th:value="${student.universitySupervisor}" required/></div>
+                    <div class="form-group"><label>Industrial Supervisor ID</label><input type="text" id="form-industrialSupervisorId" name="industrialSupervisorId" class="form-input" th:value="${student.industrialSupervisorId}" required/></div>
+                    <div class="form-group"><label>Company ID</label><input type="text" id="form-companyId" name="companyId" class="form-input" th:value="${student.companyId}" required/></div>
+                    <div class="form-group full"><label>Picture URL</label><input type="text" id="form-pictureUrl" name="pictureUrl" class="form-input" th:value="${student.pictureUrl}"/></div>
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary"><i class="fa-solid fa-floppy-disk"></i> Save</button>
+                    <button type="button" class="btn btn-outline" onclick="closeModal()">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function openModal() { document.getElementById('profile-modal').style.display = 'block'; }
+        function closeModal() { document.getElementById('profile-modal').style.display = 'none'; }
+    </script>
+</body>
+</html>

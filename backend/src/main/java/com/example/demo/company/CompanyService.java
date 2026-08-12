@@ -49,6 +49,6 @@ public class CompanyService {
     }
 
     public List<StudentProfile> findStudentsByCompanyId(Long companyId) {
-        return studentProfileRepository.findByCompanyId(String.valueOf(companyId));
+        return studentProfileRepository.findByCompanyId(companyId);
     }
 }

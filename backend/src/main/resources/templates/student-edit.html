@@ -34,10 +34,16 @@
             </th:block>
             <a th:if="${userRole != 'ADMIN' && userRole != 'SUPERVISOR'}" class="nav-link" href="/student/dashboard"><i class="fa-solid fa-gauge"></i> My Dashboard</a>
             <div class="nav-label">Management</div>
-            <a th:if="${userRole == 'COMPANY'}" class="nav-link" href="/company/dashboard"><i class="fa-solid fa-building-flag"></i> My Company</a>
-            <a th:if="${userRole != 'COMPANY'}" class="nav-link" href="/company"><i class="fa-solid fa-building-flag"></i> Companies</a>
-            <a class="nav-link active" href="/student/dashboard"><i class="fa-solid fa-user-graduate"></i> Students</a>
-            <a class="nav-link" href="/university/dashboard"><i class="fa-solid fa-user-tie"></i> University</a>
+            <th:block th:if="${userRole == 'STUDENT'}">
+                <a class="nav-link" href="/student/details"><i class="fa-solid fa-id-card"></i> Student Details</a>
+                <a class="nav-link" href="/student/diary"><i class="fa-solid fa-book-open"></i> Day Diary</a>
+            </th:block>
+            <th:block th:unless="${userRole == 'STUDENT'}">
+                <a th:if="${userRole == 'COMPANY'}" class="nav-link" href="/company/dashboard"><i class="fa-solid fa-building-flag"></i> My Company</a>
+                <a th:if="${userRole != 'COMPANY'}" class="nav-link" href="/company"><i class="fa-solid fa-building-flag"></i> Companies</a>
+                <a class="nav-link active" href="/student/dashboard"><i class="fa-solid fa-user-graduate"></i> Students</a>
+                <a class="nav-link" href="/university/dashboard"><i class="fa-solid fa-user-tie"></i> University</a>
+            </th:block>
             <div class="nav-label">Account</div>
             <a class="nav-link" href="/logout"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
         </nav>

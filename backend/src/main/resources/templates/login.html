@@ -9,6 +9,8 @@
         input { width: 100%; padding: 10px; margin: 8px 0 12px; border-radius: 6px; border: 1px solid #ccc; }
         button { width: 100%; padding: 10px; background: #2563eb; color: white; border: none; border-radius: 6px; cursor: pointer; }
         .error { color: red; margin-bottom: 12px; }
+        .link { text-align: center; margin-top: 12px; }
+        .link a { color: #2563eb; text-decoration: none; }
     </style>
 </head>
 <body>
@@ -16,6 +18,8 @@
     <h2>Sign in</h2>
     <div th:if="${param.error}" class="error">Invalid username or password.</div>
     <div th:if="${param.logout}" style="color: green;">You have been logged out.</div>
+    <div th:if="${param.registered}" style="color: green;">Account created successfully. Please sign in.</div>
+    <div th:if="${param.reset}" style="color: green;">Password updated successfully. Please sign in.</div>
     <form th:action="@{/login}" method="post">
         <label>Username</label>
         <input id="username" type="text" name="username" required>
@@ -24,6 +28,27 @@
         <button type="submit">Login</button>
     </form>
     <p id="message"></p>
+    <p style="text-align: center; font-size: 13px; margin-top: 12px;">
+        <a th:href="@{/register}">Create an account</a>
+        &nbsp;|&nbsp;
+        <a th:href="@{/forgot-password}">Forgot password?</a>
+        &nbsp;|&nbsp;
+        <a href="/admin/login">Admin Login</a>
+    </p>
+    <div style="margin-top: 24px; text-align: center;">
+        <p style="color: #64748b; margin-bottom: 12px;">Or sign in with</p>
+        <div style="display: flex; gap: 12px; justify-content: center;">
+            <a href="/oauth2/authorization/google" style="display: inline-block; padding: 10px 20px; background: #ffffff; border: 1px solid #ddd; border-radius: 6px; text-decoration: none; color: #333; font-size: 0.9rem;">
+                <img src="https://www.google.com/favicon.ico" alt="Google" style="width: 20px; vertical-align: middle; margin-right: 6px;"> Google
+            </a>
+            <a href="/oauth2/authorization/linkedin" style="display: inline-block; padding: 10px 20px; background: #0a66c2; border: none; border-radius: 6px; text-decoration: none; color: white; font-size: 0.9rem;">
+                LinkedIn
+            </a>
+            <a href="/oauth2/authorization/twitter" style="display: inline-block; padding: 10px 20px; background: #1da1f2; border: none; border-radius: 6px; text-decoration: none; color: white; font-size: 0.9rem;">
+                X / Twitter
+            </a>
+        </div>
+    </div>
     <p>Demo users: student/student123, university/university123, admin/admin123</p>
 </div>
 <script src="/app.js"></script>

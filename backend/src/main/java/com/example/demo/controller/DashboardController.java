@@ -1,6 +1,8 @@
 package com.example.demo.controller;
 
 import java.security.Principal;
+import java.util.Collections;
+import java.util.List;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
@@ -75,6 +77,17 @@ public class DashboardController {
         model.addAttribute("diaryEntry", new com.example.demo.student.DayDiary());
         model.addAttribute("diaryEntries", studentService.findDiaryEntriesByUsername(principal.getName()));
         model.addAttribute("userRole", resolveRole(authentication));
+        String role = resolveRole(authentication);
+        if ("STUDENT".equals(role)) {
+            return "redirect:/student/details";
+        }
+
+        // For admins/supervisors viewing a student's dashboard, keep the combined view
+        studentService.findByUsername(principal.getName())
+                .ifPresent(profile -> model.addAttribute("student", profile));
+        model.addAttribute("diaryEntry", new com.example.demo.student.DayDiary());
+        model.addAttribute("diaryEntries", studentService.findDiaryEntriesByUsername(principal.getName()));
+        model.addAttribute("userRole", role);
         return "student";
     }
 
@@ -95,16 +108,78 @@ public class DashboardController {
             company = companyRepository.findById(companyId).orElse(null);
         }
 
-        model.addAttribute("userRole", resolveRole(authentication));
+        String role = resolveRole(authentication);
+        model.addAttribute("userRole", role);
         model.addAttribute("company", company);
         model.addAttribute("companyId", companyId);
         model.addAttribute("students", companyService.findStudentsByCompanyId(companyId));
+        model.addAttribute("activePage", "profile");
+
+        if ("COMPANY".equals(role)) {
+            return "company-dashboard";
+        }
+
         return "company";
+    }
+
+    @GetMapping("/company/interns")
+    @PreAuthorize("hasAnyAuthority('COMPANY', 'ADMIN', 'SUPERVISOR')")
+    public String companyInterns(Principal principal, Authentication authentication, Model model) {
+        UserEntity user = userRepository.findByUsername(principal.getName()).orElse(null);
+        Long companyId = (user != null) ? user.getCompanyId() : null;
+
+        Company company = null;
+        if (companyId != null) {
+            company = companyRepository.findById(companyId).orElse(null);
+        }
+
+        String role = resolveRole(authentication);
+        model.addAttribute("userRole", role);
+        model.addAttribute("company", company);
+        model.addAttribute("companyId", companyId);
+        model.addAttribute("students", companyId != null ? companyService.findStudentsByCompanyId(companyId) : Collections.emptyList());
+        model.addAttribute("activePage", "interns");
+
+        if ("COMPANY".equals(role)) {
+            return "company-interns";
+        }
+
+        return company != null ? "company-interns" : "company";
     }
 
     @GetMapping("/university/dashboard")
     @PreAuthorize("hasAnyAuthority('SUPERVISOR', 'ADMIN')")
     public String universityDashboard(Model model, Principal principal, Authentication authentication) {
+        return "redirect:/university/credentials";
+    }
+
+    @GetMapping("/university/credentials")
+    @PreAuthorize("hasAnyAuthority('SUPERVISOR', 'ADMIN')")
+    public String universityCredentials(Model model, Principal principal, Authentication authentication) {
+        UserEntity user = userRepository.findByUsername(principal.getName()).orElse(null);
+        Long universityId = (user != null) ? user.getUniversityId() : null;
+
+        University university = null;
+        if (universityId != null) {
+            university = universityRepository.findById(universityId).orElse(null);
+        }
+
+        model.addAttribute("userRole", resolveRole(authentication));
+        List<StudentProfile> students = universityService.getStudentsBySupervisor(principal.getName());
+        model.addAttribute("students", students);
+        model.addAttribute("assignedCount", students.stream().filter(s -> !"Pending".equals(s.getCompanyId())).count());
+        model.addAttribute("pendingCount", students.stream().filter(s -> "Pending".equals(s.getCompanyId())).count());
+        model.addAttribute("universities", universityService.getUniversities());
+        model.addAttribute("university", university);
+        model.addAttribute("credentialRequest", new StudentCredentialRequest());
+        model.addAttribute("currentUser", principal.getName());
+        model.addAttribute("activePage", "credentials");
+        return "university-credentials";
+    }
+
+    @GetMapping("/university/students")
+    @PreAuthorize("hasAnyAuthority('SUPERVISOR', 'ADMIN')")
+    public String universityStudents(Model model, Principal principal, Authentication authentication) {
         UserEntity user = userRepository.findByUsername(principal.getName()).orElse(null);
         Long universityId = (user != null) ? user.getUniversityId() : null;
 
@@ -117,9 +192,9 @@ public class DashboardController {
         model.addAttribute("students", universityService.getStudentsBySupervisor(principal.getName()));
         model.addAttribute("universities", universityService.getUniversities());
         model.addAttribute("university", university);
-        model.addAttribute("credentialRequest", new StudentCredentialRequest());
         model.addAttribute("currentUser", principal.getName());
-        return "university";
+        model.addAttribute("activePage", "students");
+        return "university-students";
     }
 
     @PostMapping("/university/students/credential")
@@ -189,7 +264,6 @@ public class DashboardController {
                 .ifPresent(student -> {
                     redirectAttributes.addFlashAttribute(
                             "successMessage", "Student \"" + student.getFirstName() + " " + student.getLastName() + "\" deleted successfully.");
-                    // Clean up related diary entries to avoid FK constraint failures
                     dayDiaryRepository.findAll().stream()
                             .filter(diary -> diary.getStudentProfile() != null
                                     && diary.getStudentProfile().getId().equals(student.getId()))
@@ -225,14 +299,11 @@ public class DashboardController {
     }
 
     private String resolveRole(Authentication authentication) {
-        if (authentication != null) {
-            for (GrantedAuthority authority : authentication.getAuthorities()) {
-                if ("ADMIN".equals(authority.getAuthority())
-                        || "SUPERVISOR".equals(authority.getAuthority())
-                        || "COMPANY".equals(authority.getAuthority())) {
-                    return authority.getAuthority();
-                }
-            }
+        // Prefer the role stored on the UserEntity for deterministic dashboard routing.
+        if (authentication != null && authentication.getName() != null) {
+            return userRepository.findByUsername(authentication.getName())
+                    .map(u -> u.getRole().name())
+                    .orElse("STUDENT");
         }
         return "STUDENT";
     }

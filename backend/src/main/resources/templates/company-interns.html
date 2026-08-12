@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Company Interns</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+    <link rel="stylesheet" th:href="@{/css/riho.css}">
+</head>
+<body>
+    <div class="sidebar">
+        <div class="sidebar-brand">
+            <div class="brand-logo"><i class="fa-solid fa-graduation-cap"></i></div>
+            <div>
+                <div class="brand-name">IMS Portal</div>
+                <div class="brand-sub">Internship Management</div>
+            </div>
+        </div>
+        <nav class="sidebar-nav">
+            <div class="nav-label">Main</div>
+            <a class="nav-link" href="/dashboard"><i class="fa-solid fa-gauge"></i> My Dashboard</a>
+            <th:block th:if="${userRole == 'COMPANY'}">
+                <a class="nav-link" th:classappend="${activePage == 'profile'} ? ' active' : ''" href="/company/dashboard"><i class="fa-solid fa-building-flag"></i> Company Profile</a>
+                <a class="nav-link" th:classappend="${activePage == 'interns'} ? ' active' : ''" href="/company/interns"><i class="fa-solid fa-user-graduate"></i> Interns</a>
+            </th:block>
+            <th:block th:unless="${userRole == 'COMPANY'}">
+                <a class="nav-link" href="/company"><i class="fa-solid fa-building-flag"></i> Companies</a>
+                <a class="nav-link" href="/student/dashboard"><i class="fa-solid fa-user-graduate"></i> Students</a>
+                <a class="nav-link" href="/university/dashboard"><i class="fa-solid fa-user-tie"></i> University</a>
+            </th:block>
+            <div class="nav-label">Account</div>
+            <a class="nav-link" href="/logout"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
+        </nav>
+        <div class="sidebar-footer">
+            <a class="nav-link" href="/logout"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
+        </div>
+    </div>
+
+    <div class="main">
+        <header class="topbar">
+            <div class="topbar-search">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input type="text" placeholder="Search..." aria-label="Search" />
+            </div>
+            <div class="topbar-actions">
+                <button type="button" class="icon-btn" title="Notifications">
+                    <i class="fa-regular fa-bell"></i>
+                    <span class="notif-dot"></span>
+                </button>
+                <div class="user-chip">
+                    <div class="avatar"><i class="fa-solid fa-building"></i></div>
+                    <div>
+                        <div class="user-name" th:text="${company != null ? company.name : 'Company User'}">Company Name</div>
+                        <div class="user-role">Company</div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <div class="content" style="max-width:1100px;margin:40px auto;padding:0 20px;">
+            <div class="page-header">
+                <div>
+                    <h1 class="page-title">Interns</h1>
+                    <p class="page-subtitle">View students currently placed with your company.</p>
+                </div>
+                <div class="page-actions">
+                    <a href="/company/dashboard" class="btn btn-outline"><i class="fa-solid fa-building-flag"></i> View Profile</a>
+                </div>
+            </div>
+
+            <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div>
+            <div th:if="${errorMessage}" class="alert alert-error" th:text="${errorMessage}"></div>
+
+            <div th:if="${company == null}" class="card">
+                <div class="empty-state">
+                    <div class="empty-icon">&#9888;</div>
+                    <h3>Company not found</h3>
+                    <p>Please contact your administrator if this issue persists.</p>
+                </div>
+            </div>
+
+            <div th:if="${company != null}" class="card">
+                <div class="card-header">
+                    <span class="card-title"><i class="fa-solid fa-user-graduate"></i> My Interns</span>
+                    <span class="card-hint" th:text="${students != null ? students.size() + ' student(s) currently assigned' : '0 students assigned'}"></span>
+                </div>
+                <div th:if="${students == null or students.empty}" class="card-body" style="padding:18px;">
+                    <div class="empty-state">
+                        <div class="empty-icon">&#128100;</div>
+                        <h3>No interns assigned</h3>
+                        <p th:text="${company != null} ? 'There are no students currently placed at ' + ${company.name} + '.' : 'No students are currently assigned.'">There are no students currently placed at this company.</p>
+                    </div>
+                </div>
+                <div th:unless="${students == null or students.empty}" class="table-responsive" style="padding:18px;">
+                    <table class="table" id="studentsTable">
+                        <thead>
+                            <tr>
+                                <th>Student Name</th>
+                                <th>Reg No / Course</th>
+                                <th>Academic Supervisor</th>
+                                <th>Company Supervisor</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="student : ${students}">
+                                <td>
+                                    <div style="display:flex;align-items:center;gap:12px;">
+                                        <div class="avatar"><span th:text="${#strings.substring(student.firstName,0,1)}">A</span></div>
+                                        <div>
+                                            <div th:text="${student.firstName + ' ' + student.lastName}">Student Name</div>
+                                            <div class="u-sub" th:text="${student.email}">student@example.com</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div th:text="${student.registrationNumber}">REG-1001</div>
+                                    <div class="u-sub" th:text="${student.degreeProgram}">Course</div>
+                                </td>
+                                <td th:text="${student.universitySupervisor}">Academic Supervisor</td>
+                                <td th:text="${student.industrialSupervisorId}">Company Supervisor</td>
+                                <td>
+                                    <a class="btn btn-primary btn-sm" th:href="@{/students/edit/{id}(id=${student.id})}">
+                                        <i class="fa-solid fa-pen"></i> Edit
+                                    </a>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
