@@ -1,0 +1,445 @@
+html, body {
+  height: 100%;
+  overflow: hidden;
+}
+
+.split-login {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100vh;
+  height: 100dvh;
+  overflow: hidden;
+  font-family: 'Poppins', sans-serif;
+}
+
+.background {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, #0b5c53 0%, #0e7a6d 25%, #12897a 50%, #1aa08f 75%, #2cc9b5 100%);
+  background-size: 400% 400%;
+  animation: gradientShift 12s ease infinite;
+  z-index: 1;
+}
+
+@keyframes gradientShift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+#particleCanvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 2;
+  cursor: crosshair;
+}
+
+.login-wrapper {
+  position: relative;
+  z-index: 3;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: clamp(12px, 3vh, 40px) 20px;
+  animation: fadeInUp 0.7s ease;
+  overflow: hidden;
+}
+
+.login-card {
+  background: #ffffff;
+  border-radius: 20px;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15);
+  width: 100%;
+  max-width: 440px;
+  display: flex;
+  flex-direction: column;
+  padding: clamp(20px, 4vh, 48px);
+}
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(30px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.login-header {
+  text-align: center;
+  margin-bottom: clamp(16px, 3vh, 32px);
+}
+
+.login-header .logo {
+  width: clamp(48px, 8vh, 64px);
+  height: clamp(48px, 8vh, 64px);
+  margin: 0 auto clamp(10px, 2vh, 16px) auto;
+  background: linear-gradient(135deg, #0b5c53, #07473f);
+  border-radius: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 8px 24px rgba(11, 92, 83, 0.35);
+}
+
+.login-header .logo i {
+  font-size: clamp(20px, 3vh, 28px);
+  color: #ffffff;
+}
+
+.login-header h1 {
+  font-size: clamp(20px, 3vh, 26px);
+  font-weight: 700;
+  color: #1e293b;
+  margin: 0 0 8px 0;
+}
+
+.login-header p {
+  font-size: 14px;
+  color: #64748b;
+  margin: 0;
+}
+
+.alert {
+  display: none;
+  padding: 12px 16px;
+  border-radius: 10px;
+  margin-bottom: 20px;
+  font-size: 14px;
+  font-weight: 500;
+  text-align: center;
+}
+
+.alert.show { display: block; }
+
+.alert-success {
+  background: #d1fae5;
+  color: #065f46;
+  border: 1px solid #a7f3d0;
+}
+
+.alert-error {
+  background: #fee2e2;
+  color: #991b1b;
+  border: 1px solid #fecaca;
+}
+
+.form-group {
+  margin-bottom: clamp(12px, 2vh, 20px);
+}
+
+.form-group label {
+  display: block;
+  font-size: 14px;
+  font-weight: 500;
+  color: #374151;
+  margin-bottom: 8px;
+}
+
+.input-wrapper { position: relative; }
+
+.input-wrapper i {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #9ca3af;
+  font-size: 16px;
+  transition: color 0.2s;
+  pointer-events: none;
+}
+
+.form-control {
+  width: 100%;
+  padding: 12px 44px;
+  border: 2px solid #e5e7eb;
+  border-radius: 10px;
+  font-size: 15px;
+  font-family: 'Poppins', sans-serif;
+  transition: all 0.2s;
+  background: #f9fafb;
+  color: #1f2937;
+  appearance: none;
+}
+
+.form-control:focus {
+  outline: none;
+  border-color: #0b5c53;
+  background: #ffffff;
+  box-shadow: 0 0 0 4px rgba(11, 92, 83, 0.12);
+}
+
+.form-control:focus ~ i { color: #0b5c53; }
+
+.toggle-password {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  background: none;
+  border: none;
+  color: #9ca3af;
+  cursor: pointer;
+  font-size: 16px;
+  padding: 0;
+  transition: color 0.2s;
+}
+
+.toggle-password:hover { color: #0b5c53; }
+
+.btn-login {
+  width: 100%;
+  padding: 14px;
+  background: linear-gradient(135deg, #0b5c53, #07473f);
+  color: #ffffff;
+  border: none;
+  border-radius: 10px;
+  font-size: 16px;
+  font-weight: 600;
+  font-family: 'Poppins', sans-serif;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 4px 14px rgba(11, 92, 83, 0.4);
+  margin-top: 8px;
+}
+
+.btn-login:hover {
+  background: linear-gradient(135deg, #0a524a, #06352f);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(11, 92, 83, 0.5);
+}
+
+.btn-login:active { transform: translateY(0); }
+
+.btn-login:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.login-footer {
+  text-align: center;
+  margin-top: clamp(12px, 2vh, 20px);
+  padding-top: clamp(12px, 2vh, 20px);
+  border-top: 1px solid #e5e7eb;
+}
+
+.login-footer p {
+  font-size: 13px;
+  color: #6b7280;
+  margin: 0;
+  font-weight: 500;
+}
+
+.login-footer a {
+  color: #0b5c53;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.login-footer a:hover { text-decoration: underline; }
+
+.speed-control {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  border-radius: 30px;
+  padding: 8px 14px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+}
+
+.speed-control .speed-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #0b5c53;
+  margin-right: 4px;
+  white-space: nowrap;
+}
+
+.speed-control button {
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: 50%;
+  background: #e6f4f2;
+  color: #0b5c53;
+  font-family: 'Poppins', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.speed-control button:hover { background: #cde8e4; }
+
+.speed-control button.active {
+  background: linear-gradient(135deg, #0b5c53, #07473f);
+  color: #ffffff;
+  box-shadow: 0 4px 12px rgba(11, 92, 83, 0.4);
+}
+
+@media (max-width: 991.98px) {
+  .speed-control {
+    bottom: 12px;
+  }
+}
+
+/* ============================================
+   Compact heights — make the card FIT the viewport
+   instead of scrolling (1366×768, 1280×720, etc.)
+   ============================================ */
+@media (max-height: 660px) {
+  .login-wrapper {
+    padding: clamp(8px, 2vh, 20px) 20px;
+  }
+
+  .login-card {
+    padding: clamp(14px, 2.5vh, 24px);
+  }
+
+  .login-header {
+    margin-bottom: clamp(8px, 1.5vh, 12px);
+  }
+
+  .login-header .logo {
+    width: clamp(40px, 6vh, 48px);
+    height: clamp(40px, 6vh, 48px);
+    border-radius: 14px;
+    margin-bottom: clamp(6px, 1.2vh, 10px);
+  }
+
+  .login-header .logo i {
+    font-size: clamp(18px, 2.4vh, 22px);
+  }
+
+  .login-header h1 {
+    font-size: clamp(18px, 2.4vh, 20px);
+    margin-bottom: 4px;
+  }
+
+  .login-header p {
+    font-size: 13px;
+  }
+
+  .form-group {
+    margin-bottom: clamp(8px, 1.5vh, 12px);
+  }
+
+  .form-group label {
+    margin-bottom: 5px;
+    font-size: 13px;
+  }
+
+  .form-control {
+    padding: 10px 44px;
+    font-size: 14px;
+  }
+
+  .btn-login {
+    padding: 12px;
+    font-size: 15px;
+    margin-top: 4px;
+  }
+
+  .login-footer {
+    margin-top: clamp(8px, 1.5vh, 12px);
+    padding-top: clamp(8px, 1.5vh, 12px);
+  }
+}
+
+@media (max-height: 560px) {
+  .login-wrapper {
+    padding: clamp(4px, 1vh, 12px) 20px;
+  }
+
+  .login-card {
+    padding: clamp(10px, 1.8vh, 14px);
+  }
+
+  .login-header {
+    margin-bottom: clamp(5px, 1vh, 8px);
+  }
+
+  .login-header .logo {
+    width: clamp(28px, 4vh, 36px);
+    height: clamp(28px, 4vh, 36px);
+    border-radius: 12px;
+    margin-bottom: 6px;
+  }
+
+  .login-header .logo i {
+    font-size: clamp(15px, 2vh, 18px);
+  }
+
+  .login-header h1 {
+    font-size: clamp(15px, 2vh, 17px);
+    margin-bottom: 2px;
+  }
+
+  .login-header p {
+    font-size: 12px;
+  }
+
+  .form-group {
+    margin-bottom: clamp(5px, 1vh, 8px);
+  }
+
+  .form-group label {
+    margin-bottom: 4px;
+    font-size: 12px;
+  }
+
+  .form-control {
+    padding: 8px 44px;
+    font-size: 14px;
+  }
+
+  .toggle-password {
+    width: 28px;
+    height: 28px;
+    right: 10px;
+  }
+
+  .btn-login {
+    padding: 9px;
+    font-size: 14px;
+    margin-top: 2px;
+  }
+
+  .alert {
+    margin-bottom: 10px;
+  }
+
+  .login-footer {
+    margin-top: clamp(5px, 1vh, 8px);
+    padding-top: clamp(5px, 1vh, 8px);
+  }
+
+  .login-footer p {
+    font-size: 12px;
+  }
+}
+
+/* Safety net: only re-enable scrolling on EXTREMELY short windows
+   (≤ 480px) so content is never unreachable. No scrollbar anywhere else. */
+@media (max-height: 480px) {
+  .login-card {
+    max-height: 100%;
+    overflow-y: auto;
+  }
+}

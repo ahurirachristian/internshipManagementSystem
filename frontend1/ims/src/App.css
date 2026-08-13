@@ -72,12 +72,6 @@ button {
   padding: 32px;
 }
 
-.login-card {
-  margin: 0 auto;
-  max-height: calc(100vh - 120px);
-  overflow: auto;
-}
-
 .card-header {
   text-align: center;
   margin-bottom: 28px;
@@ -119,13 +113,18 @@ button {
   font-weight: 600;
 }
 
-.form-grid input {
+.form-grid input,
+.form-grid select {
   width: 100%;
   padding: 14px 16px;
   border-radius: 14px;
   border: 1px solid #cbd5e1;
   background: #f8fafc;
   color: #0f172a;
+}
+
+.form-grid select {
+  cursor: pointer;
 }
 
 .primary-button,
@@ -167,6 +166,31 @@ button {
 .alert-error {
   background: #fee2e2;
   color: #991b1b;
+}
+
+.alert-success {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.page-links {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  margin-top: 24px;
+  color: #475569;
+  font-size: 0.95rem;
+}
+
+.page-links a {
+  color: #0f766e;
+  font-weight: 700;
+}
+
+.page-links a:hover {
+  text-decoration: underline;
 }
 
 .company-header {
@@ -324,3 +348,206 @@ tbody tr:hover {
   justify-content: flex-end;
   margin-top: 12px;
 }
+
+.dashboard-shell {
+  min-height: 100vh;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 32px;
+}
+
+.dashboard-header {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 18px;
+  padding-bottom: 24px;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.dashboard-header h1 {
+  margin: 0;
+  font-size: clamp(1.8rem, 2.2vw, 2.4rem);
+}
+
+.dashboard-header p {
+  margin: 8px 0 0;
+  color: #475569;
+}
+
+.role-badge {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 4px 12px;
+  border-radius: 999px;
+  background: #ccfbf1;
+  color: #0f766e;
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.dashboard-main {
+  padding-top: 32px;
+}
+
+.placeholder-panel {
+  background: #ffffff;
+  border-radius: 24px;
+  box-shadow: 0 24px 80px rgba(15, 23, 42, 0.08);
+  padding: 48px 32px;
+  text-align: center;
+}
+
+.placeholder-panel h2 {
+  margin: 0 0 12px;
+  font-size: clamp(1.5rem, 2vw, 2rem);
+}
+
+.placeholder-panel p {
+  margin: 0;
+  color: #64748b;
+}
+
+.tab-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 24px;
+  padding-bottom: 24px;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.tab-button {
+  border: none;
+  border-radius: 999px;
+  padding: 10px 18px;
+  background: #f1f5f9;
+  color: #475569;
+  font-weight: 700;
+  font-size: 0.95rem;
+}
+
+.tab-button:hover {
+  background: #e2e8f0;
+}
+
+.tab-button.active {
+  background: #0f766e;
+  color: #ffffff;
+}
+
+.card-panel {
+  background: #ffffff;
+  border-radius: 24px;
+  box-shadow: 0 24px 80px rgba(15, 23, 42, 0.08);
+  padding: 32px;
+  margin-bottom: 24px;
+}
+
+.card-panel h2 {
+  margin: 0 0 8px;
+  font-size: clamp(1.4rem, 2vw, 1.8rem);
+}
+
+.card-panel > p {
+  margin: 0 0 20px;
+  color: #64748b;
+}
+
+.detail-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 20px;
+}
+
+.detail-label {
+  display: block;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #64748b;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.detail-value {
+  color: #0f172a;
+  font-weight: 600;
+  word-break: break-word;
+}
+
+.stat-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 18px;
+  margin-bottom: 24px;
+}
+
+.stat-card {
+  background: #ffffff;
+  border-radius: 24px;
+  box-shadow: 0 24px 80px rgba(15, 23, 42, 0.08);
+  padding: 24px;
+}
+
+.stat-number {
+  font-size: 2.2rem;
+  font-weight: 800;
+  color: #0f766e;
+}
+
+.stat-label {
+  color: #64748b;
+  font-weight: 600;
+}
+
+.form-grid textarea,
+.modal-form textarea {
+  width: 100%;
+  padding: 14px 16px;
+  border-radius: 14px;
+  border: 1px solid #cbd5e1;
+  background: #f8fafc;
+  color: #0f172a;
+  resize: vertical;
+  font: inherit;
+}
+
+.inline-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.diary-entry + .diary-entry {
+  border-top: 1px solid #e2e8f0;
+  padding-top: 20px;
+  margin-top: 20px;
+}
+
+.diary-entry h3 {
+  margin: 0 0 12px;
+  font-size: 1.1rem;
+}
+
+.diary-entry h4 {
+  margin: 16px 0 6px;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #64748b;
+}
+
+.diary-entry p {
+  margin: 0;
+  color: #334155;
+  white-space: pre-wrap;
+}
+
+
+/* Test CSS for the form */
+

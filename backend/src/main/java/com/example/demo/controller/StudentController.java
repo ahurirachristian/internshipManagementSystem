@@ -1,5 +1,6 @@
 package com.example.demo.controller;
 
+import java.security.Principal;
 import java.util.List;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -13,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import com.example.demo.dto.StudentProfileDto;
 import com.example.demo.student.StudentProfile;
 import com.example.demo.student.StudentProfileRepository;
 import com.example.demo.student.DayDiary;
@@ -28,6 +30,85 @@ public class StudentController {
     public StudentController(StudentProfileRepository studentProfileRepository, DayDiaryRepository dayDiaryRepository) {
         this.studentProfileRepository = studentProfileRepository;
         this.dayDiaryRepository = dayDiaryRepository;
+    }
+
+    @GetMapping("/me")
+    @PreAuthorize("hasAnyAuthority('STUDENT', 'ADMIN')")
+    public ResponseEntity<StudentProfile> getMyProfile(Principal principal) {
+        return studentProfileRepository.findByUsername(principal.getName())
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    @PutMapping("/me")
+    @PreAuthorize("hasAnyAuthority('STUDENT', 'ADMIN')")
+    public ResponseEntity<StudentProfile> updateMyProfile(@RequestBody StudentProfileDto dto, Principal principal) {
+        StudentProfile existing = studentProfileRepository.findByUsername(principal.getName())
+                .orElseGet(() -> {
+                    StudentProfile blank = new StudentProfile();
+                    blank.setUsername(principal.getName());
+                    blank.setFirstName("Student");
+                    blank.setLastName("User");
+                    blank.setEmail(principal.getName());
+                    blank.setStudentNumber(principal.getName());
+                    blank.setRegistrationNumber(principal.getName());
+                    blank.setDegreeProgram("Pending");
+                    blank.setYearOfStudy(1);
+                    blank.setPhoneNumber("Pending");
+                    blank.setInternshipCompany("Pending");
+                    blank.setUniversitySupervisor("Pending");
+                    blank.setIndustrialSupervisorId("Pending");
+                    blank.setCompanyId(null);
+                    blank.setPictureUrl("/images/student-placeholder.png");
+                    return blank;
+                });
+        merge(existing, dto);
+        return ResponseEntity.ok(studentProfileRepository.save(existing));
+    }
+
+    private void merge(StudentProfile existing, StudentProfileDto dto) {
+        if (dto == null) {
+            return;
+        }
+        if (dto.getFirstName() != null) {
+            existing.setFirstName(dto.getFirstName());
+        }
+        if (dto.getLastName() != null) {
+            existing.setLastName(dto.getLastName());
+        }
+        if (dto.getEmail() != null) {
+            existing.setEmail(dto.getEmail());
+        }
+        if (dto.getStudentNumber() != null) {
+            existing.setStudentNumber(dto.getStudentNumber());
+        }
+        if (dto.getRegistrationNumber() != null) {
+            existing.setRegistrationNumber(dto.getRegistrationNumber());
+        }
+        if (dto.getDegreeProgram() != null) {
+            existing.setDegreeProgram(dto.getDegreeProgram());
+        }
+        if (dto.getYearOfStudy() != null) {
+            existing.setYearOfStudy(dto.getYearOfStudy());
+        }
+        if (dto.getPhoneNumber() != null) {
+            existing.setPhoneNumber(dto.getPhoneNumber());
+        }
+        if (dto.getInternshipCompany() != null) {
+            existing.setInternshipCompany(dto.getInternshipCompany());
+        }
+        if (dto.getUniversitySupervisor() != null) {
+            existing.setUniversitySupervisor(dto.getUniversitySupervisor());
+        }
+        if (dto.getIndustrialSupervisorId() != null) {
+            existing.setIndustrialSupervisorId(dto.getIndustrialSupervisorId());
+        }
+        if (dto.getCompanyId() != null) {
+            existing.setCompanyId(dto.getCompanyId());
+        }
+        if (dto.getPictureUrl() != null) {
+            existing.setPictureUrl(dto.getPictureUrl());
+        }
     }
 
     @GetMapping

@@ -1,0 +1,33 @@
+# Local documentation - never commit
+CODEBASE_ANALYSIS.md
+
+# ---- Java / Spring Boot ----
+backend/target/
+backend/*.log
+backend/.env
+
+# ---- Node / React ----
+frontend1/ims/node_modules/
+frontend1/ims/build/
+frontend1/ims/.env.local
+frontend1/ims/.env.development.local
+frontend1/ims/.env.test.local
+frontend1/ims/.env.production.local
+frontend1/ims/npm-debug.log*
+frontend1/ims/yarn-debug.log*
+frontend1/ims/yarn-error.log*
+
+# ---- IDE / Editor ----
+.vscode/
+.idea/
+*.iml
+*.swp
+*.swo
+
+# ---- OS ----
+.DS_Store
+Thumbs.db
+
+# ---- Misc ----
+cookies.txt
+newcookies.txt
