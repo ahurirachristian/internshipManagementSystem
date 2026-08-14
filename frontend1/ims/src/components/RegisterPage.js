@@ -1,41 +1,39 @@
 import { useState } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
+import { Link, useNavigate } from 'react-router-dom';
+import { register } from '../services/api';
 import AuthShell from './AuthShell';
 import './LoginPage.css';
 
-export default function LoginPage() {
-  const { login, homeFor } = useAuth();
+export default function RegisterPage() {
   const navigate = useNavigate();
-  const location = useLocation();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [role, setRole] = useState('STUDENT');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-
-  const notice = location.state?.registered
-    ? 'Account created successfully. Please sign in.'
-    : location.state?.reset
-      ? 'Password updated successfully. Please sign in.'
-      : '';
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   async function handleSubmit(event) {
     event.preventDefault();
     setError('');
 
-    if (!username.trim() || !password) {
-      setError('Please enter both username and password.');
+    if (!username.trim() || !password || !confirmPassword) {
+      setError('All fields are required.');
+      return;
+    }
+    if (password !== confirmPassword) {
+      setError('Passwords do not match.');
       return;
     }
 
     setLoading(true);
     try {
-      const payload = await login(username.trim(), password, role);
-      navigate(homeFor(payload.role), { replace: true });
+      await register(username.trim(), password, confirmPassword, role);
+      navigate('/login', { state: { registered: true } });
     } catch (err) {
-      setError(err.message || 'Login failed.');
+      setError(err.message || 'Registration failed.');
     } finally {
       setLoading(false);
     }
@@ -48,11 +46,10 @@ export default function LoginPage() {
           <div className="logo">
             <i className="fa-solid fa-graduation-cap"></i>
           </div>
-          <h1>Welcome Back</h1>
-          <p>Sign in to your account</p>
+          <h1>Create Account</h1>
+          <p>Register to get started</p>
         </div>
 
-        {notice && <div className="alert alert-success show">{notice}</div>}
         {error && <div className="alert alert-error show">{error}</div>}
 
         <form onSubmit={handleSubmit}>
@@ -98,7 +95,7 @@ export default function LoginPage() {
                 id="password"
                 className="form-control"
                 placeholder="Enter your password"
-                autoComplete="current-password"
+                autoComplete="new-password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
               />
@@ -114,16 +111,38 @@ export default function LoginPage() {
             </div>
           </div>
 
+          <div className="form-group">
+            <label htmlFor="confirmPassword">Confirm Password</label>
+            <div className="input-wrapper">
+              <input
+                type={showConfirmPassword ? 'text' : 'password'}
+                id="confirmPassword"
+                className="form-control"
+                placeholder="Confirm your password"
+                autoComplete="new-password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+              />
+              <i className="fa-solid fa-lock"></i>
+              <button
+                type="button"
+                className="toggle-password"
+                aria-label={showConfirmPassword ? 'Hide password' : 'Show password'}
+                onClick={() => setShowConfirmPassword((s) => !s)}
+              >
+                <i className={`fa-solid ${showConfirmPassword ? 'fa-eye-slash' : 'fa-eye'}`}></i>
+              </button>
+            </div>
+          </div>
+
           <button className="btn-login" type="submit" disabled={loading}>
-            {loading ? 'Signing in...' : 'Sign In'}
+            {loading ? 'Creating account...' : 'Create Account'}
           </button>
         </form>
 
         <div className="login-footer">
           <p>
-            <Link to="/register">Create an account</Link>
-            <span> &nbsp;|&nbsp; </span>
-            <Link to="/forgot-password">Forgot password?</Link>
+            <Link to="/login">Already have an account? Sign in</Link>
           </p>
         </div>
       </div>

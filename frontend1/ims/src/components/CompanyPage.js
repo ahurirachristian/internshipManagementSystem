@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { createCompany, deleteCompany, fetchCompanies, updateCompany } from '../services/api';
 
 const initialForm = {
@@ -104,8 +104,7 @@ export default function CompanyPage({ onLogout }) {
     }
   }
 
-  const tableRows = useMemo(
-    () => companies.map((company) => {
+  const tableRows = companies.map((company) => {
       const [postalAddress, physicalAddress] = company.profile?.split(' | ') || ['', ''];
       return (
         <tr key={company.id}>
@@ -130,8 +129,7 @@ export default function CompanyPage({ onLogout }) {
           </td>
         </tr>
       );
-    }),
-    [companies]
+    }
   );
 
   return (

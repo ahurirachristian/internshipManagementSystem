@@ -5,10 +5,12 @@ import java.util.List;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -59,6 +61,28 @@ public class DayDiaryApiController {
         diary.setStudentProfile(studentProfile);
         DayDiary saved = dayDiaryRepository.save(diary);
         return ResponseEntity.status(HttpStatus.CREATED).body(saved);
+    }
+
+    @PutMapping("/{id}")
+    @PreAuthorize("hasAnyAuthority('STUDENT', 'ADMIN')")
+    public ResponseEntity<DayDiary> updateDiary(@PathVariable Long id, @RequestBody DayDiary updates, Principal principal) {
+        DayDiary diary = dayDiaryRepository.findById(id).orElse(null);
+        if (diary == null) {
+            return ResponseEntity.notFound().build();
+        }
+        boolean isOwner = diary.getStudentProfile() != null
+                && diary.getStudentProfile().getUsername().equals(principal.getName());
+        boolean isAdmin = principal instanceof Authentication
+                && ((Authentication) principal).getAuthorities().stream()
+                        .anyMatch(auth -> auth.getAuthority().equals("ADMIN"));
+        if (!isOwner && !isAdmin) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+        diary.setDate(updates.getDate());
+        diary.setDailyActivities(updates.getDailyActivities());
+        diary.setKnowledgeAndSkillsGained(updates.getKnowledgeAndSkillsGained());
+        diary.setAccomplishments(updates.getAccomplishments());
+        return ResponseEntity.ok(dayDiaryRepository.save(diary));
     }
 
     @DeleteMapping("/{id}")

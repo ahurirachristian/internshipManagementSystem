@@ -1,10 +1,10 @@
 :root {
   color-scheme: light;
-  font-family: 'Poppins', system-ui, sans-serif;
-  font-size: 16px;
+  font-family: 'Inter', 'Poppins', system-ui, sans-serif;
+  font-size: 15px;
   line-height: 1.5;
-  color: #0f172a;
-  background-color: #eff6ff;
+  color: #1f2937;
+  background-color: #f4f7f6;
 }
 
 * {
@@ -17,7 +17,7 @@ html, body, #root {
 
 body {
   margin: 0;
-  background: linear-gradient(180deg, #ecfeff 0%, #f8fafc 40%, #e2e8f0 100%);
+  background: #f4f7f6;
 }
 
 a {
@@ -63,26 +63,6 @@ button {
   max-width: 1200px;
 }
 
-.card {
-  width: 100%;
-  max-width: 520px;
-  background: #ffffff;
-  border-radius: 28px;
-  box-shadow: 0 28px 80px rgba(15, 23, 42, 0.12);
-  padding: 32px;
-}
-
-.login-card {
-  margin: 0 auto;
-  max-height: calc(100vh - 120px);
-  overflow: auto;
-}
-
-.card-header {
-  text-align: center;
-  margin-bottom: 28px;
-}
-
 .logo-icon {
   display: inline-flex;
   align-items: center;
@@ -94,16 +74,6 @@ button {
   color: white;
   font-weight: 800;
   margin-bottom: 16px;
-}
-
-.card-header h1 {
-  margin: 0 0 10px;
-  font-size: clamp(2rem, 2.5vw, 2.6rem);
-}
-
-.card-header p {
-  margin: 0;
-  color: #475569;
 }
 
 .form-grid {
@@ -119,13 +89,18 @@ button {
   font-weight: 600;
 }
 
-.form-grid input {
+.form-grid input,
+.form-grid select {
   width: 100%;
   padding: 14px 16px;
   border-radius: 14px;
   border: 1px solid #cbd5e1;
   background: #f8fafc;
   color: #0f172a;
+}
+
+.form-grid select {
+  cursor: pointer;
 }
 
 .primary-button,
@@ -167,6 +142,31 @@ button {
 .alert-error {
   background: #fee2e2;
   color: #991b1b;
+}
+
+.alert-success {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.page-links {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  margin-top: 24px;
+  color: #475569;
+  font-size: 0.95rem;
+}
+
+.page-links a {
+  color: #0f766e;
+  font-weight: 700;
+}
+
+.page-links a:hover {
+  text-decoration: underline;
 }
 
 .company-header {
@@ -324,3 +324,139 @@ tbody tr:hover {
   justify-content: flex-end;
   margin-top: 12px;
 }
+
+.dashboard-shell {
+  min-height: 100vh;
+}
+
+.placeholder-panel {
+  background: #ffffff;
+  border-radius: 24px;
+  box-shadow: 0 24px 80px rgba(15, 23, 42, 0.08);
+  padding: 48px 32px;
+  text-align: center;
+}
+
+.placeholder-panel h2 {
+  margin: 0 0 12px;
+  font-size: clamp(1.5rem, 2vw, 2rem);
+}
+
+.placeholder-panel p {
+  margin: 0;
+  color: #64748b;
+}
+
+
+.card-panel {
+  background: #ffffff;
+  border-radius: 24px;
+  box-shadow: 0 24px 80px rgba(15, 23, 42, 0.08);
+  padding: 32px;
+  margin-bottom: 24px;
+}
+
+.card-panel h2 {
+  margin: 0 0 8px;
+  font-size: clamp(1.4rem, 2vw, 1.8rem);
+}
+
+.card-panel > p {
+  margin: 0 0 20px;
+  color: #64748b;
+}
+
+.detail-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 20px;
+}
+
+.detail-label {
+  display: block;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #64748b;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.detail-value {
+  color: #0f172a;
+  font-weight: 600;
+  word-break: break-word;
+}
+
+.stat-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 18px;
+  margin-bottom: 24px;
+}
+
+.stat-card {
+  background: #ffffff;
+  border-radius: 24px;
+  box-shadow: 0 24px 80px rgba(15, 23, 42, 0.08);
+  padding: 24px;
+}
+
+.stat-number {
+  font-size: 2.2rem;
+  font-weight: 800;
+  color: #0f766e;
+}
+
+.stat-label {
+  color: #64748b;
+  font-weight: 600;
+}
+
+.form-grid textarea,
+.modal-form textarea {
+  width: 100%;
+  padding: 14px 16px;
+  border-radius: 14px;
+  border: 1px solid #cbd5e1;
+  background: #f8fafc;
+  color: #0f172a;
+  resize: vertical;
+  font: inherit;
+}
+
+.inline-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.diary-entry + .diary-entry {
+  border-top: 1px solid #e2e8f0;
+  padding-top: 20px;
+  margin-top: 20px;
+}
+
+.diary-entry h3 {
+  margin: 0 0 12px;
+  font-size: 1.1rem;
+}
+
+.diary-entry h4 {
+  margin: 16px 0 6px;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #64748b;
+}
+
+.diary-entry p {
+  margin: 0;
+  color: #334155;
+  white-space: pre-wrap;
+}
+
+
+/* Test CSS for the form */
+

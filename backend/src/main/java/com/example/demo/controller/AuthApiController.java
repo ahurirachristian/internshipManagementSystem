@@ -46,9 +46,14 @@ public class AuthApiController {
     @GetMapping("/me")
     public Map<String, Object> me(Principal principal) {
         return userRepository.findByUsername(principal.getName())
-                .map(user -> Map.<String, Object>of(
-                        "username", principal.getName(),
-                        "role", user.getRole().name()))
+                .map(user -> {
+                    Map<String, Object> result = new HashMap<>();
+                    result.put("username", principal.getName());
+                    result.put("role", user.getRole().name());
+                    result.put("companyId", user.getCompanyId());
+                    result.put("universityId", user.getUniversityId());
+                    return result;
+                })
                 .orElseGet(() -> Map.<String, Object>of("username", principal.getName()));
     }
 
