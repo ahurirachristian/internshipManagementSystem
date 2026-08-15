@@ -25,6 +25,7 @@ export default function DashboardLayout({
   const location = useLocation();
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
+  const [showSidebar, setShowSidebar] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [clearedNotifs, setClearedNotifs] = useState(false);
   const dropdownRef = useRef(null);
@@ -34,7 +35,6 @@ export default function DashboardLayout({
   const roleLabel = ROLE_LABELS[role] || role;
   const initials = (user?.username || 'U').slice(0, 2).toUpperCase();
 
-  // Close dropdowns on outside click
   useEffect(() => {
     function handleClickOutside(event) {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
@@ -61,42 +61,35 @@ export default function DashboardLayout({
   const visibleNotifications = clearedNotifs ? [] : notifications;
   const unreadCount = visibleNotifications.length;
 
-  // Role-aware dashboard dropdown links
-  const dashboardLinks = [];
-  if (role === 'ADMIN' || role === 'SUPERVISOR') {
-    dashboardLinks.push({ to: '/university/dashboard', icon: 'fa-user-tie', label: 'University Area' });
-  }
-  if (role === 'ADMIN' || role === 'STUDENT') {
-    dashboardLinks.push({ to: '/student/dashboard', icon: 'fa-user-graduate', label: 'Student Area' });
-  }
-  if (role === 'ADMIN' || role === 'COMPANY') {
-    dashboardLinks.push({ to: '/company/dashboard', icon: 'fa-building', label: 'Company Area' });
-  }
-
-  // Role-aware main section links
-  const mainLinks = [];
-  if (role === 'ADMIN') {
-    mainLinks.push({ to: '/admin/dashboard', icon: 'fa-shield-halved', label: 'Admin Dashboard' });
-    mainLinks.push({ to: '/admin/users', icon: 'fa-users', label: 'User Management' });
-  }
-  if (role === 'ADMIN' || role === 'SUPERVISOR') {
-    mainLinks.push({ to: '/company', icon: 'fa-building', label: 'Companies' });
-  }
-  if (role === 'STUDENT') {
-    mainLinks.push({ to: '/student/dashboard', icon: 'fa-id-card', label: 'Student Area' });
-  }
-  if (role === 'COMPANY') {
-    mainLinks.push({ to: '/company/dashboard', icon: 'fa-building', label: 'Company Dashboard' });
-  }
-  if (role === 'SUPERVISOR') {
-    mainLinks.push({ to: '/university/dashboard', icon: 'fa-user-tie', label: 'University Area' });
-  }
-
   const isActive = (path) => location.pathname === path || location.pathname.startsWith(path + '/');
 
+  const dashboardLinks = [
+    { to: '/admin/dashboard', icon: 'fa-shield-halved', label: 'Admin Dashboard', roles: ['ADMIN'] },
+    { to: '/student/dashboard', icon: 'fa-user-graduate', label: 'Student Area', roles: ['ADMIN', 'STUDENT'] },
+    { to: '/company/dashboard', icon: 'fa-building', label: 'Company Area', roles: ['ADMIN', 'COMPANY'] },
+    { to: '/university/dashboard', icon: 'fa-user-tie', label: 'University Area', roles: ['ADMIN', 'SUPERVISOR'] },
+  ];
+
+  const navLinks = [
+    { to: '/file-management', icon: 'fa-folder-open', label: 'File Management', roles: ['ADMIN', 'SUPERVISOR', 'STUDENT', 'COMPANY'] },
+    { to: '/admin/users', icon: 'fa-users', label: 'User Management', roles: ['ADMIN'] },
+    { to: '/company', icon: 'fa-building', label: 'Companies', roles: ['ADMIN', 'SUPERVISOR'] },
+    { to: '/admin/placements', icon: 'fa-users-rectangle', label: 'Placement & Supervisors', roles: ['ADMIN'] },
+    { to: '/admin/audit-logs', icon: 'fa-list-check', label: 'Audit Logs', roles: ['ADMIN'] },
+    { to: '/admin/universities', icon: 'fa-university', label: 'Universities', roles: ['ADMIN'] },
+  ];
+
+  const visibleDashboardLinks = dashboardLinks.filter((link) => link.roles.includes(role));
+  const visibleNavLinks = navLinks.filter((link) => link.roles.includes(role));
+
+  const hasActiveChild = visibleDashboardLinks.some((link) => isActive(link.to));
+
+  useEffect(() => {
+    if (hasActiveChild) setDropdownOpen(true);
+  }, [location.pathname, hasActiveChild]);
+
   return (
-    <div className="dashboard-shell">
-      {/* Sidebar Navigation */}
+    <div className={`dashboard-shell${showSidebar ? '' : ' sidebar-collapsed'}`}>
       <aside className="sidebar">
         <div className="sidebar-brand">
           <div className="brand-logo"><i className="fa-solid fa-graduation-cap"></i></div>
@@ -107,7 +100,8 @@ export default function DashboardLayout({
         </div>
         <nav className="sidebar-nav">
           <div className="nav-label">Main</div>
-          {dashboardLinks.length > 0 && (
+
+          {visibleDashboardLinks.length > 0 && (
             <div className={`nav-dropdown${dropdownOpen ? ' open' : ''}`} ref={dropdownRef}>
               <button
                 type="button"
@@ -115,10 +109,10 @@ export default function DashboardLayout({
                 aria-expanded={dropdownOpen}
                 onClick={() => setDropdownOpen(!dropdownOpen)}
               >
-                <i className="fa-solid fa-gauge"></i> Dashboard <i className="fa-solid fa-chevron-down nav-caret"></i>
+                <i className="fa-solid fa-gauge"></i> Dashboards <i className="fa-solid fa-chevron-down nav-caret"></i>
               </button>
               <div className="nav-submenu">
-                {dashboardLinks.map((link) => (
+                {visibleDashboardLinks.map((link) => (
                   <Link key={link.to} to={link.to} className={isActive(link.to) ? 'active' : ''}>
                     <i className={`fa-solid ${link.icon}`}></i> {link.label}
                   </Link>
@@ -126,7 +120,8 @@ export default function DashboardLayout({
               </div>
             </div>
           )}
-          {mainLinks.map((link) => (
+
+          {visibleNavLinks.map((link) => (
             <Link
               key={link.to}
               to={link.to}
@@ -135,32 +130,6 @@ export default function DashboardLayout({
               <i className={`fa-solid ${link.icon}`}></i> {link.label}
             </Link>
           ))}
-          <div className="nav-label">Areas</div>
-          {role === 'ADMIN' && (
-            <>
-              <Link to="/company" className="nav-link">
-                <i className="fa-solid fa-building"></i> Companies
-              </Link>
-              <Link to="/student/dashboard" className="nav-link">
-                <i className="fa-solid fa-id-card"></i> Student Area
-              </Link>
-            </>
-          )}
-          {role === 'STUDENT' && (
-            <Link to="/student/dashboard" className="nav-link">
-              <i className="fa-solid fa-id-card"></i> Student Area
-            </Link>
-          )}
-          {role === 'COMPANY' && (
-            <Link to="/company/dashboard" className="nav-link">
-              <i className="fa-solid fa-building"></i> Company Area
-            </Link>
-          )}
-          {role === 'SUPERVISOR' && (
-            <Link to="/university/dashboard" className="nav-link">
-              <i className="fa-solid fa-user-tie"></i> University Area
-            </Link>
-          )}
         </nav>
         <div className="sidebar-footer">
           <button
@@ -179,10 +148,17 @@ export default function DashboardLayout({
         </div>
       </aside>
 
-      {/* Main Content */}
       <div className="main">
-        {/* Topbar */}
         <header className="topbar">
+          <button
+            type="button"
+            className="icon-btn sidebar-toggle"
+            title={showSidebar ? 'Hide sidebar' : 'Show sidebar'}
+            aria-label={showSidebar ? 'Hide sidebar' : 'Show sidebar'}
+            onClick={() => setShowSidebar(!showSidebar)}
+          >
+            <i className={`fa-solid fa-bars${showSidebar ? '' : ' fa-bars-open'}`}></i>
+          </button>
           {searchable && (
             <div className="topbar-search">
               <i className="fa-solid fa-magnifying-glass"></i>

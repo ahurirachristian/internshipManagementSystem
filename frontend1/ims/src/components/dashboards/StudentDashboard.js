@@ -1,12 +1,17 @@
 import { useEffect, useState } from 'react';
 import DashboardLayout from '../DashboardLayout';
 import StudentEditModal from '../StudentEditModal';
+import ExportButton from '../ExportButton';
+import InternshipProgress from '../InternshipProgress';
+import DiaryReviewModal from '../DiaryReviewModal';
 import { useAuth } from '../../context/AuthContext';
 import {
   createDiary,
   deleteDiary,
   fetchMyProfile,
   fetchStudentDiaries,
+  fetchCompanies,
+  fetchSupervisors,
   saveMyProfile,
   updateDiary,
 } from '../../services/api';
@@ -32,9 +37,15 @@ export default function StudentDashboard() {
   const [diaryNotice, setDiaryNotice] = useState('');
   const [diaryForm, setDiaryForm] = useState(emptyDiaryForm);
   const [editingDiaryId, setEditingDiaryId] = useState(null);
+  const [reviewDiary, setReviewDiary] = useState(null);
+  const [companies, setCompanies] = useState([]);
+  const [supervisors, setSupervisors] = useState([]);
 
   useEffect(() => {
     loadProfile();
+    loadCompanies();
+    loadSupervisors();
+    loadDiaries();
   }, []);
 
   async function loadProfile() {
@@ -63,6 +74,26 @@ export default function StudentDashboard() {
       setDiaryError(err.message || 'Unable to load diary entries.');
     } finally {
       setDiaryLoading(false);
+    }
+  }
+
+  async function loadCompanies() {
+    try {
+      const data = await fetchCompanies();
+      setCompanies(Array.isArray(data) ? data : []);
+    } catch (err) {
+      console.error('Failed to load companies', err);
+      setCompanies([]);
+    }
+  }
+
+  async function loadSupervisors() {
+    try {
+      const data = await fetchSupervisors('UNIVERSITY');
+      setSupervisors(Array.isArray(data) ? data : []);
+    } catch (err) {
+      console.error('Failed to load supervisors', err);
+      setSupervisors([]);
     }
   }
 
@@ -275,6 +306,9 @@ export default function StudentDashboard() {
                 >
                   Delete
                 </button>
+                <button className="icon-button" onClick={() => setReviewDiary(entry)}>
+                  Review / Comment
+                </button>
               </div>
             </div>
           ))}
@@ -299,6 +333,8 @@ export default function StudentDashboard() {
         }
       }}
     >
+      <InternshipProgress />
+
       {profileNotice && <div className="alert alert-success">{profileNotice}</div>}
       {diaryNotice && <div className="alert alert-success">{diaryNotice}</div>}
       {profileError && <div className="alert alert-error">{profileError}</div>}
@@ -311,6 +347,16 @@ export default function StudentDashboard() {
           title={profile ? 'Edit Profile' : 'Create Profile'}
           onClose={() => setProfileModalOpen(false)}
           onSubmit={handleProfileSave}
+          companies={companies}
+          supervisors={supervisors}
+        />
+      )}
+
+      {reviewDiary && (
+        <DiaryReviewModal
+          diary={reviewDiary}
+          onClose={() => setReviewDiary(null)}
+          onSaved={loadDiaries}
         />
       )}
     </DashboardLayout>

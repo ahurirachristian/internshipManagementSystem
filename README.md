@@ -1,4 +1,4 @@
-# Internship Management System
+ at# Internship Management System
 
 A Spring Boot application for managing internships, reorganized into `backend/` and `frontend/` folders.
 

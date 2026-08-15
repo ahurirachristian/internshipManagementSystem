@@ -9,20 +9,37 @@ import UniversityDashboard from './components/dashboards/UniversityDashboard';
 import CompanyDashboard from './components/dashboards/CompanyDashboard';
 import AdminDashboard from './components/dashboards/AdminDashboard';
 import AdminUsersPage from './components/dashboards/AdminUsersPage';
+import AuditLogs from './components/dashboards/AuditLogs';
 import CompanyProfilePage from './components/dashboards/CompanyProfilePage';
 import CompanyPage from './components/CompanyPage';
+import UniversitiesManagement from './components/UniversitiesManagement';
+import PlacementMatching from './components/PlacementMatching';
+import FileManagement from './components/FileManagement';
+import DashboardLayout from './components/DashboardLayout';
 import './App.css';
 
 function CompanyManagement() {
-  const { logout } = useAuth();
-  const navigate = useNavigate();
+  return (
+    <DashboardLayout title="Company Management" subtitle="Manage companies and their details from the backend">
+      <CompanyPage />
+    </DashboardLayout>
+  );
+}
 
-  async function handleLogout() {
-    await logout();
-    navigate('/login', { replace: true });
-  }
+function PlacementsPage() {
+  return (
+    <DashboardLayout title="Placement & Supervisor Management" subtitle="Assign and evaluate student placements">
+      <PlacementMatching />
+    </DashboardLayout>
+  );
+}
 
-  return <CompanyPage onLogout={handleLogout} />;
+function UniversitiesPage() {
+  return (
+    <DashboardLayout title="University Management" subtitle="Manage registered universities">
+      <UniversitiesManagement />
+    </DashboardLayout>
+  );
 }
 
 function AppRoutes() {
@@ -47,7 +64,7 @@ function AppRoutes() {
       <Route
         path="/student/dashboard"
         element={
-          <ProtectedRoute role="STUDENT">
+          <ProtectedRoute roles={["ADMIN", "STUDENT"]}>
             <StudentDashboard />
           </ProtectedRoute>
         }
@@ -55,7 +72,7 @@ function AppRoutes() {
       <Route
         path="/university/dashboard"
         element={
-          <ProtectedRoute role="SUPERVISOR">
+          <ProtectedRoute roles={["ADMIN", "SUPERVISOR"]}>
             <UniversityDashboard />
           </ProtectedRoute>
         }
@@ -63,7 +80,7 @@ function AppRoutes() {
       <Route
         path="/company/dashboard"
         element={
-          <ProtectedRoute role="COMPANY">
+          <ProtectedRoute roles={["ADMIN", "COMPANY"]}>
             <CompanyDashboard />
           </ProtectedRoute>
         }
@@ -101,6 +118,38 @@ function AppRoutes() {
         }
       />
       <Route
+        path="/admin/audit-logs"
+        element={
+          <ProtectedRoute role="ADMIN">
+            <AuditLogs />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/universities"
+        element={
+          <ProtectedRoute role="ADMIN">
+            <UniversitiesPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/placements"
+        element={
+          <ProtectedRoute role="ADMIN">
+            <PlacementsPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/file-management"
+        element={
+          <ProtectedRoute roles={['ADMIN', 'SUPERVISOR', 'STUDENT', 'COMPANY']}>
+            <FileManagement />
+          </ProtectedRoute>
+        }
+      />
+      <Route
         path="/"
         element={<Navigate to={user ? homeFor(user.role) : '/login'} replace />}
       />
@@ -123,3 +172,7 @@ function App() {
 }
 
 export default App;
+
+
+
+

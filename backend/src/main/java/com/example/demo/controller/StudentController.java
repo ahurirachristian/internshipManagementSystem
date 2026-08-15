@@ -2,9 +2,12 @@ package com.example.demo.controller;
 
 import java.security.Principal;
 import java.util.List;
+import java.util.Map;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -15,10 +18,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import com.example.demo.dto.StudentProfileDto;
-import com.example.demo.student.StudentProfile;
-import com.example.demo.student.StudentProfileRepository;
 import com.example.demo.student.DayDiary;
 import com.example.demo.student.DayDiaryRepository;
+import com.example.demo.student.StudentProfile;
+import com.example.demo.student.StudentProfileRepository;
 
 @RestController
 @RequestMapping("/api/students")
@@ -38,6 +41,23 @@ public class StudentController {
         return studentProfileRepository.findByUsername(principal.getName())
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
+    }
+
+    @GetMapping("/me/progress")
+    @PreAuthorize("hasAnyAuthority('STUDENT', 'ADMIN')")
+    public ResponseEntity<Map<String, Object>> getMyProgress(Principal principal) {
+        StudentProfile profile = studentProfileRepository.findByUsername(principal.getName()).orElse(null);
+        if (profile == null) {
+            return ResponseEntity.notFound().build();
+        }
+        long diaryCount = dayDiaryRepository.findByStudentProfileUsernameOrderByDateDesc(principal.getName()).size();
+        Map<String, Object> progress = Map.of(
+                "startDate", profile.getInternshipCompany() != null && !profile.getInternshipCompany().equals("Pending"),
+                "diaryCount", diaryCount,
+                "midTerm", diaryCount >= 5,
+                "finalReport", diaryCount >= 10
+        );
+        return ResponseEntity.ok(progress);
     }
 
     @PutMapping("/me")
@@ -117,6 +137,33 @@ public class StudentController {
         return studentProfileRepository.findAll();
     }
 
+    @GetMapping("/export/csv")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'SUPERVISOR', 'COMPANY')")
+    public ResponseEntity<String> exportStudentsCsv() {
+        List<StudentProfile> students = studentProfileRepository.findAll();
+        String csv = students.stream()
+                .map(s -> String.join(",",
+                        escape(s.getId()),
+                        escape(s.getUsername()),
+                        escape(s.getFirstName()),
+                        escape(s.getLastName()),
+                        escape(s.getEmail()),
+                        escape(s.getStudentNumber()),
+                        escape(s.getRegistrationNumber()),
+                        escape(s.getDegreeProgram()),
+                        escape(s.getYearOfStudy()),
+                        escape(s.getPhoneNumber()),
+                        escape(s.getInternshipCompany()),
+                        escape(s.getUniversitySupervisor()),
+                        escape(s.getCompanyId())))
+                .reduce((a, b) -> a + "\n" + b)
+                .orElse("");
+        String body = "ID,Username,FirstName,LastName,Email,StudentNumber,RegistrationNumber,DegreeProgram,YearOfStudy,PhoneNumber,InternshipCompany,UniversitySupervisor,CompanyId\n" + csv;
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"students.csv\"")
+                .body(body);
+    }
+
     @GetMapping("/{id}")
     @PreAuthorize("hasAnyAuthority('ADMIN', 'SUPERVISOR', 'COMPANY', 'STUDENT')")
     public ResponseEntity<StudentProfile> getStudentById(@PathVariable Long id) {
@@ -172,5 +219,15 @@ public class StudentController {
                 .forEach(dayDiaryRepository::delete);
         studentProfileRepository.deleteById(id);
         return ResponseEntity.noContent().build();
+    }
+
+    private String escape(Object value) {
+        if (value == null) return "";
+        String s = value.toString();
+        if (s.contains(",") || s.contains("\"") || s.contains("\n") || s.contains("\r")) {
+            s = s.replace("\"", "\"\"");
+            return "\"" + s + "\"";
+        }
+        return s;
     }
 }

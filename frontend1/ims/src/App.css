@@ -272,10 +272,49 @@ tbody tr:hover {
 .modal-content {
   width: 100%;
   max-width: 720px;
+  max-height: 90vh;
   background: white;
   border-radius: 28px;
   padding: 32px;
   box-shadow: 0 28px 80px rgba(15, 23, 42, 0.16);
+  display: flex;
+  flex-direction: column;
+}
+
+.modal-body {
+  overflow-y: auto;
+  padding-right: 8px;
+  flex: 1 1 auto;
+}
+
+.modal-footer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: flex-end;
+  margin-top: 12px;
+  padding-top: 16px;
+  border-top: 1px solid #e2e8f0;
+  position: sticky;
+  bottom: 0;
+  background: white;
+  z-index: 1;
+}
+
+.modal-form {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.modal-form label select {
+  padding: 14px 16px;
+  border-radius: 14px;
+  border: 1px solid #cbd5e1;
+  background: #f8fafc;
+  color: #0f172a;
+  cursor: pointer;
 }
 
 .modal-header {
@@ -459,4 +498,120 @@ tbody tr:hover {
 
 
 /* Test CSS for the form */
+
+/* Wizard stepper */
+.wizard-stepper {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  margin-bottom: 32px;
+  padding: 0 16px;
+}
+
+.wizard-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  z-index: 10;
+}
+
+.wizard-step-circle {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 0.875rem;
+  border: 2px solid #d1d5db;
+  background: #ffffff;
+  color: #6b7280;
+  transition: all 0.2s;
+}
+
+.wizard-step.active .wizard-step-circle {
+  background: #0f766e;
+  color: #ffffff;
+  border-color: #0f766e;
+  box-shadow: 0 4px 6px -1px rgba(15, 118, 110, 0.3);
+}
+
+.wizard-step.completed .wizard-step-circle {
+  background: #0f766e;
+  color: #ffffff;
+  border-color: #0f766e;
+}
+
+.wizard-step-label {
+  margin-top: 8px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  text-align: center;
+  color: #6b7280;
+}
+
+.wizard-step.active .wizard-step-label {
+  color: #134e4a;
+  font-weight: 700;
+}
+
+.wizard-step-line {
+  flex: 1;
+  height: 4px;
+  margin: 0 8px;
+  background: #d1d5db;
+  border-radius: 2px;
+  margin-top: -18px;
+}
+
+.wizard-step-line.completed {
+  background: #0f766e;
+}
+
+.wizard-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: flex-end;
+  margin-top: 24px;
+  padding-top: 16px;
+  border-top: 1px solid #e2e8f0;
+}
+
+.wizard-actions .secondary-button {
+  padding: 10px 20px;
+  border-radius: 8px;
+  background: #e5e7eb;
+  color: #374151;
+  font-weight: 500;
+  border: none;
+  cursor: pointer;
+}
+
+.wizard-actions .secondary-button:hover {
+  background: #d1d5db;
+}
+
+.wizard-actions .primary-button {
+  padding: 10px 24px;
+  border-radius: 8px;
+  background: #0f766e;
+  color: #ffffff;
+  font-weight: 500;
+  border: none;
+  cursor: pointer;
+}
+
+.wizard-actions .primary-button:hover {
+  background: #115e59;
+}
+
+.wizard-actions .primary-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 
