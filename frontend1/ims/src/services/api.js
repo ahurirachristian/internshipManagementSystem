@@ -225,6 +225,18 @@ export async function deleteDiary(id) {
   return parseResponse(response);
 }
 
+export async function submitDiaryFeedback(id, payload) {
+  const response = await fetch(`${API_ROOT}/api/diaries/${id}/feedback`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    credentials: 'include',
+    body: JSON.stringify(payload),
+  });
+  return parseResponse(response);
+}
+
 export async function createStudentCredential(payload) {
   const response = await fetch(`${API_ROOT}/api/university/students/credential`, {
     method: 'POST',
@@ -271,6 +283,133 @@ export async function updateUser(id, payload) {
 export async function deleteUser(id) {
   const response = await fetch(`${API_ROOT}/api/admin/users/${id}`, {
     method: 'DELETE',
+    credentials: 'include',
+  });
+  return parseResponse(response);
+}
+
+export async function fetchUniversities() {
+  const response = await fetch(`${API_ROOT}/api/universities`, {
+    credentials: 'include',
+  });
+  return parseResponse(response);
+}
+
+export async function createUniversity(university) {
+  const response = await fetch(`${API_ROOT}/api/universities`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    credentials: 'include',
+    body: JSON.stringify(university),
+  });
+  return parseResponse(response);
+}
+
+export async function updateUniversity(id, university) {
+  const response = await fetch(`${API_ROOT}/api/universities/${id}`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    credentials: 'include',
+    body: JSON.stringify(university),
+  });
+  return parseResponse(response);
+}
+
+export async function deleteUniversity(id) {
+  const response = await fetch(`${API_ROOT}/api/universities/${id}`, {
+    method: 'DELETE',
+    credentials: 'include',
+  });
+  return parseResponse(response);
+}
+
+export async function fetchPlacements() {
+  const response = await fetch(`${API_ROOT}/api/placements`, {
+    credentials: 'include',
+  });
+  return parseResponse(response);
+}
+
+export async function createPlacement(placement) {
+  const response = await fetch(`${API_ROOT}/api/placements`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    credentials: 'include',
+    body: JSON.stringify(placement),
+  });
+  return parseResponse(response);
+}
+
+export async function updatePlacement(id, placement) {
+  const response = await fetch(`${API_ROOT}/api/placements/${id}`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    credentials: 'include',
+    body: JSON.stringify(placement),
+  });
+  return parseResponse(response);
+}
+
+export async function deletePlacement(id) {
+  const response = await fetch(`${API_ROOT}/api/placements/${id}`, {
+    method: 'DELETE',
+    credentials: 'include',
+  });
+  return parseResponse(response);
+}
+
+export async function fetchEvaluationsByStudent(studentId) {
+  const response = await fetch(`${API_ROOT}/api/evaluations/student/${studentId}`, {
+    credentials: 'include',
+  });
+  return parseResponse(response);
+}
+
+export async function createEvaluation(evaluation) {
+  const response = await fetch(`${API_ROOT}/api/evaluations`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    credentials: 'include',
+    body: JSON.stringify(evaluation),
+  });
+  return parseResponse(response);
+}
+
+export async function updateEvaluation(id, evaluation) {
+  const response = await fetch(`${API_ROOT}/api/evaluations/${id}`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    credentials: 'include',
+    body: JSON.stringify(evaluation),
+  });
+  return parseResponse(response);
+}
+
+export async function deleteEvaluation(id) {
+  const response = await fetch(`${API_ROOT}/api/evaluations/${id}`, {
+    method: 'DELETE',
+    credentials: 'include',
+  });
+  return parseResponse(response);
+}
+
+export async function fetchSupervisors(type) {
+  const url = type
+    ? `${API_ROOT}/api/supervisors?type=${encodeURIComponent(type)}`
+    : `${API_ROOT}/api/supervisors`;
+  const response = await fetch(url, {
     credentials: 'include',
   });
   return parseResponse(response);

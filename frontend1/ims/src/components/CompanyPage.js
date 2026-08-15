@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { createCompany, deleteCompany, fetchCompanies, updateCompany } from '../services/api';
+import ExportButton from './ExportButton';
 
 const initialForm = {
   name: '',
@@ -11,7 +12,7 @@ const initialForm = {
   physicalAddress: '',
 };
 
-export default function CompanyPage({ onLogout }) {
+export default function CompanyPage() {
   const [companies, setCompanies] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -107,25 +108,26 @@ export default function CompanyPage({ onLogout }) {
   const tableRows = companies.map((company) => {
       const [postalAddress, physicalAddress] = company.profile?.split(' | ') || ['', ''];
       return (
-        <tr key={company.id}>
-          <td>{company.name}</td>
-          <td>{company.location}</td>
-          <td>{company.department}</td>
-          <td>{company.email}</td>
-          <td>
-            <a href={company.website} target="_blank" rel="noreferrer">
+        <tr key={company.id} style={{ borderBottom: '1px solid #f3f4f6' }}>
+          <td style={{ padding: '16px 24px', fontSize: '0.875rem', color: '#111827' }}>{company.name}</td>
+          <td style={{ padding: '16px 24px', fontSize: '0.875rem', color: '#374151' }}>{company.location}</td>
+          <td style={{ padding: '16px 24px', fontSize: '0.875rem', color: '#374151' }}>{company.department}</td>
+          <td style={{ padding: '16px 24px', fontSize: '0.875rem', color: '#374151' }}>{company.email}</td>
+          <td style={{ padding: '16px 24px', fontSize: '0.875rem', color: '#374151' }}>
+            <a href={company.website} target="_blank" rel="noreferrer" style={{ color: '#065f46', textDecoration: 'none' }}>
               {company.website}
             </a>
           </td>
-          <td>{postalAddress}</td>
-          <td>{physicalAddress}</td>
-          <td>
-            <button className="icon-button edit" onClick={() => openModal(company)}>
-              Edit
-            </button>
-            <button className="icon-button delete" onClick={() => handleDelete(company.id)}>
-              Delete
-            </button>
+          <td style={{ padding: '16px 24px', fontSize: '0.875rem', color: '#374151' }}>{postalAddress}</td>
+          <td style={{ padding: '16px 24px', fontSize: '0.875rem' }}>
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <button className="icon-button edit" onClick={() => openModal(company)}>
+                Edit
+              </button>
+              <button className="icon-button delete" onClick={() => handleDelete(company.id)}>
+                Delete
+              </button>
+            </div>
           </td>
         </tr>
       );
@@ -133,49 +135,51 @@ export default function CompanyPage({ onLogout }) {
   );
 
   return (
-    <div className="page-shell company-page">
-      <header className="company-header">
+    <div className="flex-1 flex flex-col w-full p-6 bg-gray-50 min-h-screen">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 w-full gap-4">
         <div>
-          <h1>Company Management</h1>
-          <p>Manage companies and their details from the backend.</p>
+          <h1 className="text-2xl font-bold text-gray-800">Company Management</h1>
+          <p className="text-sm text-gray-500">Manage companies and their details from the backend.</p>
         </div>
-        <div className="company-actions">
-          <button className="secondary-button" onClick={() => openModal(null)}>
-            Add Company
-          </button>
-          <button className="secondary-button" onClick={onLogout}>
-            Logout
+        <div className="flex gap-3">
+          <ExportButton data={companies} fileName="companies" exportUrl="/api/companies/export/csv" />
+          <button
+            className="bg-emerald-700 hover:bg-emerald-800 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+            onClick={() => openModal(null)}
+          >
+            + Add Company
           </button>
         </div>
-      </header>
+      </div>
 
       {error && <div className="alert alert-error">{error}</div>}
       {loading && <div className="status-message">Loading...</div>}
 
-      <div className="table-wrapper">
-        <table>
-          <thead>
-            <tr>
-              <th>Company Name</th>
-              <th>Country</th>
-              <th>Branch</th>
-              <th>Email</th>
-              <th>Website</th>
-              <th>Postal Address</th>
-              <th>Physical Address</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {companies.length > 0 ? tableRows : (
-              <tr>
-                <td colSpan="8" className="empty-row">
-                  No companies found. Add one to get started.
-                </td>
+      <div className="w-full bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+        <div className="overflow-x-auto w-full">
+          <table className="w-full text-left text-sm border-collapse">
+            <thead>
+              <tr style={{ borderBottom: '1px solid #e5e7eb' }}>
+                <th style={{ padding: '16px 24px', fontSize: '0.875rem', fontWeight: 600, color: '#374151' }}>Company Name</th>
+                <th style={{ padding: '16px 24px', fontSize: '0.875rem', fontWeight: 600, color: '#374151' }}>Country</th>
+                <th style={{ padding: '16px 24px', fontSize: '0.875rem', fontWeight: 600, color: '#374151' }}>Branch</th>
+                <th style={{ padding: '16px 24px', fontSize: '0.875rem', fontWeight: 600, color: '#374151' }}>Email</th>
+                <th style={{ padding: '16px 24px', fontSize: '0.875rem', fontWeight: 600, color: '#374151' }}>Website</th>
+                <th style={{ padding: '16px 24px', fontSize: '0.875rem', fontWeight: 600, color: '#374151' }}>Postal Address</th>
+                <th style={{ padding: '16px 24px', fontSize: '0.875rem', fontWeight: 600, color: '#374151' }}>Actions</th>
               </tr>
-            )}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {companies.length > 0 ? tableRows : (
+                <tr>
+                  <td colSpan="7" className="empty-row" style={{ padding: '24px' }}>
+                    No companies found. Add one to get started.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
 
       {modalOpen && (

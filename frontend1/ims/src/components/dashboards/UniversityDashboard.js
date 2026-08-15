@@ -6,6 +6,8 @@ import {
   createStudentCredential,
   deleteStudent,
   fetchStudents,
+  fetchCompanies,
+  fetchSupervisors,
   updateStudent,
 } from '../../services/api';
 
@@ -26,9 +28,13 @@ export default function UniversityDashboard() {
   const [credentialForm, setCredentialForm] = useState(emptyCredentialForm);
   const [credentialLoading, setCredentialLoading] = useState(false);
   const [editStudent, setEditStudent] = useState(null);
+  const [companies, setCompanies] = useState([]);
+  const [supervisors, setSupervisors] = useState([]);
 
   useEffect(() => {
     loadStudents();
+    loadCompanies();
+    loadSupervisors();
   }, []);
 
   async function loadStudents() {
@@ -40,6 +46,26 @@ export default function UniversityDashboard() {
       setError(err.message || 'Unable to load students.');
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function loadCompanies() {
+    try {
+      const data = await fetchCompanies();
+      setCompanies(Array.isArray(data) ? data : []);
+    } catch (err) {
+      console.error('Failed to load companies', err);
+      setCompanies([]);
+    }
+  }
+
+  async function loadSupervisors() {
+    try {
+      const data = await fetchSupervisors('UNIVERSITY');
+      setSupervisors(Array.isArray(data) ? data : []);
+    } catch (err) {
+      console.error('Failed to load supervisors', err);
+      setSupervisors([]);
     }
   }
 
@@ -241,6 +267,8 @@ export default function UniversityDashboard() {
           title={`Edit Student: ${editStudent.firstName} ${editStudent.lastName}`}
           onClose={() => setEditStudent(null)}
           onSubmit={handleEditSave}
+          companies={companies}
+          supervisors={supervisors}
         />
       )}
     </DashboardLayout>

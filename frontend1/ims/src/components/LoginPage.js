@@ -32,7 +32,7 @@ export default function LoginPage() {
 
     setLoading(true);
     try {
-      const payload = await login(username.trim(), password, role);
+      const payload = await login(username.trim(), password, role.toUpperCase());
       navigate(homeFor(payload.role), { replace: true });
     } catch (err) {
       setError(err.message || 'Login failed.');

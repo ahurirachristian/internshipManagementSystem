@@ -169,7 +169,7 @@ public class DashboardController {
         model.addAttribute("students", students);
         model.addAttribute("assignedCount", students.stream().filter(s -> !"Pending".equals(s.getCompanyId())).count());
         model.addAttribute("pendingCount", students.stream().filter(s -> "Pending".equals(s.getCompanyId())).count());
-        model.addAttribute("universities", universityService.getUniversities());
+        model.addAttribute("universities", universityService.getAllUniversities());
         model.addAttribute("university", university);
         model.addAttribute("credentialRequest", new StudentCredentialRequest());
         model.addAttribute("currentUser", principal.getName());
@@ -190,7 +190,7 @@ public class DashboardController {
 
         model.addAttribute("userRole", resolveRole(authentication));
         model.addAttribute("students", universityService.getStudentsBySupervisor(principal.getName()));
-        model.addAttribute("universities", universityService.getUniversities());
+        model.addAttribute("universities", universityService.getAllUniversities());
         model.addAttribute("university", university);
         model.addAttribute("currentUser", principal.getName());
         model.addAttribute("activePage", "students");

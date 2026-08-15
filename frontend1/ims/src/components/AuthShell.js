@@ -1,10 +1,10 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef } from 'react';
 
 export default function AuthShell({ children }) {
   const canvasRef = useRef(null);
-  const [senseRadiusLevel, setSenseRadiusLevel] = useState(3);
 
-  // Particle background animation
+  const SENSE_RADIUS = 180;
+
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -13,8 +13,9 @@ export default function AuthShell({ children }) {
     let particles = [];
     const particleCount = 220;
     let mouse = { x: null, y: null };
-    const radiusLevels = [80, 130, 180, 240, 320];
-    let senseRadius = radiusLevels[senseRadiusLevel - 1];
+    const linkDistance = 120;
+    const cursorLinkDistance = 100;
+    let senseRadius = SENSE_RADIUS;
     let animationId;
 
     function resize() {
@@ -48,8 +49,6 @@ export default function AuthShell({ children }) {
     function animate() {
       ctx.clearRect(0, 0, width, height);
       const hasCursor = mouse.x !== null;
-      const linkDistance = 120;
-      const cursorLinkDistance = 100;
 
       const pToCursor = hasCursor ? new Array(particles.length) : null;
       if (hasCursor) {
@@ -170,7 +169,7 @@ export default function AuthShell({ children }) {
       window.removeEventListener('mouseout', handleMouseOut);
       window.removeEventListener('resize', handleResize);
     };
-  }, [senseRadiusLevel]);
+  }, []);
 
   return (
     <div className="split-login">
@@ -179,20 +178,6 @@ export default function AuthShell({ children }) {
       </div>
 
       <div className="login-wrapper">{children}</div>
-
-      <div className="speed-control">
-        <span className="speed-label">Web Size</span>
-        {[1, 2, 3, 4, 5].map((n) => (
-          <button
-            key={n}
-            type="button"
-            className={senseRadiusLevel === n ? 'active' : ''}
-            onClick={() => setSenseRadiusLevel(n)}
-          >
-            {n}
-          </button>
-        ))}
-      </div>
     </div>
   );
 }

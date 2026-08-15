@@ -1,8 +1,7 @@
 package com.example.demo.company;
 
 import java.util.List;
-import com.example.demo.dto.CompanyRequest;
-import jakarta.validation.Valid;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -14,6 +13,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import com.example.demo.dto.CompanyRequest;
+import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/api/companies")
@@ -25,19 +26,16 @@ public class CompanyController {
         this.companyService = companyService;
     }
 
-    // GET /api/companies - list all companies
     @GetMapping
     public List<Company> getAllCompanies() {
         return companyService.findAll();
     }
 
-    // GET /api/companies/search?q=... - search by name
     @GetMapping("/search")
     public List<Company> searchCompanies(@RequestParam("q") String query) {
         return companyService.search(query);
     }
 
-    // GET /api/companies/{id} - get a single company by id
     @GetMapping("/{id}")
     public ResponseEntity<Company> getCompanyById(@PathVariable Long id) {
         return companyService.findById(id)
@@ -45,7 +43,27 @@ public class CompanyController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    // POST /api/companies - create a new company
+    @GetMapping("/export/csv")
+    public ResponseEntity<String> exportCompaniesCsv() {
+        List<Company> companies = companyService.findAll();
+        String csv = companies.stream()
+                .map(c -> String.join(",",
+                        escape(c.getId()),
+                        escape(c.getName()),
+                        escape(c.getLocation()),
+                        escape(c.getDepartment()),
+                        escape(c.getEmail()),
+                        escape(c.getWebsite()),
+                        escape(c.getProfile() != null ? c.getProfile().split(" \\| ")[0] : ""),
+                        escape(c.getProfile() != null && c.getProfile().contains(" | ") ? c.getProfile().split(" \\| ")[1] : "")))
+                .reduce((a, b) -> a + "\n" + b)
+                .orElse("");
+        String body = "ID,Name,Country,Branch,Email,Website,Postal Address,Physical Address\n" + csv;
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"companies.csv\"")
+                .body(body);
+    }
+
     @PostMapping
     public ResponseEntity<Company> createCompany(@Valid @RequestBody CompanyRequest request) {
         Company company = new Company();
@@ -61,7 +79,6 @@ public class CompanyController {
         return ResponseEntity.status(HttpStatus.CREATED).body(saved);
     }
 
-    // PUT /api/companies/{id} - update an existing company
     @PutMapping("/{id}")
     public ResponseEntity<Company> updateCompany(@PathVariable Long id, @Valid @RequestBody CompanyRequest request) {
         return companyService.findById(id)
@@ -77,7 +94,6 @@ public class CompanyController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    // DELETE /api/companies/{id} - delete a company
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteCompany(@PathVariable Long id) {
         if (companyService.findById(id).isEmpty()) {
@@ -85,5 +101,15 @@ public class CompanyController {
         }
         companyService.deleteById(id);
         return ResponseEntity.noContent().build();
+    }
+
+    private String escape(Object value) {
+        if (value == null) return "";
+        String s = value.toString();
+        if (s.contains(",") || s.contains("\"") || s.contains("\n") || s.contains("\r")) {
+            s = s.replace("\"", "\"\"");
+            return "\"" + s + "\"";
+        }
+        return s;
     }
 }

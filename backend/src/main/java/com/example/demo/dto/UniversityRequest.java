@@ -1,30 +1,25 @@
 package com.example.demo.dto;
 
-public class UniversityDto {
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 
-    private Long id;
+public class UniversityRequest {
+
+    @NotBlank(message = "University name is required")
+    @Size(min = 2, max = 150, message = "University name must be between 2 and 150 characters")
     private String name;
+
+    @Size(max = 20, message = "Code must be at most 20 characters")
     private String code;
+
+    @Size(max = 200, message = "Location must be at most 200 characters")
     private String location;
+
+    @Email(message = "Email should be valid")
     private String email;
 
-    public UniversityDto() {
-    }
-
-    public UniversityDto(Long id, String name, String code, String location, String email) {
-        this.id = id;
-        this.name = name;
-        this.code = code;
-        this.location = location;
-        this.email = email;
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
+    public UniversityRequest() {
     }
 
     public String getName() {

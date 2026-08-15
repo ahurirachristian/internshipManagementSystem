@@ -1,9 +1,11 @@
 import { useEffect, useMemo, useState } from 'react';
 import DashboardLayout from '../DashboardLayout';
+import ExportButton from '../ExportButton';
+import DiaryReviewModal from '../DiaryReviewModal';
 import { fetchDiaries, fetchStudents } from '../../services/api';
 
 function formatDate(dateString) {
-  if (!dateString) return '—';
+  if (!dateString) return 'â€”';
   const date = new Date(dateString);
   if (Number.isNaN(date.getTime())) return dateString;
   return date.toLocaleDateString('en-GB', {
@@ -20,6 +22,7 @@ export default function AdminDashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
+  const [reviewDiary, setReviewDiary] = useState(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -57,7 +60,6 @@ export default function AdminDashboard() {
     return { totalStudents, totalDiaryEntries, activeStudents, average, diaryCounts };
   }, [students, diaries]);
 
-  // Build notifications derived from data
   const notifications = useMemo(() => {
     const items = [];
     if (diaries.length > 0) {
@@ -78,14 +80,13 @@ export default function AdminDashboard() {
       items.push({
         icon: 'fa-user-graduate',
         title: 'New student registered',
-        message: `${name} (${latestStudent.studentNumber || '—'}) joined the system.`,
+        message: `${name} (${latestStudent.studentNumber || 'â€”'}) joined the system.`,
         time: 'Recently',
       });
     }
     return items;
   }, [students, diaries]);
 
-  // Filter students based on search query
   const filteredStudents = useMemo(() => {
     const q = searchQuery.trim().toLowerCase();
     if (!q) return students;
@@ -101,7 +102,6 @@ export default function AdminDashboard() {
     });
   }, [students, searchQuery]);
 
-  // Filter diaries based on search query
   const filteredDiaries = useMemo(() => {
     const q = searchQuery.trim().toLowerCase();
     if (!q) return diaries;
@@ -121,9 +121,12 @@ export default function AdminDashboard() {
   function renderStudents() {
     return (
       <div className="card">
-        <div className="card-header">
-          <span className="card-title"><i className="fa-solid fa-user-graduate"></i> Registered Students</span>
-          <span className="card-hint">All registered student profiles and their diary activity</span>
+        <div className="card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div>
+            <span className="card-title"><i className="fa-solid fa-user-graduate"></i> Registered Students</span>
+            <span className="card-hint">All registered student profiles and their diary activity</span>
+          </div>
+          <ExportButton data={students} fileName="students" exportUrl="/api/students/export/csv" />
         </div>
         <div className="table-responsive">
           <table className="table">
@@ -164,7 +167,7 @@ export default function AdminDashboard() {
                       <td>{student.studentNumber}</td>
                       <td>{student.email}</td>
                       <td>{student.degreeProgram}</td>
-                      <td>{student.internshipCompany || '—'}</td>
+                      <td>{student.internshipCompany || 'â€”'}</td>
                       <td>
                         <span className="count-chip">{count}</span>
                       </td>
@@ -202,9 +205,12 @@ export default function AdminDashboard() {
   function renderDiaries() {
     return (
       <div className="card">
-        <div className="card-header">
-          <span className="card-title"><i className="fa-solid fa-book-open"></i> Day Diary Logs</span>
-          <span className="card-hint">All submitted day diary entries across every student</span>
+        <div className="card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div>
+            <span className="card-title"><i className="fa-solid fa-book-open"></i> Day Diary Logs</span>
+            <span className="card-hint">All submitted day diary entries across every student</span>
+          </div>
+          <ExportButton data={filteredDiaries} fileName="diaries" exportUrl="/api/diaries/export/csv" />
         </div>
         <div className="table-responsive">
           <table className="table">
@@ -215,6 +221,7 @@ export default function AdminDashboard() {
                 <th>Daily Activities</th>
                 <th>Skills Gained</th>
                 <th>Accomplishments</th>
+                <th>Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -235,15 +242,20 @@ export default function AdminDashboard() {
                           </div>
                         </div>
                       </td>
-                      <td>{entry.dailyActivities || '—'}</td>
-                      <td>{entry.knowledgeAndSkillsGained || '—'}</td>
-                      <td>{entry.accomplishments || '—'}</td>
+                      <td>{entry.dailyActivities || 'â€”'}</td>
+                      <td>{entry.knowledgeAndSkillsGained || 'â€”'}</td>
+                      <td>{entry.accomplishments || 'â€”'}</td>
+                      <td>
+                        <button className="icon-button" onClick={() => setReviewDiary(entry)}>
+                          Review / Comment
+                        </button>
+                      </td>
                     </tr>
                   );
                 })
               ) : (
                 <tr>
-                  <td colSpan="5">
+                  <td colSpan="6">
                     <div className="empty-state">
                       <div className="empty-icon">&#128221;</div>
                       <h3>{searchQuery ? 'No matching diary entries' : 'No diary entries'}</h3>
@@ -291,7 +303,6 @@ export default function AdminDashboard() {
 
       {!loading && (
         <>
-          {/* Summary Metrics */}
           <div className="metric-grid">
             <div className="card metric-card">
               <div className="metric-icon brand"><i className="fa-solid fa-user-graduate"></i></div>
@@ -326,6 +337,16 @@ export default function AdminDashboard() {
           {activeTab === 'students' && renderStudents()}
           {activeTab === 'diaries' && renderDiaries()}
         </>
+      )}
+
+      {reviewDiary && (
+        <DiaryReviewModal
+          diary={reviewDiary}
+          onClose={() => setReviewDiary(null)}
+          onSaved={() => {
+            setReviewDiary(null);
+          }}
+        />
       )}
     </DashboardLayout>
   );

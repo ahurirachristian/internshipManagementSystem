@@ -10,6 +10,7 @@ import com.example.demo.auth.UserEntity;
 import com.example.demo.auth.UserRepository;
 import com.example.demo.dto.StudentCredentialRequest;
 import com.example.demo.dto.UniversityDto;
+import com.example.demo.dto.UniversityRequest;
 import com.example.demo.student.StudentProfile;
 import com.example.demo.student.StudentProfileRepository;
 import com.example.demo.university.University;
@@ -44,8 +45,45 @@ public class UniversityService {
         return universityRepository.findAll();
     }
 
+    public Optional<University> findById(Long id) {
+        return universityRepository.findById(id);
+    }
+
+    public University create(UniversityRequest request) {
+        if (request.getName() == null || request.getName().isBlank()) {
+            throw new IllegalArgumentException("University name is required.");
+        }
+        if (universityRepository.findByNameIgnoreCase(request.getName().trim()).isPresent()) {
+            throw new IllegalArgumentException("A university with this name already exists.");
+        }
+        University university = new University();
+        university.setName(request.getName().trim());
+        university.setCode(request.getCode() != null ? request.getCode().trim() : null);
+        university.setLocation(request.getLocation() != null ? request.getLocation().trim() : null);
+        university.setEmail(request.getEmail() != null ? request.getEmail().trim() : null);
+        return universityRepository.save(university);
+    }
+
+    public Optional<University> update(Long id, UniversityRequest request) {
+        return universityRepository.findById(id)
+                .map(existing -> {
+                    if (request.getName() != null && !request.getName().isBlank()) {
+                        existing.setName(request.getName().trim());
+                    }
+                    existing.setCode(request.getCode() != null ? request.getCode().trim() : null);
+                    existing.setLocation(request.getLocation() != null ? request.getLocation().trim() : null);
+                    existing.setEmail(request.getEmail() != null ? request.getEmail().trim() : null);
+                    return universityRepository.save(existing);
+                });
+    }
+
+    public void deleteById(Long id) {
+        universityRepository.deleteById(id);
+    }
+
     public UniversityDto toDto(University university) {
-        return new UniversityDto(university.getId(), university.getName());
+        return new UniversityDto(university.getId(), university.getName(),
+                university.getCode(), university.getLocation(), university.getEmail());
     }
 
     public List<StudentProfile> getRegisteredStudents() {
@@ -54,10 +92,6 @@ public class UniversityService {
 
     public List<StudentProfile> getStudentsBySupervisor(String supervisorUsername) {
         return studentProfileRepository.findByUniversitySupervisor(supervisorUsername);
-    }
-
-    public List<University> getUniversities() {
-        return universityRepository.findAll();
     }
 
     public UserEntity createStudentCredential(StudentCredentialRequest request, String supervisorUsername) {

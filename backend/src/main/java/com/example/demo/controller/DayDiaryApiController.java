@@ -2,6 +2,8 @@ package com.example.demo.controller;
 
 import java.security.Principal;
 import java.util.List;
+import java.util.Map;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -37,6 +39,33 @@ public class DayDiaryApiController {
         return dayDiaryRepository.findAll();
     }
 
+    @GetMapping("/export/csv")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'SUPERVISOR')")
+    public ResponseEntity<String> exportDiariesCsv() {
+        List<DayDiary> diaries = dayDiaryRepository.findAllWithStudent();
+        String csv = diaries.stream()
+                .map(d -> {
+                    String studentName = d.getStudentProfile() != null
+                            ? escape(d.getStudentProfile().getFirstName() + " " + d.getStudentProfile().getLastName())
+                            : "";
+                    String username = d.getStudentProfile() != null ? escape(d.getStudentProfile().getUsername()) : "";
+                    return String.join(",",
+                            escape(d.getId()),
+                            escape(d.getDate() != null ? d.getDate().toString() : ""),
+                            studentName,
+                            username,
+                            escape(d.getDailyActivities()),
+                            escape(d.getKnowledgeAndSkillsGained()),
+                            escape(d.getAccomplishments()));
+                })
+                .reduce((a, b) -> a + "\n" + b)
+                .orElse("");
+        String body = "ID,Date,Student,Username,DailyActivities,KnowledgeAndSkillsGained,Accomplishments\n" + csv;
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"diaries.csv\"")
+                .body(body);
+    }
+
     @GetMapping("/student/{username}")
     @PreAuthorize("hasAnyAuthority('ADMIN', 'SUPERVISOR', 'STUDENT')")
     public List<DayDiary> getDiariesByStudent(@PathVariable String username) {
@@ -64,7 +93,7 @@ public class DayDiaryApiController {
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasAnyAuthority('STUDENT', 'ADMIN')")
+    @PreAuthorize("hasAnyAuthority('STUDENT', 'ADMIN', 'SUPERVISOR')")
     public ResponseEntity<DayDiary> updateDiary(@PathVariable Long id, @RequestBody DayDiary updates, Principal principal) {
         DayDiary diary = dayDiaryRepository.findById(id).orElse(null);
         if (diary == null) {
@@ -75,7 +104,10 @@ public class DayDiaryApiController {
         boolean isAdmin = principal instanceof Authentication
                 && ((Authentication) principal).getAuthorities().stream()
                         .anyMatch(auth -> auth.getAuthority().equals("ADMIN"));
-        if (!isOwner && !isAdmin) {
+        boolean isSupervisor = principal instanceof Authentication
+                && ((Authentication) principal).getAuthorities().stream()
+                        .anyMatch(auth -> auth.getAuthority().equals("SUPERVISOR"));
+        if (!isOwner && !isAdmin && !isSupervisor) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
         diary.setDate(updates.getDate());
@@ -83,6 +115,27 @@ public class DayDiaryApiController {
         diary.setKnowledgeAndSkillsGained(updates.getKnowledgeAndSkillsGained());
         diary.setAccomplishments(updates.getAccomplishments());
         return ResponseEntity.ok(dayDiaryRepository.save(diary));
+    }
+
+    @PostMapping("/{id}/feedback")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'SUPERVISOR')")
+    public ResponseEntity<?> submitFeedback(@PathVariable Long id, @RequestBody Map<String, String> body) {
+        DayDiary diary = dayDiaryRepository.findById(id).orElse(null);
+        if (diary == null) {
+            return ResponseEntity.notFound().build();
+        }
+        String feedback = body.getOrDefault("feedback", "");
+        String status = body.getOrDefault("status", "PENDING");
+        diary.setAccomplishments(diary.getAccomplishments() != null
+                ? diary.getAccomplishments() + "\n\n[Supervisor Feedback]: " + feedback
+                : "[Supervisor Feedback]: " + feedback);
+        DayDiary saved = dayDiaryRepository.save(diary);
+        return ResponseEntity.ok(Map.of(
+                "id", saved.getId(),
+                "status", status,
+                "feedback", feedback,
+                "message", "Feedback submitted successfully"
+        ));
     }
 
     @DeleteMapping("/{id}")
@@ -93,5 +146,15 @@ public class DayDiaryApiController {
         }
         dayDiaryRepository.deleteById(id);
         return ResponseEntity.noContent().build();
+    }
+
+    private String escape(Object value) {
+        if (value == null) return "";
+        String s = value.toString();
+        if (s.contains(",") || s.contains("\"") || s.contains("\n") || s.contains("\r")) {
+            s = s.replace("\"", "\"\"");
+            return "\"" + s + "\"";
+        }
+        return s;
     }
 }
