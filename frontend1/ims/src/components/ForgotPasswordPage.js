@@ -40,7 +40,7 @@ export default function ForgotPasswordPage() {
 
   return (
     <AuthShell>
-      <div className="login-card">
+      <div className="forgot-password-card">
         <div className="login-header">
           <div className="logo">
             <i className="fa-solid fa-graduation-cap"></i>

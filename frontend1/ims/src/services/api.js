@@ -1,18 +1,27 @@
 const API_ROOT = process.env.REACT_APP_API_ROOT || 'http://localhost:8082';
 
 async function parseResponse(response) {
-  const contentType = response.headers.get('content-type') || '';
-  const payload = contentType.includes('application/json')
-    ? await response.json()
-    : await response.text();
-
   if (!response.ok) {
+    let payload;
+    try {
+      const contentType = response.headers.get('content-type') || '';
+      payload = contentType.includes('application/json')
+        ? await response.json()
+        : await response.text();
+    } catch {
+      payload = null;
+    }
     const message = payload?.error || payload?.message || response.statusText || 'Request failed';
     const error = new Error(message);
     error.status = response.status;
     error.payload = payload;
     throw error;
   }
+
+  const contentType = response.headers.get('content-type') || '';
+  const payload = contentType.includes('application/json')
+    ? await response.json()
+    : await response.text();
 
   return payload;
 }
@@ -410,6 +419,33 @@ export async function fetchSupervisors(type) {
     ? `${API_ROOT}/api/supervisors?type=${encodeURIComponent(type)}`
     : `${API_ROOT}/api/supervisors`;
   const response = await fetch(url, {
+    credentials: 'include',
+  });
+  return parseResponse(response);
+}
+
+export async function fetchFiles() {
+  const response = await fetch(`${API_ROOT}/api/files`, {
+    credentials: 'include',
+  });
+  return parseResponse(response);
+}
+
+export async function uploadFile(file, category) {
+  const form = new FormData();
+  form.append('file', file);
+  form.append('category', category);
+  const response = await fetch(`${API_ROOT}/api/files`, {
+    method: 'POST',
+    credentials: 'include',
+    body: form,
+  });
+  return parseResponse(response);
+}
+
+export async function deleteFile(id) {
+  const response = await fetch(`${API_ROOT}/api/files/${id}`, {
+    method: 'DELETE',
     credentials: 'include',
   });
   return parseResponse(response);

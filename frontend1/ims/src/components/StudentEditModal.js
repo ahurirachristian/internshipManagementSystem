@@ -129,13 +129,6 @@ export default function StudentEditModal({ student, title, onClose, onSubmit, co
     )),
   ];
 
-  const steps = [
-    { id: 1, label: 'Basic & Account Info' },
-    { id: 2, label: 'Academic Details' },
-    { id: 3, label: 'Placement Details' },
-    { id: 4, label: 'Finish & Review' },
-  ];
-
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-content" onClick={(e) => e.stopPropagation()}>

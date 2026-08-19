@@ -65,7 +65,8 @@ export default function DashboardLayout({
 
   const dashboardLinks = [
     { to: '/admin/dashboard', icon: 'fa-shield-halved', label: 'Admin Dashboard', roles: ['ADMIN'] },
-    { to: '/student/dashboard', icon: 'fa-user-graduate', label: 'Student Area', roles: ['ADMIN', 'STUDENT'] },
+    { to: '/student/dashboard', icon: 'fa-user-graduate', label: 'Student Area', roles: ['STUDENT'] },
+    { to: '/admin/students', icon: 'fa-user-graduate', label: 'Student Area', roles: ['ADMIN'] },
     { to: '/company/dashboard', icon: 'fa-building', label: 'Company Area', roles: ['ADMIN', 'COMPANY'] },
     { to: '/university/dashboard', icon: 'fa-user-tie', label: 'University Area', roles: ['ADMIN', 'SUPERVISOR'] },
   ];

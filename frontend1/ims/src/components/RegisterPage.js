@@ -120,17 +120,10 @@ export default function RegisterPage() {
     }
   }
 
-  const steps = [
-    { id: 1, label: 'Basic & Account Info' },
-    { id: 2, label: 'Academic Details' },
-    { id: 3, label: 'Placement Details' },
-    { id: 4, label: 'Finish & Review' },
-  ];
-
   return (
     <AuthShell>
-      <div className="login-card wizard-card">
-        <div className="login-header">
+      <div className="register-form-card">
+          <div className="login-header">
           <div className="logo">
             <i className="fa-solid fa-graduation-cap"></i>
           </div>

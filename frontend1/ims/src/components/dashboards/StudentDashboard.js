@@ -1,7 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import DashboardLayout from '../DashboardLayout';
 import StudentEditModal from '../StudentEditModal';
-import ExportButton from '../ExportButton';
 import InternshipProgress from '../InternshipProgress';
 import DiaryReviewModal from '../DiaryReviewModal';
 import { useAuth } from '../../context/AuthContext';
@@ -17,7 +16,7 @@ import {
 } from '../../services/api';
 
 const emptyDiaryForm = {
-  date: '',
+  date: new Date().toISOString().split('T')[0],
   dailyActivities: '',
   knowledgeAndSkillsGained: '',
   accomplishments: '',
@@ -41,12 +40,24 @@ export default function StudentDashboard() {
   const [companies, setCompanies] = useState([]);
   const [supervisors, setSupervisors] = useState([]);
 
+  const loadDiaries = useCallback(async function loadDiaries() {
+    setDiaryLoading(true);
+    setDiaryError('');
+    try {
+      setDiaries(await fetchStudentDiaries(user.username));
+    } catch (err) {
+      setDiaryError(err.message || 'Unable to load diary entries.');
+    } finally {
+      setDiaryLoading(false);
+    }
+  }, [user.username]);
+
   useEffect(() => {
     loadProfile();
     loadCompanies();
     loadSupervisors();
     loadDiaries();
-  }, []);
+  }, [loadDiaries]);
 
   async function loadProfile() {
     setProfileLoading(true);
@@ -62,18 +73,6 @@ export default function StudentDashboard() {
       }
     } finally {
       setProfileLoading(false);
-    }
-  }
-
-  async function loadDiaries() {
-    setDiaryLoading(true);
-    setDiaryError('');
-    try {
-      setDiaries(await fetchStudentDiaries(user.username));
-    } catch (err) {
-      setDiaryError(err.message || 'Unable to load diary entries.');
-    } finally {
-      setDiaryLoading(false);
     }
   }
 

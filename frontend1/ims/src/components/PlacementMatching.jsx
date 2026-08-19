@@ -35,7 +35,9 @@ export default function PlacementMatching() {
     setLoading(true);
     setError('');
     try {
-      setPlacements(await fetchPlacements());
+      const res = await fetchPlacements();
+      const data = Array.isArray(res) ? res : (res?.content || []);
+      setPlacements(data);
     } catch (err) {
       setPlacements([]);
       if (err.status !== 404) {
@@ -163,7 +165,7 @@ export default function PlacementMatching() {
     return company ? company.name : 'Unknown';
   }
 
-  const tableRows = placements.map((placement) => (
+  const tableRows = Array.isArray(placements) ? placements.map((placement) => (
     <tr key={placement.id}>
       <td>{getStudentName(placement.studentId)}</td>
       <td>{getCompanyName(placement.companyId)}</td>
@@ -186,7 +188,7 @@ export default function PlacementMatching() {
         </button>
       </td>
     </tr>
-  ));
+  )) : [];
 
   return (
     <div className="w-full max-w-7xl mx-auto">

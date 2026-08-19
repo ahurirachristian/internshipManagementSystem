@@ -1,8 +1,10 @@
 import { useEffect, useMemo, useState } from 'react';
+import { Link } from 'react-router-dom';
 import DashboardLayout from '../DashboardLayout';
 import ExportButton from '../ExportButton';
 import DiaryReviewModal from '../DiaryReviewModal';
-import { fetchDiaries, fetchStudents } from '../../services/api';
+import StudentEditModal from '../StudentEditModal';
+import { deleteStudent, fetchDiaries, fetchStudents, updateStudent } from '../../services/api';
 
 function formatDate(dateString) {
   if (!dateString) return 'â€”';
@@ -23,6 +25,8 @@ export default function AdminDashboard() {
   const [error, setError] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [reviewDiary, setReviewDiary] = useState(null);
+  const [editStudent, setEditStudent] = useState(null);
+  const [viewStudent, setViewStudent] = useState(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -118,6 +122,27 @@ export default function AdminDashboard() {
     });
   }, [diaries, searchQuery]);
 
+  async function handleDeleteStudent(id) {
+    if (!window.confirm('Delete this student?')) return;
+    setError('');
+    try {
+      await deleteStudent(id);
+      setStudents((prev) => prev.filter((s) => s.id !== id));
+    } catch (err) {
+      setError(err.message || 'Unable to delete student.');
+    }
+  }
+
+  function renderActions(student) {
+    return (
+      <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+        <button className="icon-button" onClick={() => setViewStudent(student)}>View</button>
+        <button className="icon-button edit" onClick={() => setEditStudent(student)}>Edit</button>
+        <button className="icon-button delete" onClick={() => handleDeleteStudent(student.id)}>Delete</button>
+      </div>
+    );
+  }
+
   function renderStudents() {
     return (
       <div className="card">
@@ -133,12 +158,11 @@ export default function AdminDashboard() {
             <thead>
               <tr>
                 <th>Student</th>
-                <th>Student No.</th>
-                <th>Email</th>
-                <th>Degree Program</th>
-                <th>Internship Company</th>
-                <th>Diary Entries</th>
+                <th>Reg No</th>
+                <th>Course</th>
+                <th>Company</th>
                 <th>Status</th>
+                <th>Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -164,25 +188,22 @@ export default function AdminDashboard() {
                           </div>
                         </div>
                       </td>
-                      <td>{student.studentNumber}</td>
-                      <td>{student.email}</td>
-                      <td>{student.degreeProgram}</td>
-                      <td>{student.internshipCompany || 'â€”'}</td>
-                      <td>
-                        <span className="count-chip">{count}</span>
-                      </td>
+                      <td>{student.registrationNumber || '—'}</td>
+                      <td>{student.degreeProgram || '—'}</td>
+                      <td>{student.internshipCompany || '—'}</td>
                       <td>
                         <span className={`badge${count > 0 ? ' badge-success' : ' badge-warning'}`}>
                           <span className="dot"></span>
                           {count > 0 ? 'Active' : 'No Activity'}
                         </span>
                       </td>
+                      <td>{renderActions(student)}</td>
                     </tr>
                   );
                 })
               ) : (
                 <tr>
-                  <td colSpan="7">
+                  <td colSpan="6">
                     <div className="empty-state">
                       <div className="empty-icon">&#128100;</div>
                       <h3>{searchQuery ? 'No matching students' : 'No registered students'}</h3>
@@ -275,6 +296,49 @@ export default function AdminDashboard() {
     );
   }
 
+  function renderSystem() {
+    return (
+      <div className="card">
+        <div className="card-header">
+          <span className="card-title"><i className="fa-solid fa-gear"></i> System Controls</span>
+          <span className="card-hint">High-level administration and data management</span>
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px', marginTop: '16px' }}>
+          <Link to="/company" className="card" style={{ textDecoration: 'none', color: 'inherit' }}>
+            <div className="card-header">
+              <span className="card-title"><i className="fa-solid fa-building"></i> Company Management</span>
+            </div>
+            <p style={{ opacity: 0.7, fontSize: '0.875rem' }}>Add, edit, and manage company profiles and locations.</p>
+          </Link>
+          <Link to="/admin/universities" className="card" style={{ textDecoration: 'none', color: 'inherit' }}>
+            <div className="card-header">
+              <span className="card-title"><i className="fa-solid fa-university"></i> University Settings</span>
+            </div>
+            <p style={{ opacity: 0.7, fontSize: '0.875rem' }}>Configure registered universities and supervisor assignments.</p>
+          </Link>
+          <Link to="/admin/placements" className="card" style={{ textDecoration: 'none', color: 'inherit' }}>
+            <div className="card-header">
+              <span className="card-title"><i className="fa-solid fa-users-rectangle"></i> Placement Approvals</span>
+            </div>
+            <p style={{ opacity: 0.7, fontSize: '0.875rem' }}>Review and approve student placement assignments.</p>
+          </Link>
+          <Link to="/admin/audit-logs" className="card" style={{ textDecoration: 'none', color: 'inherit' }}>
+            <div className="card-header">
+              <span className="card-title"><i className="fa-solid fa-list-check"></i> Audit Logs</span>
+            </div>
+            <p style={{ opacity: 0.7, fontSize: '0.875rem' }}>Track system activity, access history, and changes.</p>
+          </Link>
+          <Link to="/admin/users" className="card" style={{ textDecoration: 'none', color: 'inherit' }}>
+            <div className="card-header">
+              <span className="card-title"><i className="fa-solid fa-users"></i> User Management</span>
+            </div>
+            <p style={{ opacity: 0.7, fontSize: '0.875rem' }}>Manage user accounts, roles, and permissions.</p>
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <DashboardLayout
       title="Admin Dashboard"
@@ -291,6 +355,11 @@ export default function AdminDashboard() {
           label: 'Day Diary Logs',
           icon: 'fa-book-open',
           count: stats.totalDiaryEntries,
+        },
+        {
+          id: 'system',
+          label: 'System',
+          icon: 'fa-gear',
         },
       ]}
       activeTab={activeTab}
@@ -336,6 +405,7 @@ export default function AdminDashboard() {
 
           {activeTab === 'students' && renderStudents()}
           {activeTab === 'diaries' && renderDiaries()}
+          {activeTab === 'system' && renderSystem()}
         </>
       )}
 
@@ -347,6 +417,53 @@ export default function AdminDashboard() {
             setReviewDiary(null);
           }}
         />
+      )}
+
+      {editStudent && (
+        <StudentEditModal
+          student={editStudent}
+          title={`Edit Student: ${editStudent.firstName} ${editStudent.lastName}`}
+          onClose={() => setEditStudent(null)}
+          onSubmit={async (payload) => {
+            await updateStudent(editStudent.id, payload);
+            setStudents((prev) => prev.map((s) => (s.id === editStudent.id ? { ...s, ...payload } : s)));
+            setEditStudent(null);
+          }}
+          companies={[]}
+          supervisors={[]}
+        />
+      )}
+
+      {viewStudent && (
+        <div className="modal-overlay" onClick={() => setViewStudent(null)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>Student Details</h2>
+              <button className="close-button" onClick={() => setViewStudent(null)}>
+                ×
+              </button>
+            </div>
+            <div className="detail-grid">
+              {[
+                ['Full Name', `${viewStudent.firstName || ''} ${viewStudent.lastName || ''}`.trim()],
+                ['Email', viewStudent.email],
+                ['Student Number', viewStudent.studentNumber],
+                ['Registration Number', viewStudent.registrationNumber],
+                ['Degree Program', viewStudent.degreeProgram],
+                ['Year of Study', viewStudent.yearOfStudy],
+                ['Phone Number', viewStudent.phoneNumber],
+                ['Internship Company', viewStudent.internshipCompany],
+                ['University Supervisor', viewStudent.universitySupervisor],
+                ['Industrial Supervisor ID', viewStudent.industrialSupervisorId],
+              ].map(([label, value]) => (
+                <div className="detail-item" key={label}>
+                  <span className="detail-label">{label}</span>
+                  <span className="detail-value">{value || '—'}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
       )}
     </DashboardLayout>
   );

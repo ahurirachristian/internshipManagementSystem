@@ -42,7 +42,6 @@ export default function InternshipProgress() {
   const steps = [startDate, diaryCount >= 5, midTerm, finalReport];
   const completedCount = steps.filter(Boolean).length;
   const activeIndex = steps.findIndex((step) => !step);
-  const activeStep = activeIndex === -1 ? 4 : activeIndex + 1;
   const percentage = Math.round((completedCount / 4) * 100);
   const lineWidth = `${Math.min(completedCount / 3, 1) * 100}%`;
 

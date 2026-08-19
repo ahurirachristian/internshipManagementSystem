@@ -9,7 +9,6 @@ const initialForm = {
   email: '',
   website: '',
   postalAddress: '',
-  physicalAddress: '',
 };
 
 export default function CompanyPage() {
@@ -45,7 +44,6 @@ export default function CompanyPage() {
       email: existingCompany.email || '',
       website: existingCompany.website || '',
       postalAddress: existingCompany.profile?.split(' | ')[0] || '',
-      physicalAddress: existingCompany.profile?.split(' | ')[1] || '',
     } : initialForm);
     setModalOpen(true);
   }
@@ -74,7 +72,6 @@ export default function CompanyPage() {
         email: form.email.trim(),
         website: form.website.trim(),
         postalAddress: form.postalAddress.trim(),
-        physicalAddress: form.physicalAddress.trim(),
       };
 
       if (editingId) {
@@ -106,7 +103,7 @@ export default function CompanyPage() {
   }
 
   const tableRows = companies.map((company) => {
-      const [postalAddress, physicalAddress] = company.profile?.split(' | ') || ['', ''];
+      const [postalAddress] = company.profile?.split(' | ') || [''];
       return (
         <tr key={company.id} style={{ borderBottom: '1px solid #f3f4f6' }}>
           <td style={{ padding: '16px 24px', fontSize: '0.875rem', color: '#111827' }}>{company.name}</td>
@@ -233,13 +230,6 @@ export default function CompanyPage() {
                 <input
                   value={form.postalAddress}
                   onChange={(e) => setForm({ ...form, postalAddress: e.target.value })}
-                />
-              </label>
-              <label>
-                Physical Address
-                <input
-                  value={form.physicalAddress}
-                  onChange={(e) => setForm({ ...form, physicalAddress: e.target.value })}
                 />
               </label>
               <div className="modal-actions">
