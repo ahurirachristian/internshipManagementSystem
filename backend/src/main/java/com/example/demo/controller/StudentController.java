@@ -174,7 +174,7 @@ public class StudentController {
 
     @GetMapping("/company/{companyId}")
     @PreAuthorize("hasAnyAuthority('ADMIN', 'SUPERVISOR', 'COMPANY')")
-    public List<StudentProfile> getStudentsByCompany(@PathVariable Long companyId) {
+    public List<StudentProfile> getStudentsByCompany(@PathVariable String companyId) {
         return studentProfileRepository.findByCompanyId(companyId);
     }
 

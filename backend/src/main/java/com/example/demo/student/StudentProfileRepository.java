@@ -7,9 +7,9 @@ import org.springframework.data.jpa.repository.JpaRepository;
 public interface StudentProfileRepository extends JpaRepository<StudentProfile, Long> {
     Optional<StudentProfile> findByUsername(String username);
 
-    List<StudentProfile> findByCompanyId(Long companyId);
+    List<StudentProfile> findByCompanyId(String companyId);
 
-    List<StudentProfile> findByCompanyIdIgnoreCase(Long companyId);
+    List<StudentProfile> findByCompanyIdIgnoreCase(String companyId);
 
     List<StudentProfile> findByUniversitySupervisor(String universitySupervisor);
 

@@ -1,56 +1,294 @@
 package com.example.demo.university;
 
-import com.example.demo.auth.Role;
-import com.example.demo.auth.UserEntity;
+import com.example.demo.university.University;
+import com.example.demo.university.UniversityRepository;
 import com.example.demo.auth.UserRepository;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.core.annotation.Order;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
 @Component
 @Order(2)
 public class UniversityDataSeeder implements CommandLineRunner {
 
-    private final UniversityRepository universityRepository;
-    private final UserRepository userRepository;
-    private final PasswordEncoder passwordEncoder;
+    private final UniversityRepository repository;
+    private final com.example.demo.auth.UserRepository userRepository;
 
-    public UniversityDataSeeder(UniversityRepository universityRepository,
-            UserRepository userRepository,
-            PasswordEncoder passwordEncoder) {
-        this.universityRepository = universityRepository;
+    public UniversityDataSeeder(UniversityRepository repository, com.example.demo.auth.UserRepository userRepository) {
+        this.repository = repository;
         this.userRepository = userRepository;
-        this.passwordEncoder = passwordEncoder;
     }
 
     @Override
     public void run(String... args) {
-        if (universityRepository.count() == 0) {
-            universityRepository.save(new University("Massachusetts Institute of Technology"));
-            universityRepository.save(new University("Stanford University"));
-            universityRepository.save(new University("Harvard University"));
-            universityRepository.save(new University("University of California, Berkeley"));
-            universityRepository.save(new University("California Institute of Technology"));
-            universityRepository.save(new University("University of Oxford"));
-            universityRepository.save(new University("University of Cambridge"));
-            universityRepository.save(new University("Imperial College London"));
-            universityRepository.save(new University("ETH Zurich"));
-            universityRepository.save(new University("University of Toronto"));
+        if (repository.count() == 0) {
+            java.util.List<University> list = new java.util.ArrayList<>();
+            University e;
+            e = new University();
+            e.setName("Makerere University");
+            e.setCode("MAK");
+            e.setEmail("info@mak.ac.ug");
+            list.add(e);
+            e = new University();
+            e.setName("Kyambogo University");
+            e.setCode("KYU");
+            e.setEmail("info@kyu.ac.ug");
+            list.add(e);
+            e = new University();
+            e.setName("Kampala International University");
+            e.setCode("KIU");
+            e.setEmail("admin@kiu.ac.ug");
+            list.add(e);
+            e = new University();
+            e.setName("Mbarara University of Science and Technology");
+            e.setCode("MUST");
+            e.setEmail("ar@must.ac.ug");
+            list.add(e);
+            e = new University();
+            e.setName("Uganda Christian University");
+            e.setCode("UCU");
+            e.setEmail("info@ucu.ac.ug");
+            list.add(e);
+            e = new University();
+            e.setName("Uganda Management Institute");
+            e.setCode("UMI");
+            e.setEmail("admin@umi.ac.ug");
+            list.add(e);
+            e = new University();
+            e.setName("Gulu University");
+            e.setCode("GU");
+            e.setEmail("ar@gu.ac.ug");
+            list.add(e);
+            e = new University();
+            e.setName("Kabale University");
+            e.setCode("KAB");
+            e.setEmail("info@kab.ac.ug");
+            list.add(e);
+            e = new University();
+            e.setName("Busitema University");
+            e.setCode("BUS");
+            e.setEmail("info@busitema.ac.ug");
+            list.add(e);
+            e = new University();
+            e.setName("Uganda Martyrs University");
+            e.setCode("UMU");
+            e.setEmail("umu@umu.ac.ug");
+            list.add(e);
+            e = new University();
+            e.setName("Islamic University in Uganda");
+            e.setCode("IUIU");
+            e.setEmail("email@iuiu.ac.ug");
+            list.add(e);
+            e = new University();
+            e.setName("Ndejje University");
+            e.setCode("NDU");
+            e.setEmail("info@ndejjeuniversity.ac.ug");
+            list.add(e);
+            e = new University();
+            e.setName("ISBAT University");
+            e.setCode("ISBAT");
+            e.setEmail("info@isbatuniversity.ac.ug");
+            list.add(e);
+            e = new University();
+            e.setName("Cavendish University Uganda");
+            e.setCode("CUU");
+            e.setEmail("info@cavendish.ac.ug");
+            list.add(e);
+            e = new University();
+            e.setName("International University of East Africa");
+            e.setCode("IUEA");
+            e.setEmail("info@iuea.ac.ug");
+            list.add(e);
+            e = new University();
+            e.setName("Bishop Stuart University");
+            e.setCode("BSU_M");
+            e.setEmail("info@bsu.ac.ug");
+            list.add(e);
+            e = new University();
+            e.setName("Bugema University");
+            e.setCode("BMU");
+            e.setEmail("info@bugemauniv.ac.ug");
+            list.add(e);
+            e = new University();
+            e.setName("Nkumba University");
+            e.setCode("NKU");
+            e.setEmail("ar@nkumbauniversity.ac.ug");
+            list.add(e);
+            e = new University();
+            e.setName("Victoria University Uganda");
+            e.setCode("VU");
+            e.setEmail("info@vu.ac.ug");
+            list.add(e);
+            e = new University();
+            e.setName("Soroti University");
+            e.setCode("SUN");
+            e.setEmail("info@sun.ac.ug");
+            list.add(e);
+            e = new University();
+            e.setName("Lira University");
+            e.setCode("LIR");
+            e.setEmail("info@lirauni.ac.ug");
+            list.add(e);
+            e = new University();
+            e.setName("Muni University");
+            e.setCode("MUN");
+            e.setEmail("inquiries@muni.ac.ug");
+            list.add(e);
+            e = new University();
+            e.setName("Mountains of the Moon University");
+            e.setCode("MMU");
+            e.setEmail("info@mmu.ac.ug");
+            list.add(e);
+            e = new University();
+            e.setName("Clarke International University");
+            e.setCode("CIU");
+            e.setEmail("info@ciu.ac.ug");
+            list.add(e);
+            e = new University();
+            e.setName("St. Lawrence University");
+            e.setCode("SLAU");
+            e.setEmail("info@slau.ac.ug");
+            list.add(e);
+            e = new University();
+            e.setName("Muteesa I Royal University");
+            e.setCode("MRU");
+            e.setEmail("info@mru.ac.ug");
+            list.add(e);
+            e = new University();
+            e.setName("University of Kisubi");
+            e.setCode("UNIK");
+            e.setEmail("info@unik.ac.ug");
+            list.add(e);
+            e = new University();
+            e.setName("Kumi University");
+            e.setCode("KUMU");
+            e.setEmail("ar@kumiuniversity.ac.ug");
+            list.add(e);
+            e = new University();
+            e.setName("African Rural University");
+            e.setCode("ARU");
+            e.setEmail("info@aru.ac.ug");
+            list.add(e);
+            e = new University();
+            e.setName("Kampala University");
+            e.setCode("KU");
+            e.setEmail("info@ku.ac.ug");
+            list.add(e);
+            e = new University();
+            e.setName("Uganda Pentecostal University");
+            e.setCode("UPU");
+            e.setEmail("info@upu.ac.ug");
+            list.add(e);
+            e = new University();
+            e.setName("University of the Sacred Heart Gulu");
+            e.setCode("USHG");
+            e.setEmail("info@ush.ac.ug");
+            list.add(e);
+            e = new University();
+            e.setName("Universal Technology and Management University");
+            e.setCode("UTAMU");
+            e.setEmail("info@utamu.ac.ug");
+            list.add(e);
+            e = new University();
+            e.setName("All Saints University");
+            e.setCode("ASU");
+            e.setEmail("info@asul.ac.ug");
+            list.add(e);
+            e = new University();
+            e.setName("Ankole Western University");
+            e.setCode("AWU");
+            e.setEmail("info@awu.ac.ug");
+            list.add(e);
+            e = new University();
+            e.setName("Great Lakes Regional University");
+            e.setCode("GLRU");
+            e.setEmail("info@glru.ac.ug");
+            list.add(e);
+            e = new University();
+            e.setName("LivingStone International University");
+            e.setCode("LIU");
+            e.setEmail("info@liu.ac.ug");
+            list.add(e);
+            e = new University();
+            e.setName("Nexus International University");
+            e.setCode("NIU");
+            e.setEmail("info@niu.ac.ug");
+            list.add(e);
+            e = new University();
+            e.setName("Nsaka University");
+            e.setCode("NSU");
+            e.setEmail("info@nsakauniversity.ac.ug");
+            list.add(e);
+            e = new University();
+            e.setName("King Ceasor University");
+            e.setCode("KCU");
+            e.setEmail("info@kcu.ac.ug");
+            list.add(e);
+            e = new University();
+            e.setName("Stafford University Uganda");
+            e.setCode("SIU");
+            e.setEmail("info@suu.ac.ug");
+            list.add(e);
+            e = new University();
+            e.setName("Ibanda University");
+            e.setCode("IU");
+            e.setEmail("info@ibandauniversity.ac.ug");
+            list.add(e);
+            e = new University();
+            e.setName("Limkokwing University of Creative Technology");
+            e.setCode("LKU");
+            e.setEmail("info@limkokwing.ac.ug");
+            list.add(e);
+            e = new University();
+            e.setName("African Bible University");
+            e.setCode("ABU");
+            e.setEmail("info@africanbiblecolleges.com");
+            list.add(e);
+            e = new University();
+            e.setName("Metropolitan International University");
+            e.setCode("MIU");
+            e.setEmail("info@miu.ac.ug");
+            list.add(e);
+            e = new University();
+            e.setName("Royal Open University");
+            e.setCode("ROU");
+            e.setEmail("info@rou.ac.ug");
+            list.add(e);
+            e = new University();
+            e.setName("Aga Khan University");
+            e.setCode("AKU");
+            e.setEmail("info.uganda@aku.edu");
+            list.add(e);
+            e = new University();
+            e.setName("Rwenzori International University");
+            e.setCode("RIU");
+            e.setEmail("info@riu.ac.ug");
+            list.add(e);
+            e = new University();
+            e.setName("Africa Renewal University");
+            e.setCode("AfRU");
+            e.setEmail("info@afru.ac.ug");
+            list.add(e);
+            e = new University();
+            e.setName("Busoga University");
+            e.setCode("BSU");
+            e.setEmail("info@busogauniversity.ac.ug");
+            list.add(e);
+            repository.saveAll(list);
         }
-
-        // Ensure the seeded supervisor user is linked to the first university (idempotent),
-        // even when the universities already exist in the database.
-        University firstUniversity = universityRepository.findAll().stream()
-                .min((a, b) -> Long.compare(a.getId(), b.getId()))
-                .orElse(null);
-        if (firstUniversity != null) {
-            userRepository.findByUsername("university").ifPresent(user -> {
-                if (user.getUniversityId() == null) {
-                    user.setUniversityId(firstUniversity.getId());
-                    userRepository.save(user);
+                // Ensure the seeded supervisor user is linked to the first university (idempotent),
+                // even when the universities already exist in the database.
+                University firstUniversity = repository.findAll().stream()
+                        .min((a, b) -> Long.compare(a.getId(), b.getId()))
+                        .orElse(null);
+                if (firstUniversity != null) {
+                    userRepository.findByUsername("university").ifPresent(user -> {
+                        if (user.getUniversityId() == null) {
+                            user.setUniversityId(firstUniversity.getId());
+                            userRepository.save(user);
+                        }
+                    });
                 }
-            });
-        }
+        
     }
 }

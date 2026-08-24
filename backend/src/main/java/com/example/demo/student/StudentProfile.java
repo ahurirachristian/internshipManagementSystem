@@ -52,7 +52,7 @@ public class StudentProfile {
     private String industrialSupervisorId;
 
     @Column(nullable = false)
-    private Long companyId;
+    private String companyId;
 
     @Column(nullable = false)
     private String pictureUrl;
@@ -63,7 +63,7 @@ public class StudentProfile {
     public StudentProfile(String username, String firstName, String lastName, String email,
             String studentNumber, String registrationNumber, String degreeProgram, Integer yearOfStudy,
             String phoneNumber, String internshipCompany, String universitySupervisor,
-            String industrialSupervisorId, Long companyId, String pictureUrl) {
+            String industrialSupervisorId, String companyId, String pictureUrl) {
         this.username = username;
         this.firstName = firstName;
         this.lastName = lastName;
@@ -184,11 +184,11 @@ public class StudentProfile {
         this.industrialSupervisorId = industrialSupervisorId;
     }
 
-    public Long getCompanyId() {
+    public String getCompanyId() {
         return companyId;
     }
 
-    public void setCompanyId(Long companyId) {
+    public void setCompanyId(String companyId) {
         this.companyId = companyId;
     }
 
