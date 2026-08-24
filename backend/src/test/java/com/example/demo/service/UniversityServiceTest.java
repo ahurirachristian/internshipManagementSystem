@@ -46,12 +46,15 @@ class UniversityServiceTest {
     @Test
     void createStudentCredentialShouldSaveUserWithStudentRoleAndHashedPassword() {
         StudentCredentialRequest request = new StudentCredentialRequest();
-        request.setFullName("Jane Doe");
+        request.setStudentName("Jane Doe");
+        request.setStudentNo("STU-TEST-001");
+        request.setRegNo("REG-TEST-001");
+        request.setIntake("AUG/2024");
+        request.setProgram("BSCCS");
+        request.setCourseName("Internship");
         request.setEmail("jane@example.com");
-        request.setStudentId("20240123");
-        request.setDepartment("Computer Science");
 
-        when(userRepository.findByUsername("jane@example.com")).thenReturn(Optional.empty());
+        when(userRepository.findByUsername("STU-TEST-001")).thenReturn(Optional.empty());
         when(passwordEncoder.encode("Student@123")).thenReturn("encoded-password");
         when(userRepository.save(any(UserEntity.class))).thenAnswer(invocation -> invocation.getArgument(0));
         when(studentProfileRepository.save(any(StudentProfile.class))).thenAnswer(invocation -> invocation.getArgument(0));
@@ -61,7 +64,7 @@ class UniversityServiceTest {
         ArgumentCaptor<UserEntity> userCaptor = ArgumentCaptor.forClass(UserEntity.class);
         verify(userRepository).save(userCaptor.capture());
         assertThat(userCaptor.getValue().getRole()).isEqualTo(Role.STUDENT);
-        assertThat(userCaptor.getValue().getUsername()).isEqualTo("jane@example.com");
+        assertThat(userCaptor.getValue().getUsername()).isEqualTo("STU-TEST-001");
         assertThat(userCaptor.getValue().getPassword()).isEqualTo("encoded-password");
         assertThat(user).isNotNull();
     }

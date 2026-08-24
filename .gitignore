@@ -1,5 +1,7 @@
 # Local documentation - never commit
 CODEBASE_ANALYSIS.md
+BaseStyle.md
+DesignStyle.md
 
 # ---- Java / Spring Boot ----
 backend/target/

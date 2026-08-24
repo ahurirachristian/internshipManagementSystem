@@ -3,6 +3,14 @@ import DashboardLayout from '../DashboardLayout';
 import CompanyEditModal from '../CompanyEditModal';
 import { useAuth } from '../../context/AuthContext';
 import { fetchCompany, fetchStudentsByCompany, updateCompany } from '../../services/api';
+import {
+  Building2,
+  Pencil,
+  GraduationCap,
+  AlertCircle,
+  X,
+  CheckCircle,
+} from 'lucide-react';
 
 export default function CompanyDashboard() {
   const { user } = useAuth();
@@ -56,98 +64,156 @@ export default function CompanyDashboard() {
 
   function renderProfile() {
     if (companyLoading) {
-      return <div className="status-message">Loading company profile...</div>;
-    }
-    if (user.companyId == null) {
       return (
-        <div className="card-panel">
-          <h2>No company linked</h2>
-          <p>Your account is not linked to a company yet. Please contact an administrator.</p>
+        <div className="flex items-center gap-2 text-xs text-slate-500 font-medium">
+          <div className="w-4 h-4 border-2 border-teal-600 border-t-transparent rounded-full animate-spin" />
+          <span>Loading company profile...</span>
         </div>
       );
     }
-    if (!company) {
-      return <div className="alert alert-error">Company profile not found.</div>;
+    if (user.companyId == null) {
+      return (
+        <section className="bg-white rounded-2xl border border-slate-200 p-6 shadow-xs">
+          <div className="flex flex-col items-center text-center py-4">
+            <div className="w-12 h-12 rounded-full bg-amber-50 border border-amber-200 flex items-center justify-center text-amber-600 mb-3">
+              <AlertCircle className="w-6 h-6" />
+            </div>
+            <h3 className="text-base font-bold text-slate-800">No company linked</h3>
+            <p className="text-xs text-slate-500 mt-1 max-w-sm">Your account is not linked to a company yet. Please contact an administrator.</p>
+          </div>
+        </section>
+      );
     }
-    const [postalAddress, physicalAddress] = company.profile?.split(' | ') || ['', ''];
+    if (!company) {
+      return (
+        <div role="alert" className="p-3.5 bg-rose-50 border border-rose-200 rounded-xl flex items-center gap-2.5 text-rose-900 text-sm">
+          <AlertCircle className="w-5 h-5 text-rose-600 shrink-0" />
+          <span className="font-medium">Company profile not found.</span>
+        </div>
+      );
+    }
     const details = [
       ['Company Name', company.name],
-      ['Country', company.location],
-      ['Branch', company.department],
+      ['Registration No.', company.registrationNumber],
+      ['Industry', company.industry],
+      ['Size', company.size],
+      ['Country', company.country],
+      ['City', company.city],
       ['Email', company.email],
-      ['Website', company.website],
       ['Phone', company.phone],
-      ['Field Supervisor', company.fieldSupervisor],
-      ['Postal Address', postalAddress],
-      ['Physical Address', physicalAddress],
+      ['Website', company.website],
+      ['Physical Address', company.physicalAddress],
+      ['Postal Address', company.postalAddress],
+      ['Description', company.description],
     ];
     return (
-      <div className="card-panel">
-        <h2>Company Profile</h2>
-        <p>Your company details as recorded in the system.</p>
-        <div className="detail-grid">
+      <section className="bg-white rounded-2xl border border-slate-200 p-6 shadow-xs">
+        <div className="flex items-center justify-between gap-4 mb-5">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-teal-50 border border-teal-200 flex items-center justify-center text-teal-700">
+              <Building2 className="w-5 h-5" />
+            </div>
+            <div>
+              <h3 className="text-sm font-bold text-slate-900">Company Profile</h3>
+              <p className="text-[11px] text-slate-500">Your company details as recorded in the system</p>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={() => setEditOpen(true)}
+            className="h-9 px-3.5 py-2 rounded-xl bg-[#063b33] hover:bg-[#042823] text-white text-xs font-bold shadow-xs transition-all flex items-center gap-1.5 focus-visible:ring-2 focus-visible:ring-teal-600 focus-visible:outline-none"
+          >
+            <Pencil className="w-4 h-4" />
+            <span>Edit Profile</span>
+          </button>
+        </div>
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
           {details.map(([label, value]) => (
-            <div className="detail-item" key={label}>
-              <span className="detail-label">{label}</span>
-              <span className="detail-value">{value || '—'}</span>
+            <div key={label} className="bg-slate-50 rounded-xl p-3 border border-slate-200">
+              <div className="text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">{label}</div>
+              <div className="text-sm font-bold text-slate-900">{value || '—'}</div>
             </div>
           ))}
         </div>
-        <div className="inline-actions">
-          <button className="primary-button" onClick={() => setEditOpen(true)}>
-            Edit Profile
-          </button>
-        </div>
-      </div>
+      </section>
     );
   }
 
   function renderInterns() {
     if (user.companyId == null) {
       return (
-        <div className="card-panel">
-          <h2>No company linked</h2>
-          <p>Your account is not linked to a company, so no interns can be listed.</p>
-        </div>
+        <section className="bg-white rounded-2xl border border-slate-200 p-6 shadow-xs">
+          <div className="flex flex-col items-center text-center py-4">
+            <div className="w-12 h-12 rounded-full bg-amber-50 border border-amber-200 flex items-center justify-center text-amber-600 mb-3">
+              <AlertCircle className="w-6 h-6" />
+            </div>
+            <h3 className="text-base font-bold text-slate-800">No company linked</h3>
+            <p className="text-xs text-slate-500 mt-1 max-w-sm">Your account is not linked to a company, so no interns can be listed.</p>
+          </div>
+        </section>
       );
     }
     return (
-      <div className="table-wrapper">
-        <table>
-          <thead>
-            <tr>
-              <th>Name</th>
-              <th>Email</th>
-              <th>Student Number</th>
-              <th>Degree Program</th>
-              <th>Year</th>
-              <th>Phone</th>
-            </tr>
-          </thead>
-          <tbody>
-            {interns.length > 0 ? (
-              interns.map((intern) => (
-                <tr key={intern.id}>
-                  <td>
-                    {intern.firstName} {intern.lastName}
-                  </td>
-                  <td>{intern.email}</td>
-                  <td>{intern.studentNumber}</td>
-                  <td>{intern.degreeProgram}</td>
-                  <td>{intern.yearOfStudy}</td>
-                  <td>{intern.phoneNumber}</td>
-                </tr>
-              ))
-            ) : (
-              <tr>
-                <td colSpan="6" className="empty-row">
-                  No interns assigned to your company yet.
-                </td>
+      <section className="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
+        <div className="px-5 py-4 border-b border-slate-200">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-blue-50 border border-blue-200 flex items-center justify-center text-blue-700">
+              <GraduationCap className="w-5 h-5" />
+            </div>
+            <div>
+              <h3 className="text-sm font-bold text-slate-900">Assigned Interns</h3>
+              <p className="text-[11px] text-slate-500">Students placed at your company</p>
+            </div>
+          </div>
+        </div>
+        <div className="overflow-x-auto custom-scrollbar">
+          <table className="w-full text-left border-collapse" style={{ minWidth: '750px' }} aria-label="Assigned interns">
+            <thead>
+              <tr className="border-b border-slate-200 bg-slate-50/90 text-[11px] font-bold tracking-wider text-slate-800">
+                <th scope="col" className="py-3.5 px-3 pl-5">Name</th>
+                <th scope="col" className="py-3.5 px-3">Email</th>
+                <th scope="col" className="py-3.5 px-3">Student Number</th>
+                <th scope="col" className="py-3.5 px-3">Degree Program</th>
+                <th scope="col" className="py-3.5 px-3">Year</th>
+                <th scope="col" className="py-3.5 px-3 pr-5">Phone</th>
               </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
+            </thead>
+            <tbody className="divide-y divide-slate-100 text-sm">
+              {interns.length > 0 ? (
+                interns.map((intern) => (
+                  <tr key={intern.id} className="hover:bg-slate-50/80 transition-colors">
+                    <td className="py-3.5 px-3 pl-5">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-lg bg-teal-50 text-teal-700 border border-teal-200 flex items-center justify-center shrink-0 shadow-xs">
+                          <GraduationCap className="w-4 h-4" />
+                        </div>
+                        <span className="font-bold text-slate-900">{intern.firstName} {intern.lastName}</span>
+                      </div>
+                    </td>
+                    <td className="py-3.5 px-3 text-xs text-slate-600">{intern.email}</td>
+                    <td className="py-3.5 px-3 text-xs text-slate-600">{intern.studentNumber}</td>
+                    <td className="py-3.5 px-3 text-xs text-slate-600">{intern.degreeProgram}</td>
+                    <td className="py-3.5 px-3 text-xs text-slate-600">{intern.yearOfStudy}</td>
+                    <td className="py-3.5 px-3 pr-5 text-xs text-slate-600">{intern.phoneNumber}</td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan={6} className="py-12 px-4 text-center">
+                    <div className="max-w-sm mx-auto flex flex-col items-center">
+                      <div className="w-12 h-12 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-400 mb-3">
+                        <GraduationCap className="w-6 h-6" />
+                      </div>
+                      <h3 className="text-base font-bold text-slate-800">No interns assigned</h3>
+                      <p className="text-xs text-slate-500 mt-1">No interns assigned to your company yet.</p>
+                    </div>
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </section>
     );
   }
 
@@ -167,9 +233,36 @@ export default function CompanyDashboard() {
         }
       }}
     >
-      {notice && <div className="alert alert-success">{notice}</div>}
-      {error && <div className="alert alert-error">{error}</div>}
-      {activeTab === 'profile' ? renderProfile() : renderInterns()}
+      <div className="space-y-6 max-w-7xl mx-auto">
+
+        {/* Notice Banner */}
+        {notice && (
+          <div role="status" className="p-3.5 bg-emerald-50 border border-emerald-200 rounded-xl flex items-center justify-between gap-3 text-emerald-900 text-sm animate-in fade-in">
+            <div className="flex items-center gap-2.5">
+              <CheckCircle className="w-5 h-5 text-emerald-600 shrink-0" />
+              <span className="font-medium">{notice}</span>
+            </div>
+            <button type="button" onClick={() => setNotice('')} className="text-emerald-600 hover:text-emerald-900 p-1 rounded" aria-label="Dismiss">
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        )}
+
+        {/* Error Banner */}
+        {error && (
+          <div role="alert" className="p-3.5 bg-rose-50 border border-rose-200 rounded-xl flex items-center justify-between gap-3 text-rose-900 text-sm animate-in fade-in">
+            <div className="flex items-center gap-2.5">
+              <AlertCircle className="w-5 h-5 text-rose-600 shrink-0" />
+              <span className="font-medium">{error}</span>
+            </div>
+            <button type="button" onClick={() => setError('')} className="text-rose-600 hover:text-rose-900 p-1 rounded" aria-label="Dismiss error">
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        )}
+
+        {activeTab === 'profile' ? renderProfile() : renderInterns()}
+      </div>
 
       {editOpen && company && (
         <CompanyEditModal

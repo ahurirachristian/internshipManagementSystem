@@ -51,7 +51,7 @@ class AuthAccessTest {
 
         mockMvc.perform(get("/university/credentials").with(user("university").authorities(new SimpleGrantedAuthority("SUPERVISOR"))))
                 .andExpect(status().isOk())
-                .andExpect(content().string(containsString("Massachusetts Institute of Technology")))
+                .andExpect(content().string(containsString("Nkumba University")))
                 .andExpect(content().string(containsString("Registered Students")))
                 .andExpect(content().string(containsString("Alex")));
     }

@@ -26,7 +26,7 @@ public class DayDiaryController {
     @PreAuthorize("hasAnyAuthority('STUDENT', 'ADMIN')")
     public String saveDiaryEntry(@ModelAttribute("diaryEntry") DayDiary diaryEntry,
             Principal principal, RedirectAttributes redirectAttributes) {
-        StudentProfile studentProfile = studentService.findByUsername(principal.getName()).orElse(null);
+        StudentProfile studentProfile = studentService.findByStudentNo(principal.getName()).orElse(null);
         if (studentProfile == null) {
             redirectAttributes.addFlashAttribute("errorMessage", "Unable to save diary entry. Student profile not found.");
             return "redirect:/student/dashboard";

@@ -5,7 +5,6 @@ import java.util.Collections;
 import java.util.List;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -28,6 +27,7 @@ import com.example.demo.university.University;
 import com.example.demo.university.UniversityRepository;
 import com.example.demo.dto.StudentCredentialRequest;
 import com.example.demo.student.DayDiaryRepository;
+import com.example.demo.audit.AuditLogService;
 
 @Controller
 public class DashboardController {
@@ -45,6 +45,7 @@ public class DashboardController {
     private final UniversityRepository universityRepository;
     private final UniversityService universityService;
     private final DayDiaryRepository dayDiaryRepository;
+    private final AuditLogService auditLogService;
 
     public DashboardController(StudentService studentService,
             UserRepository userRepository,
@@ -53,7 +54,8 @@ public class DashboardController {
             StudentProfileRepository studentProfileRepository,
             UniversityRepository universityRepository,
             UniversityService universityService,
-            DayDiaryRepository dayDiaryRepository) {
+            DayDiaryRepository dayDiaryRepository,
+            AuditLogService auditLogService) {
         this.studentService = studentService;
         this.userRepository = userRepository;
         this.companyRepository = companyRepository;
@@ -62,6 +64,7 @@ public class DashboardController {
         this.universityRepository = universityRepository;
         this.universityService = universityService;
         this.dayDiaryRepository = dayDiaryRepository;
+        this.auditLogService = auditLogService;
     }
 
     @GetMapping("/dashboard")
@@ -72,22 +75,15 @@ public class DashboardController {
     @GetMapping("/student/dashboard")
     @PreAuthorize("hasAnyAuthority('STUDENT', 'SUPERVISOR', 'ADMIN')")
     public String studentDashboard(Principal principal, Authentication authentication, Model model) {
-        studentService.findByUsername(principal.getName())
+        studentService.findByStudentNo(principal.getName())
                 .ifPresent(profile -> model.addAttribute("student", profile));
         model.addAttribute("diaryEntry", new com.example.demo.student.DayDiary());
-        model.addAttribute("diaryEntries", studentService.findDiaryEntriesByUsername(principal.getName()));
+        model.addAttribute("diaryEntries", studentService.findDiaryEntriesByStudentNo(principal.getName()));
         model.addAttribute("userRole", resolveRole(authentication));
         String role = resolveRole(authentication);
         if ("STUDENT".equals(role)) {
             return "redirect:/student/details";
         }
-
-        // For admins/supervisors viewing a student's dashboard, keep the combined view
-        studentService.findByUsername(principal.getName())
-                .ifPresent(profile -> model.addAttribute("student", profile));
-        model.addAttribute("diaryEntry", new com.example.demo.student.DayDiary());
-        model.addAttribute("diaryEntries", studentService.findDiaryEntriesByUsername(principal.getName()));
-        model.addAttribute("userRole", role);
         return "student";
     }
 
@@ -118,7 +114,6 @@ public class DashboardController {
         if ("COMPANY".equals(role)) {
             return "company-dashboard";
         }
-
         return "company";
     }
 
@@ -143,7 +138,6 @@ public class DashboardController {
         if ("COMPANY".equals(role)) {
             return "company-interns";
         }
-
         return company != null ? "company-interns" : "company";
     }
 
@@ -157,7 +151,7 @@ public class DashboardController {
     @PreAuthorize("hasAnyAuthority('SUPERVISOR', 'ADMIN')")
     public String universityCredentials(Model model, Principal principal, Authentication authentication) {
         UserEntity user = userRepository.findByUsername(principal.getName()).orElse(null);
-        Long universityId = (user != null) ? user.getUniversityId() : null;
+        Integer universityId = (user != null) ? user.getUniversityId() != null ? user.getUniversityId().intValue() : null : null;
 
         University university = null;
         if (universityId != null) {
@@ -167,8 +161,8 @@ public class DashboardController {
         model.addAttribute("userRole", resolveRole(authentication));
         List<StudentProfile> students = universityService.getStudentsBySupervisor(principal.getName());
         model.addAttribute("students", students);
-        model.addAttribute("assignedCount", students.stream().filter(s -> !"Pending".equals(s.getCompanyId())).count());
-        model.addAttribute("pendingCount", students.stream().filter(s -> "Pending".equals(s.getCompanyId())).count());
+        model.addAttribute("assignedCount", students.stream().filter(s -> !"Pending".equals(s.getOrganisation())).count());
+        model.addAttribute("pendingCount", students.stream().filter(s -> "Pending".equals(s.getOrganisation())).count());
         model.addAttribute("universities", universityService.getAllUniversities());
         model.addAttribute("university", university);
         model.addAttribute("credentialRequest", new StudentCredentialRequest());
@@ -181,7 +175,7 @@ public class DashboardController {
     @PreAuthorize("hasAnyAuthority('SUPERVISOR', 'ADMIN')")
     public String universityStudents(Model model, Principal principal, Authentication authentication) {
         UserEntity user = userRepository.findByUsername(principal.getName()).orElse(null);
-        Long universityId = (user != null) ? user.getUniversityId() : null;
+        Integer universityId = (user != null) ? user.getUniversityId() != null ? user.getUniversityId().intValue() : null : null;
 
         University university = null;
         if (universityId != null) {
@@ -203,6 +197,7 @@ public class DashboardController {
             Principal principal, Model model, Authentication authentication, RedirectAttributes redirectAttributes) {
         try {
             universityService.createStudentCredential(request, principal.getName());
+            auditLogService.log(principal.getName(), "SUPERVISOR", "CREATE", "StudentCredential", "Created credentials for: " + request.getStudentName() + " (" + request.getStudentNo() + ")", null);
             redirectAttributes.addFlashAttribute("successMessage", "Student credentials created successfully.");
         } catch (IllegalArgumentException ex) {
             redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
@@ -233,21 +228,29 @@ public class DashboardController {
             Authentication authentication, RedirectAttributes redirectAttributes) {
         return studentProfileRepository.findById(id)
                 .map(existing -> {
-                    existing.setFirstName(formData.getFirstName());
-                    existing.setLastName(formData.getLastName());
+                    existing.setStudentName(formData.getStudentName());
+                    existing.setStudentNo(formData.getStudentNo());
+                    existing.setRegNo(formData.getRegNo());
+                    existing.setIntake(formData.getIntake());
+                    existing.setProgram(formData.getProgram());
+                    existing.setCourseName(formData.getCourseName());
+                    existing.setMobileNo(formData.getMobileNo());
                     existing.setEmail(formData.getEmail());
-                    existing.setStudentNumber(formData.getStudentNumber());
-                    existing.setRegistrationNumber(formData.getRegistrationNumber());
-                    existing.setDegreeProgram(formData.getDegreeProgram());
                     existing.setYearOfStudy(formData.getYearOfStudy());
-                    existing.setPhoneNumber(formData.getPhoneNumber());
-                    existing.setInternshipCompany(formData.getInternshipCompany());
-                    existing.setUniversitySupervisor(formData.getUniversitySupervisor());
-                    existing.setIndustrialSupervisorId(formData.getIndustrialSupervisorId());
-                    existing.setCompanyId(formData.getCompanyId());
-                    existing.setPictureUrl(formData.getPictureUrl());
+                    existing.setAcademicYear(formData.getAcademicYear());
+                    existing.setSemester(formData.getSemester());
+                    existing.setOrganisation(formData.getOrganisation());
+                    existing.setLocation(formData.getLocation());
+                    existing.setAcademicSupervisor(formData.getAcademicSupervisor());
+                    existing.setFieldSupervisor(formData.getFieldSupervisor());
+                    existing.setStartDate(formData.getStartDate());
+                    existing.setEndDate(formData.getEndDate());
+                    existing.setUnitId(formData.getUnitId());
+                    existing.setCourseId(formData.getCourseId());
+                    existing.setAcademicSupervisorId(formData.getAcademicSupervisorId());
+                    existing.setFieldSupervisorId(formData.getFieldSupervisorId());
                     studentProfileRepository.save(existing);
-                    redirectAttributes.addFlashAttribute("successMessage", "Student \"" + existing.getFirstName() + " " + existing.getLastName() + "\" updated successfully.");
+                    redirectAttributes.addFlashAttribute("successMessage", "Student \"" + existing.getStudentName() + "\" updated successfully.");
                     return "redirect:" + resolveHome(authentication);
                 })
                 .orElseGet(() -> {
@@ -263,7 +266,7 @@ public class DashboardController {
         studentProfileRepository.findById(id)
                 .ifPresent(student -> {
                     redirectAttributes.addFlashAttribute(
-                            "successMessage", "Student \"" + student.getFirstName() + " " + student.getLastName() + "\" deleted successfully.");
+                            "successMessage", "Student \"" + student.getStudentName() + "\" deleted successfully.");
                     dayDiaryRepository.findAll().stream()
                             .filter(diary -> diary.getStudentProfile() != null
                                     && diary.getStudentProfile().getId().equals(student.getId()))
@@ -275,31 +278,20 @@ public class DashboardController {
 
     private String resolveBackUrl(Authentication authentication) {
         String role = resolveRole(authentication);
-        if ("COMPANY".equals(role)) {
-            return COMPANY_HOME;
-        }
-        if ("SUPERVISOR".equals(role)) {
-            return UNIVERSITY_HOME;
-        }
+        if ("COMPANY".equals(role)) return COMPANY_HOME;
+        if ("SUPERVISOR".equals(role)) return UNIVERSITY_HOME;
         return ADMIN_HOME;
     }
 
     private String resolveHome(Authentication authentication) {
         String role = resolveRole(authentication);
-        if ("ADMIN".equals(role)) {
-            return ADMIN_HOME;
-        }
-        if ("SUPERVISOR".equals(role)) {
-            return UNIVERSITY_HOME;
-        }
-        if ("COMPANY".equals(role)) {
-            return COMPANY_HOME;
-        }
+        if ("ADMIN".equals(role)) return ADMIN_HOME;
+        if ("SUPERVISOR".equals(role)) return UNIVERSITY_HOME;
+        if ("COMPANY".equals(role)) return COMPANY_HOME;
         return STUDENT_HOME;
     }
 
     private String resolveRole(Authentication authentication) {
-        // Prefer the role stored on the UserEntity for deterministic dashboard routing.
         if (authentication != null && authentication.getName() != null) {
             return userRepository.findByUsername(authentication.getName())
                     .map(u -> u.getRole().name())

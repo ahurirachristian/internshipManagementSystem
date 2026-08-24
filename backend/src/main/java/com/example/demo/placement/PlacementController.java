@@ -13,6 +13,8 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import com.example.demo.audit.AuditLogService;
+import java.security.Principal;
 
 @RestController
 @RequestMapping("/api/placements")
@@ -20,9 +22,11 @@ import org.springframework.web.bind.annotation.RestController;
 public class PlacementController {
 
     private final PlacementService placementService;
+    private final AuditLogService auditLogService;
 
-    public PlacementController(PlacementService placementService) {
+    public PlacementController(PlacementService placementService, AuditLogService auditLogService) {
         this.placementService = placementService;
+        this.auditLogService = auditLogService;
     }
 
     @GetMapping
@@ -59,23 +63,26 @@ public class PlacementController {
     }
 
     @PostMapping
-    public ResponseEntity<Placement> createPlacement(@RequestBody Placement placement) {
+    public ResponseEntity<Placement> createPlacement(@RequestBody Placement placement, Principal principal) {
         Placement saved = placementService.create(placement);
+        auditLogService.log(principal != null ? principal.getName() : "system", "ADMIN", "CREATE", "Placement", "Created placement for student ID: " + saved.getStudentId() + " at company ID: " + saved.getCompanyId(), null);
         return ResponseEntity.status(HttpStatus.CREATED).body(saved);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Placement> updatePlacement(@PathVariable Long id, @RequestBody Placement placement) {
+    public ResponseEntity<Placement> updatePlacement(@PathVariable Long id, @RequestBody Placement placement, Principal principal) {
         Placement updated = placementService.update(id, placement);
         if (updated == null) {
             return ResponseEntity.notFound().build();
         }
+        auditLogService.log(principal != null ? principal.getName() : "system", "ADMIN", "UPDATE", "Placement", "Updated placement ID: " + id + " (status: " + updated.getStatus() + ")", null);
         return ResponseEntity.ok(updated);
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deletePlacement(@PathVariable Long id) {
+    public ResponseEntity<Void> deletePlacement(@PathVariable Long id, Principal principal) {
         placementService.delete(id);
+        auditLogService.log(principal != null ? principal.getName() : "system", "ADMIN", "DELETE", "Placement", "Deleted placement ID: " + id, null);
         return ResponseEntity.noContent().build();
     }
 

@@ -24,7 +24,7 @@ public class AdminService {
     }
 
     public List<StudentProfile> getAllStudents() {
-        return studentProfileRepository.findAll(Sort.by(Sort.Direction.ASC, "lastName", "firstName"));
+        return studentProfileRepository.findAll(Sort.by(Sort.Direction.ASC, "studentName"));
     }
 
     public List<DayDiary> getAllDiaryEntries() {
@@ -41,7 +41,7 @@ public class AdminService {
 
     public long countActiveStudents() {
         return dayDiaryRepository.findAllWithStudent().stream()
-                .map(entry -> entry.getStudentProfile().getUsername())
+                .map(entry -> entry.getStudentProfile().getStudentNo())
                 .distinct()
                 .count();
     }
@@ -54,10 +54,10 @@ public class AdminService {
         return (double) dayDiaryRepository.count() / students;
     }
 
-    public Map<String, Long> getDiaryCountsByUsername() {
+    public Map<String, Long> getDiaryCountsByStudentNo() {
         Map<String, Long> counts = new HashMap<>();
         for (DayDiary entry : dayDiaryRepository.findAllWithStudent()) {
-            counts.merge(entry.getStudentProfile().getUsername(), 1L, Long::sum);
+            counts.merge(entry.getStudentProfile().getStudentNo(), 1L, Long::sum);
         }
         return counts;
     }

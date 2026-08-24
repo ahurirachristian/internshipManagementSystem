@@ -38,102 +38,112 @@ public class UniversityService {
     }
 
     public List<University> searchByName(String query) {
-        return universityRepository.findByNameStartingWithIgnoreCase(query);
+        return universityRepository.findByFullNameContainingIgnoreCase(query);
     }
 
     public List<University> getAllUniversities() {
         return universityRepository.findAll();
     }
 
-    public Optional<University> findById(Long id) {
+    public Optional<University> findById(Integer id) {
         return universityRepository.findById(id);
     }
 
     public University create(UniversityRequest request) {
-        if (request.getName() == null || request.getName().isBlank()) {
-            throw new IllegalArgumentException("University name is required.");
+        if (request.getFullName() == null || request.getFullName().isBlank()) {
+            throw new IllegalArgumentException("University full name is required.");
         }
-        if (universityRepository.findByNameIgnoreCase(request.getName().trim()).isPresent()) {
-            throw new IllegalArgumentException("A university with this name already exists.");
+        if (request.getShortForm() == null || request.getShortForm().isBlank()) {
+            throw new IllegalArgumentException("University short form is required.");
+        }
+        if (universityRepository.findByFullNameIgnoreCase(request.getFullName().trim()).isPresent()) {
+            throw new IllegalArgumentException("A university with this full name already exists.");
+        }
+        if (universityRepository.findByShortFormIgnoreCase(request.getShortForm().trim()).isPresent()) {
+            throw new IllegalArgumentException("A university with this short form already exists.");
         }
         University university = new University();
-        university.setName(request.getName().trim());
-        university.setCode(request.getCode() != null ? request.getCode().trim() : null);
-        university.setLocation(request.getLocation() != null ? request.getLocation().trim() : null);
-        university.setEmail(request.getEmail() != null ? request.getEmail().trim() : null);
+        university.setShortForm(request.getShortForm().trim());
+        university.setFullName(request.getFullName().trim());
+        university.setCountry(request.getCountry() != null ? request.getCountry().trim() : "Uganda");
+        university.setEstablishedYear(request.getEstablishedYear());
         return universityRepository.save(university);
     }
 
-    public Optional<University> update(Long id, UniversityRequest request) {
+    public Optional<University> update(Integer id, UniversityRequest request) {
         return universityRepository.findById(id)
                 .map(existing -> {
-                    if (request.getName() != null && !request.getName().isBlank()) {
-                        existing.setName(request.getName().trim());
+                    if (request.getShortForm() != null && !request.getShortForm().isBlank()) {
+                        existing.setShortForm(request.getShortForm().trim());
                     }
-                    existing.setCode(request.getCode() != null ? request.getCode().trim() : null);
-                    existing.setLocation(request.getLocation() != null ? request.getLocation().trim() : null);
-                    existing.setEmail(request.getEmail() != null ? request.getEmail().trim() : null);
+                    if (request.getFullName() != null && !request.getFullName().isBlank()) {
+                        existing.setFullName(request.getFullName().trim());
+                    }
+                    if (request.getCountry() != null) {
+                        existing.setCountry(request.getCountry().trim());
+                    }
+                    if (request.getEstablishedYear() != null) {
+                        existing.setEstablishedYear(request.getEstablishedYear());
+                    }
                     return universityRepository.save(existing);
                 });
     }
 
-    public void deleteById(Long id) {
+    public void deleteById(Integer id) {
         universityRepository.deleteById(id);
     }
 
     public UniversityDto toDto(University university) {
-        return new UniversityDto(university.getId(), university.getName(),
-                university.getCode(), university.getLocation(), university.getEmail());
+        return new UniversityDto(university.getUniversityId(), university.getShortForm(),
+                university.getFullName(), university.getCountry(), university.getEstablishedYear());
     }
 
     public List<StudentProfile> getRegisteredStudents() {
         return studentProfileRepository.findAll();
     }
 
-    public List<StudentProfile> getStudentsBySupervisor(String supervisorUsername) {
-        return studentProfileRepository.findByUniversitySupervisor(supervisorUsername);
+    public List<StudentProfile> getStudentsBySupervisor(String supervisorName) {
+        return studentProfileRepository.findByAcademicSupervisor(supervisorName);
     }
 
     public UserEntity createStudentCredential(StudentCredentialRequest request, String supervisorUsername) {
-        if (request == null || request.getEmail() == null || request.getEmail().isBlank()) {
-            throw new IllegalArgumentException("Student email is required.");
+        if (request == null || request.getStudentNo() == null || request.getStudentNo().isBlank()) {
+            throw new IllegalArgumentException("Student number is required.");
         }
 
-        if (userRepository.findByUsername(request.getEmail()).isPresent()) {
-            throw new IllegalArgumentException("A student account already exists for this email.");
+        if (userRepository.findByUsername(request.getStudentNo()).isPresent()) {
+            throw new IllegalArgumentException("A student account already exists for this student number.");
         }
-
-        String[] parts = request.getFullName().trim().split("\\s+");
-        String firstName = parts.length > 0 ? parts[0] : "Student";
-        String lastName = parts.length > 1 ? parts[1] : "User";
 
         UserEntity user = new UserEntity();
-        user.setUsername(request.getEmail());
+        user.setUsername(request.getStudentNo());
         user.setPassword(passwordEncoder.encode(DEFAULT_PASSWORD));
         user.setRole(Role.STUDENT);
+        user.setEmail(request.getEmail());
+        user.setMustChangePassword(true);
         UserEntity savedUser = userRepository.save(user);
 
         StudentProfile profile = new StudentProfile();
-        profile.setUsername(request.getEmail());
-        profile.setFirstName(firstName);
-        profile.setLastName(lastName);
+        profile.setStudentName(request.getStudentName());
+        profile.setStudentNo(request.getStudentNo());
+        profile.setRegNo(request.getRegNo());
+        profile.setIntake(request.getIntake());
+        profile.setProgram(request.getProgram());
+        profile.setCourseName(request.getCourseName());
         profile.setEmail(request.getEmail());
-        profile.setStudentNumber(request.getStudentId());
-        profile.setRegistrationNumber(request.getStudentId());
-        profile.setDegreeProgram(request.getDepartment());
-        profile.setYearOfStudy(3);
-        profile.setPhoneNumber("Pending");
-        profile.setInternshipCompany("Pending");
-        profile.setUniversitySupervisor(supervisorUsername);
-        profile.setIndustrialSupervisorId("Pending");
-        profile.setCompanyId(null);
-        profile.setPictureUrl("/images/default-profile.png");
+        profile.setYearOfStudy("1");
+        profile.setAcademicYear("One");
+        profile.setSemester("One");
+        profile.setOrganisation("Pending");
+        profile.setLocation("Pending");
+        profile.setAcademicSupervisor(supervisorUsername);
+        profile.setFieldSupervisor("Pending");
         studentProfileRepository.save(profile);
 
         return savedUser;
     }
 
-    public Optional<StudentProfile> findStudentProfile(String email) {
-        return studentProfileRepository.findByUsername(email);
+    public Optional<StudentProfile> findStudentProfile(String studentNo) {
+        return studentProfileRepository.findByStudentNo(studentNo);
     }
 }

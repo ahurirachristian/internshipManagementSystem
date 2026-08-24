@@ -5,15 +5,23 @@ import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface StudentProfileRepository extends JpaRepository<StudentProfile, Long> {
-    Optional<StudentProfile> findByUsername(String username);
+    Optional<StudentProfile> findByStudentNo(String studentNo);
 
-    List<StudentProfile> findByCompanyId(Long companyId);
+    Optional<StudentProfile> findByRegNo(String regNo);
 
-    List<StudentProfile> findByCompanyIdIgnoreCase(Long companyId);
+    Optional<StudentProfile> findByEmail(String email);
 
-    List<StudentProfile> findByUniversitySupervisor(String universitySupervisor);
+    List<StudentProfile> findByOrganisationContainingIgnoreCase(String organisation);
 
-    List<StudentProfile> findByUniversitySupervisorIgnoreCase(String universitySupervisor);
+    List<StudentProfile> findByAcademicSupervisorId(Integer academicSupervisorId);
 
-    List<StudentProfile> findByFirstNameContainingIgnoreCaseOrLastNameContainingIgnoreCase(String firstName, String lastName);
+    List<StudentProfile> findByFieldSupervisorId(Integer fieldSupervisorId);
+
+    List<StudentProfile> findByUnitId(Integer unitId);
+
+    List<StudentProfile> findByCourseId(Integer courseId);
+
+    List<StudentProfile> findByStudentNameContainingIgnoreCase(String name);
+
+    List<StudentProfile> findByAcademicSupervisor(String academicSupervisor);
 }

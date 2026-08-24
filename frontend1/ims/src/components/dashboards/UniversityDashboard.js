@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import DashboardLayout from '../DashboardLayout';
 import StudentEditModal from '../StudentEditModal';
 import { useAuth } from '../../context/AuthContext';
@@ -8,14 +9,33 @@ import {
   fetchStudents,
   fetchCompanies,
   fetchSupervisors,
+  fetchUniversity,
+  fetchAcademicUnits,
   updateStudent,
 } from '../../services/api';
+import {
+  Pencil,
+  Trash2,
+  GraduationCap,
+  X,
+  AlertCircle,
+  CheckCircle,
+  Building2,
+  UserPlus,
+  ChevronDown,
+  ChevronRight,
+  School,
+  List,
+} from 'lucide-react';
 
 const emptyCredentialForm = {
-  fullName: '',
+  studentName: '',
   email: '',
-  studentId: '',
-  department: '',
+  studentNo: '',
+  regNo: '',
+  intake: '',
+  program: '',
+  courseName: '',
 };
 
 export default function UniversityDashboard() {
@@ -30,11 +50,19 @@ export default function UniversityDashboard() {
   const [editStudent, setEditStudent] = useState(null);
   const [companies, setCompanies] = useState([]);
   const [supervisors, setSupervisors] = useState([]);
+  const [university, setUniversity] = useState(null);
+  const [studentsViewMode, setStudentsViewMode] = useState('all');
+  const [academicUnits, setAcademicUnits] = useState([]);
+  const [expandedUnits, setExpandedUnits] = useState({});
+  const [searchParams] = useSearchParams();
+  const selectedUnitId = searchParams.get('unitId');
 
   useEffect(() => {
     loadStudents();
     loadCompanies();
     loadSupervisors();
+    loadUniversity();
+    loadAcademicUnits();
   }, []);
 
   async function loadStudents() {
@@ -69,19 +97,100 @@ export default function UniversityDashboard() {
     }
   }
 
-  const students = useMemo(
-    () => allStudents.filter((s) => s.universitySupervisor === user.username),
-    [allStudents, user.username]
+  async function loadUniversity() {
+    try {
+      if (user.universityId) {
+        const data = await fetchUniversity(user.universityId);
+        setUniversity(data);
+      }
+    } catch (err) {
+      console.error('Failed to load university', err);
+    }
+  }
+
+  async function loadAcademicUnits() {
+    try {
+      if (user.universityId) {
+        const data = await fetchAcademicUnits(user.universityId);
+        setAcademicUnits(Array.isArray(data) ? data : []);
+      }
+    } catch (err) {
+      console.error('Failed to load academic units', err);
+    }
+  }
+
+  function toggleUnit(unitId) {
+    setExpandedUnits((prev) => ({ ...prev, [unitId]: !prev[unitId] }));
+  }
+
+  function getUnitName(unitId) {
+    if (!unitId) return 'Unassigned';
+    const unit = academicUnits.find((u) => u.unitId === unitId);
+    return unit ? unit.unitName : `Unit ${unitId}`;
+  }
+
+  const topUnits = useMemo(
+    () => academicUnits.filter((u) => !u.parentUnitId),
+    [academicUnits]
   );
 
+  const childUnitsMap = useMemo(() => {
+    const map = {};
+    academicUnits.forEach((u) => {
+      if (u.parentUnitId) {
+        if (!map[u.parentUnitId]) map[u.parentUnitId] = [];
+        map[u.parentUnitId].push(u);
+      }
+    });
+    return map;
+  }, [academicUnits]);
+
+  const includedUnitIds = useMemo(() => {
+    if (!selectedUnitId) return null;
+    const ids = new Set([String(selectedUnitId)]);
+    academicUnits.forEach((u) => {
+      if (String(u.parentUnitId) === String(selectedUnitId)) {
+        ids.add(String(u.unitId));
+      }
+    });
+    return ids;
+  }, [selectedUnitId, academicUnits]);
+
+  const students = useMemo(
+    () => allStudents,
+    [allStudents]
+  );
+
+  const filteredStudents = useMemo(() => {
+    if (!includedUnitIds) return students;
+    return students.filter((s) => includedUnitIds.has(String(s.unitId)));
+  }, [students, includedUnitIds]);
+
+  const studentsByUnit = useMemo(() => {
+    const map = {};
+    filteredStudents.forEach((s) => {
+      const key = s.unitId || 'unassigned';
+      if (!map[key]) map[key] = [];
+      map[key].push(s);
+    });
+    return map;
+  }, [filteredStudents]);
+
+  const universityDetails = university ? [
+    ['University Name', university.fullName],
+    ['Short Form', university.shortForm],
+    ['Country', university.country],
+    ['Established', university.establishedYear ? `${university.establishedYear}` : '—'],
+  ] : [];
+
   const counts = useMemo(() => {
-    const assigned = students.filter((s) => s.companyId != null).length;
+    const assigned = filteredStudents.filter((s) => s.organisation && s.organisation !== 'Pending').length;
     return {
-      total: students.length,
+      total: filteredStudents.length,
       assigned,
-      pending: students.length - assigned,
+      pending: filteredStudents.length - assigned,
     };
-  }, [students]);
+  }, [filteredStudents]);
 
   async function handleCredentialSubmit(event) {
     event.preventDefault();
@@ -90,10 +199,13 @@ export default function UniversityDashboard() {
     setCredentialLoading(true);
     try {
       await createStudentCredential({
-        fullName: credentialForm.fullName.trim(),
+        studentName: credentialForm.studentName.trim(),
         email: credentialForm.email.trim(),
-        studentId: credentialForm.studentId.trim(),
-        department: credentialForm.department.trim(),
+        studentNo: credentialForm.studentNo.trim(),
+        regNo: credentialForm.regNo.trim(),
+        intake: credentialForm.intake.trim() || 'AUG/2026',
+        program: credentialForm.program.trim() || 'BSCCS',
+        courseName: credentialForm.courseName.trim() || 'Internship',
       });
       setCredentialForm(emptyCredentialForm);
       setNotice('Student credentials created successfully.');
@@ -124,132 +236,382 @@ export default function UniversityDashboard() {
     }
   }
 
+  function getCompanyName(organisation) {
+    if (!organisation || organisation === 'Pending') return '—';
+    return organisation;
+  }
+
+  function renderStudentRow(student) {
+    return (
+      <tr key={student.id} className="hover:bg-slate-50/80 transition-colors">
+        <td className="py-3.5 px-3 pl-5">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-lg bg-teal-50 text-teal-700 border border-teal-200 flex items-center justify-center shrink-0 shadow-xs">
+              <GraduationCap className="w-4 h-4" />
+            </div>
+            <span className="font-bold text-slate-900">{student.studentName}</span>
+          </div>
+        </td>
+        <td className="py-3.5 px-3 text-xs text-slate-600">{student.email}</td>
+        <td className="py-3.5 px-3 text-xs text-slate-600">{student.studentNo}</td>
+        <td className="py-3.5 px-3 text-xs text-slate-600">{student.program}</td>
+        <td className="py-3.5 px-3 text-xs text-slate-600">{student.yearOfStudy}</td>
+        <td className="py-3.5 px-3">
+          {student.organisation && student.organisation !== 'Pending' ? (
+            <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-700">
+              <Building2 className="w-3.5 h-3.5 text-slate-400" />
+              {getCompanyName(student.organisation)}
+            </span>
+          ) : (
+            <span className="text-xs text-slate-400">—</span>
+          )}
+        </td>
+        <td className="py-3.5 px-3 pr-5 text-right">
+          <ul className="flex items-center justify-end gap-1 list-none p-0 m-0">
+            <li>
+              <button
+                type="button"
+                onClick={() => setEditStudent(student)}
+                className="p-1.5 text-emerald-600 hover:text-emerald-800 hover:bg-emerald-50 rounded-lg transition-colors focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:outline-none"
+                aria-label="Edit student"
+                title="Edit"
+              >
+                <Pencil className="w-4 h-4" />
+              </button>
+            </li>
+            <li>
+              <button
+                type="button"
+                onClick={() => handleDelete(student.id)}
+                className="p-1.5 text-rose-600 hover:text-rose-800 hover:bg-rose-50 rounded-lg transition-colors focus-visible:ring-2 focus-visible:ring-rose-600 focus-visible:outline-none"
+                aria-label="Delete student"
+                title="Delete"
+              >
+                <Trash2 className="w-4 h-4" />
+              </button>
+            </li>
+          </ul>
+        </td>
+      </tr>
+    );
+  }
+
+  function renderAllStudentsTable(list) {
+    return (
+      <div className="overflow-x-auto custom-scrollbar">
+        <table className="w-full text-left border-collapse" style={{ minWidth: '850px' }} aria-label="Students list">
+          <thead>
+            <tr className="border-b border-slate-200 bg-slate-50/90 text-[11px] font-bold tracking-wider text-slate-800">
+              <th scope="col" className="py-3.5 px-3 pl-5">Name</th>
+              <th scope="col" className="py-3.5 px-3">Email</th>
+              <th scope="col" className="py-3.5 px-3">Student Number</th>
+              <th scope="col" className="py-3.5 px-3">Program</th>
+              <th scope="col" className="py-3.5 px-3">Year</th>
+              <th scope="col" className="py-3.5 px-3">Company</th>
+              <th scope="col" className="py-3.5 px-3 pr-5 text-right">Actions</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-slate-100 text-sm">
+            {list.length > 0 ? (
+              list.map((student) => renderStudentRow(student))
+            ) : (
+              <tr>
+                <td colSpan={7} className="py-12 px-4 text-center">
+                  <div className="max-w-sm mx-auto flex flex-col items-center">
+                    <div className="w-12 h-12 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-400 mb-3">
+                      <GraduationCap className="w-6 h-6" />
+                    </div>
+                    <h3 className="text-base font-bold text-slate-800">No students</h3>
+                    <p className="text-xs text-slate-500 mt-1">No students found.</p>
+                  </div>
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+    );
+  }
+
+  function renderBySchool() {
+    return (
+      <div className="space-y-3">
+        {topUnits.length > 0 ? (
+          topUnits.map((unit) => {
+            const children = childUnitsMap[unit.unitId] || [];
+            const unitStudents = studentsByUnit[String(unit.unitId)] || [];
+            const childStudentCount = children.reduce(
+              (sum, child) => sum + (studentsByUnit[String(child.unitId)] || []).length, 0
+            );
+            const totalCount = unitStudents.length + childStudentCount;
+            const isExpanded = expandedUnits[unit.unitId];
+
+            return (
+              <div key={unit.unitId} className="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
+                <button
+                  type="button"
+                  onClick={() => toggleUnit(unit.unitId)}
+                  className="w-full px-5 py-4 flex items-center justify-between hover:bg-slate-50/80 transition-colors"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-lg bg-blue-50 text-blue-700 border border-blue-200 flex items-center justify-center">
+                      <School className="w-4 h-4" />
+                    </div>
+                    <div className="text-left">
+                      <div className="text-sm font-bold text-slate-900">{unit.unitName}</div>
+                      <div className="text-[11px] text-slate-500">
+                        {unit.shortForm} &middot; {totalCount} student{totalCount !== 1 ? 's' : ''}
+                      </div>
+                    </div>
+                  </div>
+                  {isExpanded ? <ChevronDown className="w-4 h-4 text-slate-400" /> : <ChevronRight className="w-4 h-4 text-slate-400" />}
+                </button>
+
+                {isExpanded && (
+                  <div className="border-t border-slate-200">
+                    {unitStudents.length > 0 ? (
+                      renderAllStudentsTable(unitStudents)
+                    ) : (
+                      <div className="py-6 text-center text-xs text-slate-400">No students in this unit</div>
+                    )}
+
+                    {children.map((child) => {
+                      const childStudents = studentsByUnit[String(child.unitId)] || [];
+                      const childExpanded = expandedUnits[child.unitId];
+                      return (
+                        <div key={child.unitId} className="border-t border-slate-100">
+                          <button
+                            type="button"
+                            onClick={() => toggleUnit(child.unitId)}
+                            className="w-full px-5 py-3 flex items-center justify-between hover:bg-slate-50/80 transition-colors pl-12"
+                          >
+                            <div className="flex items-center gap-2">
+                              <div className="text-xs font-bold text-slate-700">{child.unitName}</div>
+                              <span className="text-[10px] text-slate-400">({childStudents.length})</span>
+                            </div>
+                            {childExpanded ? <ChevronDown className="w-3 h-3 text-slate-400" /> : <ChevronRight className="w-3 h-3 text-slate-400" />}
+                          </button>
+                          {childExpanded && childStudents.length > 0 && (
+                            renderAllStudentsTable(childStudents)
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            );
+          })
+        ) : (
+          renderAllStudentsTable(filteredStudents)
+        )}
+
+        {(studentsByUnit['unassigned'] || []).length > 0 && (
+          <div className="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
+            <div className="px-5 py-4 border-b border-slate-200">
+              <h3 className="text-sm font-bold text-slate-900">Unassigned Students</h3>
+              <p className="text-[11px] text-slate-500">Students not yet assigned to an academic unit</p>
+            </div>
+            {renderAllStudentsTable(studentsByUnit['unassigned'])}
+          </div>
+        )}
+      </div>
+    );
+  }
+
   function renderStudents() {
     if (loading) {
-      return <div className="status-message">Loading students...</div>;
+      return (
+        <div className="flex items-center gap-2 text-xs text-slate-500 font-medium">
+          <div className="w-4 h-4 border-2 border-teal-600 border-t-transparent rounded-full animate-spin" />
+          <span>Loading students...</span>
+        </div>
+      );
     }
     return (
       <>
-        <div className="stat-grid">
-          <div className="stat-card">
-            <div className="stat-number">{counts.total}</div>
-            <div className="stat-label">Students Assigned to You</div>
+        <div className="grid grid-cols-3 gap-4">
+          <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-xs">
+            <div className="text-2xl font-extrabold text-slate-900">{counts.total}</div>
+            <div className="text-xs font-semibold text-slate-500">Students Assigned to You</div>
           </div>
-          <div className="stat-card">
-            <div className="stat-number">{counts.assigned}</div>
-            <div className="stat-label">Assigned to a Company</div>
+          <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-xs">
+            <div className="text-2xl font-extrabold text-slate-900">{counts.assigned}</div>
+            <div className="text-xs font-semibold text-slate-500">Assigned to a Company</div>
           </div>
-          <div className="stat-card">
-            <div className="stat-number">{counts.pending}</div>
-            <div className="stat-label">Awaiting Placement</div>
+          <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-xs">
+            <div className="text-2xl font-extrabold text-slate-900">{counts.pending}</div>
+            <div className="text-xs font-semibold text-slate-500">Awaiting Placement</div>
           </div>
         </div>
-        <div className="table-wrapper">
-          <table>
-            <thead>
-              <tr>
-                <th>Name</th>
-                <th>Email</th>
-                <th>Student Number</th>
-                <th>Degree Program</th>
-                <th>Year</th>
-                <th>Company ID</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {students.length > 0 ? (
-                students.map((student) => (
-                  <tr key={student.id}>
-                    <td>
-                      {student.firstName} {student.lastName}
-                    </td>
-                    <td>{student.email}</td>
-                    <td>{student.studentNumber}</td>
-                    <td>{student.degreeProgram}</td>
-                    <td>{student.yearOfStudy}</td>
-                    <td>{student.companyId ?? '—'}</td>
-                    <td>
-                      <button
-                        className="icon-button edit"
-                        onClick={() => setEditStudent(student)}
-                      >
-                        Edit
-                      </button>
-                      <button
-                        className="icon-button delete"
-                        onClick={() => handleDelete(student.id)}
-                      >
-                        Delete
-                      </button>
-                    </td>
-                  </tr>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan="7" className="empty-row">
-                    No students assigned to you yet. Create credentials to add one.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
+
+        <section className="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
+          <div className="px-5 py-4 border-b border-slate-200">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-teal-50 border border-teal-200 flex items-center justify-center text-teal-700">
+                  <GraduationCap className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold text-slate-900">My Students</h3>
+                  <p className="text-[11px] text-slate-500">Students assigned under your supervision</p>
+                </div>
+              </div>
+              <div className="flex items-center bg-slate-100 rounded-xl p-1">
+                <button
+                  type="button"
+                  onClick={() => setStudentsViewMode('all')}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                    studentsViewMode === 'all'
+                      ? 'bg-[#063b33] text-white shadow-xs'
+                      : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  <List className="w-3.5 h-3.5" />
+                  All Students
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setStudentsViewMode('bySchool')}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                    studentsViewMode === 'bySchool'
+                      ? 'bg-[#063b33] text-white shadow-xs'
+                      : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  <School className="w-3.5 h-3.5" />
+                  By School
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {selectedUnitId && (
+            <div className="px-5 py-2 bg-teal-50/60 border-b border-teal-200/50 flex items-center gap-2">
+              <span className="text-xs font-semibold text-teal-800">
+                Filtered by: {getUnitName(parseInt(selectedUnitId, 10))}
+              </span>
+              <a href="/university/dashboard" className="text-xs font-bold text-teal-600 hover:text-teal-800 underline">Clear filter</a>
+            </div>
+          )}
+
+          {studentsViewMode === 'all' ? renderAllStudentsTable(filteredStudents) : renderBySchool()}
+        </section>
       </>
     );
   }
 
   function renderCredentials() {
     return (
-      <div className="card-panel">
-        <h2>Generate Student Credentials</h2>
-        <p>Create a student account and profile. Default password is Student@123.</p>
-        <form onSubmit={handleCredentialSubmit} className="modal-form">
-          <label>
-            Full Name
-            <input
-              value={credentialForm.fullName}
-              onChange={(e) => setCredentialForm({ ...credentialForm, fullName: e.target.value })}
-            />
-          </label>
-          <label>
-            Email
-            <input
-              type="email"
-              value={credentialForm.email}
-              onChange={(e) => setCredentialForm({ ...credentialForm, email: e.target.value })}
-            />
-          </label>
-          <label>
-            Student ID
-            <input
-              value={credentialForm.studentId}
-              onChange={(e) => setCredentialForm({ ...credentialForm, studentId: e.target.value })}
-            />
-          </label>
-          <label>
-            Department
-            <input
-              value={credentialForm.department}
-              onChange={(e) =>
-                setCredentialForm({ ...credentialForm, department: e.target.value })
-              }
-            />
-          </label>
-          <div className="modal-actions">
-            <button type="submit" className="primary-button" disabled={credentialLoading}>
+      <section className="bg-white rounded-2xl border border-slate-200 p-6 shadow-xs">
+        <div className="flex items-center gap-3 mb-4">
+          <div className="w-10 h-10 rounded-xl bg-teal-50 border border-teal-200 flex items-center justify-center text-teal-700">
+            <UserPlus className="w-5 h-5" />
+          </div>
+          <div>
+            <h3 className="text-sm font-bold text-slate-900">Generate Student Credentials</h3>
+            <p className="text-[11px] text-slate-500">Create a student account and profile. Default password is Student@123.</p>
+          </div>
+        </div>
+        <form onSubmit={handleCredentialSubmit} className="space-y-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label htmlFor="cred-studentName" className="block text-xs font-bold uppercase tracking-wider text-slate-800 mb-1.5">
+                Student Name <span className="text-rose-600">*</span>
+              </label>
+              <input
+                id="cred-studentName"
+                value={credentialForm.studentName}
+                onChange={(e) => setCredentialForm({ ...credentialForm, studentName: e.target.value })}
+                placeholder="e.g. John Doe"
+                required
+                className="w-full bg-white text-slate-900 text-xs rounded-xl border border-slate-300 px-3.5 py-2.5 focus:border-teal-600 focus:ring-2 focus:ring-teal-600/20 focus:outline-none transition-all shadow-xs font-medium placeholder:text-slate-400"
+              />
+            </div>
+            <div>
+              <label htmlFor="cred-email" className="block text-xs font-bold uppercase tracking-wider text-slate-800 mb-1.5">
+                Email <span className="text-rose-600">*</span>
+              </label>
+              <input
+                id="cred-email"
+                type="email"
+                value={credentialForm.email}
+                onChange={(e) => setCredentialForm({ ...credentialForm, email: e.target.value })}
+                placeholder="e.g. john@example.com"
+                required
+                className="w-full bg-white text-slate-900 text-xs rounded-xl border border-slate-300 px-3.5 py-2.5 focus:border-teal-600 focus:ring-2 focus:ring-teal-600/20 focus:outline-none transition-all shadow-xs font-medium placeholder:text-slate-400"
+              />
+            </div>
+            <div>
+              <label htmlFor="cred-studentNo" className="block text-xs font-bold uppercase tracking-wider text-slate-800 mb-1.5">
+                Student Number <span className="text-rose-600">*</span>
+              </label>
+              <input
+                id="cred-studentNo"
+                value={credentialForm.studentNo}
+                onChange={(e) => setCredentialForm({ ...credentialForm, studentNo: e.target.value })}
+                placeholder="e.g. 2400101004"
+                required
+                className="w-full bg-white text-slate-900 text-xs rounded-xl border border-slate-300 px-3.5 py-2.5 focus:border-teal-600 focus:ring-2 focus:ring-teal-600/20 focus:outline-none transition-all shadow-xs font-medium placeholder:text-slate-400"
+              />
+            </div>
+            <div>
+              <label htmlFor="cred-regNo" className="block text-xs font-bold uppercase tracking-wider text-slate-800 mb-1.5">
+                Registration Number <span className="text-rose-600">*</span>
+              </label>
+              <input
+                id="cred-regNo"
+                value={credentialForm.regNo}
+                onChange={(e) => setCredentialForm({ ...credentialForm, regNo: e.target.value })}
+                placeholder="e.g. 2024/AUG/BCS/B23629S/DAY"
+                required
+                className="w-full bg-white text-slate-900 text-xs rounded-xl border border-slate-300 px-3.5 py-2.5 focus:border-teal-600 focus:ring-2 focus:ring-teal-600/20 focus:outline-none transition-all shadow-xs font-medium placeholder:text-slate-400"
+              />
+            </div>
+            <div>
+              <label htmlFor="cred-intake" className="block text-xs font-bold uppercase tracking-wider text-slate-800 mb-1.5">
+                Intake
+              </label>
+              <input
+                id="cred-intake"
+                value={credentialForm.intake}
+                onChange={(e) => setCredentialForm({ ...credentialForm, intake: e.target.value })}
+                placeholder="e.g. AUG/2024"
+                className="w-full bg-white text-slate-900 text-xs rounded-xl border border-slate-300 px-3.5 py-2.5 focus:border-teal-600 focus:ring-2 focus:ring-teal-600/20 focus:outline-none transition-all shadow-xs font-medium placeholder:text-slate-400"
+              />
+            </div>
+            <div>
+              <label htmlFor="cred-program" className="block text-xs font-bold uppercase tracking-wider text-slate-800 mb-1.5">
+                Program
+              </label>
+              <input
+                id="cred-program"
+                value={credentialForm.program}
+                onChange={(e) => setCredentialForm({ ...credentialForm, program: e.target.value })}
+                placeholder="e.g. BSCCS"
+                className="w-full bg-white text-slate-900 text-xs rounded-xl border border-slate-300 px-3.5 py-2.5 focus:border-teal-600 focus:ring-2 focus:ring-teal-600/20 focus:outline-none transition-all shadow-xs font-medium placeholder:text-slate-400"
+              />
+            </div>
+          </div>
+          <div className="flex justify-end pt-2">
+            <button
+              type="submit"
+              disabled={credentialLoading}
+              className="h-9 px-3.5 py-2 rounded-xl bg-[#063b33] hover:bg-[#042823] text-white text-xs font-bold shadow-xs transition-all flex items-center gap-1.5 focus-visible:ring-2 focus-visible:ring-teal-600 focus-visible:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <UserPlus className="w-4 h-4" />
               {credentialLoading ? 'Creating...' : 'Create Credentials'}
             </button>
           </div>
         </form>
-      </div>
+      </section>
     );
   }
 
   return (
     <DashboardLayout
       title="University Dashboard"
-      subtitle="Welcome,"
+      subtitle={university ? `Welcome, ${university.fullName}` : 'Welcome,'}
       tabs={[
         { id: 'students', label: 'Students' },
         { id: 'credentials', label: 'Credentials' },
@@ -257,14 +619,61 @@ export default function UniversityDashboard() {
       activeTab={activeTab}
       onTabChange={setActiveTab}
     >
-      {notice && <div className="alert alert-success">{notice}</div>}
-      {error && <div className="alert alert-error">{error}</div>}
-      {activeTab === 'students' ? renderStudents() : renderCredentials()}
+      <div className="space-y-6 max-w-7xl mx-auto">
+
+        {notice && (
+          <div role="status" className="p-3.5 bg-emerald-50 border border-emerald-200 rounded-xl flex items-center justify-between gap-3 text-emerald-900 text-sm animate-in fade-in">
+            <div className="flex items-center gap-2.5">
+              <CheckCircle className="w-5 h-5 text-emerald-600 shrink-0" />
+              <span className="font-medium">{notice}</span>
+            </div>
+            <button type="button" onClick={() => setNotice('')} className="text-emerald-600 hover:text-emerald-900 p-1 rounded" aria-label="Dismiss">
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        )}
+
+        {error && (
+          <div role="alert" className="p-3.5 bg-rose-50 border border-rose-200 rounded-xl flex items-center justify-between gap-3 text-rose-900 text-sm animate-in fade-in">
+            <div className="flex items-center gap-2.5">
+              <AlertCircle className="w-5 h-5 text-rose-600 shrink-0" />
+              <span className="font-medium">{error}</span>
+            </div>
+            <button type="button" onClick={() => setError('')} className="text-rose-600 hover:text-rose-900 p-1 rounded" aria-label="Dismiss error">
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        )}
+
+        {university && (
+          <section className="bg-white rounded-2xl border border-slate-200 p-6 shadow-xs">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 rounded-xl bg-teal-50 border border-teal-200 flex items-center justify-center text-teal-700">
+                <Building2 className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="text-sm font-bold text-slate-900">{university.fullName}</h3>
+                <p className="text-[11px] text-slate-500">University Profile</p>
+              </div>
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+              {universityDetails.map(([label, value]) => (
+                <div key={label} className="bg-slate-50 rounded-xl p-3 border border-slate-200">
+                  <div className="text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">{label}</div>
+                  <div className="text-sm font-bold text-slate-900">{value || '—'}</div>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {activeTab === 'students' ? renderStudents() : renderCredentials()}
+      </div>
 
       {editStudent && (
         <StudentEditModal
           student={editStudent}
-          title={`Edit Student: ${editStudent.firstName} ${editStudent.lastName}`}
+          title={`Edit Student: ${editStudent.studentName}`}
           onClose={() => setEditStudent(null)}
           onSubmit={handleEditSave}
           companies={companies}

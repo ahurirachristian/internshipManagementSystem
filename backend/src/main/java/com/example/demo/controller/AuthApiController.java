@@ -26,6 +26,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import com.example.demo.audit.AuditLogService;
 
 @RestController
 @RequestMapping("/api")
@@ -34,13 +35,16 @@ public class AuthApiController {
     private final AuthenticationManager authenticationManager;
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final AuditLogService auditLogService;
 
     public AuthApiController(AuthenticationManager authenticationManager,
             UserRepository userRepository,
-            PasswordEncoder passwordEncoder) {
+            PasswordEncoder passwordEncoder,
+            AuditLogService auditLogService) {
         this.authenticationManager = authenticationManager;
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
+        this.auditLogService = auditLogService;
     }
 
     @GetMapping("/me")
@@ -88,6 +92,7 @@ public class AuthApiController {
             String path = resolveHome(actualRole);
             String baseUrl = request.getScheme() + "://" + request.getServerName() + ":" + request.getServerPort();
 
+            auditLogService.log(username, actualRole, "LOGIN", "User", "User logged in successfully", request.getRemoteAddr());
             return ResponseEntity.ok(Map.of(
                     "username", username,
                     "role", actualRole,
@@ -125,6 +130,7 @@ public class AuthApiController {
         UserEntity user = new UserEntity(username, passwordEncoder.encode(password), selectedRole);
         userRepository.save(user);
 
+        auditLogService.log(username, roleName, "REGISTER", "User", "New account created with role: " + roleName, null);
         return ResponseEntity.status(HttpStatus.CREATED).body(Map.of("message", "Account created successfully."));
     }
 
@@ -146,6 +152,7 @@ public class AuthApiController {
                 .map(user -> {
                     user.setPassword(passwordEncoder.encode(newPassword));
                     userRepository.save(user);
+                    auditLogService.log(username, user.getRole().name(), "PASSWORD_RESET", "User", "Password reset successfully", null);
                     return ResponseEntity.ok(Map.of("message", "Password updated successfully."));
                 })
                 .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND)

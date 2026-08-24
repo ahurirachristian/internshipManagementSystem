@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { Check, Loader2 } from 'lucide-react';
 
 const MILESTONES = [
   { key: 'startDate', label: 'Orientation / Start Date' },
@@ -42,79 +43,80 @@ export default function InternshipProgress() {
   const steps = [startDate, diaryCount >= 5, midTerm, finalReport];
   const completedCount = steps.filter(Boolean).length;
   const activeIndex = steps.findIndex((step) => !step);
-  const activeStep = activeIndex === -1 ? 4 : activeIndex + 1;
   const percentage = Math.round((completedCount / 4) * 100);
   const lineWidth = `${Math.min(completedCount / 3, 1) * 100}%`;
 
   if (loading) {
-    return <div className="status-message">Loading progress...</div>;
+    return (
+      <div className="flex items-center justify-center py-12">
+        <Loader2 className="w-5 h-5 text-teal-600 animate-spin" />
+        <span className="ml-2 text-sm text-slate-500">Loading progress...</span>
+      </div>
+    );
   }
 
   if (error) {
-    return <div className="alert alert-error">{error}</div>;
+    return (
+      <div role="alert" className="p-3.5 bg-rose-50 border border-rose-200 rounded-xl flex items-center gap-2.5 text-rose-900 text-sm animate-in fade-in">
+        <span className="font-medium">{error}</span>
+      </div>
+    );
   }
 
   return (
-    <div className="card-panel" style={{ marginBottom: '24px' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '8px' }}>
+    <div className="bg-white rounded-xl border border-slate-200 shadow-xs p-5">
+      <div className="flex items-center justify-between mb-5 flex-wrap gap-2">
         <div>
-          <h2 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 600 }}>Internship Progress</h2>
-          <p style={{ margin: 0, opacity: 0.7, fontSize: '0.875rem', marginTop: '4px', color: '#64748b' }}>
+          <h2 className="text-base font-bold text-slate-900">Internship Progress</h2>
+          <p className="text-xs text-slate-500 mt-0.5">
             {completedCount} of {MILESTONES.length} milestones completed
           </p>
         </div>
-        <div style={{ fontSize: '1.5rem', fontWeight: 800, color: '#0f766e' }}>
+        <div className="text-2xl font-bold text-teal-700">
           {percentage}%
         </div>
       </div>
 
-      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', position: 'relative', padding: '0 12px' }}>
-        <div style={{ position: 'absolute', top: '20px', left: '24px', right: '24px', height: '4px', background: '#e2e8f0', borderRadius: '2px' }} />
-        <div style={{ position: 'absolute', top: '20px', left: '24px', height: '4px', background: '#0f766e', borderRadius: '2px', width: lineWidth }} />
+      <div className="relative px-3 pt-2">
+        <div className="absolute top-5 left-6 right-6 h-1 bg-slate-200 rounded-full" />
+        <div
+          className="absolute top-5 left-6 h-1 bg-teal-700 rounded-full transition-all duration-500"
+          style={{ width: lineWidth }}
+        />
 
-        {MILESTONES.map((milestone, index) => {
-          const isCompleted = steps[index];
-          const isActive = index === activeIndex;
+        <div className="flex items-start justify-between relative z-10">
+          {MILESTONES.map((milestone, index) => {
+            const isCompleted = steps[index];
+            const isActive = index === activeIndex;
 
-          return (
-            <div key={milestone.key} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '10px', position: 'relative', zIndex: 1, flex: 1 }}>
-              <div
-                style={{
-                  width: '40px',
-                  height: '40px',
-                  borderRadius: '50%',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  background: isCompleted ? '#0f766e' : '#ffffff',
-                  border: `3px solid ${isCompleted ? '#0f766e' : isActive ? '#0f766e' : '#cbd5e1'}`,
-                  color: isCompleted ? '#ffffff' : isActive ? '#0f766e' : '#64748b',
-                  fontWeight: 700,
-                  fontSize: '0.875rem',
-                  boxShadow: isActive ? '0 0 0 4px rgba(15, 118, 110, 0.15)' : 'none',
-                }}
-              >
-                {isCompleted ? (
-                  <i className="fa-solid fa-check" style={{ fontSize: '0.875rem' }} />
-                ) : (
-                  index + 1
-                )}
+            return (
+              <div key={milestone.key} className="flex flex-col items-center gap-2.5 relative flex-1">
+                <div
+                  className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold border-[3px] transition-all ${
+                    isCompleted
+                      ? 'bg-teal-700 text-white border-teal-700'
+                      : isActive
+                        ? 'bg-white text-teal-700 border-teal-700 ring-4 ring-teal-700/15'
+                        : 'bg-white text-slate-500 border-slate-300'
+                  }`}
+                >
+                  {isCompleted ? (
+                    <Check className="w-4 h-4" />
+                  ) : (
+                    index + 1
+                  )}
+                </div>
+                <div
+                  className={`text-center text-[11px] max-w-[100px] leading-tight ${
+                    isActive || isCompleted ? 'font-semibold text-slate-900' : 'font-normal text-slate-500'
+                  }`}
+                >
+                  {milestone.label}
+                </div>
               </div>
-              <div
-                style={{
-                  textAlign: 'center',
-                  fontSize: '0.75rem',
-                  fontWeight: isActive || isCompleted ? 600 : 400,
-                  color: isCompleted || isActive ? '#0f172a' : '#64748b',
-                  maxWidth: '100px',
-                  lineHeight: 1.3,
-                }}
-              >
-                {milestone.label}
-              </div>
-            </div>
-          );
-        })}
+            );
+          })}
+        </div>
       </div>
     </div>
   );

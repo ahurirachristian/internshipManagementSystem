@@ -14,16 +14,20 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import com.example.demo.dto.CompanyRequest;
+import com.example.demo.audit.AuditLogService;
 import jakarta.validation.Valid;
+import java.security.Principal;
 
 @RestController
 @RequestMapping("/api/companies")
 public class CompanyController {
 
     private final CompanyService companyService;
+    private final AuditLogService auditLogService;
 
-    public CompanyController(CompanyService companyService) {
+    public CompanyController(CompanyService companyService, AuditLogService auditLogService) {
         this.companyService = companyService;
+        this.auditLogService = auditLogService;
     }
 
     @GetMapping
@@ -50,57 +54,77 @@ public class CompanyController {
                 .map(c -> String.join(",",
                         escape(c.getId()),
                         escape(c.getName()),
-                        escape(c.getLocation()),
-                        escape(c.getDepartment()),
+                        escape(c.getCountry()),
+                        escape(c.getCity()),
                         escape(c.getEmail()),
                         escape(c.getWebsite()),
-                        escape(c.getProfile() != null ? c.getProfile().split(" \\| ")[0] : ""),
-                        escape(c.getProfile() != null && c.getProfile().contains(" | ") ? c.getProfile().split(" \\| ")[1] : "")))
+                        escape(c.getPostalAddress()),
+                        escape(c.getPhysicalAddress())))
                 .reduce((a, b) -> a + "\n" + b)
                 .orElse("");
-        String body = "ID,Name,Country,Branch,Email,Website,Postal Address,Physical Address\n" + csv;
+        String body = "ID,Name,Country,City,Email,Website,Postal Address,Physical Address\n" + csv;
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"companies.csv\"")
                 .body(body);
     }
 
     @PostMapping
-    public ResponseEntity<Company> createCompany(@Valid @RequestBody CompanyRequest request) {
-        Company company = new Company();
-        company.setName(request.getName());
-        company.setLocation(request.getCountry());
-        company.setEmail(request.getEmail());
-        company.setWebsite(request.getWebsite());
-        company.setProfile((request.getPostalAddress() != null ? request.getPostalAddress() : "") + " | " + (request.getPhysicalAddress() != null ? request.getPhysicalAddress() : ""));
-        company.setDepartment(request.getBranch());
-        company.setFieldSupervisor("");
-        company.setRoles("");
+    public ResponseEntity<Company> createCompany(@Valid @RequestBody CompanyRequest request, Principal principal) {
+        Company company = mapRequestToEntity(request);
         Company saved = companyService.save(company);
+        auditLogService.log(principal != null ? principal.getName() : "system", "ADMIN", "CREATE", "Company", "Created company: " + saved.getName(), null);
         return ResponseEntity.status(HttpStatus.CREATED).body(saved);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Company> updateCompany(@PathVariable Long id, @Valid @RequestBody CompanyRequest request) {
+    public ResponseEntity<Company> updateCompany(@PathVariable Long id, @Valid @RequestBody CompanyRequest request, Principal principal) {
         return companyService.findById(id)
                 .map(existing -> {
-                    existing.setName(request.getName());
-                    existing.setLocation(request.getCountry());
-                    existing.setEmail(request.getEmail());
-                    existing.setWebsite(request.getWebsite());
-                    existing.setProfile((request.getPostalAddress() != null ? request.getPostalAddress() : "") + " | " + (request.getPhysicalAddress() != null ? request.getPhysicalAddress() : ""));
-                    existing.setDepartment(request.getBranch());
-                    return ResponseEntity.ok(companyService.save(existing));
+                    mapRequestToEntity(request, existing);
+                    Company saved = companyService.save(existing);
+                    auditLogService.log(principal != null ? principal.getName() : "system", "ADMIN", "UPDATE", "Company", "Updated company: " + saved.getName(), null);
+                    return ResponseEntity.ok(saved);
                 })
                 .orElse(ResponseEntity.notFound().build());
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteCompany(@PathVariable Long id) {
-        if (companyService.findById(id).isEmpty()) {
+    public ResponseEntity<Void> deleteCompany(@PathVariable Long id, Principal principal) {
+        Company company = companyService.findById(id).orElse(null);
+        if (company == null) {
             return ResponseEntity.notFound().build();
         }
+        String companyName = company.getName();
         companyService.deleteById(id);
+        auditLogService.log(principal != null ? principal.getName() : "system", "ADMIN", "DELETE", "Company", "Deleted company: " + companyName, null);
         return ResponseEntity.noContent().build();
+    }
+
+    private Company mapRequestToEntity(CompanyRequest request) {
+        Company company = new Company();
+        mapRequestToEntity(request, company);
+        return company;
+    }
+
+    private void mapRequestToEntity(CompanyRequest request, Company company) {
+        company.setName(request.getName());
+        company.setRegistrationNumber(request.getRegistrationNumber());
+        company.setIndustry(request.getIndustry());
+        company.setWebsite(request.getWebsite());
+        company.setEmail(request.getEmail());
+        company.setPhone(request.getPhone());
+        company.setCountry(request.getCountry());
+        company.setCity(request.getCity());
+        company.setPhysicalAddress(request.getPhysicalAddress());
+        company.setPostalAddress(request.getPostalAddress());
+        company.setDescription(request.getDescription());
+        company.setLogoUrl(request.getLogoUrl());
+        if (request.getSize() != null && !request.getSize().isEmpty()) {
+            try {
+                company.setSize(Company.Size.valueOf(request.getSize()));
+            } catch (IllegalArgumentException ignored) {
+            }
+        }
     }
 
     private String escape(Object value) {
