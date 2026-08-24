@@ -2,6 +2,8 @@
 
 A Spring Boot application for managing internships, reorganized into `backend/` and `frontend/` folders.
 
+> **Onboarding a new developer?** Start with [`ONBOARDING.md`](ONBOARDING.md) (up-to-date setup, architecture, API inventory, known gotchas) and [`CODEBASE_ANALYSIS.md`](CODEBASE_ANALYSIS.md). Note: parts of this README are outdated — the backend runs on port **8082** (not 8081), and the primary UI is the React SPA in [`frontend1/ims/`](frontend1/ims).
+
 ---
 
 ## Repository Structure
