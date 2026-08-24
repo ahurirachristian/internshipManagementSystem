@@ -112,7 +112,7 @@ public class DashboardController {
         model.addAttribute("userRole", role);
         model.addAttribute("company", company);
         model.addAttribute("companyId", companyId);
-        model.addAttribute("students", companyService.findStudentsByCompanyId(companyId));
+        model.addAttribute("students", companyService.findStudentsByCompanyId(companyId != null ? String.valueOf(companyId) : null));
         model.addAttribute("activePage", "profile");
 
         if ("COMPANY".equals(role)) {
@@ -137,7 +137,7 @@ public class DashboardController {
         model.addAttribute("userRole", role);
         model.addAttribute("company", company);
         model.addAttribute("companyId", companyId);
-        model.addAttribute("students", companyId != null ? companyService.findStudentsByCompanyId(companyId) : Collections.emptyList());
+        model.addAttribute("students", companyId != null ? companyService.findStudentsByCompanyId(String.valueOf(companyId)) : Collections.emptyList());
         model.addAttribute("activePage", "interns");
 
         if ("COMPANY".equals(role)) {

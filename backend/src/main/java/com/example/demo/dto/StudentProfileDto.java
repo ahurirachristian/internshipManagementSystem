@@ -15,7 +15,7 @@ public class StudentProfileDto {
     private String internshipCompany;
     private String universitySupervisor;
     private String industrialSupervisorId;
-    private Long companyId;
+    private String companyId;
     private String pictureUrl;
 
     public StudentProfileDto() {
@@ -24,7 +24,7 @@ public class StudentProfileDto {
     public StudentProfileDto(Long id, String username, String firstName, String lastName, String email,
             String studentNumber, String registrationNumber, String degreeProgram, Integer yearOfStudy,
             String phoneNumber, String internshipCompany, String universitySupervisor,
-            String industrialSupervisorId, Long companyId, String pictureUrl) {
+            String industrialSupervisorId, String companyId, String pictureUrl) {
         this.id = id;
         this.username = username;
         this.firstName = firstName;
@@ -146,11 +146,11 @@ public class StudentProfileDto {
         this.industrialSupervisorId = industrialSupervisorId;
     }
 
-    public Long getCompanyId() {
+    public String getCompanyId() {
         return companyId;
     }
 
-    public void setCompanyId(Long companyId) {
+    public void setCompanyId(String companyId) {
         this.companyId = companyId;
     }
 

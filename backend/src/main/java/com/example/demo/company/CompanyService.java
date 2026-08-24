@@ -48,7 +48,7 @@ public class CompanyService {
         companyRepository.deleteById(id);
     }
 
-    public List<StudentProfile> findStudentsByCompanyId(Long companyId) {
+    public List<StudentProfile> findStudentsByCompanyId(String companyId) {
         return studentProfileRepository.findByCompanyId(companyId);
     }
 }
