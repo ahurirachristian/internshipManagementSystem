@@ -65,10 +65,10 @@ The admin dashboard at `/admin/dashboard` provides full user management:
 Login with Google, LinkedIn, or X/Twitter is available on the login page. OAuth2 client credentials need to be configured in `application-dev.properties` or `application-mysql.properties` (see API Reference).
 
 ### Database Configuration
-- **Default profile**: `mysql` (connects to `internshipmanagementsystem_db` on WampServer)
-- **MySQL connection**: `localhost:3306`, user `root`, empty password
-- **Dev profile**: `dev` (uses H2 in-memory database)
-- **Switch profiles**: update `spring.profiles.active` in `application.properties`
+- **Default profile**: `dev` (H2 in-memory — zero setup; schema recreated each boot)
+- **MySQL profile**: run with `-Dspring-boot.run.profiles=mysql` (connects to `internshipManagementSystem_db`; WampServer/XAMPP both work — `localhost:3306`, user `root`)
+- **Switch profiles**: use the `-Dspring-boot.run.profiles=` flag, or edit `spring.profiles.active` in `application.properties`
+- See also `backend/DATABASE_CONNECTION_GUIDE.md` for the alternate connection setup proposed on `developer`
 
 ### How to Run
 

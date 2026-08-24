@@ -37,6 +37,19 @@ Two non-obvious facts that will save you hours:
 1. **The backend serves two UIs.** Legacy Thymeleaf templates (`backend/src/main/resources/templates/`, server-rendered MVC pages) AND the React SPA. React is the primary UI; the Thymeleaf pages still exist and some MVC controllers are live.
 2. **Roles have no `ROLE_` prefix.** Authorities match raw enum names (`ADMIN`, `SUPERVISOR`…) because `CustomUserDetailsService` wraps `user.getRole().name()` directly. If you write `hasRole('ADMIN')` it will fail — use `hasAuthority('ADMIN')`.
 
+### ⚠️ Merge status (2026-08-24): two parallel schema models coexist
+
+Merging `origin/developer` into `fred` brought in a **second, competing database migration** (PR #21/#22 by Chris). Current state:
+
+| | Model A — **active** (fred) | Model B — **dormant** (Chris, kept for reference) |
+|---|---|---|
+| Academic structure | `academic/AcademicUnit` tree, `Course`, `Staff`, `UnitCourse` | `school/School`, `programme/Programme`, `department/Department` |
+| Student | `student/StudentProfile` (studentName/studentNo/organisation/supervisor strings) | `student/Student` + their DTO shape (firstName/internshipCompany/companyId String…) |
+| Supervisors | string columns on profiles | `supervisor/IndustrialSupervisor`, `UniversitySupervisor` entities |
+| Companies | `company/Company` | `company/InternshipCompany` |
+
+Model A drives everything that runs today (React app, APIs, tests, docs). Model B's packages compile standalone and their tables get created on boot, but nothing reads/writes them yet. **Do not build new features against Model B** until the team decides which schema wins — raise it with Chris/the team lead. Resolution details: shared core files kept Model A; Chris's incompatible seeder rewrites were rejected (recoverable from `developer` history); his intended runtime config (default `mysql` profile, `ddl-auto=none`) was likewise not activated.
+
 ---
 
 ## 2. Day-1 setup
@@ -100,9 +113,14 @@ Then open `http://localhost:3000/login`.
 │       ├── company/             Company, CompanyDepartment, CompanySupervisor + service + controllers
 │       ├── country/             Country entity/repo/service/seeder (reference data)
 │       ├── controller/          Auth/Dashboard/Student/Diary/Admin/University REST + MVC controllers
+│       ├── department/          ⚠️ Model B (dormant) — see "Merge status" in §1
 │       ├── dto/                 Validated request DTOs (StudentCredentialRequest, CompanyRequest, …)
 │       ├── evaluation/          Evaluation entity/repo/controller
 │       ├── placement/           Placement, Vacancy entities/repos/controllers
+│       ├── programme/           ⚠️ Model B (dormant) — seeder alone is ~5,600 lines
+│       ├── role/                ⚠️ Model B (dormant) — Role entity, distinct from auth.Role enum
+│       ├── school/              ⚠️ Model B (dormant) — 1,500+-line seeder
+│       ├── supervisor/          ⚠️ Model B (dormant) — Industrial/UniversitySupervisor entities
 │       ├── audit/               AuditLog entity/repo/controller/service
 │       ├── service/             StudentService, UniversityService, AdminService
 │       ├── student/             StudentProfile, DayDiary entities + repos + diary seeders
@@ -331,7 +349,9 @@ Global error handling: `controller/GlobalExceptionHandler.java` maps validation 
 
 All guarded by `count()==0` idempotency checks — they skip when data exists. Order matters because **later seeders reference hardcoded generated IDs**: Nkumba = university 19, Airtel = company 1, Makerere courses = 63/64, unit 18/26, staff 1/2. On anything other than pristine auto-increment sequences these links misfire. One exception to the guards: `CompanyDataSeeder` runs an unguarded "fixup" on every startup linking user `airtel` to the lowest-id company if its link is null.
 
-Order: countries (196) → universities (50) → companies+departments+supervisors → academic units (26) → courses (64) → unit-course links (79) → staff (2) → users (6) → student profiles (3) → day diaries (2) → placements (3) → evaluations (2) → vacancies (3) → audit logs (5).
+Order: countries (196 — rewritten in verbose form by PR #22, same data) → universities (50) → companies+departments+supervisors → academic units (26) → courses (64) → unit-course links (79) → staff (2) → users (6) → student profiles (3) → day diaries (2) → placements (3) → evaluations (2) → vacancies (3) → audit logs (5).
+
+**Post-merge addition:** the dormant Model B seeders (`School`, `Programme`, `Department`, `Role`) are `@Component CommandLineRunner`s too, so every boot also creates their tables (dev H2 `create-drop`) and runs their inserts — expect noticeably slower startup and extra tables you didn't ask for. They're inert otherwise; nothing queries them yet.
 
 ### Tests (`backend/src/test`)
 
@@ -474,6 +494,8 @@ If your task touches any of these areas, raise the intended fix with the team ra
 
 ### 9.3 Data-layer pitfalls
 
+- **Two schema models share the codebase** (see "Merge status" in §1). Until reconciled: don't reference Model B entities from Model A code paths or vice versa; don't "fix" one model's seeder to match the other's entity — that's what the rejected PR #22 seeder rewrites did.
+- **Config divergence is latent**: `developer`'s intended runtime (default `mysql` profile, `ddl-auto=none`, DB renamed `internshipmanagementsystem_db`, see `DATABASE_CONNECTION_GUIDE.md` + `.env.example`) was NOT activated in the merge. If you check out `developer` directly, expect different startup behavior than this doc describes.
 - Referential integrity is mostly **your job in service code** — see the soft-association map in §5 before deleting anything.
 - Seeder ID assumptions break on pre-populated tables (§6 seeding).
 - `ddl-auto=update` never removes columns and won't recreate dump-only constraints/FKs.
