@@ -58,6 +58,6 @@ class MigrationCatalogCountTest {
         assertTrue(internshipCompanyRepository.count() >= 1);
         assertEquals(1, universitySupervisorRepository.count());
         assertEquals(1, industrialSupervisorRepository.count());
-        assertEquals(6, userRepository.count());
+        assertEquals(7, userRepository.count());
     }
 }

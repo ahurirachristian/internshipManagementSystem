@@ -31,6 +31,8 @@ public class DayDiaryDataSeeder implements CommandLineRunner {
                         Student s = new Student();
                         s.setUserId(user.getId());
                         s.setUniversityId(19L);
+                        s.setSchoolId(902L);
+                        s.setProgrammeId(2012L);
                         s.setFirstName("Demo");
                         s.setLastName("Student");
                         s.setStudentNumber("student");

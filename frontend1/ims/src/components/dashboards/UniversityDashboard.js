@@ -5,11 +5,13 @@ import StudentEditModal from '../StudentEditModal';
 import { useAuth } from '../../context/AuthContext';
 import {
   deleteStudent,
-  fetchStudents,
+  fetchUniversityStudents,
   fetchCompanies,
   fetchSupervisors,
-  fetchUniversity,
+  fetchUniversityProfile,
   fetchSchools,
+  fetchDepartments,
+  fetchProgrammes,
   fetchUniversitySupervisors,
   fetchIndustrialSupervisors,
   updateStudent,
@@ -27,6 +29,8 @@ import {
   ChevronRight,
   School,
   List,
+  ListChecks,
+  BookOpen,
 } from 'lucide-react';
 
 const emptyAssignForm = {
@@ -53,6 +57,8 @@ export default function UniversityDashboard() {
   const [university, setUniversity] = useState(null);
   const [studentsViewMode, setStudentsViewMode] = useState('all');
   const [schools, setSchools] = useState([]);
+  const [departments, setDepartments] = useState([]);
+  const [programmes, setProgrammes] = useState([]);
   const [expandedUnits, setExpandedUnits] = useState({});
   const [searchParams] = useSearchParams();
   const selectedUnitId = searchParams.get('unitId');
@@ -63,6 +69,8 @@ export default function UniversityDashboard() {
     loadSupervisors();
     loadUniversity();
     loadAcademicUnits();
+    loadDepartments();
+    loadProgrammes();
     loadUniSupervisorRows();
     loadIndSupervisorRows();
   }, []);
@@ -71,7 +79,7 @@ export default function UniversityDashboard() {
     setLoading(true);
     setError('');
     try {
-      setAllStudents(await fetchStudents());
+      setAllStudents(await fetchUniversityStudents());
     } catch (err) {
       setError(err.message || 'Unable to load students.');
     } finally {
@@ -121,10 +129,8 @@ export default function UniversityDashboard() {
 
   async function loadUniversity() {
     try {
-      if (user.universityId) {
-        const data = await fetchUniversity(user.universityId);
-        setUniversity(data);
-      }
+      const data = await fetchUniversityProfile();
+      setUniversity(data);
     } catch (err) {
       console.error('Failed to load university', err);
     }
@@ -141,6 +147,24 @@ export default function UniversityDashboard() {
     }
   }
 
+  async function loadDepartments() {
+    try {
+      const data = await fetchDepartments();
+      setDepartments(Array.isArray(data) ? data : []);
+    } catch (err) {
+      console.error('Failed to load departments', err);
+    }
+  }
+
+  async function loadProgrammes() {
+    try {
+      const data = await fetchProgrammes();
+      setProgrammes(Array.isArray(data) ? data : []);
+    } catch (err) {
+      console.error('Failed to load programmes', err);
+    }
+  }
+
   function toggleUnit(unitId) {
     setExpandedUnits((prev) => ({ ...prev, [unitId]: !prev[unitId] }));
   }
@@ -148,7 +172,7 @@ export default function UniversityDashboard() {
   function getUnitName(unitId) {
     if (!unitId) return 'Unassigned';
     const unit = schools.find((u) => u.schoolId === unitId);
-    return unit ? unit.unitName : `Unit ${unitId}`;
+    return unit ? unit.schoolName : `Unit ${unitId}`;
   }
 
   const topUnits = useMemo(
@@ -185,13 +209,13 @@ export default function UniversityDashboard() {
 
   const filteredStudents = useMemo(() => {
     if (!includedUnitIds) return students;
-    return students.filter((s) => includedUnitIds.has(String(s.unitId)));
+    return students.filter((s) => includedUnitIds.has(String(s.schoolId)));
   }, [students, includedUnitIds]);
 
   const studentsByUnit = useMemo(() => {
     const map = {};
     filteredStudents.forEach((s) => {
-      const key = s.unitId || 'unassigned';
+      const key = s.schoolId || 'unassigned';
       if (!map[key]) map[key] = [];
       map[key].push(s);
     });
@@ -206,7 +230,7 @@ export default function UniversityDashboard() {
   ] : [];
 
   const counts = useMemo(() => {
-    const assigned = filteredStudents.filter((s) => s.organisation && s.organisation !== 'Pending').length;
+    const assigned = filteredStudents.filter((s) => s.internshipCompanyId != null).length;
     return {
       total: filteredStudents.length,
       assigned,
@@ -357,19 +381,19 @@ export default function UniversityDashboard() {
       <div className="space-y-3">
         {topUnits.length > 0 ? (
           topUnits.map((unit) => {
-            const children = childUnitsMap[unit.unitId] || [];
-            const unitStudents = studentsByUnit[String(unit.unitId)] || [];
+            const children = childUnitsMap[unit.schoolId] || [];
+            const unitStudents = studentsByUnit[String(unit.schoolId)] || [];
             const childStudentCount = children.reduce(
-              (sum, child) => sum + (studentsByUnit[String(child.unitId)] || []).length, 0
+              (sum, child) => sum + (studentsByUnit[String(child.schoolId)] || []).length, 0
             );
             const totalCount = unitStudents.length + childStudentCount;
-            const isExpanded = expandedUnits[unit.unitId];
+            const isExpanded = expandedUnits[unit.schoolId];
 
             return (
-              <div key={unit.unitId} className="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
+              <div key={unit.schoolId} className="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
                 <button
                   type="button"
-                  onClick={() => toggleUnit(unit.unitId)}
+                  onClick={() => toggleUnit(unit.schoolId)}
                   className="w-full px-5 py-4 flex items-center justify-between hover:bg-slate-50/80 transition-colors"
                 >
                   <div className="flex items-center gap-3">
@@ -377,9 +401,9 @@ export default function UniversityDashboard() {
                       <School className="w-4 h-4" />
                     </div>
                     <div className="text-left">
-                      <div className="text-sm font-bold text-slate-900">{unit.unitName}</div>
+                      <div className="text-sm font-bold text-slate-900">{unit.schoolName}</div>
                       <div className="text-[11px] text-slate-500">
-                        {unit.shortForm} &middot; {totalCount} student{totalCount !== 1 ? 's' : ''}
+                        {unit.schoolCode} &middot; {totalCount} student{totalCount !== 1 ? 's' : ''}
                       </div>
                     </div>
                   </div>
@@ -391,21 +415,21 @@ export default function UniversityDashboard() {
                     {unitStudents.length > 0 ? (
                       renderAllStudentsTable(unitStudents)
                     ) : (
-                      <div className="py-6 text-center text-xs text-slate-400">No students in this unit</div>
+                      <div className="py-6 text-center text-xs text-slate-400">No students in this school</div>
                     )}
 
                     {children.map((child) => {
-                      const childStudents = studentsByUnit[String(child.unitId)] || [];
-                      const childExpanded = expandedUnits[child.unitId];
+                      const childStudents = studentsByUnit[String(child.schoolId)] || [];
+                      const childExpanded = expandedUnits[child.schoolId];
                       return (
-                        <div key={child.unitId} className="border-t border-slate-100">
+                        <div key={child.schoolId} className="border-t border-slate-100">
                           <button
                             type="button"
-                            onClick={() => toggleUnit(child.unitId)}
+                            onClick={() => toggleUnit(child.schoolId)}
                             className="w-full px-5 py-3 flex items-center justify-between hover:bg-slate-50/80 transition-colors pl-12"
                           >
                             <div className="flex items-center gap-2">
-                              <div className="text-xs font-bold text-slate-700">{child.unitName}</div>
+                              <div className="text-xs font-bold text-slate-700">{child.schoolName}</div>
                               <span className="text-[10px] text-slate-400">({childStudents.length})</span>
                             </div>
                             {childExpanded ? <ChevronDown className="w-3 h-3 text-slate-400" /> : <ChevronRight className="w-3 h-3 text-slate-400" />}
@@ -452,7 +476,7 @@ export default function UniversityDashboard() {
         <div className="grid grid-cols-3 gap-4">
           <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-xs">
             <div className="text-2xl font-extrabold text-slate-900">{counts.total}</div>
-            <div className="text-xs font-semibold text-slate-500">Students Assigned to You</div>
+            <div className="text-xs font-semibold text-slate-500">Total Students</div>
           </div>
           <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-xs">
             <div className="text-2xl font-extrabold text-slate-900">{counts.assigned}</div>
@@ -461,6 +485,25 @@ export default function UniversityDashboard() {
           <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-xs">
             <div className="text-2xl font-extrabold text-slate-900">{counts.pending}</div>
             <div className="text-xs font-semibold text-slate-500">Awaiting Placement</div>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-4 gap-4">
+          <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-xs">
+            <div className="text-2xl font-extrabold text-teal-700">{schools.length}</div>
+            <div className="text-xs font-semibold text-slate-500">Schools</div>
+          </div>
+          <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-xs">
+            <div className="text-2xl font-extrabold text-teal-700">{departments.length}</div>
+            <div className="text-xs font-semibold text-slate-500">Departments</div>
+          </div>
+          <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-xs">
+            <div className="text-2xl font-extrabold text-teal-700">{programmes.length}</div>
+            <div className="text-xs font-semibold text-slate-500">Programmes</div>
+          </div>
+          <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-xs">
+            <div className="text-2xl font-extrabold text-teal-700">{counts.total > 0 ? Math.round((counts.assigned / counts.total) * 100) : 0}%</div>
+            <div className="text-xs font-semibold text-slate-500">Placement Rate</div>
           </div>
         </div>
 
@@ -622,6 +665,132 @@ export default function UniversityDashboard() {
     );
   }
 
+  function renderAcademicStructure() {
+    return (
+      <div className="space-y-6">
+        <section className="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
+          <div className="px-5 py-4 border-b border-slate-200">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-blue-50 border border-blue-200 flex items-center justify-center text-blue-700">
+                <School className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="text-sm font-bold text-slate-900">Schools</h3>
+                <p className="text-[11px] text-slate-500">{schools.length} school{schools.length !== 1 ? 's' : ''} registered</p>
+              </div>
+            </div>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="border-b border-slate-200 bg-slate-50/90 text-[11px] font-bold tracking-wider text-slate-800">
+                  <th className="py-3 px-4">ID</th>
+                  <th className="py-3 px-4">Name</th>
+                  <th className="py-3 px-4">Code</th>
+                  <th className="py-3 px-4">Type</th>
+                  <th className="py-3 px-4">Students</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100 text-sm">
+                {schools.map((s) => (
+                  <tr key={s.schoolId} className="hover:bg-slate-50/80">
+                    <td className="py-3 px-4 text-xs text-slate-600">{s.schoolId}</td>
+                    <td className="py-3 px-4 text-xs font-semibold text-slate-900">{s.schoolName}</td>
+                    <td className="py-3 px-4 text-xs text-slate-600">{s.schoolCode || '—'}</td>
+                    <td className="py-3 px-4 text-xs text-slate-600">{s.type || '—'}</td>
+                    <td className="py-3 px-4 text-xs text-slate-600">
+                      {allStudents.filter((st) => String(st.schoolId) === String(s.schoolId)).length}
+                    </td>
+                  </tr>
+                ))}
+                {schools.length === 0 && (
+                  <tr><td colSpan={5} className="py-8 text-center text-xs text-slate-400">No schools found</td></tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <section className="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
+            <div className="px-5 py-4 border-b border-slate-200">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-violet-50 border border-violet-200 flex items-center justify-center text-violet-700">
+                  <ListChecks className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold text-slate-900">Departments</h3>
+                  <p className="text-[11px] text-slate-500">{departments.length} department{departments.length !== 1 ? 's' : ''}</p>
+                </div>
+              </div>
+            </div>
+            <div className="max-h-72 overflow-y-auto">
+              <table className="w-full text-left border-collapse">
+                <thead className="sticky top-0 bg-slate-50/90">
+                  <tr className="border-b border-slate-200 text-[11px] font-bold tracking-wider text-slate-800">
+                    <th className="py-2.5 px-4">Name</th>
+                    <th className="py-2.5 px-4">School</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100 text-sm">
+                  {departments.map((d) => {
+                    const school = schools.find((s) => String(s.schoolId) === String(d.schoolId));
+                    return (
+                      <tr key={d.departmentId} className="hover:bg-slate-50/80">
+                        <td className="py-2.5 px-4 text-xs font-semibold text-slate-900">{d.departmentName}</td>
+                        <td className="py-2.5 px-4 text-xs text-slate-600">{school ? school.schoolName : '—'}</td>
+                      </tr>
+                    );
+                  })}
+                  {departments.length === 0 && (
+                    <tr><td colSpan={2} className="py-6 text-center text-xs text-slate-400">No departments</td></tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </section>
+
+          <section className="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
+            <div className="px-5 py-4 border-b border-slate-200">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-amber-50 border border-amber-200 flex items-center justify-center text-amber-700">
+                  <BookOpen className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold text-slate-900">Programmes</h3>
+                  <p className="text-[11px] text-slate-500">{programmes.length} programme{programmes.length !== 1 ? 's' : ''}</p>
+                </div>
+              </div>
+            </div>
+            <div className="max-h-72 overflow-y-auto">
+              <table className="w-full text-left border-collapse">
+                <thead className="sticky top-0 bg-slate-50/90">
+                  <tr className="border-b border-slate-200 text-[11px] font-bold tracking-wider text-slate-800">
+                    <th className="py-2.5 px-4">Name</th>
+                    <th className="py-2.5 px-4">Code</th>
+                    <th className="py-2.5 px-4">Level</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100 text-sm">
+                  {programmes.map((p) => (
+                    <tr key={p.programmeId} className="hover:bg-slate-50/80">
+                      <td className="py-2.5 px-4 text-xs font-semibold text-slate-900">{p.programmeName}</td>
+                      <td className="py-2.5 px-4 text-xs text-slate-600">{p.programmeCode}</td>
+                      <td className="py-2.5 px-4 text-xs text-slate-600">{p.programmeLevel}</td>
+                    </tr>
+                  ))}
+                  {programmes.length === 0 && (
+                    <tr><td colSpan={3} className="py-6 text-center text-xs text-slate-400">No programmes</td></tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </section>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <DashboardLayout
       title="University Dashboard"
@@ -629,6 +798,7 @@ export default function UniversityDashboard() {
       tabs={[
         { id: 'students', label: 'Students' },
         { id: 'credentials', label: 'Placements' },
+        { id: 'academic', label: 'Academic Structure' },
       ]}
       activeTab={activeTab}
       onTabChange={setActiveTab}
@@ -681,7 +851,9 @@ export default function UniversityDashboard() {
           </section>
         )}
 
-        {activeTab === 'students' ? renderStudents() : renderCredentials()}
+        {activeTab === 'students' && renderStudents()}
+        {activeTab === 'credentials' && renderCredentials()}
+        {activeTab === 'academic' && renderAcademicStructure()}
       </div>
 
       {editStudent && (

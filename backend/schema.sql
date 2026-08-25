@@ -198,7 +198,10 @@
     ) engine=InnoDB;
 
     create table students (
+        department_id bigint,
         end_date date,
+        programme_id bigint,
+        school_id bigint,
         start_date date,
         year_of_study integer,
         id bigint not null auto_increment,

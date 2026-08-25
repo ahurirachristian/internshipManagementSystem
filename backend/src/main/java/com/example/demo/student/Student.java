@@ -67,6 +67,15 @@ public class Student {
     @Column(name = "end_date", nullable = true)
     private java.time.LocalDate endDate;
 
+    @Column(name = "school_id", nullable = true)
+    private Long schoolId;
+
+    @Column(name = "department_id", nullable = true)
+    private Long departmentId;
+
+    @Column(name = "programme_id", nullable = true)
+    private Long programmeId;
+
     public Student() {
     }
 
@@ -212,5 +221,29 @@ public class Student {
 
     public void setEndDate(java.time.LocalDate endDate) {
         this.endDate = endDate;
+    }
+
+    public Long getSchoolId() {
+        return schoolId;
+    }
+
+    public void setSchoolId(Long schoolId) {
+        this.schoolId = schoolId;
+    }
+
+    public Long getDepartmentId() {
+        return departmentId;
+    }
+
+    public void setDepartmentId(Long departmentId) {
+        this.departmentId = departmentId;
+    }
+
+    public Long getProgrammeId() {
+        return programmeId;
+    }
+
+    public void setProgrammeId(Long programmeId) {
+        this.programmeId = programmeId;
     }
 }

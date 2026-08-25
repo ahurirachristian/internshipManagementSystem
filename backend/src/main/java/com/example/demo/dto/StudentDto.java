@@ -26,6 +26,9 @@ public class StudentDto {
     private String semester;
     private LocalDate startDate;
     private LocalDate endDate;
+    private Long schoolId;
+    private Long departmentId;
+    private Long programmeId;
     private String username;
 
     public Long getId() {
@@ -186,5 +189,29 @@ public class StudentDto {
 
     public void setUsername(String username) {
         this.username = username;
+    }
+
+    public Long getSchoolId() {
+        return schoolId;
+    }
+
+    public void setSchoolId(Long schoolId) {
+        this.schoolId = schoolId;
+    }
+
+    public Long getDepartmentId() {
+        return departmentId;
+    }
+
+    public void setDepartmentId(Long departmentId) {
+        this.departmentId = departmentId;
+    }
+
+    public Long getProgrammeId() {
+        return programmeId;
+    }
+
+    public void setProgrammeId(Long programmeId) {
+        this.programmeId = programmeId;
     }
 }

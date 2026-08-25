@@ -25,6 +25,8 @@ import com.example.demo.dto.StudentDto;
 import com.example.demo.student.DayDiaryRepository;
 import com.example.demo.student.Student;
 import com.example.demo.student.StudentRepository;
+import com.example.demo.university.University;
+import com.example.demo.university.UniversityRepository;
 
 /**
  * M3 (MIGRATION_PLAN.md): student API rebound to the Model-B students table.
@@ -39,15 +41,18 @@ public class StudentController {
     private final UserRepository userRepository;
     private final DayDiaryRepository dayDiaryRepository;
     private final AuditLogService auditLogService;
+    private final UniversityRepository universityRepository;
 
     public StudentController(StudentRepository studentRepository,
             UserRepository userRepository,
             DayDiaryRepository dayDiaryRepository,
-            AuditLogService auditLogService) {
+            AuditLogService auditLogService,
+            UniversityRepository universityRepository) {
         this.studentRepository = studentRepository;
         this.userRepository = userRepository;
         this.dayDiaryRepository = dayDiaryRepository;
         this.auditLogService = auditLogService;
+        this.universityRepository = universityRepository;
     }
 
     @GetMapping("/me")
@@ -93,6 +98,32 @@ public class StudentController {
     @PreAuthorize("hasAnyAuthority('ADMIN', 'SUPERVISOR', 'COMPANY')")
     public List<StudentDto> getAllStudents() {
         return studentRepository.findAll().stream().map(this::toDto).collect(Collectors.toList());
+    }
+
+    @GetMapping("/university")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'SUPERVISOR')")
+    public ResponseEntity<?> getUniversityStudents(Principal principal) {
+        Long universityId = resolveUniversityId(principal);
+        if (universityId == null) {
+            return ResponseEntity.badRequest().body(
+                    java.util.Map.of("error", "Your account is not linked to a university."));
+        }
+        List<StudentDto> students = studentRepository.findByUniversityId(universityId)
+                .stream().map(this::toDto).collect(Collectors.toList());
+        return ResponseEntity.ok(students);
+    }
+
+    @GetMapping("/university/profile")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'SUPERVISOR')")
+    public ResponseEntity<?> getUniversityProfile(Principal principal) {
+        Long universityId = resolveUniversityId(principal);
+        if (universityId == null) {
+            return ResponseEntity.badRequest().body(
+                    java.util.Map.of("error", "Your account is not linked to a university."));
+        }
+        return universityRepository.findById(universityId.intValue())
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
 
     @PostMapping
@@ -208,6 +239,12 @@ public class StudentController {
                 .orElse(null);
     }
 
+    private Long resolveUniversityId(Principal principal) {
+        return userRepository.findByUsername(principal.getName())
+                .map(UserEntity::getUniversityId)
+                .orElse(null);
+    }
+
     private UserEntity resolveLinkedUser(StudentDto dto) {
         if (dto.getUserId() != null) {
             return userRepository.findById(dto.getUserId()).orElse(null);
@@ -273,6 +310,15 @@ public class StudentController {
         if (dto.getEndDate() != null || create) {
             student.setEndDate(dto.getEndDate());
         }
+        if (dto.getSchoolId() != null || create) {
+            student.setSchoolId(dto.getSchoolId());
+        }
+        if (dto.getDepartmentId() != null || create) {
+            student.setDepartmentId(dto.getDepartmentId());
+        }
+        if (dto.getProgrammeId() != null || create) {
+            student.setProgrammeId(dto.getProgrammeId());
+        }
     }
 
     private void merge(StudentDto dto, Student student, boolean adminUpdate) {
@@ -302,6 +348,9 @@ public class StudentController {
         dto.setSemester(student.getSemester());
         dto.setStartDate(student.getStartDate());
         dto.setEndDate(student.getEndDate());
+        dto.setSchoolId(student.getSchoolId());
+        dto.setDepartmentId(student.getDepartmentId());
+        dto.setProgrammeId(student.getProgrammeId());
         userRepository.findById(student.getUserId())
                 .ifPresent(u -> dto.setUsername(u.getUsername()));
         return dto;

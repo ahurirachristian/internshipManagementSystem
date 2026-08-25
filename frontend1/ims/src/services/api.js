@@ -153,6 +153,20 @@ export async function fetchStudents() {
   return parseResponse(response);
 }
 
+export async function fetchUniversityStudents() {
+  const response = await fetch(`${API_ROOT}/api/students/university`, {
+    credentials: 'include',
+  });
+  return parseResponse(response);
+}
+
+export async function fetchUniversityProfile() {
+  const response = await fetch(`${API_ROOT}/api/students/university/profile`, {
+    credentials: 'include',
+  });
+  return parseResponse(response);
+}
+
 export async function createStudent(student) {
   const response = await fetch(`${API_ROOT}/api/students`, {
     method: 'POST',
