@@ -7,7 +7,7 @@ import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
 @Component
-@Order(11)
+@Order(37)
 public class PlacementDataSeeder implements CommandLineRunner {
 
     private final PlacementRepository placementRepository;

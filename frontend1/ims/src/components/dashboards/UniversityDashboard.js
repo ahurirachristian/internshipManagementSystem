@@ -4,13 +4,14 @@ import DashboardLayout from '../DashboardLayout';
 import StudentEditModal from '../StudentEditModal';
 import { useAuth } from '../../context/AuthContext';
 import {
-  createStudentCredential,
   deleteStudent,
   fetchStudents,
   fetchCompanies,
   fetchSupervisors,
   fetchUniversity,
-  fetchAcademicUnits,
+  fetchSchools,
+  fetchUniversitySupervisors,
+  fetchIndustrialSupervisors,
   updateStudent,
 } from '../../services/api';
 import {
@@ -28,14 +29,11 @@ import {
   List,
 } from 'lucide-react';
 
-const emptyCredentialForm = {
-  studentName: '',
-  email: '',
-  studentNo: '',
-  regNo: '',
-  intake: '',
-  program: '',
-  courseName: '',
+const emptyAssignForm = {
+  studentId: '',
+  internshipCompanyId: '',
+  uniSupervisorId: '',
+  indSupervisorId: '',
 };
 
 export default function UniversityDashboard() {
@@ -45,14 +43,16 @@ export default function UniversityDashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
-  const [credentialForm, setCredentialForm] = useState(emptyCredentialForm);
-  const [credentialLoading, setCredentialLoading] = useState(false);
+  const [assignForm, setAssignForm] = useState(emptyAssignForm);
+  const [assignLoading, setAssignLoading] = useState(false);
+  const [uniSupervisorRows, setUniSupervisorRows] = useState([]);
+  const [indSupervisorRows, setIndSupervisorRows] = useState([]);
   const [editStudent, setEditStudent] = useState(null);
   const [companies, setCompanies] = useState([]);
   const [supervisors, setSupervisors] = useState([]);
   const [university, setUniversity] = useState(null);
   const [studentsViewMode, setStudentsViewMode] = useState('all');
-  const [academicUnits, setAcademicUnits] = useState([]);
+  const [schools, setSchools] = useState([]);
   const [expandedUnits, setExpandedUnits] = useState({});
   const [searchParams] = useSearchParams();
   const selectedUnitId = searchParams.get('unitId');
@@ -63,6 +63,8 @@ export default function UniversityDashboard() {
     loadSupervisors();
     loadUniversity();
     loadAcademicUnits();
+    loadUniSupervisorRows();
+    loadIndSupervisorRows();
   }, []);
 
   async function loadStudents() {
@@ -84,6 +86,26 @@ export default function UniversityDashboard() {
     } catch (err) {
       console.error('Failed to load companies', err);
       setCompanies([]);
+    }
+  }
+
+  async function loadUniSupervisorRows() {
+    try {
+      const data = await fetchUniversitySupervisors();
+      setUniSupervisorRows(Array.isArray(data) ? data : []);
+    } catch (err) {
+      console.error('Failed to load university supervisors', err);
+      setUniSupervisorRows([]);
+    }
+  }
+
+  async function loadIndSupervisorRows() {
+    try {
+      const data = await fetchIndustrialSupervisors();
+      setIndSupervisorRows(Array.isArray(data) ? data : []);
+    } catch (err) {
+      console.error('Failed to load industrial supervisors', err);
+      setIndSupervisorRows([]);
     }
   }
 
@@ -111,8 +133,8 @@ export default function UniversityDashboard() {
   async function loadAcademicUnits() {
     try {
       if (user.universityId) {
-        const data = await fetchAcademicUnits(user.universityId);
-        setAcademicUnits(Array.isArray(data) ? data : []);
+        const data = await fetchSchools();
+        setSchools(Array.isArray(data) ? data : []);
       }
     } catch (err) {
       console.error('Failed to load academic units', err);
@@ -125,36 +147,36 @@ export default function UniversityDashboard() {
 
   function getUnitName(unitId) {
     if (!unitId) return 'Unassigned';
-    const unit = academicUnits.find((u) => u.unitId === unitId);
+    const unit = schools.find((u) => u.schoolId === unitId);
     return unit ? unit.unitName : `Unit ${unitId}`;
   }
 
   const topUnits = useMemo(
-    () => academicUnits.filter((u) => !u.parentUnitId),
-    [academicUnits]
+    () => schools.filter((u) => !u.parentSchoolId),
+    [schools]
   );
 
   const childUnitsMap = useMemo(() => {
     const map = {};
-    academicUnits.forEach((u) => {
-      if (u.parentUnitId) {
-        if (!map[u.parentUnitId]) map[u.parentUnitId] = [];
-        map[u.parentUnitId].push(u);
+    schools.forEach((u) => {
+      if (u.parentSchoolId) {
+        if (!map[u.parentSchoolId]) map[u.parentSchoolId] = [];
+        map[u.parentSchoolId].push(u);
       }
     });
     return map;
-  }, [academicUnits]);
+  }, [schools]);
 
   const includedUnitIds = useMemo(() => {
     if (!selectedUnitId) return null;
     const ids = new Set([String(selectedUnitId)]);
-    academicUnits.forEach((u) => {
-      if (String(u.parentUnitId) === String(selectedUnitId)) {
-        ids.add(String(u.unitId));
+    schools.forEach((u) => {
+      if (String(u.parentSchoolId) === String(selectedUnitId)) {
+        ids.add(String(u.schoolId));
       }
     });
     return ids;
-  }, [selectedUnitId, academicUnits]);
+  }, [selectedUnitId, schools]);
 
   const students = useMemo(
     () => allStudents,
@@ -192,28 +214,24 @@ export default function UniversityDashboard() {
     };
   }, [filteredStudents]);
 
-  async function handleCredentialSubmit(event) {
+  async function handleAssignSubmit(event) {
     event.preventDefault();
     setError('');
     setNotice('');
-    setCredentialLoading(true);
+    setAssignLoading(true);
     try {
-      await createStudentCredential({
-        studentName: credentialForm.studentName.trim(),
-        email: credentialForm.email.trim(),
-        studentNo: credentialForm.studentNo.trim(),
-        regNo: credentialForm.regNo.trim(),
-        intake: credentialForm.intake.trim() || 'AUG/2026',
-        program: credentialForm.program.trim() || 'BSCCS',
-        courseName: credentialForm.courseName.trim() || 'Internship',
+      await updateStudent(assignForm.studentId, {
+        internshipCompanyId: assignForm.internshipCompanyId || null,
+        uniSupervisorId: assignForm.uniSupervisorId || null,
+        indSupervisorId: assignForm.indSupervisorId || null,
       });
-      setCredentialForm(emptyCredentialForm);
-      setNotice('Student credentials created successfully.');
+      setAssignForm(emptyAssignForm);
+      setNotice('Placement assigned successfully.');
       await loadStudents();
     } catch (err) {
-      setError(err.message || 'Unable to create student credentials.');
+      setError(err.message || 'Unable to assign placement.');
     } finally {
-      setCredentialLoading(false);
+      setAssignLoading(false);
     }
   }
 
@@ -236,9 +254,10 @@ export default function UniversityDashboard() {
     }
   }
 
-  function getCompanyName(organisation) {
-    if (!organisation || organisation === 'Pending') return '—';
-    return organisation;
+  function getCompanyName(student) {
+    if (!student.internshipCompanyId) return '—';
+    const match = companies.find((c) => String(c.id) === String(student.internshipCompanyId));
+    return match ? match.name : `Company #${student.internshipCompanyId}`;
   }
 
   function renderStudentRow(student) {
@@ -249,18 +268,18 @@ export default function UniversityDashboard() {
             <div className="w-8 h-8 rounded-lg bg-teal-50 text-teal-700 border border-teal-200 flex items-center justify-center shrink-0 shadow-xs">
               <GraduationCap className="w-4 h-4" />
             </div>
-            <span className="font-bold text-slate-900">{student.studentName}</span>
+            <span className="font-bold text-slate-900">{student.fullName}</span>
           </div>
         </td>
-        <td className="py-3.5 px-3 text-xs text-slate-600">{student.email}</td>
-        <td className="py-3.5 px-3 text-xs text-slate-600">{student.studentNo}</td>
-        <td className="py-3.5 px-3 text-xs text-slate-600">{student.program}</td>
+        <td className="py-3.5 px-3 text-xs text-slate-600">{student.username}</td>
+        <td className="py-3.5 px-3 text-xs text-slate-600">{student.studentNumber}</td>
+        <td className="py-3.5 px-3 text-xs text-slate-600">{student.degreeProgram}</td>
         <td className="py-3.5 px-3 text-xs text-slate-600">{student.yearOfStudy}</td>
         <td className="py-3.5 px-3">
-          {student.organisation && student.organisation !== 'Pending' ? (
+          {student.internshipCompanyId ? (
             <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-700">
               <Building2 className="w-3.5 h-3.5 text-slate-400" />
-              {getCompanyName(student.organisation)}
+              {getCompanyName(student)}
             </span>
           ) : (
             <span className="text-xs text-slate-400">—</span>
@@ -502,6 +521,7 @@ export default function UniversityDashboard() {
   }
 
   function renderCredentials() {
+    const selectClass = "w-full bg-white text-slate-900 text-xs rounded-xl border border-slate-300 px-3.5 py-2.5 focus:border-teal-600 focus:ring-2 focus:ring-teal-600/20 focus:outline-none transition-all shadow-xs font-medium";
     return (
       <section className="bg-white rounded-2xl border border-slate-200 p-6 shadow-xs">
         <div className="flex items-center gap-3 mb-4">
@@ -509,101 +529,95 @@ export default function UniversityDashboard() {
             <UserPlus className="w-5 h-5" />
           </div>
           <div>
-            <h3 className="text-sm font-bold text-slate-900">Generate Student Credentials</h3>
-            <p className="text-[11px] text-slate-500">Create a student account and profile. Default password is Student@123.</p>
+            <h3 className="text-sm font-bold text-slate-900">Assign Student Placement</h3>
+            <p className="text-[11px] text-slate-500">Attach a registered student to a company and supervisors.</p>
           </div>
         </div>
-        <form onSubmit={handleCredentialSubmit} className="space-y-4">
+        {allStudents.length === 0 ? (
+          <p className="text-xs text-slate-500">No students available to assign yet.</p>
+        ) : (
+        <form onSubmit={handleAssignSubmit} className="space-y-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label htmlFor="cred-studentName" className="block text-xs font-bold uppercase tracking-wider text-slate-800 mb-1.5">
-                Student Name <span className="text-rose-600">*</span>
+              <label htmlFor="assign-student" className="block text-xs font-bold uppercase tracking-wider text-slate-800 mb-1.5">
+                Student <span className="text-rose-600">*</span>
               </label>
-              <input
-                id="cred-studentName"
-                value={credentialForm.studentName}
-                onChange={(e) => setCredentialForm({ ...credentialForm, studentName: e.target.value })}
-                placeholder="e.g. John Doe"
+              <select
+                id="assign-student"
+                value={assignForm.studentId}
+                onChange={(e) => setAssignForm({ ...assignForm, studentId: e.target.value })}
                 required
-                className="w-full bg-white text-slate-900 text-xs rounded-xl border border-slate-300 px-3.5 py-2.5 focus:border-teal-600 focus:ring-2 focus:ring-teal-600/20 focus:outline-none transition-all shadow-xs font-medium placeholder:text-slate-400"
-              />
+                className={selectClass}
+              >
+                <option value="">Select student…</option>
+                {allStudents.map((st) => (
+                  <option key={st.id} value={st.id}>
+                    {(st.fullName || [st.firstName, st.lastName].filter(Boolean).join(' '))} ({st.studentNumber})
+                  </option>
+                ))}
+              </select>
             </div>
             <div>
-              <label htmlFor="cred-email" className="block text-xs font-bold uppercase tracking-wider text-slate-800 mb-1.5">
-                Email <span className="text-rose-600">*</span>
+              <label htmlFor="assign-company" className="block text-xs font-bold uppercase tracking-wider text-slate-800 mb-1.5">
+                Company
               </label>
-              <input
-                id="cred-email"
-                type="email"
-                value={credentialForm.email}
-                onChange={(e) => setCredentialForm({ ...credentialForm, email: e.target.value })}
-                placeholder="e.g. john@example.com"
-                required
-                className="w-full bg-white text-slate-900 text-xs rounded-xl border border-slate-300 px-3.5 py-2.5 focus:border-teal-600 focus:ring-2 focus:ring-teal-600/20 focus:outline-none transition-all shadow-xs font-medium placeholder:text-slate-400"
-              />
+              <select
+                id="assign-company"
+                value={assignForm.internshipCompanyId}
+                onChange={(e) => setAssignForm({ ...assignForm, internshipCompanyId: e.target.value })}
+                className={selectClass}
+              >
+                <option value="">None (pending)</option>
+                {companies.map((c) => (
+                  <option key={c.id} value={c.id}>{c.name}</option>
+                ))}
+              </select>
             </div>
             <div>
-              <label htmlFor="cred-studentNo" className="block text-xs font-bold uppercase tracking-wider text-slate-800 mb-1.5">
-                Student Number <span className="text-rose-600">*</span>
+              <label htmlFor="assign-uni-supervisor" className="block text-xs font-bold uppercase tracking-wider text-slate-800 mb-1.5">
+                University Supervisor
               </label>
-              <input
-                id="cred-studentNo"
-                value={credentialForm.studentNo}
-                onChange={(e) => setCredentialForm({ ...credentialForm, studentNo: e.target.value })}
-                placeholder="e.g. 2400101004"
-                required
-                className="w-full bg-white text-slate-900 text-xs rounded-xl border border-slate-300 px-3.5 py-2.5 focus:border-teal-600 focus:ring-2 focus:ring-teal-600/20 focus:outline-none transition-all shadow-xs font-medium placeholder:text-slate-400"
-              />
+              <select
+                id="assign-uni-supervisor"
+                value={assignForm.uniSupervisorId}
+                onChange={(e) => setAssignForm({ ...assignForm, uniSupervisorId: e.target.value })}
+                className={selectClass}
+              >
+                <option value="">None</option>
+                {uniSupervisorRows.map((sup) => (
+                  <option key={sup.id} value={sup.id}>{sup.name}</option>
+                ))}
+              </select>
             </div>
             <div>
-              <label htmlFor="cred-regNo" className="block text-xs font-bold uppercase tracking-wider text-slate-800 mb-1.5">
-                Registration Number <span className="text-rose-600">*</span>
+              <label htmlFor="assign-ind-supervisor" className="block text-xs font-bold uppercase tracking-wider text-slate-800 mb-1.5">
+                Industrial Supervisor
               </label>
-              <input
-                id="cred-regNo"
-                value={credentialForm.regNo}
-                onChange={(e) => setCredentialForm({ ...credentialForm, regNo: e.target.value })}
-                placeholder="e.g. 2024/AUG/BCS/B23629S/DAY"
-                required
-                className="w-full bg-white text-slate-900 text-xs rounded-xl border border-slate-300 px-3.5 py-2.5 focus:border-teal-600 focus:ring-2 focus:ring-teal-600/20 focus:outline-none transition-all shadow-xs font-medium placeholder:text-slate-400"
-              />
-            </div>
-            <div>
-              <label htmlFor="cred-intake" className="block text-xs font-bold uppercase tracking-wider text-slate-800 mb-1.5">
-                Intake
-              </label>
-              <input
-                id="cred-intake"
-                value={credentialForm.intake}
-                onChange={(e) => setCredentialForm({ ...credentialForm, intake: e.target.value })}
-                placeholder="e.g. AUG/2024"
-                className="w-full bg-white text-slate-900 text-xs rounded-xl border border-slate-300 px-3.5 py-2.5 focus:border-teal-600 focus:ring-2 focus:ring-teal-600/20 focus:outline-none transition-all shadow-xs font-medium placeholder:text-slate-400"
-              />
-            </div>
-            <div>
-              <label htmlFor="cred-program" className="block text-xs font-bold uppercase tracking-wider text-slate-800 mb-1.5">
-                Program
-              </label>
-              <input
-                id="cred-program"
-                value={credentialForm.program}
-                onChange={(e) => setCredentialForm({ ...credentialForm, program: e.target.value })}
-                placeholder="e.g. BSCCS"
-                className="w-full bg-white text-slate-900 text-xs rounded-xl border border-slate-300 px-3.5 py-2.5 focus:border-teal-600 focus:ring-2 focus:ring-teal-600/20 focus:outline-none transition-all shadow-xs font-medium placeholder:text-slate-400"
-              />
+              <select
+                id="assign-ind-supervisor"
+                value={assignForm.indSupervisorId}
+                onChange={(e) => setAssignForm({ ...assignForm, indSupervisorId: e.target.value })}
+                className={selectClass}
+              >
+                <option value="">None</option>
+                {indSupervisorRows.map((sup) => (
+                  <option key={sup.id} value={sup.id}>{sup.name}</option>
+                ))}
+              </select>
             </div>
           </div>
           <div className="flex justify-end pt-2">
             <button
               type="submit"
-              disabled={credentialLoading}
+              disabled={assignLoading || !assignForm.studentId}
               className="h-9 px-3.5 py-2 rounded-xl bg-[#063b33] hover:bg-[#042823] text-white text-xs font-bold shadow-xs transition-all flex items-center gap-1.5 focus-visible:ring-2 focus-visible:ring-teal-600 focus-visible:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <UserPlus className="w-4 h-4" />
-              {credentialLoading ? 'Creating...' : 'Create Credentials'}
+              {assignLoading ? 'Saving...' : 'Assign Placement'}
             </button>
           </div>
         </form>
+        )}
       </section>
     );
   }
@@ -614,7 +628,7 @@ export default function UniversityDashboard() {
       subtitle={university ? `Welcome, ${university.fullName}` : 'Welcome,'}
       tabs={[
         { id: 'students', label: 'Students' },
-        { id: 'credentials', label: 'Credentials' },
+        { id: 'credentials', label: 'Placements' },
       ]}
       activeTab={activeTab}
       onTabChange={setActiveTab}
@@ -673,7 +687,7 @@ export default function UniversityDashboard() {
       {editStudent && (
         <StudentEditModal
           student={editStudent}
-          title={`Edit Student: ${editStudent.studentName}`}
+          title={`Edit Student: ${editStudent.fullName}`}
           onClose={() => setEditStudent(null)}
           onSubmit={handleEditSave}
           companies={companies}

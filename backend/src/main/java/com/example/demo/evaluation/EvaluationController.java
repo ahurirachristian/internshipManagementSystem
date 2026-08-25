@@ -20,9 +20,12 @@ import org.springframework.web.bind.annotation.RestController;
 public class EvaluationController {
 
     private final EvaluationService evaluationService;
+    private final com.example.demo.auth.UserRepository userRepository;
 
-    public EvaluationController(EvaluationService evaluationService) {
+    public EvaluationController(EvaluationService evaluationService,
+            com.example.demo.auth.UserRepository userRepository) {
         this.evaluationService = evaluationService;
+        this.userRepository = userRepository;
     }
 
     @GetMapping
@@ -37,6 +40,12 @@ public class EvaluationController {
 
     @PostMapping
     public ResponseEntity<Evaluation> createEvaluation(@RequestBody Evaluation evaluation) {
+        // M5 bridge: derive the typed supervisor user id from the legacy string.
+        if (evaluation.getSupervisorUserId() == null && evaluation.getSupervisorUsername() != null) {
+            userRepository.findByUsername(evaluation.getSupervisorUsername())
+                    .or(() -> userRepository.findByEmail(evaluation.getSupervisorUsername()))
+                    .ifPresent(user -> evaluation.setSupervisorUserId(user.getId()));
+        }
         Evaluation saved = evaluationService.create(evaluation);
         return ResponseEntity.status(HttpStatus.CREATED).body(saved);
     }

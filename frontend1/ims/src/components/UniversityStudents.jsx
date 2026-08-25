@@ -16,7 +16,7 @@ import {
 import { useAuth } from '../context/AuthContext';
 import {
   fetchStudents,
-  fetchAcademicUnits,
+  fetchSchools,
   fetchCompanies,
   createStudent,
   updateStudent,
@@ -53,7 +53,7 @@ export default function UniversityStudents() {
   const [searchParams] = useSearchParams();
   const selectedUnitId = searchParams.get('unitId');
   const [allStudents, setAllStudents] = useState([]);
-  const [academicUnits, setAcademicUnits] = useState([]);
+  const [schools, setSchools] = useState([]);
   const [companies, setCompanies] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -76,11 +76,11 @@ export default function UniversityStudents() {
     try {
       const [studentsData, unitsData, companiesData] = await Promise.all([
         fetchStudents(),
-        user.universityId ? fetchAcademicUnits(user.universityId) : Promise.resolve([]),
+        user.universityId ? fetchSchools() : Promise.resolve([]),
         fetchCompanies(),
       ]);
       setAllStudents(Array.isArray(studentsData) ? studentsData : []);
-      setAcademicUnits(Array.isArray(unitsData) ? unitsData : []);
+      setSchools(Array.isArray(unitsData) ? unitsData : []);
       setCompanies(Array.isArray(companiesData) ? companiesData : []);
     } catch (err) {
       setError(err.message || 'Unable to load data.');
@@ -94,18 +94,18 @@ export default function UniversityStudents() {
     if (!selectedUnitId) return null; // null = no filter
     const ids = new Set([String(selectedUnitId)]);
     // Also include child units
-    academicUnits.forEach((u) => {
-      if (String(u.parentUnitId) === String(selectedUnitId)) {
-        ids.add(String(u.unitId));
+    schools.forEach((u) => {
+      if (String(u.parentSchoolId) === String(selectedUnitId)) {
+        ids.add(String(u.schoolId));
       }
     });
     return ids;
-  }, [selectedUnitId, academicUnits]);
+  }, [selectedUnitId, schools]);
 
   const myStudents = useMemo(() => {
     let list = allStudents;
     if (includedUnitIds) {
-      list = list.filter((s) => includedUnitIds.has(String(s.unitId)));
+      list = list.filter((s) => includedUnitIds.has(String(s.schoolId)));
     }
     return list;
   }, [allStudents, includedUnitIds]);
@@ -115,44 +115,44 @@ export default function UniversityStudents() {
     // School filter
     if (schoolFilter) {
       if (schoolFilter === 'unassigned') {
-        list = list.filter((s) => !s.unitId);
+        list = list.filter((s) => !s.schoolId);
       } else {
         const filterId = String(schoolFilter);
-        const childIds = academicUnits
-          .filter((u) => String(u.parentUnitId) === filterId)
-          .map((u) => String(u.unitId));
+        const childIds = schools
+          .filter((u) => String(u.parentSchoolId) === filterId)
+          .map((u) => String(u.schoolId));
         const includeIds = new Set([filterId, ...childIds]);
-        list = list.filter((s) => includeIds.has(String(s.unitId)));
+        list = list.filter((s) => includeIds.has(String(s.schoolId)));
       }
     }
     // Search filter
     const q = searchQuery.toLowerCase().trim();
     if (q) {
       list = list.filter((s) =>
-        (s.studentName || '').toLowerCase().includes(q) ||
-        (s.studentNo || '').toLowerCase().includes(q) ||
-        (s.email || '').toLowerCase().includes(q) ||
-        (s.program || '').toLowerCase().includes(q) ||
-        (s.organisation || '').toLowerCase().includes(q)
+        ((s.firstName || '') + ' ' + (s.lastName || '')).toLowerCase().includes(q) ||
+        (s.studentNumber || '').toLowerCase().includes(q) ||
+        (s.username || '').toLowerCase().includes(q) ||
+        (s.degreeProgram || '').toLowerCase().includes(q) ||
+        (s.internshipCompanyId ? String(s.internshipCompanyId) : '').toLowerCase().includes(q)
       );
     }
     return list;
-  }, [myStudents, searchQuery, schoolFilter, academicUnits]);
+  }, [myStudents, searchQuery, schoolFilter, schools]);
 
   const unitsByParent = useMemo(() => {
     const map = {};
-    academicUnits.forEach((u) => {
-      const key = u.parentUnitId || 'root';
+    schools.forEach((u) => {
+      const key = u.parentSchoolId || 'root';
       if (!map[key]) map[key] = [];
       map[key].push(u);
     });
     return map;
-  }, [academicUnits]);
+  }, [schools]);
 
   const studentsByUnit = useMemo(() => {
     const map = {};
     filteredStudents.forEach((s) => {
-      const key = s.unitId || 'unassigned';
+      const key = s.schoolId || 'unassigned';
       if (!map[key]) map[key] = [];
       map[key].push(s);
     });
@@ -171,22 +171,24 @@ export default function UniversityStudents() {
     setNotice('');
     setAddLoading(true);
     try {
+      // M3: POST /api/students now speaks the Model-B students table.
+      const fullName = (addForm.studentName || '').trim();
+      const spaceIdx = fullName.indexOf(' ');
       const payload = {
-        ...addForm,
-        academicSupervisor: user.username,
-        organisation: addForm.organisation || 'Pending',
-        location: addForm.location || 'Pending',
-        fieldSupervisor: addForm.fieldSupervisor || 'Pending',
+        username: (addForm.studentNo || '').trim(),
+        firstName: spaceIdx > 0 ? fullName.slice(0, spaceIdx) : fullName,
+        lastName: spaceIdx > 0 ? fullName.slice(spaceIdx + 1).trim() : '',
+        studentNumber: (addForm.studentNo || '').trim(),
+        registrationNumber: (addForm.regNo || '').trim() || 'Pending',
+        degreeProgram: (addForm.program || '').trim() || 'Undeclared',
+        yearOfStudy: addForm.yearOfStudy ? parseInt(addForm.yearOfStudy, 10) : null,
+        phoneNumber: (addForm.mobileNo || '').trim() || null,
+        intake: (addForm.intake || '').trim() || null,
+        academicYear: (addForm.academicYear || '').trim() || null,
+        semester: (addForm.semester || '').trim() || null,
+        startDate: (addForm.startDate || '').trim() || null,
+        endDate: (addForm.endDate || '').trim() || null,
       };
-      // Clean up empty strings to null for Integer fields
-      if (payload.unitId === '' || payload.unitId === null) payload.unitId = null;
-      else payload.unitId = parseInt(payload.unitId, 10);
-      if (payload.courseId === '' || payload.courseId === null) payload.courseId = null;
-      else payload.courseId = parseInt(payload.courseId, 10);
-      if (payload.academicSupervisorId === '' || payload.academicSupervisorId === null) payload.academicSupervisorId = null;
-      else payload.academicSupervisorId = parseInt(payload.academicSupervisorId, 10);
-      if (payload.fieldSupervisorId === '' || payload.fieldSupervisorId === null) payload.fieldSupervisorId = null;
-      else payload.fieldSupervisorId = parseInt(payload.fieldSupervisorId, 10);
 
       await createStudent(payload);
       setAddForm(emptyStudentForm);
@@ -220,7 +222,7 @@ export default function UniversityStudents() {
 
   function getUnitName(unitId) {
     if (!unitId) return 'Unassigned';
-    const unit = academicUnits.find((u) => u.unitId === unitId);
+    const unit = schools.find((u) => u.schoolId === unitId);
     return unit ? unit.unitName : `Unit ${unitId}`;
   }
 
@@ -232,13 +234,13 @@ export default function UniversityStudents() {
             <div className="w-7 h-7 rounded-lg bg-teal-50 text-teal-700 border border-teal-200 flex items-center justify-center shrink-0">
               <GraduationCap className="w-3.5 h-3.5" />
             </div>
-            <span className="font-bold text-slate-900 text-sm">{student.studentName}</span>
+            <span className="font-bold text-slate-900 text-sm">{student.fullName}</span>
           </div>
         </td>
-        <td className="py-3 px-4 text-xs text-slate-600">{student.studentNo}</td>
-        <td className="py-3 px-4 text-xs text-slate-600">{student.email}</td>
-        <td className="py-3 px-4 text-xs text-slate-600">{student.program}</td>
-        <td className="py-3 px-4 text-xs text-slate-600">{student.organisation && student.organisation !== 'Pending' ? student.organisation : '—'}</td>
+        <td className="py-3 px-4 text-xs text-slate-600">{student.studentNumber}</td>
+        <td className="py-3 px-4 text-xs text-slate-600">{student.username}</td>
+        <td className="py-3 px-4 text-xs text-slate-600">{student.degreeProgram}</td>
+        <td className="py-3 px-4 text-xs text-slate-600">{student.internshipCompanyId ? `Company #${student.internshipCompanyId}` : '—'}</td>
         <td className="py-3 px-4 text-right">
           <div className="flex items-center justify-end gap-1">
             <button
@@ -408,8 +410,8 @@ export default function UniversityStudents() {
                 className="w-full text-xs rounded-xl border border-slate-300 px-3 py-2 focus:border-teal-600 focus:ring-2 focus:ring-teal-600/20 focus:outline-none"
               >
                 <option value="">Select unit...</option>
-                {academicUnits.map((u) => (
-                  <option key={u.unitId} value={u.unitId}>{u.unitName}</option>
+                {schools.map((u) => (
+                  <option key={u.schoolId} value={u.schoolId}>{u.schoolName}</option>
                 ))}
               </select>
             </div>
@@ -762,7 +764,7 @@ export default function UniversityStudents() {
       {editStudent && (
         <StudentEditModal
           student={editStudent}
-          title={`Edit Student: ${editStudent.studentName}`}
+          title={`Edit Student: ${editStudent.fullName}`}
           onClose={() => setEditStudent(null)}
           onSubmit={handleEditSave}
           companies={companies}

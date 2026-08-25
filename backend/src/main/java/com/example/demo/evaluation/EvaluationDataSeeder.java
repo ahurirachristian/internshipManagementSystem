@@ -7,7 +7,7 @@ import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
 @Component
-@Order(12)
+@Order(38)
 public class EvaluationDataSeeder implements CommandLineRunner {
 
     private final EvaluationRepository evaluationRepository;

@@ -4,11 +4,14 @@ import java.util.List;
 import java.util.Optional;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import com.example.demo.auth.UserRepository;
 import com.example.demo.dto.StudentProfileDto;
 import com.example.demo.student.DayDiary;
 import com.example.demo.student.DayDiaryRepository;
+import com.example.demo.student.Student;
 import com.example.demo.student.StudentProfile;
 import com.example.demo.student.StudentProfileRepository;
+import com.example.demo.student.StudentRepository;
 
 @Service
 @Transactional
@@ -16,10 +19,15 @@ public class StudentService {
 
     private final StudentProfileRepository studentProfileRepository;
     private final DayDiaryRepository dayDiaryRepository;
+    private final UserRepository userRepository;
+    private final StudentRepository studentRepository;
 
-    public StudentService(StudentProfileRepository studentProfileRepository, DayDiaryRepository dayDiaryRepository) {
+    public StudentService(StudentProfileRepository studentProfileRepository, DayDiaryRepository dayDiaryRepository,
+            UserRepository userRepository, StudentRepository studentRepository) {
         this.studentProfileRepository = studentProfileRepository;
         this.dayDiaryRepository = dayDiaryRepository;
+        this.userRepository = userRepository;
+        this.studentRepository = studentRepository;
     }
 
     public Optional<StudentProfile> findByStudentNo(String studentNo) {
@@ -115,6 +123,10 @@ public class StudentService {
     }
 
     public List<DayDiary> findDiaryEntriesByStudentNo(String studentNo) {
-        return dayDiaryRepository.findByStudentProfileStudentNoOrderByDateDesc(studentNo);
+        // M4: studentNo here carries the username; resolve the Model-B row.
+        return userRepository.findByUsername(studentNo)
+                .flatMap(user -> studentRepository.findByUserId(user.getId()))
+                .map(student -> dayDiaryRepository.findByStudentIdOrderByDateDesc(student.getId()))
+                .orElse(List.of());
     }
 }

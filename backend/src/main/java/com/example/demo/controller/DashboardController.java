@@ -25,8 +25,9 @@ import com.example.demo.student.StudentProfile;
 import com.example.demo.student.StudentProfileRepository;
 import com.example.demo.university.University;
 import com.example.demo.university.UniversityRepository;
-import com.example.demo.dto.StudentCredentialRequest;
 import com.example.demo.student.DayDiaryRepository;
+import com.example.demo.student.StudentRepository;
+import com.example.demo.supervisor.UniversitySupervisorRepository;
 import com.example.demo.audit.AuditLogService;
 
 @Controller
@@ -45,6 +46,8 @@ public class DashboardController {
     private final UniversityRepository universityRepository;
     private final UniversityService universityService;
     private final DayDiaryRepository dayDiaryRepository;
+    private final StudentRepository studentRepository;
+    private final UniversitySupervisorRepository universitySupervisorRepository;
     private final AuditLogService auditLogService;
 
     public DashboardController(StudentService studentService,
@@ -55,6 +58,8 @@ public class DashboardController {
             UniversityRepository universityRepository,
             UniversityService universityService,
             DayDiaryRepository dayDiaryRepository,
+            StudentRepository studentRepository,
+            UniversitySupervisorRepository universitySupervisorRepository,
             AuditLogService auditLogService) {
         this.studentService = studentService;
         this.userRepository = userRepository;
@@ -64,6 +69,8 @@ public class DashboardController {
         this.universityRepository = universityRepository;
         this.universityService = universityService;
         this.dayDiaryRepository = dayDiaryRepository;
+        this.studentRepository = studentRepository;
+        this.universitySupervisorRepository = universitySupervisorRepository;
         this.auditLogService = auditLogService;
     }
 
@@ -161,11 +168,13 @@ public class DashboardController {
         model.addAttribute("userRole", resolveRole(authentication));
         List<StudentProfile> students = universityService.getStudentsBySupervisor(principal.getName());
         model.addAttribute("students", students);
-        model.addAttribute("assignedCount", students.stream().filter(s -> !"Pending".equals(s.getOrganisation())).count());
-        model.addAttribute("pendingCount", students.stream().filter(s -> "Pending".equals(s.getOrganisation())).count());
+        // M3 (loophole #3 fix): assigned/pending now computed from the Model-B
+        // students table via internship_company_id, not the "Pending" string.
+        long[] bCounts = modelBAssignedPendingCounts(principal.getName());
+        model.addAttribute("assignedCount", bCounts[0]);
+        model.addAttribute("pendingCount", bCounts[1]);
         model.addAttribute("universities", universityService.getAllUniversities());
         model.addAttribute("university", university);
-        model.addAttribute("credentialRequest", new StudentCredentialRequest());
         model.addAttribute("currentUser", principal.getName());
         model.addAttribute("activePage", "credentials");
         return "university-credentials";
@@ -189,20 +198,6 @@ public class DashboardController {
         model.addAttribute("currentUser", principal.getName());
         model.addAttribute("activePage", "students");
         return "university-students";
-    }
-
-    @PostMapping("/university/students/credential")
-    @PreAuthorize("hasAnyAuthority('SUPERVISOR', 'ADMIN')")
-    public String createStudentCredential(@ModelAttribute("credentialRequest") StudentCredentialRequest request,
-            Principal principal, Model model, Authentication authentication, RedirectAttributes redirectAttributes) {
-        try {
-            universityService.createStudentCredential(request, principal.getName());
-            auditLogService.log(principal.getName(), "SUPERVISOR", "CREATE", "StudentCredential", "Created credentials for: " + request.getStudentName() + " (" + request.getStudentNo() + ")", null);
-            redirectAttributes.addFlashAttribute("successMessage", "Student credentials created successfully.");
-        } catch (IllegalArgumentException ex) {
-            redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
-        }
-        return "redirect:/university/dashboard";
     }
 
     @GetMapping("/students/edit/{id}")
@@ -267,13 +262,37 @@ public class DashboardController {
                 .ifPresent(student -> {
                     redirectAttributes.addFlashAttribute(
                             "successMessage", "Student \"" + student.getStudentName() + "\" deleted successfully.");
-                    dayDiaryRepository.findAll().stream()
-                            .filter(diary -> diary.getStudentProfile() != null
-                                    && diary.getStudentProfile().getId().equals(student.getId()))
-                            .forEach(dayDiaryRepository::delete);
+                    // M4: diaries are keyed to Model-B students.id — cascade
+                    // through the student-number bridge until M6c removes this
+                    // Model-A flow entirely.
+                    studentRepository.findByStudentNumber(student.getStudentNo()).ifPresent(modelB ->
+                            dayDiaryRepository.deleteAll(
+                                    dayDiaryRepository.findByStudentIdOrderByDateDesc(modelB.getId())));
                 });
         studentProfileRepository.deleteById(id);
         return "redirect:" + resolveHome(authentication);
+    }
+
+    /**
+     * M3: assigned = Model-B student with an internship company;
+     * pending = no company yet. Supervisor scope via university_supervisors.
+     */
+    private long[] modelBAssignedPendingCounts(String username) {
+        return userRepository.findByUsername(username)
+                .flatMap(user -> universitySupervisorRepository.findByUserId(user.getId()))
+                .map(supervisor -> {
+                    List<com.example.demo.student.Student> scoped =
+                            studentRepository.findByUniSupervisorId(supervisor.getId());
+                    long assigned = scoped.stream()
+                            .filter(s -> s.getInternshipCompanyId() != null).count();
+                    return new long[]{assigned, scoped.size() - assigned};
+                })
+                .orElseGet(() -> {
+                    List<com.example.demo.student.Student> all = studentRepository.findAll();
+                    long assigned = all.stream()
+                            .filter(s -> s.getInternshipCompanyId() != null).count();
+                    return new long[]{assigned, all.size() - assigned};
+                });
     }
 
     private String resolveBackUrl(Authentication authentication) {

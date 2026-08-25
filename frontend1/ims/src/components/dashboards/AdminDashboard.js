@@ -58,14 +58,14 @@ export default function AdminDashboard() {
     const totalStudents = students.length;
     const totalDiaryEntries = diaries.length;
     const activeStudents = new Set(
-      diaries.map((d) => d.studentProfile?.studentNo).filter(Boolean)
+      diaries.map((d) => d.studentNumber).filter(Boolean)
     ).size;
     const average = totalStudents > 0 ? totalDiaryEntries / totalStudents : 0;
 
     const diaryCounts = {};
     diaries.forEach((d) => {
-      const studentNo = d.studentProfile?.studentNo;
-      if (studentNo) diaryCounts[studentNo] = (diaryCounts[studentNo] || 0) + 1;
+      const studentNumber = d.studentNumber;
+      if (studentNumber) diaryCounts[studentNumber] = (diaryCounts[studentNumber] || 0) + 1;
     });
 
     return { totalStudents, totalDiaryEntries, activeStudents, average, diaryCounts };
@@ -75,9 +75,7 @@ export default function AdminDashboard() {
     const items = [];
     if (diaries.length > 0) {
       const latest = diaries[0];
-      const name = latest.studentProfile
-        ? latest.studentProfile.studentName || latest.studentProfile.studentNo
-        : 'A student';
+      const name = latest.studentName || latest.studentNumber || 'A student';
       items.push({
         icon: 'fa-book-open',
         title: 'New diary entry',
@@ -90,7 +88,7 @@ export default function AdminDashboard() {
       items.push({
         icon: 'fa-user-graduate',
         title: 'New student registered',
-        message: `${latestStudent.studentName} (${latestStudent.studentNo || '—'}) joined the system.`,
+        message: `${latestStudent.fullName} (${latestStudent.studentNumber || '—'}) joined the system.`,
         time: 'Recently',
       });
     }
@@ -101,12 +99,12 @@ export default function AdminDashboard() {
     const q = searchQuery.trim().toLowerCase();
     if (!q) return students;
     return students.filter((student) => {
-      const name = (student.studentName || '').toLowerCase();
+      const name = (student.fullName || '').toLowerCase();
       return (
         name.includes(q) ||
-        (student.studentNo || '').toLowerCase().includes(q) ||
+        (student.studentNumber || '').toLowerCase().includes(q) ||
         (student.email || '').toLowerCase().includes(q) ||
-        (student.program || '').toLowerCase().includes(q) ||
+        (student.degreeProgram || '').toLowerCase().includes(q) ||
         (student.organisation || '').toLowerCase().includes(q)
       );
     });
@@ -116,11 +114,10 @@ export default function AdminDashboard() {
     const q = searchQuery.trim().toLowerCase();
     if (!q) return diaries;
     return diaries.filter((entry) => {
-      const sp = entry.studentProfile || {};
-      const name = (sp.studentName || '').toLowerCase();
+      const name = (entry.studentName || '').toLowerCase();
       return (
         name.includes(q) ||
-        (sp.studentNo || '').toLowerCase().includes(q) ||
+        (entry.studentNumber || '').toLowerCase().includes(q) ||
         (entry.dailyActivities || '').toLowerCase().includes(q) ||
         (entry.knowledgeAndSkillsGained || '').toLowerCase().includes(q) ||
         (entry.accomplishments || '').toLowerCase().includes(q)
@@ -159,7 +156,7 @@ export default function AdminDashboard() {
             <tbody className="divide-y divide-slate-100 text-sm">
               {filteredStudents.length > 0 ? (
                 filteredStudents.map((student) => {
-                  const count = stats.diaryCounts[student.studentNo] || 0;
+                  const count = stats.diaryCounts[student.studentNumber] || 0;
                   return (
                     <tr key={student.id} className="hover:bg-slate-50/80 transition-colors">
                       <td className="py-3.5 px-3 pl-5">
@@ -168,14 +165,14 @@ export default function AdminDashboard() {
                             <GraduationCap className="w-4 h-4" />
                           </div>
                           <div>
-                            <div className="font-bold text-slate-900">{student.studentName}</div>
-                            <div className="text-[11px] text-slate-500">{student.studentNo}</div>
+                            <div className="font-bold text-slate-900">{student.fullName}</div>
+                            <div className="text-[11px] text-slate-500">{student.username}</div>
                           </div>
                         </div>
                       </td>
-                      <td className="py-3.5 px-3 text-xs text-slate-600">{student.studentNo}</td>
+                      <td className="py-3.5 px-3 text-xs text-slate-600">{student.username}</td>
                       <td className="py-3.5 px-3 text-xs text-slate-600">{student.email}</td>
-                      <td className="py-3.5 px-3 text-xs text-slate-600">{student.program}</td>
+                      <td className="py-3.5 px-3 text-xs text-slate-600">{student.degreeProgram}</td>
                       <td className="py-3.5 px-3 text-xs text-slate-600">{student.organisation || '—'}</td>
                       <td className="py-3.5 px-3">
                         <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-slate-100 text-xs font-bold text-slate-700 border border-slate-200">
@@ -246,7 +243,6 @@ export default function AdminDashboard() {
             <tbody className="divide-y divide-slate-100 text-sm">
               {filteredDiaries.length > 0 ? (
                 filteredDiaries.map((entry) => {
-                  const sp = entry.studentProfile || {};
                   return (
                     <tr key={entry.id} className="hover:bg-slate-50/80 transition-colors">
                       <td className="py-3.5 px-3 pl-5 font-bold text-slate-900 text-xs">{formatDate(entry.date)}</td>
@@ -256,8 +252,8 @@ export default function AdminDashboard() {
                             <GraduationCap className="w-4 h-4" />
                           </div>
                           <div>
-                            <div className="font-bold text-slate-900">{sp.studentName}</div>
-                            <div className="text-[11px] text-slate-500">{sp.studentNo}</div>
+                            <div className="font-bold text-slate-900">{entry.studentName}</div>
+                            <div className="text-[11px] text-slate-500">{entry.studentNumber}</div>
                           </div>
                         </div>
                       </td>

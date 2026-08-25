@@ -27,6 +27,13 @@ public class Evaluation {
     @Column(nullable = false)
     private String supervisorUsername;
 
+    /**
+     * M5: typed reference to the users.id of the evaluating supervisor,
+     * alongside the legacy username/email string (dropped at M6c).
+     */
+    @Column(nullable = true)
+    private Long supervisorUserId;
+
     @Column(nullable = false)
     private Integer punctuality;
 
@@ -93,6 +100,14 @@ public class Evaluation {
 
     public void setPlacementId(Long placementId) {
         this.placementId = placementId;
+    }
+
+    public Long getSupervisorUserId() {
+        return supervisorUserId;
+    }
+
+    public void setSupervisorUserId(Long supervisorUserId) {
+        this.supervisorUserId = supervisorUserId;
     }
 
     public String getSupervisorType() {

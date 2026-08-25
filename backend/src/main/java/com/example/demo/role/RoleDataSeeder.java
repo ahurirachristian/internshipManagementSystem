@@ -7,7 +7,7 @@ import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
 @Component
-@Order(8)
+@Order(22)
 public class RoleDataSeeder implements CommandLineRunner {
 
     private final RoleRepository repository;

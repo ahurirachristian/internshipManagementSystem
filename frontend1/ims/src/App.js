@@ -13,13 +13,12 @@ import AuditLogs from './components/dashboards/AuditLogs';
 import CompanyProfilePage from './components/dashboards/CompanyProfilePage';
 import CompanyPage from './components/CompanyPage';
 import UniversitiesManagement from './components/UniversitiesManagement';
-import AcademicUnitsManagement from './components/AcademicUnitsManagement';
-import CoursesManagement from './components/CoursesManagement';
-import StaffManagement from './components/StaffManagement';
-import UnitCoursesManagement from './components/UnitCoursesManagement';
 import PlacementMatching from './components/PlacementMatching';
 import FileManagement from './components/FileManagement';
 import UniversityStudents from './components/UniversityStudents';
+import SchoolsManagement from './components/dashboards/SchoolsManagement';
+import DepartmentsManagement from './components/dashboards/DepartmentsManagement';
+import ProgrammesManagement from './components/dashboards/ProgrammesManagement';
 import DashboardLayout from './components/DashboardLayout';
 import './App.css';
 
@@ -55,34 +54,26 @@ function UniversitiesPage() {
   );
 }
 
-function AcademicUnitsPage() {
+function SchoolsPage() {
   return (
-    <DashboardLayout title="Academic Units Management" subtitle="Manage colleges, schools, faculties and departments">
-      <AcademicUnitsManagement />
+    <DashboardLayout title="Schools Management" subtitle="Manage colleges, schools and directorates">
+      <SchoolsManagement />
     </DashboardLayout>
   );
 }
 
-function CoursesPage() {
+function DepartmentsPage() {
   return (
-    <DashboardLayout title="Course Management" subtitle="Manage courses offered by your university">
-      <CoursesManagement />
+    <DashboardLayout title="Departments Management" subtitle="Manage departments within schools">
+      <DepartmentsManagement />
     </DashboardLayout>
   );
 }
 
-function StaffPage() {
+function ProgrammesPage() {
   return (
-    <DashboardLayout title="Staff Management" subtitle="Manage academic supervisors for your university">
-      <StaffManagement />
-    </DashboardLayout>
-  );
-}
-
-function UnitCoursesPage() {
-  return (
-    <DashboardLayout title="Unit Courses" subtitle="Link academic units to their courses">
-      <UnitCoursesManagement />
+    <DashboardLayout title="Programmes Management" subtitle="Manage academic programmes">
+      <ProgrammesManagement />
     </DashboardLayout>
   );
 }
@@ -187,34 +178,26 @@ function AppRoutes() {
         }
       />
       <Route
-        path="/university/academic-units"
+        path="/university/schools"
         element={
           <ProtectedRoute role="SUPERVISOR">
-            <AcademicUnitsPage />
+            <SchoolsPage />
           </ProtectedRoute>
         }
       />
       <Route
-        path="/university/courses"
+        path="/university/departments"
         element={
           <ProtectedRoute role="SUPERVISOR">
-            <CoursesPage />
+            <DepartmentsPage />
           </ProtectedRoute>
         }
       />
       <Route
-        path="/university/staff"
+        path="/university/programmes"
         element={
           <ProtectedRoute role="SUPERVISOR">
-            <StaffPage />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/university/unit-courses"
-        element={
-          <ProtectedRoute role="SUPERVISOR">
-            <UnitCoursesPage />
+            <ProgrammesPage />
           </ProtectedRoute>
         }
       />

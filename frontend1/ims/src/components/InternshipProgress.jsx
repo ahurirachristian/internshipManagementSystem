@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Check, Loader2 } from 'lucide-react';
+import { API_ROOT } from '../services/api';
 
 const MILESTONES = [
   { key: 'startDate', label: 'Orientation / Start Date' },
@@ -18,7 +19,7 @@ export default function InternshipProgress() {
       setLoading(true);
       setError('');
       try {
-        const response = await fetch('/api/students/me/progress', {
+        const response = await fetch(`${API_ROOT}/api/students/me/progress`, {
           credentials: 'include',
         });
         if (!response.ok) {

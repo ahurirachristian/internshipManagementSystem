@@ -51,6 +51,22 @@ public class Student {
     @Column(name = "phone_number", nullable = true)
     private String phoneNumber;
 
+    // R3 preserved columns (MIGRATION_PLAN.md): carried over from Model A
+    @Column(name = "intake", nullable = true)
+    private String intake;
+
+    @Column(name = "academic_year", nullable = true)
+    private String academicYear;
+
+    @Column(name = "semester", nullable = true)
+    private String semester;
+
+    @Column(name = "start_date", nullable = true)
+    private java.time.LocalDate startDate;
+
+    @Column(name = "end_date", nullable = true)
+    private java.time.LocalDate endDate;
+
     public Student() {
     }
 
@@ -156,5 +172,45 @@ public class Student {
 
     public void setPhoneNumber(String phoneNumber) {
         this.phoneNumber = phoneNumber;
+    }
+
+    public String getIntake() {
+        return intake;
+    }
+
+    public void setIntake(String intake) {
+        this.intake = intake;
+    }
+
+    public String getAcademicYear() {
+        return academicYear;
+    }
+
+    public void setAcademicYear(String academicYear) {
+        this.academicYear = academicYear;
+    }
+
+    public String getSemester() {
+        return semester;
+    }
+
+    public void setSemester(String semester) {
+        this.semester = semester;
+    }
+
+    public java.time.LocalDate getStartDate() {
+        return startDate;
+    }
+
+    public void setStartDate(java.time.LocalDate startDate) {
+        this.startDate = startDate;
+    }
+
+    public java.time.LocalDate getEndDate() {
+        return endDate;
+    }
+
+    public void setEndDate(java.time.LocalDate endDate) {
+        this.endDate = endDate;
     }
 }

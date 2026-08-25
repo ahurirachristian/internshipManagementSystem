@@ -11,8 +11,7 @@ export default function DiaryReviewModal({ diary, onClose, onSaved }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
 
-  const studentProfile = diary.studentProfile || {};
-  const studentName = studentProfile.studentName || studentProfile.studentNo || diary.studentName || '—';
+  const studentName = diary.studentName || diary.studentNumber || '—';
 
   useEffect(() => {
     function handleKeyDown(e) {

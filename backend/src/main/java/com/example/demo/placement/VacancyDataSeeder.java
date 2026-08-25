@@ -6,7 +6,7 @@ import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
 @Component
-@Order(13)
+@Order(39)
 public class VacancyDataSeeder implements CommandLineRunner {
 
     private final VacancyRepository vacancyRepository;
