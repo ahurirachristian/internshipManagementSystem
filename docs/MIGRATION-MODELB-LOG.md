@@ -128,3 +128,46 @@ Notes:
 - Live boot curl proof: register m3live → login → GET /api/students/me
   returns the Model-B row (fullName "Live Proof", universityId 19,
   intake AUG/2024, yearOfStudy 3).
+
+## M4 — DayDiary rekey (2026-08-25, branch migration/schema-b)
+
+### Backend
+- `DayDiary` rekeyed: dropped the codebase's only `@ManyToOne` join
+  (`student_profile_id`) for a flat `student_id` Long → Model-B
+  students.id. `DayDiaryRepository` reduced to
+  `findByStudentIdOrderByDateDesc`.
+- `DayDiaryApiController` rewritten: every response is now a flattened view
+  (`studentName`, `studentNumber`, `studentId` resolved per entry — no more
+  nested `studentProfile` object). New `/me` endpoint for self-scoped reads.
+  Ownership enforced: STUDENT create binds to own row; update/delete require
+  owner or ADMIN/SUPERVISOR; **fixed loophole** — any STUDENT could
+  previously delete any diary. `/student/{id}` now takes the B id and
+  rejects foreign students.
+- MVC `DayDiaryController.save` attaches to the B row via username→user→
+  student resolution.
+- `StudentService.findDiaryEntriesByStudentNo` (username arg) resolves the
+  B row; empty list when absent.
+- `AdminService`: countActiveStudents by distinct studentId;
+  diary counts keyed by username; NEW getDiaryViews() feeds the Thymeleaf
+  admin page (template switched off entry.studentProfile.*).
+- Cascade deletes: StudentController DELETE removes owned diaries;
+  DashboardController A-flow delete bridges through studentNumber until M6c.
+- `DayDiaryDataSeeder` now guarantees a B students row for the demo
+  `student` account before attaching its two demo entries.
+
+### Frontend
+- api.js: new fetchMyDiaries(); API_ROOT exported (InternshipProgress
+  needed it as a module import).
+- DiaryReviewModal + AdminDashboard read flattened identity fields
+  (entry.studentName/studentNumber); local diary-count map keyed by
+  studentNumber; StudentDashboard uses `/me`.
+
+### Verification
+- New `DayDiaryIntegrationTest` (3 tests): student creates diary against
+  B row (studentId bound server-side); stranger's delete → 403, owner's →
+  204; supervisor feedback + flattened GET list identity.
+- Full suite: **Tests run: 27, Failures: 0 — BUILD SUCCESS**
+- React production build compiles (warnings only).
+- Live curl proof: register m4live → POST /api/diaries 201 (studentId 1 =
+  auto-created B row) → GET /api/diaries/me shows flattened entry →
+  /me/progress diaryCount = 1.

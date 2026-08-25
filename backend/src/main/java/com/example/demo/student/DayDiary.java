@@ -7,9 +7,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
 import jakarta.persistence.Lob;
-import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.FetchType;
 
@@ -43,9 +41,12 @@ public class DayDiary {
     @Lob
     private String supervisorFeedback;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "student_profile_id", nullable = false)
-    private StudentProfile studentProfile;
+    /**
+     * M4: rekeyed from the Model-A student_profile_id join to the Model-B
+     * students.id reference (MIGRATION_PLAN.md R1/R2).
+     */
+    @Column(name = "student_id", nullable = false)
+    private Long studentId;
 
     public DayDiary() {
     }
@@ -106,11 +107,11 @@ public class DayDiary {
         this.supervisorFeedback = supervisorFeedback;
     }
 
-    public StudentProfile getStudentProfile() {
-        return studentProfile;
+    public Long getStudentId() {
+        return studentId;
     }
 
-    public void setStudentProfile(StudentProfile studentProfile) {
-        this.studentProfile = studentProfile;
+    public void setStudentId(Long studentId) {
+        this.studentId = studentId;
     }
 }

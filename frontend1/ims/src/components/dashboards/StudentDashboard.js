@@ -9,7 +9,7 @@ import {
   createDiary,
   deleteDiary,
   fetchMyProfile,
-  fetchStudentDiaries,
+  fetchMyDiaries,
   fetchCompanies,
   fetchSupervisors,
   saveMyProfile,
@@ -73,7 +73,7 @@ export default function StudentDashboard() {
     setDiaryLoading(true);
     setDiaryError('');
     try {
-      setDiaries(await fetchStudentDiaries(user.username));
+      setDiaries(await fetchMyDiaries());
     } catch (err) {
       setDiaryError(err.message || 'Unable to load diary entries.');
     } finally {

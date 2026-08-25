@@ -28,8 +28,6 @@ import com.example.demo.student.StudentRepository;
 
 /**
  * M3 (MIGRATION_PLAN.md): student API rebound to the Model-B students table.
- * Transitional: /me/progress still counts diaries via the Model-A link until
- * M4 rekeys day_diaries.
  */
 @RestController
 @RequestMapping("/api/students")
@@ -69,10 +67,8 @@ public class StudentController {
         if (student == null) {
             return ResponseEntity.notFound().build();
         }
-        // Transitional diary count via Model-A profile link until M4.
-        long diaryCount = dayDiaryRepository
-                .findByStudentProfileStudentNoOrderByDateDesc(principal.getName())
-                .size();
+        // M4: diaries rekeyed to students.id.
+        long diaryCount = dayDiaryRepository.findByStudentIdOrderByDateDesc(student.getId()).size();
         boolean started = student.getInternshipCompanyId() != null;
         return ResponseEntity.ok(new java.util.HashMap<>() {{
             put("startDate", started);
@@ -199,7 +195,7 @@ public class StudentController {
             return ResponseEntity.notFound().build();
         }
         String name = student.getFirstName() + " " + student.getLastName();
-        // M4 will cascade-delete rekeyed diaries here.
+        dayDiaryRepository.deleteAll(dayDiaryRepository.findByStudentIdOrderByDateDesc(student.getId()));
         studentRepository.deleteById(id);
         auditLogService.log(principal.getName(), "SUPERVISOR", "DELETE", "Student",
                 "Deleted student: " + name, null);

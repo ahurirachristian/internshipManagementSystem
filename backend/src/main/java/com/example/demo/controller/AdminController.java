@@ -97,7 +97,7 @@ public class AdminController {
         model.addAttribute("activeStudents", adminService.countActiveStudents());
         model.addAttribute("averageDiaryEntriesPerStudent", adminService.getAverageDiaryEntriesPerStudent());
         model.addAttribute("students", adminService.getAllStudents());
-        model.addAttribute("diaryEntries", adminService.getAllDiaryEntries());
+        model.addAttribute("diaryEntries", adminService.getDiaryViews());
         model.addAttribute("diaryCounts", adminService.getDiaryCountsByStudentNo());
     }
 }

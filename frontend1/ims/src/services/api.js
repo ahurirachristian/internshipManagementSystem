@@ -1,4 +1,4 @@
-const API_ROOT = process.env.REACT_APP_API_ROOT || 'http://localhost:8082';
+export const API_ROOT = process.env.REACT_APP_API_ROOT || 'http://localhost:8082';
 
 async function parseResponse(response) {
   const contentType = response.headers.get('content-type') || '';
@@ -194,6 +194,13 @@ export async function updateStudent(id, student) {
 export async function deleteStudent(id) {
   const response = await fetch(`${API_ROOT}/api/students/${id}`, {
     method: 'DELETE',
+    credentials: 'include',
+  });
+  return parseResponse(response);
+}
+
+export async function fetchMyDiaries() {
+  const response = await fetch(`${API_ROOT}/api/diaries/me`, {
     credentials: 'include',
   });
   return parseResponse(response);

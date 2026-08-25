@@ -278,10 +278,12 @@ public class DashboardController {
                 .ifPresent(student -> {
                     redirectAttributes.addFlashAttribute(
                             "successMessage", "Student \"" + student.getStudentName() + "\" deleted successfully.");
-                    dayDiaryRepository.findAll().stream()
-                            .filter(diary -> diary.getStudentProfile() != null
-                                    && diary.getStudentProfile().getId().equals(student.getId()))
-                            .forEach(dayDiaryRepository::delete);
+                    // M4: diaries are keyed to Model-B students.id — cascade
+                    // through the student-number bridge until M6c removes this
+                    // Model-A flow entirely.
+                    studentRepository.findByStudentNumber(student.getStudentNo()).ifPresent(modelB ->
+                            dayDiaryRepository.deleteAll(
+                                    dayDiaryRepository.findByStudentIdOrderByDateDesc(modelB.getId())));
                 });
         studentProfileRepository.deleteById(id);
         return "redirect:" + resolveHome(authentication);
