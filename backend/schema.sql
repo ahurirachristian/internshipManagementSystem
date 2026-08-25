@@ -1,3 +1,6 @@
+-- AUTO-GENERATED MySQL DDL for Model B (regenerated M5.5, 2026-08-25).
+-- Do not edit by hand; regenerate per docs/MIGRATION-MODELB-LOG.md.
+
 
     create table academic_units (
         parent_unit_id integer,
@@ -82,7 +85,7 @@
     create table day_diaries (
         date date not null,
         id bigint not null auto_increment,
-        student_profile_id bigint not null,
+        student_id bigint not null,
         status varchar(255) not null,
         accomplishments tinytext not null,
         daily_activities tinytext not null,
@@ -111,6 +114,7 @@
         id bigint not null auto_increment,
         placement_id bigint,
         student_id bigint not null,
+        supervisor_user_id bigint,
         supervisor_type varchar(255) not null,
         supervisor_username varchar(255) not null,
         primary key (id)
@@ -144,8 +148,10 @@
 
     create table placements (
         company_id bigint not null,
+        company_supervisor_id bigint,
         id bigint not null auto_increment,
         student_id bigint not null,
+        university_supervisor_id bigint,
         company_supervisor varchar(255) not null,
         university_supervisor varchar(255) not null,
         status enum ('ACTIVE','ASSIGNED','CANCELLED','COMPLETED','PENDING') not null,
@@ -222,6 +228,8 @@
     ) engine=InnoDB;
 
     create table students (
+        end_date date,
+        start_date date,
         year_of_study integer,
         id bigint not null auto_increment,
         ind_supervisor_id bigint,
@@ -229,11 +237,14 @@
         uni_supervisor_id bigint,
         university_id bigint not null,
         user_id bigint not null,
+        academic_year varchar(255),
         degree_program varchar(255) not null,
         first_name varchar(255) not null,
+        intake varchar(255),
         last_name varchar(255) not null,
         phone_number varchar(255),
         registration_number varchar(255) not null,
+        semester varchar(255),
         student_number varchar(255) not null,
         primary key (id)
     ) engine=InnoDB;
@@ -340,8 +351,3 @@
        add constraint FK57llwub3qwyw6vn05jerqfis1 
        foreign key (department_id) 
        references company_departments (id);
-
-    alter table day_diaries 
-       add constraint FKdkpjbc0y0t8isjw8k5nudntd2 
-       foreign key (student_profile_id) 
-       references student_profiles (id);

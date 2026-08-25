@@ -222,3 +222,59 @@ Notes:
   M2's matrix only ever exercised freshly registered accounts, so
   default-account health was unverified until now — future matrices must
   include admin/university/airtel/student seeded logins.
+
+## M5.5 — ETL script + schema.sql regeneration (2026-08-25, branch migration/schema-b)
+
+### Schema drift found and fixed
+- `backend/schema.sql` was STALE (generated in M1): day_diaries still had
+  student_profile_id, placements lacked the M5 id columns, students lacked
+  the R3 columns. Regenerated with the documented MySQL-dialect command;
+  note Hibernate APPENDS on regeneration (devtools double-pass) — keep only
+  the last block when trimming. Now current: 24 tables, all M3–M5 shapes.
+
+### backend/migration/modelb_etl.sql (NEW)
+Runbook-style, idempotent, gated ETL for the production MySQL DB:
+- STEP 0: CREATE IF NOT EXISTS the four missing B tables (pinned to prod
+  collation utf8mb4_general_ci) + procedure-guarded column adds (MySQL has
+  no ADD COLUMN IF NOT EXISTS).
+- STEP 1 companies → internship_companies (country resolved by name,
+  university_id=19 single-university ruling).
+- STEP 2 supervisors from real name sources: staff (university-anchored →
+  university_supervisors; field staff → unattached industrial rows) +
+  company_supervisors → industrial_supervisors (company ids remapped to
+  internship_companies). Names split first-token/rest.
+- STEP 3 student_profiles+users → students (requires a login account;
+  organisation resolves to company by exact name; supervisor resolution:
+  name match first, then SUPERVISOR username; year_of_study cast only when
+  numeric). registration_number defaults "Pending", degree "Undeclared".
+- STEP 4–6 day_diaries.student_profile_id → students.id (then tightened
+  NOT NULL); placements student AND company keys remapped to B ids
+  (overlap-safe guard), typed supervisor ids backfilled from strings;
+  evaluations remapped + supervisor_user_id via users username/email.
+- STEP 7 gates G1–G6 as SIGNAL-raising stored procedure: orphan refs,
+  unmapped diaries/placements/evaluations, profiles without accounts
+  (manual follow-up list), source/target count drift. Any failure aborts
+  with SQLSTATE 45000. Post-run reconciliation report queries included.
+- Legacy tables/columns stay until M6c sign-off; picture blobs dropped by
+  design (R3 lossy ruling).
+
+### Dry-run verification (scratch copy of live DB)
+- Full run: **exit 0, all gates green**. Conversions: 3 students
+  (Kasagga Fred / Alex Johnson / Sarah Owen with reg numbers, programs,
+  R3 fields), 2 companies, 1 university supervisor (Ssemaganda Shuraim),
+  3 industrial (John Doe, Jane Smith, Nangai Zackaria); diaries 2/2 mapped;
+  placements 3/3 with both typed ids; evaluations supervisor_user_id NULL
+  by design ('john.doe@airtel.co.ug' matches no user — flagged as warning
+  class, not a gate failure). Kasagga's MicroVest placement correctly NULL
+  (no such company row exists yet).
+- Idempotency: second run exit 0, identical counts.
+- Negative test: profile whose user account was removed → script aborts
+  `ERROR 45000 ETL gate failed` (G5).
+- Production DB verified UNTOUCHED (no B tables exist there yet).
+
+### Ops notes
+- Two mysqld instances exist on this host (XAMPP + system 8.0.46 on :3306);
+  clients resolve to the system server via /var/run/mysqld/mysqld.sock.
+- First import attempts stalled transiently (~10 tables in); root cause not
+  pinned — rerun completed cleanly. If seen again: check processlist for a
+  stuck importer before assuming dump corruption.
