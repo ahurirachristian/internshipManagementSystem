@@ -25,7 +25,6 @@ import com.example.demo.student.StudentProfile;
 import com.example.demo.student.StudentProfileRepository;
 import com.example.demo.university.University;
 import com.example.demo.university.UniversityRepository;
-import com.example.demo.dto.StudentCredentialRequest;
 import com.example.demo.student.DayDiaryRepository;
 import com.example.demo.student.StudentRepository;
 import com.example.demo.supervisor.UniversitySupervisorRepository;
@@ -176,7 +175,6 @@ public class DashboardController {
         model.addAttribute("pendingCount", bCounts[1]);
         model.addAttribute("universities", universityService.getAllUniversities());
         model.addAttribute("university", university);
-        model.addAttribute("credentialRequest", new StudentCredentialRequest());
         model.addAttribute("currentUser", principal.getName());
         model.addAttribute("activePage", "credentials");
         return "university-credentials";
@@ -200,20 +198,6 @@ public class DashboardController {
         model.addAttribute("currentUser", principal.getName());
         model.addAttribute("activePage", "students");
         return "university-students";
-    }
-
-    @PostMapping("/university/students/credential")
-    @PreAuthorize("hasAnyAuthority('SUPERVISOR', 'ADMIN')")
-    public String createStudentCredential(@ModelAttribute("credentialRequest") StudentCredentialRequest request,
-            Principal principal, Model model, Authentication authentication, RedirectAttributes redirectAttributes) {
-        try {
-            universityService.createStudentCredential(request, principal.getName());
-            auditLogService.log(principal.getName(), "SUPERVISOR", "CREATE", "StudentCredential", "Created credentials for: " + request.getStudentName() + " (" + request.getStudentNo() + ")", null);
-            redirectAttributes.addFlashAttribute("successMessage", "Student credentials created successfully.");
-        } catch (IllegalArgumentException ex) {
-            redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
-        }
-        return "redirect:/university/dashboard";
     }
 
     @GetMapping("/students/edit/{id}")

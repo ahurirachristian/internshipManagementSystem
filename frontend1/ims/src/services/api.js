@@ -264,6 +264,20 @@ export async function submitDiaryFeedback(id, payload) {
   return parseResponse(response);
 }
 
+export async function fetchUniversitySupervisors() {
+  const response = await fetch(`${API_ROOT}/api/supervisors/university`, {
+    credentials: 'include',
+  });
+  return parseResponse(response);
+}
+
+export async function fetchIndustrialSupervisors() {
+  const response = await fetch(`${API_ROOT}/api/supervisors/industrial`, {
+    credentials: 'include',
+  });
+  return parseResponse(response);
+}
+
 export async function createStudentCredential(payload) {
   const response = await fetch(`${API_ROOT}/api/university/students/credential`, {
     method: 'POST',

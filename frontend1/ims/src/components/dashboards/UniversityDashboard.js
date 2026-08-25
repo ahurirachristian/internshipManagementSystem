@@ -4,13 +4,14 @@ import DashboardLayout from '../DashboardLayout';
 import StudentEditModal from '../StudentEditModal';
 import { useAuth } from '../../context/AuthContext';
 import {
-  createStudentCredential,
   deleteStudent,
   fetchStudents,
   fetchCompanies,
   fetchSupervisors,
   fetchUniversity,
   fetchAcademicUnits,
+  fetchUniversitySupervisors,
+  fetchIndustrialSupervisors,
   updateStudent,
 } from '../../services/api';
 import {
@@ -28,14 +29,11 @@ import {
   List,
 } from 'lucide-react';
 
-const emptyCredentialForm = {
-  studentName: '',
-  email: '',
-  studentNo: '',
-  regNo: '',
-  intake: '',
-  program: '',
-  courseName: '',
+const emptyAssignForm = {
+  studentId: '',
+  internshipCompanyId: '',
+  uniSupervisorId: '',
+  indSupervisorId: '',
 };
 
 export default function UniversityDashboard() {
@@ -45,8 +43,10 @@ export default function UniversityDashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
-  const [credentialForm, setCredentialForm] = useState(emptyCredentialForm);
-  const [credentialLoading, setCredentialLoading] = useState(false);
+  const [assignForm, setAssignForm] = useState(emptyAssignForm);
+  const [assignLoading, setAssignLoading] = useState(false);
+  const [uniSupervisorRows, setUniSupervisorRows] = useState([]);
+  const [indSupervisorRows, setIndSupervisorRows] = useState([]);
   const [editStudent, setEditStudent] = useState(null);
   const [companies, setCompanies] = useState([]);
   const [supervisors, setSupervisors] = useState([]);
@@ -63,6 +63,8 @@ export default function UniversityDashboard() {
     loadSupervisors();
     loadUniversity();
     loadAcademicUnits();
+    loadUniSupervisorRows();
+    loadIndSupervisorRows();
   }, []);
 
   async function loadStudents() {
@@ -84,6 +86,26 @@ export default function UniversityDashboard() {
     } catch (err) {
       console.error('Failed to load companies', err);
       setCompanies([]);
+    }
+  }
+
+  async function loadUniSupervisorRows() {
+    try {
+      const data = await fetchUniversitySupervisors();
+      setUniSupervisorRows(Array.isArray(data) ? data : []);
+    } catch (err) {
+      console.error('Failed to load university supervisors', err);
+      setUniSupervisorRows([]);
+    }
+  }
+
+  async function loadIndSupervisorRows() {
+    try {
+      const data = await fetchIndustrialSupervisors();
+      setIndSupervisorRows(Array.isArray(data) ? data : []);
+    } catch (err) {
+      console.error('Failed to load industrial supervisors', err);
+      setIndSupervisorRows([]);
     }
   }
 
@@ -192,28 +214,24 @@ export default function UniversityDashboard() {
     };
   }, [filteredStudents]);
 
-  async function handleCredentialSubmit(event) {
+  async function handleAssignSubmit(event) {
     event.preventDefault();
     setError('');
     setNotice('');
-    setCredentialLoading(true);
+    setAssignLoading(true);
     try {
-      await createStudentCredential({
-        studentName: credentialForm.studentName.trim(),
-        email: credentialForm.email.trim(),
-        studentNo: credentialForm.studentNo.trim(),
-        regNo: credentialForm.regNo.trim(),
-        intake: credentialForm.intake.trim() || 'AUG/2026',
-        program: credentialForm.program.trim() || 'BSCCS',
-        courseName: credentialForm.courseName.trim() || 'Internship',
+      await updateStudent(assignForm.studentId, {
+        internshipCompanyId: assignForm.internshipCompanyId || null,
+        uniSupervisorId: assignForm.uniSupervisorId || null,
+        indSupervisorId: assignForm.indSupervisorId || null,
       });
-      setCredentialForm(emptyCredentialForm);
-      setNotice('Student credentials created successfully.');
+      setAssignForm(emptyAssignForm);
+      setNotice('Placement assigned successfully.');
       await loadStudents();
     } catch (err) {
-      setError(err.message || 'Unable to create student credentials.');
+      setError(err.message || 'Unable to assign placement.');
     } finally {
-      setCredentialLoading(false);
+      setAssignLoading(false);
     }
   }
 
@@ -503,6 +521,7 @@ export default function UniversityDashboard() {
   }
 
   function renderCredentials() {
+    const selectClass = "w-full bg-white text-slate-900 text-xs rounded-xl border border-slate-300 px-3.5 py-2.5 focus:border-teal-600 focus:ring-2 focus:ring-teal-600/20 focus:outline-none transition-all shadow-xs font-medium";
     return (
       <section className="bg-white rounded-2xl border border-slate-200 p-6 shadow-xs">
         <div className="flex items-center gap-3 mb-4">
@@ -510,101 +529,95 @@ export default function UniversityDashboard() {
             <UserPlus className="w-5 h-5" />
           </div>
           <div>
-            <h3 className="text-sm font-bold text-slate-900">Generate Student Credentials</h3>
-            <p className="text-[11px] text-slate-500">Create a student account and profile. Default password is Student@123.</p>
+            <h3 className="text-sm font-bold text-slate-900">Assign Student Placement</h3>
+            <p className="text-[11px] text-slate-500">Attach a registered student to a company and supervisors.</p>
           </div>
         </div>
-        <form onSubmit={handleCredentialSubmit} className="space-y-4">
+        {allStudents.length === 0 ? (
+          <p className="text-xs text-slate-500">No students available to assign yet.</p>
+        ) : (
+        <form onSubmit={handleAssignSubmit} className="space-y-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label htmlFor="cred-studentName" className="block text-xs font-bold uppercase tracking-wider text-slate-800 mb-1.5">
-                Student Name <span className="text-rose-600">*</span>
+              <label htmlFor="assign-student" className="block text-xs font-bold uppercase tracking-wider text-slate-800 mb-1.5">
+                Student <span className="text-rose-600">*</span>
               </label>
-              <input
-                id="cred-studentName"
-                value={credentialForm.studentName}
-                onChange={(e) => setCredentialForm({ ...credentialForm, studentName: e.target.value })}
-                placeholder="e.g. John Doe"
+              <select
+                id="assign-student"
+                value={assignForm.studentId}
+                onChange={(e) => setAssignForm({ ...assignForm, studentId: e.target.value })}
                 required
-                className="w-full bg-white text-slate-900 text-xs rounded-xl border border-slate-300 px-3.5 py-2.5 focus:border-teal-600 focus:ring-2 focus:ring-teal-600/20 focus:outline-none transition-all shadow-xs font-medium placeholder:text-slate-400"
-              />
+                className={selectClass}
+              >
+                <option value="">Select student…</option>
+                {allStudents.map((st) => (
+                  <option key={st.id} value={st.id}>
+                    {(st.fullName || [st.firstName, st.lastName].filter(Boolean).join(' '))} ({st.studentNumber})
+                  </option>
+                ))}
+              </select>
             </div>
             <div>
-              <label htmlFor="cred-email" className="block text-xs font-bold uppercase tracking-wider text-slate-800 mb-1.5">
-                Email <span className="text-rose-600">*</span>
+              <label htmlFor="assign-company" className="block text-xs font-bold uppercase tracking-wider text-slate-800 mb-1.5">
+                Company
               </label>
-              <input
-                id="cred-email"
-                type="email"
-                value={credentialForm.email}
-                onChange={(e) => setCredentialForm({ ...credentialForm, email: e.target.value })}
-                placeholder="e.g. john@example.com"
-                required
-                className="w-full bg-white text-slate-900 text-xs rounded-xl border border-slate-300 px-3.5 py-2.5 focus:border-teal-600 focus:ring-2 focus:ring-teal-600/20 focus:outline-none transition-all shadow-xs font-medium placeholder:text-slate-400"
-              />
+              <select
+                id="assign-company"
+                value={assignForm.internshipCompanyId}
+                onChange={(e) => setAssignForm({ ...assignForm, internshipCompanyId: e.target.value })}
+                className={selectClass}
+              >
+                <option value="">None (pending)</option>
+                {companies.map((c) => (
+                  <option key={c.id} value={c.id}>{c.name}</option>
+                ))}
+              </select>
             </div>
             <div>
-              <label htmlFor="cred-studentNo" className="block text-xs font-bold uppercase tracking-wider text-slate-800 mb-1.5">
-                Student Number <span className="text-rose-600">*</span>
+              <label htmlFor="assign-uni-supervisor" className="block text-xs font-bold uppercase tracking-wider text-slate-800 mb-1.5">
+                University Supervisor
               </label>
-              <input
-                id="cred-studentNo"
-                value={credentialForm.studentNo}
-                onChange={(e) => setCredentialForm({ ...credentialForm, studentNo: e.target.value })}
-                placeholder="e.g. 2400101004"
-                required
-                className="w-full bg-white text-slate-900 text-xs rounded-xl border border-slate-300 px-3.5 py-2.5 focus:border-teal-600 focus:ring-2 focus:ring-teal-600/20 focus:outline-none transition-all shadow-xs font-medium placeholder:text-slate-400"
-              />
+              <select
+                id="assign-uni-supervisor"
+                value={assignForm.uniSupervisorId}
+                onChange={(e) => setAssignForm({ ...assignForm, uniSupervisorId: e.target.value })}
+                className={selectClass}
+              >
+                <option value="">None</option>
+                {uniSupervisorRows.map((sup) => (
+                  <option key={sup.id} value={sup.id}>{sup.name}</option>
+                ))}
+              </select>
             </div>
             <div>
-              <label htmlFor="cred-regNo" className="block text-xs font-bold uppercase tracking-wider text-slate-800 mb-1.5">
-                Registration Number <span className="text-rose-600">*</span>
+              <label htmlFor="assign-ind-supervisor" className="block text-xs font-bold uppercase tracking-wider text-slate-800 mb-1.5">
+                Industrial Supervisor
               </label>
-              <input
-                id="cred-regNo"
-                value={credentialForm.regNo}
-                onChange={(e) => setCredentialForm({ ...credentialForm, regNo: e.target.value })}
-                placeholder="e.g. 2024/AUG/BCS/B23629S/DAY"
-                required
-                className="w-full bg-white text-slate-900 text-xs rounded-xl border border-slate-300 px-3.5 py-2.5 focus:border-teal-600 focus:ring-2 focus:ring-teal-600/20 focus:outline-none transition-all shadow-xs font-medium placeholder:text-slate-400"
-              />
-            </div>
-            <div>
-              <label htmlFor="cred-intake" className="block text-xs font-bold uppercase tracking-wider text-slate-800 mb-1.5">
-                Intake
-              </label>
-              <input
-                id="cred-intake"
-                value={credentialForm.intake}
-                onChange={(e) => setCredentialForm({ ...credentialForm, intake: e.target.value })}
-                placeholder="e.g. AUG/2024"
-                className="w-full bg-white text-slate-900 text-xs rounded-xl border border-slate-300 px-3.5 py-2.5 focus:border-teal-600 focus:ring-2 focus:ring-teal-600/20 focus:outline-none transition-all shadow-xs font-medium placeholder:text-slate-400"
-              />
-            </div>
-            <div>
-              <label htmlFor="cred-program" className="block text-xs font-bold uppercase tracking-wider text-slate-800 mb-1.5">
-                Program
-              </label>
-              <input
-                id="cred-program"
-                value={credentialForm.program}
-                onChange={(e) => setCredentialForm({ ...credentialForm, program: e.target.value })}
-                placeholder="e.g. BSCCS"
-                className="w-full bg-white text-slate-900 text-xs rounded-xl border border-slate-300 px-3.5 py-2.5 focus:border-teal-600 focus:ring-2 focus:ring-teal-600/20 focus:outline-none transition-all shadow-xs font-medium placeholder:text-slate-400"
-              />
+              <select
+                id="assign-ind-supervisor"
+                value={assignForm.indSupervisorId}
+                onChange={(e) => setAssignForm({ ...assignForm, indSupervisorId: e.target.value })}
+                className={selectClass}
+              >
+                <option value="">None</option>
+                {indSupervisorRows.map((sup) => (
+                  <option key={sup.id} value={sup.id}>{sup.name}</option>
+                ))}
+              </select>
             </div>
           </div>
           <div className="flex justify-end pt-2">
             <button
               type="submit"
-              disabled={credentialLoading}
+              disabled={assignLoading || !assignForm.studentId}
               className="h-9 px-3.5 py-2 rounded-xl bg-[#063b33] hover:bg-[#042823] text-white text-xs font-bold shadow-xs transition-all flex items-center gap-1.5 focus-visible:ring-2 focus-visible:ring-teal-600 focus-visible:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <UserPlus className="w-4 h-4" />
-              {credentialLoading ? 'Creating...' : 'Create Credentials'}
+              {assignLoading ? 'Saving...' : 'Assign Placement'}
             </button>
           </div>
         </form>
+        )}
       </section>
     );
   }
@@ -615,7 +628,7 @@ export default function UniversityDashboard() {
       subtitle={university ? `Welcome, ${university.fullName}` : 'Welcome,'}
       tabs={[
         { id: 'students', label: 'Students' },
-        { id: 'credentials', label: 'Credentials' },
+        { id: 'credentials', label: 'Placements' },
       ]}
       activeTab={activeTab}
       onTabChange={setActiveTab}

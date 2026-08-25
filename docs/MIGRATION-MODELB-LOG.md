@@ -171,3 +171,54 @@ Notes:
 - Live curl proof: register m4live → POST /api/diaries 201 (studentId 1 =
   auto-created B row) → GET /api/diaries/me shows flattened entry →
   /me/progress diaryCount = 1.
+
+## M5 — Placement/Evaluation typing, credential retirement, leak fix (2026-08-25, branch migration/schema-b)
+
+### Backend
+- `Placement` += universitySupervisorId / companySupervisorId (nullable);
+  `Evaluation` += supervisorUserId (nullable). Legacy display strings stay
+  beside them until M6c (loophole #5 fix).
+- Bridge resolution on create/update: placement controller matches the
+  legacy strings against Model-B supervisor rows (name containment);
+  evaluation controller resolves supervisorUsername via users table
+  (username or email). Verified live: "David Ssemakula" → id 1,
+  "Grace Nabatanzi" → id 1, "university" → userId.
+- **SupervisorController hash leak closed** (ONBOARDING §9): the endpoint
+  returned raw UserEntity rows — serialized JSON included bcrypt hashes and
+  reset tokens. Now returns a safe projection {id, username, email,
+  universityId, companyId}.
+- NEW GET /api/supervisors/university and /industrial: Model-B supervisor
+  rows for assignment selects.
+- **Credential generator retired**: MVC POST /university/students/credential
+  + API POST /api/university/students/credential + UniversityService
+  .createStudentCredential + StudentCredentialRequest DTO all deleted;
+  Thymeleaf form replaced with a notice. Students self-register; supervisors
+  assign placements (R1).
+- DataSeeder gained a startup log line when seeding.
+
+### Frontend
+- UniversityDashboard "Credentials" tab → "Placements": the credential form
+  is now an **assignment form** (student select + company select +
+  university/industrial supervisor selects) hitting PUT /api/students/{id}
+  with internshipCompanyId/uniSupervisorId/indSupervisorId.
+- api.js: fetchUniversitySupervisors/fetchIndustrialSupervisors added.
+
+### Verification
+- New PlacementSupervisorIntegrationTest (4 tests): typed-id bridge on
+  create; evaluation supervisorUserId resolution; supervisors endpoint
+  hash-free; retired credential endpoint → 404. UniversityServiceTest
+  rewritten for surviving catalog operations (credential flow gone).
+- Full suite: **Tests run: 33, Failures: 0 — BUILD SUCCESS**
+- Live curl proof: admin/university seeded logins OK; PUT assign sets all
+  three ids; placement create with string-only supervisors resolves both
+  ids; retired endpoint 404; supervisors list shows no password fields.
+
+### Incident note
+- During M5 verification, one boot answered requests with no seeded users
+  (all default-account logins 401 while fresh registrations worked). Cause
+  was never reproduced — a stale pre-M5 process holding :8082 during that
+  window is the leading suspect (pkill had timed out twice). Fresh boots
+  before and after seed correctly, and seeded logins now pass. Lesson:
+  M2's matrix only ever exercised freshly registered accounts, so
+  default-account health was unverified until now — future matrices must
+  include admin/university/airtel/student seeded logins.

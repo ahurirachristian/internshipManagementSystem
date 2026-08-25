@@ -1,34 +1,33 @@
 package com.example.demo.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import com.example.demo.auth.Role;
-import com.example.demo.auth.UserEntity;
-import com.example.demo.auth.UserRepository;
-import com.example.demo.dto.StudentCredentialRequest;
-import com.example.demo.student.StudentProfile;
-import com.example.demo.student.StudentProfileRepository;
+import com.example.demo.dto.UniversityRequest;
+import com.example.demo.university.University;
 import com.example.demo.university.UniversityRepository;
 
+/**
+ * M5: the credential generator was retired; this now covers the surviving
+ * university catalog operations.
+ */
 @ExtendWith(MockitoExtension.class)
 class UniversityServiceTest {
 
     @Mock
-    private UserRepository userRepository;
+    private com.example.demo.auth.UserRepository userRepository;
 
     @Mock
-    private StudentProfileRepository studentProfileRepository;
+    private com.example.demo.student.StudentProfileRepository studentProfileRepository;
 
     @Mock
     private UniversityRepository universityRepository;
@@ -44,28 +43,39 @@ class UniversityServiceTest {
     }
 
     @Test
-    void createStudentCredentialShouldSaveUserWithStudentRoleAndHashedPassword() {
-        StudentCredentialRequest request = new StudentCredentialRequest();
-        request.setStudentName("Jane Doe");
-        request.setStudentNo("STU-TEST-001");
-        request.setRegNo("REG-TEST-001");
-        request.setIntake("AUG/2024");
-        request.setProgram("BSCCS");
-        request.setCourseName("Internship");
-        request.setEmail("jane@example.com");
+    void createShouldRejectBlankName() {
+        UniversityRequest request = new UniversityRequest();
+        request.setFullName("  ");
+        assertThatThrownBy(() -> service.create(request))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("full name is required");
+    }
 
-        when(userRepository.findByUsername("STU-TEST-001")).thenReturn(Optional.empty());
-        when(passwordEncoder.encode("Student@123")).thenReturn("encoded-password");
-        when(userRepository.save(any(UserEntity.class))).thenAnswer(invocation -> invocation.getArgument(0));
-        when(studentProfileRepository.save(any(StudentProfile.class))).thenAnswer(invocation -> invocation.getArgument(0));
+    @Test
+    void createShouldRejectDuplicateFullName() {
+        UniversityRequest request = new UniversityRequest();
+        request.setFullName("Nkumba University");
+        request.setShortForm("NKU");
+        when(universityRepository.findByFullNameIgnoreCase("Nkumba University"))
+                .thenReturn(Optional.of(new University()));
+        assertThatThrownBy(() -> service.create(request))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("already exists");
+    }
 
-        UserEntity user = service.createStudentCredential(request, "university-supervisor");
+    @Test
+    void createShouldTrimAndPersist() {
+        UniversityRequest request = new UniversityRequest();
+        request.setFullName("  Kyambogo University ");
+        request.setShortForm(" KYU ");
+        when(universityRepository.findByFullNameIgnoreCase(any())).thenReturn(Optional.empty());
+        when(universityRepository.findByShortFormIgnoreCase(any())).thenReturn(Optional.empty());
+        when(universityRepository.save(any(University.class))).thenAnswer(inv -> inv.getArgument(0));
 
-        ArgumentCaptor<UserEntity> userCaptor = ArgumentCaptor.forClass(UserEntity.class);
-        verify(userRepository).save(userCaptor.capture());
-        assertThat(userCaptor.getValue().getRole()).isEqualTo(Role.STUDENT);
-        assertThat(userCaptor.getValue().getUsername()).isEqualTo("STU-TEST-001");
-        assertThat(userCaptor.getValue().getPassword()).isEqualTo("encoded-password");
-        assertThat(user).isNotNull();
+        University saved = service.create(request);
+
+        assertThat(saved.getFullName()).isEqualTo("Kyambogo University");
+        assertThat(saved.getShortForm()).isEqualTo("KYU");
+        assertThat(saved.getCountry()).isEqualTo("Uganda");
     }
 }
