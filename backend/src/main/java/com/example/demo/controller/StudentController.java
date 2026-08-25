@@ -2,12 +2,12 @@ package com.example.demo.controller;
 
 import java.security.Principal;
 import java.util.List;
-import java.util.Map;
+import java.util.stream.Collectors;
+
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -17,216 +17,352 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import com.example.demo.dto.StudentProfileDto;
-import com.example.demo.student.DayDiary;
-import com.example.demo.student.DayDiaryRepository;
-import com.example.demo.student.StudentProfile;
-import com.example.demo.student.StudentProfileRepository;
 
+import com.example.demo.audit.AuditLogService;
+import com.example.demo.auth.UserEntity;
+import com.example.demo.auth.UserRepository;
+import com.example.demo.dto.StudentDto;
+import com.example.demo.student.DayDiaryRepository;
+import com.example.demo.student.Student;
+import com.example.demo.student.StudentRepository;
+import com.example.demo.university.University;
+import com.example.demo.university.UniversityRepository;
+
+/**
+ * M3 (MIGRATION_PLAN.md): student API rebound to the Model-B students table.
+ */
 @RestController
 @RequestMapping("/api/students")
 public class StudentController {
 
-    private final StudentProfileRepository studentProfileRepository;
-    private final DayDiaryRepository dayDiaryRepository;
+    private static final long DEFAULT_UNIVERSITY_ID = 19L; // Nkumba (single-university deployment)
 
-    public StudentController(StudentProfileRepository studentProfileRepository, DayDiaryRepository dayDiaryRepository) {
-        this.studentProfileRepository = studentProfileRepository;
+    private final StudentRepository studentRepository;
+    private final UserRepository userRepository;
+    private final DayDiaryRepository dayDiaryRepository;
+    private final AuditLogService auditLogService;
+    private final UniversityRepository universityRepository;
+
+    public StudentController(StudentRepository studentRepository,
+            UserRepository userRepository,
+            DayDiaryRepository dayDiaryRepository,
+            AuditLogService auditLogService,
+            UniversityRepository universityRepository) {
+        this.studentRepository = studentRepository;
+        this.userRepository = userRepository;
         this.dayDiaryRepository = dayDiaryRepository;
+        this.auditLogService = auditLogService;
+        this.universityRepository = universityRepository;
     }
 
     @GetMapping("/me")
-    @PreAuthorize("hasAnyAuthority('STUDENT', 'ADMIN')")
-    public ResponseEntity<StudentProfile> getMyProfile(Principal principal) {
-        return studentProfileRepository.findByUsername(principal.getName())
+    @PreAuthorize("hasAnyAuthority('STUDENT', 'ADMIN', 'SUPERVISOR')")
+    public ResponseEntity<StudentDto> getMyProfile(Principal principal) {
+        return userRepository.findByUsername(principal.getName())
+                .flatMap(user -> studentRepository.findByUserId(user.getId()))
+                .map(this::toDto)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
 
     @GetMapping("/me/progress")
-    @PreAuthorize("hasAnyAuthority('STUDENT', 'ADMIN')")
-    public ResponseEntity<Map<String, Object>> getMyProgress(Principal principal) {
-        StudentProfile profile = studentProfileRepository.findByUsername(principal.getName()).orElse(null);
-        if (profile == null) {
+    @PreAuthorize("hasAnyAuthority('STUDENT', 'ADMIN', 'SUPERVISOR')")
+    public ResponseEntity<?> getMyProgress(Principal principal) {
+        Student student = currentStudent(principal);
+        if (student == null) {
             return ResponseEntity.notFound().build();
         }
-        long diaryCount = dayDiaryRepository.findByStudentProfileUsernameOrderByDateDesc(principal.getName()).size();
-        Map<String, Object> progress = Map.of(
-                "startDate", profile.getInternshipCompany() != null && !profile.getInternshipCompany().equals("Pending"),
-                "diaryCount", diaryCount,
-                "midTerm", diaryCount >= 5,
-                "finalReport", diaryCount >= 10
-        );
-        return ResponseEntity.ok(progress);
+        // M4: diaries rekeyed to students.id.
+        long diaryCount = dayDiaryRepository.findByStudentIdOrderByDateDesc(student.getId()).size();
+        boolean started = student.getInternshipCompanyId() != null;
+        return ResponseEntity.ok(new java.util.HashMap<>() {{
+            put("startDate", started);
+            put("diaryCount", diaryCount);
+            put("midTerm", diaryCount >= 5);
+            put("finalReport", diaryCount >= 10);
+        }});
     }
 
     @PutMapping("/me")
     @PreAuthorize("hasAnyAuthority('STUDENT', 'ADMIN')")
-    public ResponseEntity<StudentProfile> updateMyProfile(@RequestBody StudentProfileDto dto, Principal principal) {
-        StudentProfile existing = studentProfileRepository.findByUsername(principal.getName())
-                .orElseGet(() -> {
-                    StudentProfile blank = new StudentProfile();
-                    blank.setUsername(principal.getName());
-                    blank.setFirstName("Student");
-                    blank.setLastName("User");
-                    blank.setEmail(principal.getName());
-                    blank.setStudentNumber(principal.getName());
-                    blank.setRegistrationNumber(principal.getName());
-                    blank.setDegreeProgram("Pending");
-                    blank.setYearOfStudy(1);
-                    blank.setPhoneNumber("Pending");
-                    blank.setInternshipCompany("Pending");
-                    blank.setUniversitySupervisor("Pending");
-                    blank.setIndustrialSupervisorId("Pending");
-                    blank.setCompanyId(null);
-                    blank.setPictureUrl("/images/student-placeholder.png");
-                    return blank;
-                });
-        merge(existing, dto);
-        return ResponseEntity.ok(studentProfileRepository.save(existing));
-    }
-
-    private void merge(StudentProfile existing, StudentProfileDto dto) {
-        if (dto == null) {
-            return;
+    public ResponseEntity<StudentDto> updateMyProfile(@RequestBody StudentDto dto, Principal principal) {
+        Student student = currentStudent(principal);
+        if (student == null) {
+            return ResponseEntity.notFound().build();
         }
-        if (dto.getFirstName() != null) {
-            existing.setFirstName(dto.getFirstName());
-        }
-        if (dto.getLastName() != null) {
-            existing.setLastName(dto.getLastName());
-        }
-        if (dto.getEmail() != null) {
-            existing.setEmail(dto.getEmail());
-        }
-        if (dto.getStudentNumber() != null) {
-            existing.setStudentNumber(dto.getStudentNumber());
-        }
-        if (dto.getRegistrationNumber() != null) {
-            existing.setRegistrationNumber(dto.getRegistrationNumber());
-        }
-        if (dto.getDegreeProgram() != null) {
-            existing.setDegreeProgram(dto.getDegreeProgram());
-        }
-        if (dto.getYearOfStudy() != null) {
-            existing.setYearOfStudy(dto.getYearOfStudy());
-        }
-        if (dto.getPhoneNumber() != null) {
-            existing.setPhoneNumber(dto.getPhoneNumber());
-        }
-        if (dto.getInternshipCompany() != null) {
-            existing.setInternshipCompany(dto.getInternshipCompany());
-        }
-        if (dto.getUniversitySupervisor() != null) {
-            existing.setUniversitySupervisor(dto.getUniversitySupervisor());
-        }
-        if (dto.getIndustrialSupervisorId() != null) {
-            existing.setIndustrialSupervisorId(dto.getIndustrialSupervisorId());
-        }
-        if (dto.getCompanyId() != null) {
-            existing.setCompanyId(dto.getCompanyId());
-        }
-        if (dto.getPictureUrl() != null) {
-            existing.setPictureUrl(dto.getPictureUrl());
-        }
+        merge(dto, student, false);
+        return ResponseEntity.ok(toDto(studentRepository.save(student)));
     }
 
     @GetMapping
     @PreAuthorize("hasAnyAuthority('ADMIN', 'SUPERVISOR', 'COMPANY')")
-    public List<StudentProfile> getAllStudents() {
-        return studentProfileRepository.findAll();
+    public List<StudentDto> getAllStudents() {
+        return studentRepository.findAll().stream().map(this::toDto).collect(Collectors.toList());
+    }
+
+    @GetMapping("/university")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'SUPERVISOR')")
+    public ResponseEntity<?> getUniversityStudents(Principal principal) {
+        Long universityId = resolveUniversityId(principal);
+        if (universityId == null) {
+            return ResponseEntity.badRequest().body(
+                    java.util.Map.of("error", "Your account is not linked to a university."));
+        }
+        List<StudentDto> students = studentRepository.findByUniversityId(universityId)
+                .stream().map(this::toDto).collect(Collectors.toList());
+        return ResponseEntity.ok(students);
+    }
+
+    @GetMapping("/university/profile")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'SUPERVISOR')")
+    public ResponseEntity<?> getUniversityProfile(Principal principal) {
+        Long universityId = resolveUniversityId(principal);
+        if (universityId == null) {
+            return ResponseEntity.badRequest().body(
+                    java.util.Map.of("error", "Your account is not linked to a university."));
+        }
+        return universityRepository.findById(universityId.intValue())
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    @PostMapping
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'SUPERVISOR')")
+    public ResponseEntity<?> createStudent(@RequestBody StudentDto dto, Principal principal) {
+        UserEntity user = resolveLinkedUser(dto);
+        if (user == null) {
+            return ResponseEntity.badRequest().body(
+                    java.util.Map.of("error", "username or userId of an existing account is required"));
+        }
+        if (studentRepository.findByUserId(user.getId()).isPresent()) {
+            return ResponseEntity.status(HttpStatus.CONFLICT)
+                    .body(java.util.Map.of("error", "A student record already exists for this account."));
+        }
+        Student student = new Student();
+        applyDto(dto, student, true);
+        student.setUserId(user.getId());
+        student.setStudentNumber(dto.getStudentNumber() != null ? dto.getStudentNumber() : user.getUsername());
+        student.setRegistrationNumber(dto.getRegistrationNumber() != null ? dto.getRegistrationNumber() : "Pending");
+        student.setDegreeProgram(dto.getDegreeProgram() != null ? dto.getDegreeProgram() : "Undeclared");
+        if (student.getUniversityId() == null) {
+            student.setUniversityId(DEFAULT_UNIVERSITY_ID);
+        }
+        Student saved = studentRepository.save(student);
+        auditLogService.log(principal.getName(), "SUPERVISOR", "CREATE", "Student",
+                "Created student: " + saved.getFirstName() + " " + saved.getLastName(), null);
+        return ResponseEntity.status(HttpStatus.CREATED).body(toDto(saved));
     }
 
     @GetMapping("/export/csv")
     @PreAuthorize("hasAnyAuthority('ADMIN', 'SUPERVISOR', 'COMPANY')")
     public ResponseEntity<String> exportStudentsCsv() {
-        List<StudentProfile> students = studentProfileRepository.findAll();
-        String csv = students.stream()
+        String csv = studentRepository.findAll().stream()
                 .map(s -> String.join(",",
                         escape(s.getId()),
-                        escape(s.getUsername()),
-                        escape(s.getFirstName()),
-                        escape(s.getLastName()),
-                        escape(s.getEmail()),
+                        escape(s.getFirstName() + " " + s.getLastName()),
                         escape(s.getStudentNumber()),
                         escape(s.getRegistrationNumber()),
-                        escape(s.getDegreeProgram()),
-                        escape(s.getYearOfStudy()),
                         escape(s.getPhoneNumber()),
-                        escape(s.getInternshipCompany()),
-                        escape(s.getUniversitySupervisor()),
-                        escape(s.getCompanyId())))
+                        escape(s.getDegreeProgram()),
+                        escape(s.getInternshipCompanyId()),
+                        escape(s.getUniSupervisorId()),
+                        escape(s.getIndSupervisorId()),
+                        escape(s.getStartDate()),
+                        escape(s.getEndDate())))
                 .reduce((a, b) -> a + "\n" + b)
                 .orElse("");
-        String body = "ID,Username,FirstName,LastName,Email,StudentNumber,RegistrationNumber,DegreeProgram,YearOfStudy,PhoneNumber,InternshipCompany,UniversitySupervisor,CompanyId\n" + csv;
+        String body = "ID,FullName,StudentNumber,RegistrationNumber,Phone,DegreeProgram,"
+                + "InternshipCompanyId,UniSupervisorId,IndSupervisorId,StartDate,EndDate\n" + csv;
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"students.csv\"")
                 .body(body);
     }
 
-    @GetMapping("/{id}")
-    @PreAuthorize("hasAnyAuthority('ADMIN', 'SUPERVISOR', 'COMPANY', 'STUDENT')")
-    public ResponseEntity<StudentProfile> getStudentById(@PathVariable Long id) {
-        return studentProfileRepository.findById(id)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
-    }
-
     @GetMapping("/company/{companyId}")
     @PreAuthorize("hasAnyAuthority('ADMIN', 'SUPERVISOR', 'COMPANY')")
-    public List<StudentProfile> getStudentsByCompany(@PathVariable String companyId) {
-        return studentProfileRepository.findByCompanyId(companyId);
+    public List<StudentDto> getStudentsByCompany(@PathVariable Long companyId) {
+        // M3: exact FK lookup replaces the old substring matcher.
+        return studentRepository.findByInternshipCompanyId(companyId).stream()
+                .map(this::toDto).collect(Collectors.toList());
     }
 
     @GetMapping("/search")
     @PreAuthorize("hasAnyAuthority('ADMIN', 'SUPERVISOR', 'COMPANY')")
-    public List<StudentProfile> searchStudents(@RequestParam String q) {
-        return studentProfileRepository.findByFirstNameContainingIgnoreCaseOrLastNameContainingIgnoreCase(q, q);
+    public List<StudentDto> searchStudents(@RequestParam String q) {
+        return studentRepository
+                .findByFirstNameContainingIgnoreCaseOrLastNameContainingIgnoreCase(q, q)
+                .stream().map(this::toDto).collect(Collectors.toList());
+    }
+
+    @GetMapping("/{id}")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'SUPERVISOR', 'COMPANY', 'STUDENT')")
+    public ResponseEntity<StudentDto> getStudentById(@PathVariable Long id) {
+        return studentRepository.findById(id)
+                .map(this::toDto)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasAnyAuthority('ADMIN', 'SUPERVISOR', 'COMPANY')")
-    public ResponseEntity<StudentProfile> updateStudent(@PathVariable Long id, @RequestBody StudentProfile student) {
-        return studentProfileRepository.findById(id)
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'SUPERVISOR')")
+    public ResponseEntity<StudentDto> updateStudent(@PathVariable Long id,
+            @RequestBody StudentDto dto, Principal principal) {
+        return studentRepository.findById(id)
                 .map(existing -> {
-                    existing.setFirstName(student.getFirstName());
-                    existing.setLastName(student.getLastName());
-                    existing.setEmail(student.getEmail());
-                    existing.setStudentNumber(student.getStudentNumber());
-                    existing.setRegistrationNumber(student.getRegistrationNumber());
-                    existing.setDegreeProgram(student.getDegreeProgram());
-                    existing.setYearOfStudy(student.getYearOfStudy());
-                    existing.setPhoneNumber(student.getPhoneNumber());
-                    existing.setInternshipCompany(student.getInternshipCompany());
-                    existing.setUniversitySupervisor(student.getUniversitySupervisor());
-                    existing.setIndustrialSupervisorId(student.getIndustrialSupervisorId());
-                    existing.setCompanyId(student.getCompanyId());
-                    existing.setPictureUrl(student.getPictureUrl());
-                    return ResponseEntity.ok(studentProfileRepository.save(existing));
+                    merge(dto, existing, true);
+                    Student saved = studentRepository.save(existing);
+                    auditLogService.log(principal.getName(), "SUPERVISOR", "UPDATE", "Student",
+                            "Updated student: " + saved.getFirstName() + " " + saved.getLastName(), null);
+                    return ResponseEntity.ok(toDto(saved));
                 })
                 .orElse(ResponseEntity.notFound().build());
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasAnyAuthority('ADMIN', 'SUPERVISOR', 'COMPANY')")
-    public ResponseEntity<Void> deleteStudent(@PathVariable Long id) {
-        if (studentProfileRepository.findById(id).isEmpty()) {
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'SUPERVISOR')")
+    public ResponseEntity<Void> deleteStudent(@PathVariable Long id, Principal principal) {
+        Student student = studentRepository.findById(id).orElse(null);
+        if (student == null) {
             return ResponseEntity.notFound().build();
         }
-        dayDiaryRepository.findAll().stream()
-                .filter(diary -> diary.getStudentProfile() != null
-                        && diary.getStudentProfile().getId().equals(id))
-                .forEach(dayDiaryRepository::delete);
-        studentProfileRepository.deleteById(id);
+        String name = student.getFirstName() + " " + student.getLastName();
+        dayDiaryRepository.deleteAll(dayDiaryRepository.findByStudentIdOrderByDateDesc(student.getId()));
+        studentRepository.deleteById(id);
+        auditLogService.log(principal.getName(), "SUPERVISOR", "DELETE", "Student",
+                "Deleted student: " + name, null);
         return ResponseEntity.noContent().build();
     }
 
+    private Student currentStudent(Principal principal) {
+        return userRepository.findByUsername(principal.getName())
+                .flatMap(user -> studentRepository.findByUserId(user.getId()))
+                .orElse(null);
+    }
+
+    private Long resolveUniversityId(Principal principal) {
+        return userRepository.findByUsername(principal.getName())
+                .map(UserEntity::getUniversityId)
+                .orElse(null);
+    }
+
+    private UserEntity resolveLinkedUser(StudentDto dto) {
+        if (dto.getUserId() != null) {
+            return userRepository.findById(dto.getUserId()).orElse(null);
+        }
+        if (dto.getUsername() != null && !dto.getUsername().isBlank()) {
+            return userRepository.findByUsername(dto.getUsername().trim()).orElse(null);
+        }
+        return null;
+    }
+
+    private void applyDto(StudentDto dto, Student student, boolean create) {
+        if (dto.getUniversityId() != null) {
+            student.setUniversityId(dto.getUniversityId());
+        }
+        if (dto.getInternshipCompanyId() != null || create) {
+            student.setInternshipCompanyId(dto.getInternshipCompanyId());
+        }
+        if (dto.getUniSupervisorId() != null || create) {
+            student.setUniSupervisorId(dto.getUniSupervisorId());
+        }
+        if (dto.getIndSupervisorId() != null || create) {
+            student.setIndSupervisorId(dto.getIndSupervisorId());
+        }
+        if (dto.getFirstName() != null) {
+            student.setFirstName(dto.getFirstName());
+        }
+        if (dto.getLastName() != null) {
+            student.setLastName(dto.getLastName());
+        }
+        if (create && dto.getFirstName() == null) {
+            student.setFirstName("New");
+        }
+        if (create && dto.getLastName() == null) {
+            student.setLastName("Student");
+        }
+        if (dto.getRegistrationNumber() != null) {
+            student.setRegistrationNumber(dto.getRegistrationNumber());
+        }
+        if (dto.getStudentNumber() != null) {
+            student.setStudentNumber(dto.getStudentNumber());
+        }
+        if (dto.getDegreeProgram() != null) {
+            student.setDegreeProgram(dto.getDegreeProgram());
+        }
+        if (dto.getYearOfStudy() != null || create) {
+            student.setYearOfStudy(dto.getYearOfStudy());
+        }
+        if (dto.getPhoneNumber() != null || create) {
+            student.setPhoneNumber(dto.getPhoneNumber());
+        }
+        if (dto.getIntake() != null || create) {
+            student.setIntake(dto.getIntake());
+        }
+        if (dto.getAcademicYear() != null || create) {
+            student.setAcademicYear(dto.getAcademicYear());
+        }
+        if (dto.getSemester() != null || create) {
+            student.setSemester(dto.getSemester());
+        }
+        if (dto.getStartDate() != null || create) {
+            student.setStartDate(dto.getStartDate());
+        }
+        if (dto.getEndDate() != null || create) {
+            student.setEndDate(dto.getEndDate());
+        }
+        if (dto.getSchoolId() != null || create) {
+            student.setSchoolId(dto.getSchoolId());
+        }
+        if (dto.getDepartmentId() != null || create) {
+            student.setDepartmentId(dto.getDepartmentId());
+        }
+        if (dto.getProgrammeId() != null || create) {
+            student.setProgrammeId(dto.getProgrammeId());
+        }
+    }
+
+    private void merge(StudentDto dto, Student student, boolean adminUpdate) {
+        applyDto(dto, student, false);
+        if (adminUpdate && dto.getStudentNumber() != null) {
+            student.setStudentNumber(dto.getStudentNumber());
+        }
+    }
+
+    private StudentDto toDto(Student student) {
+        StudentDto dto = new StudentDto();
+        dto.setId(student.getId());
+        dto.setUserId(student.getUserId());
+        dto.setUniversityId(student.getUniversityId());
+        dto.setInternshipCompanyId(student.getInternshipCompanyId());
+        dto.setUniSupervisorId(student.getUniSupervisorId());
+        dto.setIndSupervisorId(student.getIndSupervisorId());
+        dto.setFirstName(student.getFirstName());
+        dto.setLastName(student.getLastName());
+        dto.setRegistrationNumber(student.getRegistrationNumber());
+        dto.setStudentNumber(student.getStudentNumber());
+        dto.setDegreeProgram(student.getDegreeProgram());
+        dto.setYearOfStudy(student.getYearOfStudy());
+        dto.setPhoneNumber(student.getPhoneNumber());
+        dto.setIntake(student.getIntake());
+        dto.setAcademicYear(student.getAcademicYear());
+        dto.setSemester(student.getSemester());
+        dto.setStartDate(student.getStartDate());
+        dto.setEndDate(student.getEndDate());
+        dto.setSchoolId(student.getSchoolId());
+        dto.setDepartmentId(student.getDepartmentId());
+        dto.setProgrammeId(student.getProgrammeId());
+        userRepository.findById(student.getUserId())
+                .ifPresent(u -> dto.setUsername(u.getUsername()));
+        return dto;
+    }
+
     private String escape(Object value) {
-        if (value == null) return "";
+        if (value == null) {
+            return "";
+        }
         String s = value.toString();
         if (s.contains(",") || s.contains("\"") || s.contains("\n") || s.contains("\r")) {
-            s = s.replace("\"", "\"\"");
-            return "\"" + s + "\"";
+            return "\"" + s.replace("\"", "\"\"") + "\"";
         }
         return s;
     }

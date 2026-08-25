@@ -26,6 +26,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import com.example.demo.audit.AuditLogService;
+import com.example.demo.student.Student;
+import com.example.demo.student.StudentRepository;
 
 @RestController
 @RequestMapping("/api")
@@ -34,13 +37,19 @@ public class AuthApiController {
     private final AuthenticationManager authenticationManager;
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final AuditLogService auditLogService;
+    private final StudentRepository studentRepository;
 
     public AuthApiController(AuthenticationManager authenticationManager,
             UserRepository userRepository,
-            PasswordEncoder passwordEncoder) {
+            PasswordEncoder passwordEncoder,
+            AuditLogService auditLogService,
+            StudentRepository studentRepository) {
         this.authenticationManager = authenticationManager;
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
+        this.auditLogService = auditLogService;
+        this.studentRepository = studentRepository;
     }
 
     @GetMapping("/me")
@@ -88,6 +97,7 @@ public class AuthApiController {
             String path = resolveHome(actualRole);
             String baseUrl = request.getScheme() + "://" + request.getServerName() + ":" + request.getServerPort();
 
+            auditLogService.log(username, actualRole, "LOGIN", "User", "User logged in successfully", request.getRemoteAddr());
             return ResponseEntity.ok(Map.of(
                     "username", username,
                     "role", actualRole,
@@ -125,7 +135,68 @@ public class AuthApiController {
         UserEntity user = new UserEntity(username, passwordEncoder.encode(password), selectedRole);
         userRepository.save(user);
 
+        if (selectedRole == Role.STUDENT) {
+            createStudentRecord(user, body);
+        }
+
+        auditLogService.log(username, roleName, "REGISTER", "User", "New account created with role: " + roleName, null);
         return ResponseEntity.status(HttpStatus.CREATED).body(Map.of("message", "Account created successfully."));
+    }
+
+    /**
+     * M3 (MIGRATION_PLAN.md): every STUDENT registration now creates a
+     * Model-B students row linked to the account. Nkumba (19) is the default
+     * university in this single-university deployment.
+     */
+    private void createStudentRecord(UserEntity user, Map<String, String> body) {
+        Student student = new Student();
+        student.setUserId(user.getId());
+        student.setUniversityId(parseLong(body.get("universityId"), 19L));
+        String fullName = body.getOrDefault("fullName", "").trim();
+        String firstName = body.getOrDefault("firstName", "").trim();
+        String lastName = body.getOrDefault("lastName", "").trim();
+        if (firstName.isEmpty() && lastName.isEmpty() && !fullName.isEmpty()) {
+            int space = fullName.indexOf(' ');
+            firstName = space > 0 ? fullName.substring(0, space) : fullName;
+            lastName = space > 0 ? fullName.substring(space + 1).trim() : "";
+        }
+        student.setFirstName(firstName.isEmpty() ? "New" : firstName);
+        student.setLastName(lastName.isEmpty() ? "Student" : lastName);
+        student.setStudentNumber(body.getOrDefault("studentNumber", user.getUsername()).trim());
+        student.setRegistrationNumber(body.getOrDefault("registrationNumber", "Pending").trim());
+        student.setDegreeProgram(body.getOrDefault("degreeProgram", "Undeclared").trim());
+        student.setYearOfStudy(parseIntOrNull(body.get("yearOfStudy")));
+        student.setPhoneNumber(body.getOrDefault("phoneNumber", null));
+        student.setIntake(body.getOrDefault("intake", null));
+        student.setAcademicYear(body.getOrDefault("academicYear", null));
+        student.setSemester(body.getOrDefault("semester", null));
+        student.setStartDate(parseDateOrNull(body.get("startDate")));
+        student.setEndDate(parseDateOrNull(body.get("endDate")));
+        studentRepository.save(student);
+    }
+
+    private Long parseLong(String value, Long fallback) {
+        try {
+            return value != null && !value.isBlank() ? Long.parseLong(value.trim()) : fallback;
+        } catch (NumberFormatException ex) {
+            return fallback;
+        }
+    }
+
+    private Integer parseIntOrNull(String value) {
+        try {
+            return value != null && !value.isBlank() ? Integer.parseInt(value.trim()) : null;
+        } catch (NumberFormatException ex) {
+            return null;
+        }
+    }
+
+    private java.time.LocalDate parseDateOrNull(String value) {
+        try {
+            return value != null && !value.isBlank() ? java.time.LocalDate.parse(value.trim()) : null;
+        } catch (java.time.format.DateTimeParseException ex) {
+            return null;
+        }
     }
 
     @PostMapping("/forgot-password")
@@ -146,6 +217,7 @@ public class AuthApiController {
                 .map(user -> {
                     user.setPassword(passwordEncoder.encode(newPassword));
                     userRepository.save(user);
+                    auditLogService.log(username, user.getRole().name(), "PASSWORD_RESET", "User", "Password reset successfully", null);
                     return ResponseEntity.ok(Map.of("message", "Password updated successfully."));
                 })
                 .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND)

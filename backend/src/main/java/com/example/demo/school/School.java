@@ -22,6 +22,12 @@ public class School {
     @Column(name = "school_name", nullable = false)
     private String schoolName;
 
+    @Column(name = "parent_school_id", nullable = true)
+    private Integer parentSchoolId;
+
+    @Column(name = "type", nullable = true)
+    private String type;
+
     public School() {
     }
 
@@ -55,5 +61,21 @@ public class School {
 
     public void setSchoolName(String schoolName) {
         this.schoolName = schoolName;
+    }
+
+    public Integer getParentSchoolId() {
+        return parentSchoolId;
+    }
+
+    public void setParentSchoolId(Integer parentSchoolId) {
+        this.parentSchoolId = parentSchoolId;
+    }
+
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
     }
 }

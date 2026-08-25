@@ -2,60 +2,35 @@ package com.example.demo.dto;
 
 public class UniversityDto {
 
-    private Long id;
-    private String name;
-    private String code;
-    private String location;
-    private String email;
+    private Integer universityId;
+    private String shortForm;
+    private String fullName;
+    private String country;
+    private Integer establishedYear;
 
     public UniversityDto() {
     }
 
-    public UniversityDto(Long id, String name, String code, String location, String email) {
-        this.id = id;
-        this.name = name;
-        this.code = code;
-        this.location = location;
-        this.email = email;
+    public UniversityDto(Integer universityId, String shortForm, String fullName, String country, Integer establishedYear) {
+        this.universityId = universityId;
+        this.shortForm = shortForm;
+        this.fullName = fullName;
+        this.country = country;
+        this.establishedYear = establishedYear;
     }
 
-    public Long getId() {
-        return id;
-    }
+    public Integer getUniversityId() { return universityId; }
+    public void setUniversityId(Integer universityId) { this.universityId = universityId; }
 
-    public void setId(Long id) {
-        this.id = id;
-    }
+    public String getShortForm() { return shortForm; }
+    public void setShortForm(String shortForm) { this.shortForm = shortForm; }
 
-    public String getName() {
-        return name;
-    }
+    public String getFullName() { return fullName; }
+    public void setFullName(String fullName) { this.fullName = fullName; }
 
-    public void setName(String name) {
-        this.name = name;
-    }
+    public String getCountry() { return country; }
+    public void setCountry(String country) { this.country = country; }
 
-    public String getCode() {
-        return code;
-    }
-
-    public void setCode(String code) {
-        this.code = code;
-    }
-
-    public String getLocation() {
-        return location;
-    }
-
-    public void setLocation(String location) {
-        this.location = location;
-    }
-
-    public String getEmail() {
-        return email;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
-    }
+    public Integer getEstablishedYear() { return establishedYear; }
+    public void setEstablishedYear(Integer establishedYear) { this.establishedYear = establishedYear; }
 }

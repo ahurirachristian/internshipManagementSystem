@@ -10,13 +10,14 @@ function jsonResponse(payload) {
   };
 }
 
+let sessionUser;
+
 beforeEach(() => {
   window.history.pushState({}, '', '/');
+  sessionUser = { username: 'admin', role: 'ADMIN', companyId: null, universityId: null };
   global.fetch = jest.fn((url) => {
     if (String(url).includes('/api/me')) {
-      return Promise.resolve(
-        jsonResponse({ username: 'admin', role: 'ADMIN', companyId: null, universityId: null })
-      );
+      return Promise.resolve(jsonResponse(sessionUser));
     }
     if (String(url).includes('/api/admin/users')) {
       return Promise.resolve(jsonResponse([{ id: 1, username: 'admin', role: 'ADMIN' }]));
@@ -47,5 +48,33 @@ test('allows admin users to access the student dashboard', async () => {
   window.history.pushState({}, '', '/student/dashboard');
   render(<App />);
   expect(await screen.findByRole('heading', { name: 'Student Dashboard' })).toBeInTheDocument();
+});
+
+test('renders the academic units management page for university users', async () => {
+  sessionUser = { username: 'nkumba', role: 'SUPERVISOR', companyId: null, universityId: 2 };
+  window.history.pushState({}, '', '/university/academic-units');
+  render(<App />);
+  expect(await screen.findByRole('heading', { name: 'Academic Units Management' })).toBeInTheDocument();
+});
+
+test('renders the course management page for university users', async () => {
+  sessionUser = { username: 'nkumba', role: 'SUPERVISOR', companyId: null, universityId: 2 };
+  window.history.pushState({}, '', '/university/courses');
+  render(<App />);
+  expect(await screen.findByRole('heading', { name: 'Course Management' })).toBeInTheDocument();
+});
+
+test('renders the staff management page for university users', async () => {
+  sessionUser = { username: 'nkumba', role: 'SUPERVISOR', companyId: null, universityId: 2 };
+  window.history.pushState({}, '', '/university/staff');
+  render(<App />);
+  expect(await screen.findByRole('heading', { name: 'Staff Management' })).toBeInTheDocument();
+});
+
+test('renders the unit courses page for university users', async () => {
+  sessionUser = { username: 'nkumba', role: 'SUPERVISOR', companyId: null, universityId: 2 };
+  window.history.pushState({}, '', '/university/unit-courses');
+  render(<App />);
+  expect(await screen.findByRole('heading', { name: 'Unit Courses' })).toBeInTheDocument();
 });
 

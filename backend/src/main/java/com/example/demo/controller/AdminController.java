@@ -16,6 +16,8 @@ import com.example.demo.auth.Role;
 import com.example.demo.auth.UserService;
 import com.example.demo.dto.UserDto;
 import com.example.demo.service.AdminService;
+import com.example.demo.audit.AuditLogService;
+import java.security.Principal;
 
 @Controller
 @RequestMapping("/admin")
@@ -24,10 +26,12 @@ public class AdminController {
 
     private final UserService userService;
     private final AdminService adminService;
+    private final AuditLogService auditLogService;
 
-    public AdminController(UserService userService, AdminService adminService) {
+    public AdminController(UserService userService, AdminService adminService, AuditLogService auditLogService) {
         this.userService = userService;
         this.adminService = adminService;
+        this.auditLogService = auditLogService;
     }
 
     @GetMapping("/dashboard")
@@ -58,27 +62,30 @@ public class AdminController {
 
     @PostMapping("/users")
     public String addUser(@ModelAttribute("newUser") UserDto userDto,
-            RedirectAttributes redirectAttributes) {
+            RedirectAttributes redirectAttributes, Principal principal) {
         if (userService.usernameExists(userDto.getUsername())) {
             redirectAttributes.addFlashAttribute("errorMessage", "Username already exists.");
             return "redirect:/admin/users";
         }
         userService.createUser(userDto.getUsername(), userDto.getUsername() + "123", Role.valueOf(userDto.getRole()));
+        auditLogService.log(principal != null ? principal.getName() : "admin", "ADMIN", "CREATE", "User", "Created user: " + userDto.getUsername() + " (role: " + userDto.getRole() + ")", null);
         redirectAttributes.addFlashAttribute("successMessage", "User created successfully.");
         return "redirect:/admin/users";
     }
 
     @PostMapping("/users/update")
     public String updateUser(@RequestParam Long id, @RequestParam String username,
-            @RequestParam String role, RedirectAttributes redirectAttributes) {
+            @RequestParam String role, RedirectAttributes redirectAttributes, Principal principal) {
         userService.updateUser(id, username, Role.valueOf(role));
+        auditLogService.log(principal != null ? principal.getName() : "admin", "ADMIN", "UPDATE", "User", "Updated user: " + username + " (role: " + role + ")", null);
         redirectAttributes.addFlashAttribute("successMessage", "User updated successfully.");
         return "redirect:/admin/users";
     }
 
     @PostMapping("/users/delete")
-    public String deleteUser(@RequestParam Long id, RedirectAttributes redirectAttributes) {
+    public String deleteUser(@RequestParam Long id, RedirectAttributes redirectAttributes, Principal principal) {
         userService.deleteUser(id);
+        auditLogService.log(principal != null ? principal.getName() : "admin", "ADMIN", "DELETE", "User", "Deleted user ID: " + id, null);
         redirectAttributes.addFlashAttribute("successMessage", "User deleted successfully.");
         return "redirect:/admin/users";
     }
@@ -90,7 +97,7 @@ public class AdminController {
         model.addAttribute("activeStudents", adminService.countActiveStudents());
         model.addAttribute("averageDiaryEntriesPerStudent", adminService.getAverageDiaryEntriesPerStudent());
         model.addAttribute("students", adminService.getAllStudents());
-        model.addAttribute("diaryEntries", adminService.getAllDiaryEntries());
-        model.addAttribute("diaryCounts", adminService.getDiaryCountsByUsername());
+        model.addAttribute("diaryEntries", adminService.getDiaryViews());
+        model.addAttribute("diaryCounts", adminService.getDiaryCountsByStudentNo());
     }
 }

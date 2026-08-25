@@ -1,55 +1,60 @@
 package com.example.demo.auth;
 
-import com.example.demo.auth.UserEntity;
-import com.example.demo.auth.UserRepository;
-import com.example.demo.auth.Role;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.core.annotation.Order;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
 @Component
-@Order(1)
+@Order(32)
 public class DataSeeder implements CommandLineRunner {
 
-    private final UserRepository repository;
+    private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
 
-    public DataSeeder(UserRepository repository) {
-        this.repository = repository;
+    public DataSeeder(UserRepository userRepository, PasswordEncoder passwordEncoder) {
+        this.userRepository = userRepository;
+        this.passwordEncoder = passwordEncoder;
     }
 
     @Override
     public void run(String... args) {
-        if (repository.count() == 0) {
-            java.util.List<UserEntity> list = new java.util.ArrayList<>();
-            UserEntity e;
-            e = new UserEntity();
-            e.setPassword("$2a$10$trQQpptnKtF3rxW8wP7LVOqw9KsDAADwFZG3GWJyx5VX8TlnQs7Gq");
-            e.setRole(Role.valueOf("STUDENT"));
-            e.setUsername("student");
-            list.add(e);
-            e = new UserEntity();
-            e.setPassword("$2a$10$Vuv4rgrMZiO4ykJI0qje3O0/R/.D1cJJsbBO33KMXGYytaXIE96rS");
-            e.setRole(Role.valueOf("SUPERVISOR"));
-            e.setUsername("supervisor");
-            list.add(e);
-            e = new UserEntity();
-            e.setPassword("$2a$10$WbXG6rnem.o0nPwK3xMLnenAi5aal1RorUWrmNdDfE9pPGm8qwuN6");
-            e.setRole(Role.valueOf("ADMIN"));
-            e.setUsername("admin");
-            list.add(e);
-            e = new UserEntity();
-            e.setPassword("$2a$10$i7bixmt6SN5YEqPcgQu0.O.G91s9N1paVpVx4dITivORrY/kWPQgi");
-            e.setRole(Role.valueOf("SUPERVISOR"));
-            e.setUsername("university");
-            e.setUniversityId(1L);
-            list.add(e);
-            e = new UserEntity();
-            e.setPassword("$2a$10$PK.b53RyUKTDj6srz48FvuvUHzcW01phwzRMz.Rc4s8yttWcR0pRS");
-            e.setRole(Role.valueOf("COMPANY"));
-            e.setUsername("airtel");
-            e.setCompanyId(1L);
-            list.add(e);
-            repository.saveAll(list);
+        org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(DataSeeder.class);
+        boolean isNew = userRepository.count() == 0;
+        if (isNew) {
+            log.info("Seeding default accounts (users table empty)");
         }
+        // Students — login with student_no as username, default password: Student@123
+        ensureUser("2400101003", "Student@123", Role.STUDENT, "kasaggafred999@gmail.com", null, null);
+        ensureUser("STU-2026-001", "Student@123", Role.STUDENT, "alex.johnson@example.com", null, null);
+        ensureUser("STU-2026-002", "Student@123", Role.STUDENT, "sarah.owen@example.com", null, null);
+
+        // Supervisor — linked to Nkumba University (university_id = 19)
+        ensureUser("university", "university123", Role.SUPERVISOR, "supervisor@mak.ac.ug", null, 19L);
+
+        // Supervisor — linked to Kyambogo University (university_id = 2)
+        ensureUser("kyu", "kyu123", Role.SUPERVISOR, "supervisor@kyu.ac.ug", null, 2L);
+
+        // Company — linked to Airtel Uganda (company_id = 1)
+        ensureUser("airtel", "company123", Role.COMPANY, "info@airtel.co.ug", 1L, null);
+
+        // Admin
+        ensureUser("admin", "admin123", Role.ADMIN, "admin@ims.ac.ug", null, null);
+    }
+
+    private void ensureUser(String username, String password, Role role, String email, Long companyId, Long universityId) {
+        if (userRepository.findByUsername(username).isPresent()) {
+            return;
+        }
+        saveUser(username, password, role, email, companyId, universityId);
+    }
+
+    private void saveUser(String username, String password, Role role, String email, Long companyId, Long universityId) {
+        UserEntity user = new UserEntity(username, passwordEncoder.encode(password), role);
+        user.setEmail(email);
+        user.setCompanyId(companyId);
+        user.setUniversityId(universityId);
+        user.setMustChangePassword(role == Role.STUDENT);
+        userRepository.save(user);
     }
 }

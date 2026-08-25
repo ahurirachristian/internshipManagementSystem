@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { ClipboardCheck, Briefcase, GraduationCap, X } from 'lucide-react';
 import { fetchEvaluationsByStudent, createEvaluation, updateEvaluation } from '../services/api';
 
 const emptyCompanyForm = {
@@ -28,6 +29,14 @@ export default function EvaluationFormModal({ placement, onClose, onSaved }) {
       loadEvaluations(placement.studentId);
     }
   }, [placement]);
+
+  useEffect(() => {
+    function handleKeyDown(e) {
+      if (e.key === 'Escape') onClose();
+    }
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [onClose]);
 
   async function loadEvaluations(studentId) {
     setLoading(true);
@@ -131,117 +140,192 @@ export default function EvaluationFormModal({ placement, onClose, onSaved }) {
   const companyEval = evaluations.find((e) => e.supervisorType === 'COMPANY');
   const universityEval = evaluations.find((e) => e.supervisorType === 'UNIVERSITY');
 
+  const inputClass = "w-full bg-white text-slate-900 text-xs rounded-xl border border-slate-300 px-3.5 py-2.5 focus:border-teal-600 focus:ring-2 focus:ring-teal-600/20 focus:outline-none transition-all shadow-xs font-medium";
+
   return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '900px' }}>
-        <div className="modal-header">
-          <h2>Dual Supervisor Evaluation</h2>
-          <button className="close-button" onClick={onClose}>
-            ×
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="eval-modal-title"
+      className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 sm:p-6 animate-in fade-in duration-150"
+      onClick={onClose}
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        className="bg-white w-full max-w-[900px] rounded-2xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-150"
+      >
+        <div className="p-4 sm:p-5 bg-slate-50 border-b border-slate-200 flex items-center justify-between gap-4">
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="w-10 h-10 rounded-xl bg-teal-50 border border-teal-200 flex items-center justify-center text-teal-800 shrink-0">
+              <ClipboardCheck className="w-5 h-5" />
+            </div>
+            <div className="min-w-0">
+              <h3 id="eval-modal-title" className="text-base font-bold text-slate-900 truncate">Dual Supervisor Evaluation</h3>
+              <p className="text-xs text-slate-500 truncate">Company and university supervisor scoring</p>
+            </div>
+          </div>
+          <button
+            onClick={onClose}
+            className="p-2 text-slate-400 hover:text-slate-700 hover:bg-slate-200 rounded-lg transition-colors focus-visible:ring-2 focus-visible:ring-teal-600 focus-visible:outline-none"
+            aria-label="Close modal"
+          >
+            <X className="w-5 h-5" />
           </button>
         </div>
-        {error && <div className="alert alert-error">{error}</div>}
-        {loading && <div className="status-message">Loading evaluations...</div>}
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
-          <form onSubmit={handleCompanySubmit} className="modal-form">
-            <h3 style={{ marginBottom: '1rem' }}>Company Supervisor Evaluation</h3>
-            <label>
-              Punctuality
-              <input
-                type="number"
-                min="0"
-                max="100"
-                value={companyForm.punctuality}
-                onChange={(e) => setCompanyForm({ ...companyForm, punctuality: e.target.value })}
-              />
-            </label>
-            <label>
-              Practical Work Ethics
-              <input
-                type="number"
-                min="0"
-                max="100"
-                value={companyForm.practicalWorkEthics}
-                onChange={(e) => setCompanyForm({ ...companyForm, practicalWorkEthics: e.target.value })}
-              />
-            </label>
-            <label>
-              Attendance
-              <input
-                type="number"
-                min="0"
-                max="100"
-                value={companyForm.attendance}
-                onChange={(e) => setCompanyForm({ ...companyForm, attendance: e.target.value })}
-              />
-            </label>
-            <label>
-              Workplace Performance
-              <input
-                type="number"
-                min="0"
-                max="100"
-                value={companyForm.workplacePerformance}
-                onChange={(e) => setCompanyForm({ ...companyForm, workplacePerformance: e.target.value })}
-              />
-            </label>
-            <div className="modal-actions">
-              <button type="submit" className="primary-button" disabled={submitting}>
-                {submitting ? 'Saving...' : companyEval ? 'Update Company Scores' : 'Save Company Scores'}
-              </button>
-            </div>
-          </form>
+        {error && (
+          <div role="alert" className="mx-4 sm:mx-5 mt-4 p-3.5 bg-rose-50 border border-rose-200 rounded-xl flex items-center gap-2.5 text-rose-900 text-sm animate-in fade-in">
+            <span className="font-medium">{error}</span>
+          </div>
+        )}
 
-          <form onSubmit={handleUniversitySubmit} className="modal-form">
-            <h3 style={{ marginBottom: '1rem' }}>University Supervisor Evaluation</h3>
-            <label>
-              Logbook Quality
-              <input
-                type="number"
-                min="0"
-                max="100"
-                value={universityForm.logbookQuality}
-                onChange={(e) => setUniversityForm({ ...universityForm, logbookQuality: e.target.value })}
-              />
-            </label>
-            <label>
-              Academic Report
-              <input
-                type="number"
-                min="0"
-                max="100"
-                value={universityForm.academicReport}
-                onChange={(e) => setUniversityForm({ ...universityForm, academicReport: e.target.value })}
-              />
-            </label>
-            <label>
-              Presentation
-              <input
-                type="number"
-                min="0"
-                max="100"
-                value={universityForm.presentation}
-                onChange={(e) => setUniversityForm({ ...universityForm, presentation: e.target.value })}
-              />
-            </label>
-            <label>
-              Overall Grade
-              <input
-                type="number"
-                min="0"
-                max="100"
-                value={universityForm.overallGrade}
-                onChange={(e) => setUniversityForm({ ...universityForm, overallGrade: e.target.value })}
-              />
-            </label>
-            <div className="modal-actions">
-              <button type="submit" className="primary-button" disabled={submitting}>
-                {submitting ? 'Saving...' : universityEval ? 'Update University Scores' : 'Save University Scores'}
-              </button>
+        {loading && (
+          <div className="p-6 text-center text-sm text-slate-500">Loading evaluations...</div>
+        )}
+
+        {!loading && (
+          <div className="p-6 overflow-y-auto flex-1">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Company Evaluation */}
+              <form onSubmit={handleCompanySubmit} className="space-y-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <div className="w-8 h-8 rounded-lg bg-sky-50 border border-sky-200 flex items-center justify-center text-sky-800">
+                    <Briefcase className="w-4 h-4" />
+                  </div>
+                  <h4 className="text-sm font-bold text-slate-900">Company Supervisor Evaluation</h4>
+                </div>
+
+                <div>
+                  <label htmlFor="punctuality" className="block text-xs font-bold uppercase tracking-wider text-slate-800 mb-1.5">Punctuality</label>
+                  <input
+                    id="punctuality"
+                    type="number"
+                    min="0"
+                    max="100"
+                    value={companyForm.punctuality}
+                    onChange={(e) => setCompanyForm({ ...companyForm, punctuality: e.target.value })}
+                    className={inputClass}
+                  />
+                </div>
+                <div>
+                  <label htmlFor="practicalWorkEthics" className="block text-xs font-bold uppercase tracking-wider text-slate-800 mb-1.5">Practical Work Ethics</label>
+                  <input
+                    id="practicalWorkEthics"
+                    type="number"
+                    min="0"
+                    max="100"
+                    value={companyForm.practicalWorkEthics}
+                    onChange={(e) => setCompanyForm({ ...companyForm, practicalWorkEthics: e.target.value })}
+                    className={inputClass}
+                  />
+                </div>
+                <div>
+                  <label htmlFor="attendance" className="block text-xs font-bold uppercase tracking-wider text-slate-800 mb-1.5">Attendance</label>
+                  <input
+                    id="attendance"
+                    type="number"
+                    min="0"
+                    max="100"
+                    value={companyForm.attendance}
+                    onChange={(e) => setCompanyForm({ ...companyForm, attendance: e.target.value })}
+                    className={inputClass}
+                  />
+                </div>
+                <div>
+                  <label htmlFor="workplacePerformance" className="block text-xs font-bold uppercase tracking-wider text-slate-800 mb-1.5">Workplace Performance</label>
+                  <input
+                    id="workplacePerformance"
+                    type="number"
+                    min="0"
+                    max="100"
+                    value={companyForm.workplacePerformance}
+                    onChange={(e) => setCompanyForm({ ...companyForm, workplacePerformance: e.target.value })}
+                    className={inputClass}
+                  />
+                </div>
+
+                <div className="flex justify-end pt-2">
+                  <button
+                    type="submit"
+                    disabled={submitting}
+                    className="px-4 py-2 rounded-xl bg-[#063b33] hover:bg-[#042823] text-white text-xs font-bold transition-all flex items-center gap-1.5 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {submitting ? 'Saving...' : companyEval ? 'Update Company Scores' : 'Save Company Scores'}
+                  </button>
+                </div>
+              </form>
+
+              {/* University Evaluation */}
+              <form onSubmit={handleUniversitySubmit} className="space-y-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <div className="w-8 h-8 rounded-lg bg-violet-50 border border-violet-200 flex items-center justify-center text-violet-800">
+                    <GraduationCap className="w-4 h-4" />
+                  </div>
+                  <h4 className="text-sm font-bold text-slate-900">University Supervisor Evaluation</h4>
+                </div>
+
+                <div>
+                  <label htmlFor="logbookQuality" className="block text-xs font-bold uppercase tracking-wider text-slate-800 mb-1.5">Logbook Quality</label>
+                  <input
+                    id="logbookQuality"
+                    type="number"
+                    min="0"
+                    max="100"
+                    value={universityForm.logbookQuality}
+                    onChange={(e) => setUniversityForm({ ...universityForm, logbookQuality: e.target.value })}
+                    className={inputClass}
+                  />
+                </div>
+                <div>
+                  <label htmlFor="academicReport" className="block text-xs font-bold uppercase tracking-wider text-slate-800 mb-1.5">Academic Report</label>
+                  <input
+                    id="academicReport"
+                    type="number"
+                    min="0"
+                    max="100"
+                    value={universityForm.academicReport}
+                    onChange={(e) => setUniversityForm({ ...universityForm, academicReport: e.target.value })}
+                    className={inputClass}
+                  />
+                </div>
+                <div>
+                  <label htmlFor="presentation" className="block text-xs font-bold uppercase tracking-wider text-slate-800 mb-1.5">Presentation</label>
+                  <input
+                    id="presentation"
+                    type="number"
+                    min="0"
+                    max="100"
+                    value={universityForm.presentation}
+                    onChange={(e) => setUniversityForm({ ...universityForm, presentation: e.target.value })}
+                    className={inputClass}
+                  />
+                </div>
+                <div>
+                  <label htmlFor="overallGrade" className="block text-xs font-bold uppercase tracking-wider text-slate-800 mb-1.5">Overall Grade</label>
+                  <input
+                    id="overallGrade"
+                    type="number"
+                    min="0"
+                    max="100"
+                    value={universityForm.overallGrade}
+                    onChange={(e) => setUniversityForm({ ...universityForm, overallGrade: e.target.value })}
+                    className={inputClass}
+                  />
+                </div>
+
+                <div className="flex justify-end pt-2">
+                  <button
+                    type="submit"
+                    disabled={submitting}
+                    className="px-4 py-2 rounded-xl bg-[#063b33] hover:bg-[#042823] text-white text-xs font-bold transition-all flex items-center gap-1.5 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {submitting ? 'Saving...' : universityEval ? 'Update University Scores' : 'Save University Scores'}
+                  </button>
+                </div>
+              </form>
             </div>
-          </form>
-        </div>
+          </div>
+        )}
       </div>
     </div>
   );

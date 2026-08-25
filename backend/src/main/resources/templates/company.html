@@ -108,25 +108,25 @@
                         </div>
                         <div class="identity-block">
                             <div class="identity-name" th:text="${company.name}">Company Name</div>
-                            <div class="identity-tagline" th:text="${company.department != null ? company.department + ' &middot; ' + company.location : company.location}">Department &middot; Location</div>
+                            <div class="identity-tagline" th:text="${company.industry != null ? company.industry + ' &middot; ' + company.city : company.city}">Industry &middot; City</div>
                         </div>
                     </div>
                     <div class="info-grid" style="padding: 6px 22px 22px;">
                         <div class="info-group">
                             <span class="info-label"><span class="label-icon"><i class="fa-solid fa-location-dot"></i></span> Location</span>
-                            <span class="info-value" th:text="${company.location}">Location</span>
+                            <span class="info-value" th:text="${company.city != null ? company.city + ', ' + company.country : company.country}">City, Country</span>
                         </div>
                         <div class="info-group">
                             <span class="info-label"><span class="label-icon"><i class="fa-solid fa-envelope"></i></span> Email</span>
                             <span class="info-value" th:text="${company.email}">email@example.com</span>
                         </div>
                         <div class="info-group">
-                            <span class="info-label"><span class="label-icon"><i class="fa-solid fa-user-tie"></i></span> Field Supervisor</span>
-                            <span class="info-value" th:text="${company.fieldSupervisor}">Supervisor Name</span>
+                            <span class="info-label"><span class="label-icon"><i class="fa-solid fa-industry"></i></span> Industry</span>
+                            <span class="info-value" th:text="${company.industry}">Industry</span>
                         </div>
                         <div class="info-group">
-                            <span class="info-label"><span class="label-icon"><i class="fa-solid fa-briefcase"></i></span> Department</span>
-                            <span class="info-value" th:text="${company.department}">Department</span>
+                            <span class="info-label"><span class="label-icon"><i class="fa-solid fa-users"></i></span> Size</span>
+                            <span class="info-value" th:text="${company.size}">Size</span>
                         </div>
                     </div>
                 </div>
@@ -217,12 +217,11 @@
                             <thead>
                                 <tr>
                                     <th>Company</th>
-                                    <th>Location</th>
+                                    <th>Industry</th>
+                                    <th>City</th>
                                     <th>Email</th>
                                     <th>Phone</th>
-                                    <th>Department</th>
-                                    <th>Supervisor</th>
-                                    <th>Roles</th>
+                                    <th>Size</th>
                                     <th>Action</th>
                                 </tr>
                             </thead>
@@ -238,12 +237,11 @@
                                             </div>
                                         </div>
                                     </td>
-                                    <td th:text="${comp.location}">Location</td>
+                                    <td th:text="${comp.industry}">Industry</td>
+                                    <td th:text="${comp.city}">City</td>
                                     <td th:text="${comp.email}">email@example.com</td>
                                     <td th:text="${comp.phone}">0700000000</td>
-                                    <td th:text="${comp.department}">Department</td>
-                                    <td th:text="${comp.fieldSupervisor}">Supervisor</td>
-                                    <td th:text="${comp.roles}">Roles</td>
+                                    <td th:text="${comp.size}">Size</td>
                                     <td>
                                         <div class="action-cell">
                                             <a class="btn btn-primary btn-sm" th:href="@{/company/{id}(id=${comp.id})}">

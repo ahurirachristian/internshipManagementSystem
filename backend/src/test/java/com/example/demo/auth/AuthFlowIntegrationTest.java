@@ -85,7 +85,7 @@ class AuthFlowIntegrationTest {
 
     @Test
     void registerRejectsDuplicateUsername() throws Exception {
-        String username = "student";
+        String username = "2400101003";
         mockMvc.perform(post("/api/register")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(json(username, "STUDENT", "whatever1", "whatever1")))
@@ -115,10 +115,10 @@ class AuthFlowIntegrationTest {
     @Test
     void loginSucceedsWithValidCredentials() throws Exception {
         mockMvc.perform(post("/api/login")
-                        .param("username", "student")
-                        .param("password", "student123"))
+                        .param("username", "2400101003")
+                        .param("password", "Student@123"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.username").value("student"))
+                .andExpect(jsonPath("$.username").value("2400101003"))
                 .andExpect(jsonPath("$.role").value("STUDENT"))
                 .andExpect(jsonPath("$.redirect").value(containsString("/student/dashboard")));
     }
@@ -126,7 +126,7 @@ class AuthFlowIntegrationTest {
     @Test
     void loginFailsWithWrongPassword() throws Exception {
         mockMvc.perform(post("/api/login")
-                        .param("username", "student")
+                        .param("username", "2400101003")
                         .param("password", "wrong-password"))
                 .andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.error").value("Invalid username or password"));
@@ -135,8 +135,8 @@ class AuthFlowIntegrationTest {
     @Test
     void loginRejectsSelectedRoleMismatch() throws Exception {
         mockMvc.perform(post("/api/login")
-                        .param("username", "student")
-                        .param("password", "student123")
+                        .param("username", "2400101003")
+                        .param("password", "Student@123")
                         .param("role", "ADMIN"))
                 .andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.error").value("Selected role does not match your account role."));
@@ -194,7 +194,7 @@ class AuthFlowIntegrationTest {
     void forgotPasswordRejectsMismatchedPasswords() throws Exception {
         mockMvc.perform(post("/api/forgot-password")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"username\":\"student\",\"newPassword\":\"aaa111\",\"confirmPassword\":\"bbb222\"}"))
+                        .content("{\"username\":\"2400101003\",\"newPassword\":\"aaa111\",\"confirmPassword\":\"bbb222\"}"))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.error").value("Passwords do not match."));
     }

@@ -14,5 +14,5 @@ beforeAll(() => {
 
 test('renders the login page for anonymous users', async () => {
   render(<App />);
-  expect(await screen.findByRole('heading', { name: 'Sign In' })).toBeInTheDocument();
+  expect(await screen.findByRole('heading', { name: 'Welcome Back' })).toBeInTheDocument();
 });

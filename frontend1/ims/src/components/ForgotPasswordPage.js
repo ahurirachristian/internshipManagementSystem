@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { GraduationCap, User, Lock, Eye, EyeOff } from 'lucide-react';
 import { forgotPassword } from '../services/api';
 import AuthShell from './AuthShell';
 import './LoginPage.css';
@@ -38,92 +39,99 @@ export default function ForgotPasswordPage() {
     }
   }
 
+  const inputClass = "w-full bg-slate-50 text-slate-900 text-sm rounded-xl border-2 border-slate-200 pl-10 pr-10 py-2.5 focus:border-[#063b33] focus:ring-2 focus:ring-[#063b33]/20 focus:outline-none transition-all font-medium";
+  const labelClass = "block text-sm font-medium text-slate-700 mb-1.5";
+
   return (
     <AuthShell>
-      <div className="login-card">
-        <div className="login-header">
-          <div className="logo">
-            <i className="fa-solid fa-graduation-cap"></i>
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-[440px] flex flex-col p-6 sm:p-10">
+        <div className="text-center mb-6">
+          <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#063b33] to-[#042823] flex items-center justify-center mx-auto mb-3 shadow-lg">
+            <GraduationCap className="w-7 h-7 text-white" />
           </div>
-          <h1>Forgot Password</h1>
-          <p>Reset your password using your username</p>
+          <h1 className="text-xl font-bold text-slate-900">Forgot Password</h1>
+          <p className="text-sm text-slate-500 mt-1">Reset your password using your username</p>
         </div>
 
         {error && <div className="alert alert-error show">{error}</div>}
 
-        <form onSubmit={handleSubmit}>
-          <div className="form-group">
-            <label htmlFor="username">Username</label>
-            <div className="input-wrapper">
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label htmlFor="username" className={labelClass}>Username</label>
+            <div className="relative">
               <input
                 type="text"
                 id="username"
-                className="form-control"
+                className={inputClass}
                 placeholder="Enter your username"
                 autoComplete="username"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
               />
-              <i className="fa-solid fa-user"></i>
+              <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
             </div>
           </div>
 
-          <div className="form-group">
-            <label htmlFor="newPassword">New Password</label>
-            <div className="input-wrapper">
+          <div>
+            <label htmlFor="newPassword" className={labelClass}>New Password</label>
+            <div className="relative">
               <input
                 type={showPassword ? 'text' : 'password'}
                 id="newPassword"
-                className="form-control"
+                className={inputClass}
                 placeholder="Enter new password"
                 autoComplete="new-password"
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
               />
-              <i className="fa-solid fa-lock"></i>
+              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
               <button
                 type="button"
-                className="toggle-password"
+                className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-[#063b33] transition-colors"
                 aria-label={showPassword ? 'Hide password' : 'Show password'}
                 onClick={() => setShowPassword((s) => !s)}
               >
-                <i className={`fa-solid ${showPassword ? 'fa-eye-slash' : 'fa-eye'}`}></i>
+                {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
               </button>
             </div>
           </div>
 
-          <div className="form-group">
-            <label htmlFor="confirmPassword">Confirm New Password</label>
-            <div className="input-wrapper">
+          <div>
+            <label htmlFor="confirmPassword" className={labelClass}>Confirm New Password</label>
+            <div className="relative">
               <input
                 type={showConfirmPassword ? 'text' : 'password'}
                 id="confirmPassword"
-                className="form-control"
+                className={inputClass}
                 placeholder="Confirm new password"
                 autoComplete="new-password"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
               />
-              <i className="fa-solid fa-lock"></i>
+              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
               <button
                 type="button"
-                className="toggle-password"
+                className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-[#063b33] transition-colors"
                 aria-label={showConfirmPassword ? 'Hide password' : 'Show password'}
                 onClick={() => setShowConfirmPassword((s) => !s)}
               >
-                <i className={`fa-solid ${showConfirmPassword ? 'fa-eye-slash' : 'fa-eye'}`}></i>
+                {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
               </button>
             </div>
           </div>
 
-          <button className="btn-login" type="submit" disabled={loading}>
+          <button
+            className="w-full py-3 bg-gradient-to-br from-[#063b33] to-[#042823] text-white text-sm font-bold rounded-xl shadow-md hover:shadow-lg hover:from-[#042823] hover:to-[#031d19] active:translate-y-0 disabled:opacity-70 disabled:cursor-not-allowed transition-all mt-2"
+            type="submit"
+            disabled={loading}
+          >
             {loading ? 'Resetting...' : 'Reset Password'}
           </button>
         </form>
 
-        <div className="login-footer">
-          <p>
-            <Link to="/login">Back to sign in</Link>
+        <div className="text-center mt-5 pt-5 border-t border-slate-200">
+          <p className="text-xs text-slate-500 font-medium">
+            <Link to="/login" className="text-[#063b33] font-semibold hover:underline">Back to sign in</Link>
           </p>
         </div>
       </div>
