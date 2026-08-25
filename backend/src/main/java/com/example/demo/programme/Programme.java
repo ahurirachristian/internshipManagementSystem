@@ -19,7 +19,7 @@ public class Programme {
     @Column(name = "university_id", nullable = false)
     private Integer universityId;
 
-    @Column(name = "department_id", nullable = false)
+    @Column(name = "department_id", nullable = true)
     private Integer departmentId;
 
     @Column(name = "programme_code", nullable = false)

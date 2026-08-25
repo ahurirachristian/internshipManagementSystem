@@ -8,7 +8,7 @@ import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
 @Component
-@Order(9)
+@Order(33)
 public class StudentProfileDataSeeder implements CommandLineRunner {
 
     private final StudentProfileRepository studentProfileRepository;

@@ -15,12 +15,16 @@ Target: merge PR → `developer` after M7
 | R7 | Config: dev=H2 auto-ddl stays default; mysql profile = ddl-auto=none + committed schema.sql; DB NOT renamed (skip Chris's lowercase choice) |
 | R8 | roles table dormant; ROLE_* names must never be treated as authorities (authorities stay STUDENT/SUPERVISOR/COMPANY/ADMIN) |
 
-## 2. Catalog Sources (boot totals: 52 / 109 / 307 / 4)
+## 2. Catalog Sources (boot totals: 51 / 109 / 307 / 4)
 | Source | schools | departments | programmes |
 |---|---|---|---|
-| Nkumba uni 19 (ours: AcademicUnit+Course+UnitCourse seeders) | 9 (8 SCHOOL + DPGSR DIRECTORATE) | 0 (deptId NULL) | 62 (schoolId from UnitCourse links) |
+| Nkumba uni 19 (ours: AcademicUnit+Course+UnitCourse seeders) | 8 (7 SCHOOL + DPGSR DIRECTORATE) | 0 (deptId NULL) | 62 (schoolId from UnitCourse links) |
 | Kyambogo uni 2 (developer SchoolDataSeeder uni-2 rows) | 14 | 58 | 131 |
 | Makerere uni 1 (developer uni-1 rows, imported FLAT) | 29 | 51 | 114 |
+
+Erratum 2026-08-25: earlier drafts said 52 schools — the Nkumba seeder defines
+8 academic units (7 schools + DPGSR), not 9. 51 is correct and is what
+MigrationCatalogCountTest enforces.
 
 ## 3. Phases & Tests
 

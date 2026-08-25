@@ -5,7 +5,7 @@ import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
 @Component
-@Order(5)
+@Order(28)
 public class UnitCourseDataSeeder implements CommandLineRunner {
 
     private final UnitCourseRepository repository;

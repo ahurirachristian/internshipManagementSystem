@@ -6,7 +6,7 @@ import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
 @Component
-@Order(3)
+@Order(30)
 public class CompanyDataSeeder implements CommandLineRunner {
 
     private final CompanyRepository companyRepository;

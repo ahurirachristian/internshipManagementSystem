@@ -6,7 +6,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
 @Component
-@Order(8)
+@Order(32)
 public class DataSeeder implements CommandLineRunner {
 
     private final UserRepository userRepository;
