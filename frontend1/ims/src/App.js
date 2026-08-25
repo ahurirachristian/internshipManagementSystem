@@ -20,6 +20,9 @@ import UnitCoursesManagement from './components/UnitCoursesManagement';
 import PlacementMatching from './components/PlacementMatching';
 import FileManagement from './components/FileManagement';
 import UniversityStudents from './components/UniversityStudents';
+import SchoolsManagement from './components/dashboards/SchoolsManagement';
+import DepartmentsManagement from './components/dashboards/DepartmentsManagement';
+import ProgrammesManagement from './components/dashboards/ProgrammesManagement';
 import DashboardLayout from './components/DashboardLayout';
 import './App.css';
 
@@ -83,6 +86,30 @@ function UnitCoursesPage() {
   return (
     <DashboardLayout title="Unit Courses" subtitle="Link academic units to their courses">
       <UnitCoursesManagement />
+    </DashboardLayout>
+  );
+}
+
+function SchoolsPage() {
+  return (
+    <DashboardLayout title="Schools Management" subtitle="Manage colleges, schools and directorates">
+      <SchoolsManagement />
+    </DashboardLayout>
+  );
+}
+
+function DepartmentsPage() {
+  return (
+    <DashboardLayout title="Departments Management" subtitle="Manage departments within schools">
+      <DepartmentsManagement />
+    </DashboardLayout>
+  );
+}
+
+function ProgrammesPage() {
+  return (
+    <DashboardLayout title="Programmes Management" subtitle="Manage academic programmes">
+      <ProgrammesManagement />
     </DashboardLayout>
   );
 }
@@ -215,6 +242,30 @@ function AppRoutes() {
         element={
           <ProtectedRoute role="SUPERVISOR">
             <UnitCoursesPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/university/schools"
+        element={
+          <ProtectedRoute role="SUPERVISOR">
+            <SchoolsPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/university/departments"
+        element={
+          <ProtectedRoute role="SUPERVISOR">
+            <DepartmentsPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/university/programmes"
+        element={
+          <ProtectedRoute role="SUPERVISOR">
+            <ProgrammesPage />
           </ProtectedRoute>
         }
       />

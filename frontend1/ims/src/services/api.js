@@ -624,3 +624,108 @@ export async function deleteUniversityUnitCourse(id) {
   });
   return parseResponse(response);
 }
+
+export async function fetchSchools() {
+  const response = await fetch(`${API_ROOT}/api/university/schools`, {
+    credentials: 'include',
+  });
+  return parseResponse(response);
+}
+
+export async function createSchool(school) {
+  const response = await fetch(`${API_ROOT}/api/university/schools`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+    body: JSON.stringify(school),
+  });
+  return parseResponse(response);
+}
+
+export async function updateSchool(id, school) {
+  const response = await fetch(`${API_ROOT}/api/university/schools/${id}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+    body: JSON.stringify(school),
+  });
+  return parseResponse(response);
+}
+
+export async function deleteSchool(id) {
+  const response = await fetch(`${API_ROOT}/api/university/schools/${id}`, {
+    method: 'DELETE',
+    credentials: 'include',
+  });
+  return parseResponse(response);
+}
+
+export async function fetchDepartments() {
+  const response = await fetch(`${API_ROOT}/api/university/departments`, {
+    credentials: 'include',
+  });
+  return parseResponse(response);
+}
+
+export async function createDepartment(dept) {
+  const response = await fetch(`${API_ROOT}/api/university/departments`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+    body: JSON.stringify(dept),
+  });
+  return parseResponse(response);
+}
+
+export async function updateDepartment(id, dept) {
+  const response = await fetch(`${API_ROOT}/api/university/departments/${id}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+    body: JSON.stringify(dept),
+  });
+  return parseResponse(response);
+}
+
+export async function deleteDepartment(id) {
+  const response = await fetch(`${API_ROOT}/api/university/departments/${id}`, {
+    method: 'DELETE',
+    credentials: 'include',
+  });
+  return parseResponse(response);
+}
+
+export async function fetchProgrammes() {
+  const response = await fetch(`${API_ROOT}/api/university/programmes`, {
+    credentials: 'include',
+  });
+  return parseResponse(response);
+}
+
+export async function createProgramme(prog) {
+  const response = await fetch(`${API_ROOT}/api/university/programmes`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+    body: JSON.stringify(prog),
+  });
+  return parseResponse(response);
+}
+
+export async function updateProgramme(id, prog) {
+  const response = await fetch(`${API_ROOT}/api/university/programmes/${id}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+    body: JSON.stringify(prog),
+  });
+  return parseResponse(response);
+}
+
+export async function deleteProgramme(id) {
+  const response = await fetch(`${API_ROOT}/api/university/programmes/${id}`, {
+    method: 'DELETE',
+    credentials: 'include',
+  });
+  return parseResponse(response);
+}
