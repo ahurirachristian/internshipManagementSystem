@@ -56,7 +56,7 @@ export default function PlacementMatching() {
     return placements.filter((p) => {
       const student = students.find((s) => String(s.id) === String(p.studentId));
       const company = companies.find((c) => String(c.id) === String(p.companyId));
-      const studentName = student ? student.studentName : '';
+      const studentName = student ? (student.fullName || `${student.firstName || ''} ${student.lastName || ''}`.trim()) : '';
       const companyName = company ? company.name : '';
       return (
         studentName.toLowerCase().includes(q) ||
@@ -210,7 +210,7 @@ export default function PlacementMatching() {
 
   function getStudentName(studentId) {
     const student = students.find((s) => String(s.id) === String(studentId));
-    return student ? student.studentName : 'Unknown';
+    return student ? (student.fullName || `${student.firstName || ''} ${student.lastName || ''}`.trim()) : 'Unknown';
   }
 
   function getCompanyName(companyId) {

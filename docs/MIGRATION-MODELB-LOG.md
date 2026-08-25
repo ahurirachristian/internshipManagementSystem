@@ -82,3 +82,49 @@ Notes:
 - H2 in-memory wipes between restarts: probes must re-register per boot
   (observed and confirmed intentional dev behavior).
 - ⛔ CHECKPOINT reached — awaiting user sign-off before M3.
+
+## M3 — Student domain rebind (2026-08-25, branch migration/schema-b)
+
+### Backend
+- `Student` entity += R3 columns: intake, academicYear, semester,
+  start_date, end_date (all nullable). Picture blob intentionally dropped.
+- `dto/StudentDto.java` NEW — flat B projection incl. computed fullName +
+  username convenience; no legacy aliases.
+- `StudentRepository` += finders: findByUserId, findByStudentNumber,
+  findByInternshipCompanyId, findByUniversityId, findByUniSupervisorId,
+  findByIndSupervisorId, name search.
+- `StudentController` REWRITTEN onto B: /me, /me/progress (diary count via
+  A link — transitional until M4), PUT /me partial merge, CRUD, CSV export
+  with B columns, `/company/{id}` = exact FK lookup (substring matcher no
+  longer used here), `/search`.
+- `AuthApiController.register` now creates a linked `students` row for every
+  STUDENT signup (university default 19/Nkumba; accepts optional
+  firstName/lastName/fullName/studentNumber/degreeProgram/yearOfStudy/
+  phoneNumber/intake/academicYear/semester/dates).
+- `DashboardController` assigned/pending counts rewritten from the
+  `"Pending"` string heuristic to `internshipCompanyId != null`, scoped to
+  the supervisor via university_supervisors (loophole #3 fix).
+- Transitional A-side consumers left intact by design (R2 coexistence):
+  StudentService legacy methods, MVC student-edit pages, credential flow.
+
+### Frontend
+- `InternshipProgress.jsx` relative-URL bug fixed (API_ROOT).
+- `csvExport.js` fallback fetch now sends credentials.
+- Field renames to B DTO across: StudentDashboard, AdminDashboard (student-
+  list parts only; diary studentProfile reads untouched until M4),
+  UniversityDashboard table + company-name resolution by id,
+  UniversityStudents (filter/row/add-payload), CompanyProfilePage interns,
+  PlacementMatching, StudentEditModal (full rework: names split,
+  supervisor/company id inputs, R3 fields).
+- RegisterPage was already B-shaped; its saveMyProfile merge lands on the
+  new row. Credential form payloads unchanged (A endpoint dies at M5).
+
+### Verification
+- New `StudentCrudIntegrationTest` (4 tests): registration→students row
+  (+R3 values, uni 19, studentNumber=username); non-STUDENT registration
+  creates no row; admin fetch/search on B fields; company lookup = exact FK
+  single hit.
+- Full suite: **Tests run: 24, Failures: 0 — BUILD SUCCESS**
+- Live boot curl proof: register m3live → login → GET /api/students/me
+  returns the Model-B row (fullName "Live Proof", universityId 19,
+  intake AUG/2024, yearOfStudy 3).

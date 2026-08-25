@@ -3,29 +3,22 @@ import { UserCog, X } from 'lucide-react';
 import CustomSelect from './CustomSelect';
 
 const emptyForm = {
-  studentName: '',
-  studentNo: '',
-  regNo: '',
+  firstName: '',
+  lastName: '',
+  username: '',
+  studentNumber: '',
+  registrationNumber: '',
   intake: '',
-  program: '',
-  courseName: '',
-  mobileNo: '',
-  email: '',
+  degreeProgram: '',
   yearOfStudy: '',
   academicYear: '',
   semester: '',
-  organisation: '',
-  location: '',
-  academicSupervisor: '',
-  academicSupervisorContact: '',
-  fieldSupervisor: '',
-  fieldSupervisorContact: '',
+  phoneNumber: '',
+  internshipCompanyId: '',
+  uniSupervisorId: '',
+  indSupervisorId: '',
   startDate: '',
   endDate: '',
-  unitId: '',
-  courseId: '',
-  academicSupervisorId: '',
-  fieldSupervisorId: '',
 };
 
 export default function StudentEditModal({ student, title, onClose, onSubmit }) {
@@ -33,29 +26,22 @@ export default function StudentEditModal({ student, title, onClose, onSubmit }) 
   const [form, setForm] = useState(
     student
       ? {
-          studentName: student.studentName || '',
-          studentNo: student.studentNo || '',
-          regNo: student.regNo || '',
+          firstName: student.firstName || '',
+          lastName: student.lastName || '',
+          username: student.username || '',
+          studentNumber: student.studentNumber || '',
+          registrationNumber: student.registrationNumber || '',
           intake: student.intake || '',
-          program: student.program || '',
-          courseName: student.courseName || '',
-          mobileNo: student.mobileNo || '',
-          email: student.email || '',
-          yearOfStudy: student.yearOfStudy || '',
+          degreeProgram: student.degreeProgram || '',
+          yearOfStudy: student.yearOfStudy != null ? String(student.yearOfStudy) : '',
           academicYear: student.academicYear || '',
           semester: student.semester || '',
-          organisation: student.organisation || '',
-          location: student.location || '',
-          academicSupervisor: student.academicSupervisor || '',
-          academicSupervisorContact: student.academicSupervisorContact || '',
-          fieldSupervisor: student.fieldSupervisor || '',
-          fieldSupervisorContact: student.fieldSupervisorContact || '',
+          phoneNumber: student.phoneNumber || '',
+          internshipCompanyId: student.internshipCompanyId != null ? String(student.internshipCompanyId) : '',
+          uniSupervisorId: student.uniSupervisorId != null ? String(student.uniSupervisorId) : '',
+          indSupervisorId: student.indSupervisorId != null ? String(student.indSupervisorId) : '',
           startDate: student.startDate || '',
           endDate: student.endDate || '',
-          unitId: student.unitId ?? '',
-          courseId: student.courseId ?? '',
-          academicSupervisorId: student.academicSupervisorId ?? '',
-          fieldSupervisorId: student.fieldSupervisorId ?? '',
         }
       : emptyForm
   );
@@ -74,20 +60,19 @@ export default function StudentEditModal({ student, title, onClose, onSubmit }) 
     setForm((prev) => ({ ...prev, [name]: value }));
   }
 
-  const step1Valid = form.studentName.trim() && form.studentNo.trim() && form.regNo.trim() && form.email.trim();
-  const step2Valid = form.intake.trim() && form.program.trim() && form.courseName.trim() && form.yearOfStudy.trim();
-  const step3Valid = form.organisation.trim() && form.location.trim() && form.academicSupervisor.trim();
+  const step1Valid = form.firstName.trim() && form.studentNumber.trim() && form.registrationNumber.trim();
+  const step2Valid = form.intake.trim() && form.degreeProgram.trim() && form.yearOfStudy.trim();
+  const step3Valid = true;
 
   function validateStep1() {
-    if (!step1Valid) { setError('Name, student number, reg number and email are required.'); return false; }
+    if (!step1Valid) { setError('First name, student number and registration number are required.'); return false; }
     setError(''); return true;
   }
   function validateStep2() {
-    if (!step2Valid) { setError('Intake, program, course name and year of study are required.'); return false; }
+    if (!step2Valid) { setError('Intake, degree program and year of study are required.'); return false; }
     setError(''); return true;
   }
   function validateStep3() {
-    if (!step3Valid) { setError('Organisation, location and academic supervisor are required.'); return false; }
     setError(''); return true;
   }
 
@@ -106,11 +91,21 @@ export default function StudentEditModal({ student, title, onClose, onSubmit }) 
     setBusy(true);
     try {
       await onSubmit({
-        ...form,
-        unitId: form.unitId === '' ? null : Number(form.unitId),
-        courseId: form.courseId === '' ? null : Number(form.courseId),
-        academicSupervisorId: form.academicSupervisorId === '' ? null : Number(form.academicSupervisorId),
-        fieldSupervisorId: form.fieldSupervisorId === '' ? null : Number(form.fieldSupervisorId),
+        firstName: form.firstName.trim(),
+        lastName: form.lastName.trim(),
+        studentNumber: form.studentNumber.trim(),
+        registrationNumber: form.registrationNumber.trim(),
+        intake: form.intake.trim() || null,
+        degreeProgram: form.degreeProgram.trim(),
+        yearOfStudy: form.yearOfStudy === '' ? null : Number(form.yearOfStudy),
+        academicYear: form.academicYear.trim() || null,
+        semester: form.semester.trim() || null,
+        phoneNumber: form.phoneNumber.trim() || null,
+        internshipCompanyId: form.internshipCompanyId === '' ? null : Number(form.internshipCompanyId),
+        uniSupervisorId: form.uniSupervisorId === '' ? null : Number(form.uniSupervisorId),
+        indSupervisorId: form.indSupervisorId === '' ? null : Number(form.indSupervisorId),
+        startDate: form.startDate.trim() || null,
+        endDate: form.endDate.trim() || null,
       });
       onClose();
     } catch (err) {
@@ -183,24 +178,28 @@ export default function StudentEditModal({ student, title, onClose, onSubmit }) 
           {stepState === 1 && (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               <div>
-                <label htmlFor="edit-studentName" className={labelClass}>Student Name <span className="text-rose-600">*</span></label>
-                <input id="edit-studentName" value={form.studentName} onChange={(e) => setField('studentName', e.target.value)} className={inputClass} />
+                <label htmlFor="edit-firstName" className={labelClass}>First Name <span className="text-rose-600">*</span></label>
+                <input id="edit-firstName" value={form.firstName} onChange={(e) => setField('firstName', e.target.value)} className={inputClass} />
               </div>
               <div>
-                <label htmlFor="edit-studentNo" className={labelClass}>Student No. <span className="text-rose-600">*</span></label>
-                <input id="edit-studentNo" value={form.studentNo} onChange={(e) => setField('studentNo', e.target.value)} className={inputClass} />
+                <label htmlFor="edit-lastName" className={labelClass}>Last Name</label>
+                <input id="edit-lastName" value={form.lastName} onChange={(e) => setField('lastName', e.target.value)} className={inputClass} />
               </div>
               <div>
-                <label htmlFor="edit-regNo" className={labelClass}>Registration No. <span className="text-rose-600">*</span></label>
-                <input id="edit-regNo" value={form.regNo} onChange={(e) => setField('regNo', e.target.value)} className={inputClass} />
+                <label htmlFor="edit-studentNumber" className={labelClass}>Student No. <span className="text-rose-600">*</span></label>
+                <input id="edit-studentNumber" value={form.studentNumber} onChange={(e) => setField('studentNumber', e.target.value)} className={inputClass} />
               </div>
               <div>
-                <label htmlFor="edit-email" className={labelClass}>Email <span className="text-rose-600">*</span></label>
-                <input id="edit-email" type="email" value={form.email} onChange={(e) => setField('email', e.target.value)} className={inputClass} />
+                <label htmlFor="edit-registrationNumber" className={labelClass}>Registration No. <span className="text-rose-600">*</span></label>
+                <input id="edit-registrationNumber" value={form.registrationNumber} onChange={(e) => setField('registrationNumber', e.target.value)} className={inputClass} />
               </div>
               <div>
-                <label htmlFor="edit-mobileNo" className={labelClass}>Mobile No.</label>
-                <input id="edit-mobileNo" value={form.mobileNo} onChange={(e) => setField('mobileNo', e.target.value)} className={inputClass} />
+                <label htmlFor="edit-username" className={labelClass}>Account Username</label>
+                <input id="edit-username" value={form.username} readOnly disabled className={`${inputClass} bg-slate-100 text-slate-500`} />
+              </div>
+              <div>
+                <label htmlFor="edit-phoneNumber" className={labelClass}>Phone Number</label>
+                <input id="edit-phoneNumber" value={form.phoneNumber} onChange={(e) => setField('phoneNumber', e.target.value)} className={inputClass} />
               </div>
             </div>
           )}
@@ -212,12 +211,8 @@ export default function StudentEditModal({ student, title, onClose, onSubmit }) 
                 <input id="edit-intake" value={form.intake} onChange={(e) => setField('intake', e.target.value)} className={inputClass} placeholder="e.g. AUG/2024" />
               </div>
               <div>
-                <label htmlFor="edit-program" className={labelClass}>Program <span className="text-rose-600">*</span></label>
-                <input id="edit-program" value={form.program} onChange={(e) => setField('program', e.target.value)} className={inputClass} placeholder="e.g. BSCCS" />
-              </div>
-              <div>
-                <label htmlFor="edit-courseName" className={labelClass}>Course Name <span className="text-rose-600">*</span></label>
-                <input id="edit-courseName" value={form.courseName} onChange={(e) => setField('courseName', e.target.value)} className={inputClass} />
+                <label htmlFor="edit-degreeProgram" className={labelClass}>Degree Program <span className="text-rose-600">*</span></label>
+                <input id="edit-degreeProgram" value={form.degreeProgram} onChange={(e) => setField('degreeProgram', e.target.value)} className={inputClass} placeholder="e.g. BSc Computer Science" />
               </div>
               <div>
                 <label className={labelClass}>Year of Study <span className="text-rose-600">*</span></label>
@@ -237,28 +232,16 @@ export default function StudentEditModal({ student, title, onClose, onSubmit }) 
           {stepState === 3 && (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               <div>
-                <label htmlFor="edit-organisation" className={labelClass}>Organisation <span className="text-rose-600">*</span></label>
-                <input id="edit-organisation" value={form.organisation} onChange={(e) => setField('organisation', e.target.value)} className={inputClass} />
+                <label htmlFor="edit-internshipCompanyId" className={labelClass}>Internship Company ID</label>
+                <input id="edit-internshipCompanyId" type="number" min="0" value={form.internshipCompanyId} onChange={(e) => setField('internshipCompanyId', e.target.value)} className={inputClass} placeholder="empty = unassigned" />
               </div>
               <div>
-                <label htmlFor="edit-location" className={labelClass}>Location <span className="text-rose-600">*</span></label>
-                <input id="edit-location" value={form.location} onChange={(e) => setField('location', e.target.value)} className={inputClass} />
+                <label htmlFor="edit-uniSupervisorId" className={labelClass}>University Supervisor ID</label>
+                <input id="edit-uniSupervisorId" type="number" min="0" value={form.uniSupervisorId} onChange={(e) => setField('uniSupervisorId', e.target.value)} className={inputClass} placeholder="university_supervisors.id" />
               </div>
               <div>
-                <label htmlFor="edit-academicSupervisor" className={labelClass}>Academic Supervisor <span className="text-rose-600">*</span></label>
-                <input id="edit-academicSupervisor" value={form.academicSupervisor} onChange={(e) => setField('academicSupervisor', e.target.value)} className={inputClass} />
-              </div>
-              <div>
-                <label htmlFor="edit-academicSupervisorContact" className={labelClass}>Academic Supervisor Contact</label>
-                <input id="edit-academicSupervisorContact" value={form.academicSupervisorContact} onChange={(e) => setField('academicSupervisorContact', e.target.value)} className={inputClass} />
-              </div>
-              <div>
-                <label htmlFor="edit-fieldSupervisor" className={labelClass}>Field Supervisor</label>
-                <input id="edit-fieldSupervisor" value={form.fieldSupervisor} onChange={(e) => setField('fieldSupervisor', e.target.value)} className={inputClass} />
-              </div>
-              <div>
-                <label htmlFor="edit-fieldSupervisorContact" className={labelClass}>Field Supervisor Contact</label>
-                <input id="edit-fieldSupervisorContact" value={form.fieldSupervisorContact} onChange={(e) => setField('fieldSupervisorContact', e.target.value)} className={inputClass} />
+                <label htmlFor="edit-indSupervisorId" className={labelClass}>Industry Supervisor ID</label>
+                <input id="edit-indSupervisorId" type="number" min="0" value={form.indSupervisorId} onChange={(e) => setField('indSupervisorId', e.target.value)} className={inputClass} placeholder="industrial_supervisors.id" />
               </div>
               <div>
                 <label htmlFor="edit-startDate" className={labelClass}>Start Date</label>
@@ -276,20 +259,19 @@ export default function StudentEditModal({ student, title, onClose, onSubmit }) 
               <h4 className="text-sm font-bold text-slate-900 mb-4">Review Information</h4>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {[
-                  ['Student Name', form.studentName],
-                  ['Student No.', form.studentNo],
-                  ['Registration No.', form.regNo],
-                  ['Email', form.email],
+                  ['First Name', form.firstName],
+                  ['Last Name', form.lastName],
+                  ['Student No.', form.studentNumber],
+                  ['Registration No.', form.registrationNumber],
                   ['Intake', form.intake],
-                  ['Program', form.program],
-                  ['Course Name', form.courseName],
+                  ['Degree Program', form.degreeProgram],
                   ['Year of Study', form.yearOfStudy],
                   ['Academic Year', form.academicYear],
                   ['Semester', form.semester],
-                  ['Organisation', form.organisation],
-                  ['Location', form.location],
-                  ['Academic Supervisor', form.academicSupervisor],
-                  ['Field Supervisor', form.fieldSupervisor],
+                  ['Phone Number', form.phoneNumber],
+                  ['Company ID', form.internshipCompanyId],
+                  ['Uni Supervisor ID', form.uniSupervisorId],
+                  ['Industry Supervisor ID', form.indSupervisorId],
                   ['Start Date', form.startDate],
                   ['End Date', form.endDate],
                 ].map(([label, value]) => (

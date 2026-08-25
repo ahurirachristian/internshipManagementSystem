@@ -202,14 +202,14 @@ export default function StudentDashboard() {
       );
     }
     const details = [
-      ['Student Name', profile.studentName],
-      ['Student No.', profile.studentNo],
-      ['Registration No.', profile.regNo],
+      ['Student Name', profile.fullName],
+      ['Student No.', profile.studentNumber],
+      ['Registration No.', profile.registrationNumber],
       ['Email', profile.email],
       ['Intake', profile.intake],
-      ['Program', profile.program],
+      ['Program', profile.degreeProgram],
       ['Course Name', profile.courseName],
-      ['Mobile No.', profile.mobileNo],
+      ['Mobile No.', profile.phoneNumber],
       ['Year of Study', profile.yearOfStudy],
       ['Academic Year', profile.academicYear],
       ['Semester', profile.semester],

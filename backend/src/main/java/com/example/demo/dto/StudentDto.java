@@ -1,74 +1,32 @@
-package com.example.demo.student;
+package com.example.demo.dto;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import java.time.LocalDate;
 
-@Entity
-@Table(name = "students")
-public class Student {
+/**
+ * Model-B student transfer object (M3, MIGRATION_PLAN.md). Flat projection
+ * of the students table; no legacy StudentProfile aliases.
+ */
+public class StudentDto {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
-    @Column(name = "user_id", nullable = false)
     private Long userId;
-
-    @Column(name = "university_id", nullable = false)
     private Long universityId;
-
-    @Column(name = "internship_company_id", nullable = true)
     private Long internshipCompanyId;
-
-    @Column(name = "uni_supervisor_id", nullable = true)
     private Long uniSupervisorId;
-
-    @Column(name = "ind_supervisor_id", nullable = true)
     private Long indSupervisorId;
-
-    @Column(name = "first_name", nullable = false)
     private String firstName;
-
-    @Column(name = "last_name", nullable = false)
     private String lastName;
-
-    @Column(name = "registration_number", nullable = false)
     private String registrationNumber;
-
-    @Column(name = "student_number", nullable = false)
     private String studentNumber;
-
-    @Column(name = "degree_program", nullable = false)
     private String degreeProgram;
-
-    @Column(name = "year_of_study", nullable = true)
     private Integer yearOfStudy;
-
-    @Column(name = "phone_number", nullable = true)
     private String phoneNumber;
-
-    // R3 preserved columns (MIGRATION_PLAN.md): carried over from Model A
-    @Column(name = "intake", nullable = true)
     private String intake;
-
-    @Column(name = "academic_year", nullable = true)
     private String academicYear;
-
-    @Column(name = "semester", nullable = true)
     private String semester;
-
-    @Column(name = "start_date", nullable = true)
-    private java.time.LocalDate startDate;
-
-    @Column(name = "end_date", nullable = true)
-    private java.time.LocalDate endDate;
-
-    public Student() {
-    }
+    private LocalDate startDate;
+    private LocalDate endDate;
+    private String username;
 
     public Long getId() {
         return id;
@@ -132,6 +90,14 @@ public class Student {
 
     public void setLastName(String lastName) {
         this.lastName = lastName;
+    }
+
+    public String getFullName() {
+        if (firstName == null && lastName == null) {
+            return null;
+        }
+        return (firstName == null ? "" : firstName)
+                + (lastName == null ? "" : (firstName == null ? "" : " ") + lastName);
     }
 
     public String getRegistrationNumber() {
@@ -198,19 +164,27 @@ public class Student {
         this.semester = semester;
     }
 
-    public java.time.LocalDate getStartDate() {
+    public LocalDate getStartDate() {
         return startDate;
     }
 
-    public void setStartDate(java.time.LocalDate startDate) {
+    public void setStartDate(LocalDate startDate) {
         this.startDate = startDate;
     }
 
-    public java.time.LocalDate getEndDate() {
+    public LocalDate getEndDate() {
         return endDate;
     }
 
-    public void setEndDate(java.time.LocalDate endDate) {
+    public void setEndDate(LocalDate endDate) {
         this.endDate = endDate;
+    }
+
+    public String getUsername() {
+        return username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
     }
 }

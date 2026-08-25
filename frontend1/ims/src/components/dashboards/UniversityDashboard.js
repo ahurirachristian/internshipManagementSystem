@@ -236,9 +236,10 @@ export default function UniversityDashboard() {
     }
   }
 
-  function getCompanyName(organisation) {
-    if (!organisation || organisation === 'Pending') return '—';
-    return organisation;
+  function getCompanyName(student) {
+    if (!student.internshipCompanyId) return '—';
+    const match = companies.find((c) => String(c.id) === String(student.internshipCompanyId));
+    return match ? match.name : `Company #${student.internshipCompanyId}`;
   }
 
   function renderStudentRow(student) {
@@ -249,18 +250,18 @@ export default function UniversityDashboard() {
             <div className="w-8 h-8 rounded-lg bg-teal-50 text-teal-700 border border-teal-200 flex items-center justify-center shrink-0 shadow-xs">
               <GraduationCap className="w-4 h-4" />
             </div>
-            <span className="font-bold text-slate-900">{student.studentName}</span>
+            <span className="font-bold text-slate-900">{student.fullName}</span>
           </div>
         </td>
-        <td className="py-3.5 px-3 text-xs text-slate-600">{student.email}</td>
-        <td className="py-3.5 px-3 text-xs text-slate-600">{student.studentNo}</td>
-        <td className="py-3.5 px-3 text-xs text-slate-600">{student.program}</td>
+        <td className="py-3.5 px-3 text-xs text-slate-600">{student.username}</td>
+        <td className="py-3.5 px-3 text-xs text-slate-600">{student.studentNumber}</td>
+        <td className="py-3.5 px-3 text-xs text-slate-600">{student.degreeProgram}</td>
         <td className="py-3.5 px-3 text-xs text-slate-600">{student.yearOfStudy}</td>
         <td className="py-3.5 px-3">
-          {student.organisation && student.organisation !== 'Pending' ? (
+          {student.internshipCompanyId ? (
             <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-700">
               <Building2 className="w-3.5 h-3.5 text-slate-400" />
-              {getCompanyName(student.organisation)}
+              {getCompanyName(student)}
             </span>
           ) : (
             <span className="text-xs text-slate-400">—</span>
@@ -673,7 +674,7 @@ export default function UniversityDashboard() {
       {editStudent && (
         <StudentEditModal
           student={editStudent}
-          title={`Edit Student: ${editStudent.studentName}`}
+          title={`Edit Student: ${editStudent.fullName}`}
           onClose={() => setEditStudent(null)}
           onSubmit={handleEditSave}
           companies={companies}

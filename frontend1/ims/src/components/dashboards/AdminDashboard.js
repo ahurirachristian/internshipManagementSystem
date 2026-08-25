@@ -90,7 +90,7 @@ export default function AdminDashboard() {
       items.push({
         icon: 'fa-user-graduate',
         title: 'New student registered',
-        message: `${latestStudent.studentName} (${latestStudent.studentNo || '—'}) joined the system.`,
+        message: `${latestStudent.fullName} (${latestStudent.studentNumber || '—'}) joined the system.`,
         time: 'Recently',
       });
     }
@@ -101,12 +101,12 @@ export default function AdminDashboard() {
     const q = searchQuery.trim().toLowerCase();
     if (!q) return students;
     return students.filter((student) => {
-      const name = (student.studentName || '').toLowerCase();
+      const name = (student.fullName || '').toLowerCase();
       return (
         name.includes(q) ||
-        (student.studentNo || '').toLowerCase().includes(q) ||
+        (student.studentNumber || '').toLowerCase().includes(q) ||
         (student.email || '').toLowerCase().includes(q) ||
-        (student.program || '').toLowerCase().includes(q) ||
+        (student.degreeProgram || '').toLowerCase().includes(q) ||
         (student.organisation || '').toLowerCase().includes(q)
       );
     });
@@ -159,7 +159,7 @@ export default function AdminDashboard() {
             <tbody className="divide-y divide-slate-100 text-sm">
               {filteredStudents.length > 0 ? (
                 filteredStudents.map((student) => {
-                  const count = stats.diaryCounts[student.studentNo] || 0;
+                  const count = stats.diaryCounts[student.username] || 0;
                   return (
                     <tr key={student.id} className="hover:bg-slate-50/80 transition-colors">
                       <td className="py-3.5 px-3 pl-5">
@@ -168,14 +168,14 @@ export default function AdminDashboard() {
                             <GraduationCap className="w-4 h-4" />
                           </div>
                           <div>
-                            <div className="font-bold text-slate-900">{student.studentName}</div>
-                            <div className="text-[11px] text-slate-500">{student.studentNo}</div>
+                            <div className="font-bold text-slate-900">{student.fullName}</div>
+                            <div className="text-[11px] text-slate-500">{student.username}</div>
                           </div>
                         </div>
                       </td>
-                      <td className="py-3.5 px-3 text-xs text-slate-600">{student.studentNo}</td>
+                      <td className="py-3.5 px-3 text-xs text-slate-600">{student.username}</td>
                       <td className="py-3.5 px-3 text-xs text-slate-600">{student.email}</td>
-                      <td className="py-3.5 px-3 text-xs text-slate-600">{student.program}</td>
+                      <td className="py-3.5 px-3 text-xs text-slate-600">{student.degreeProgram}</td>
                       <td className="py-3.5 px-3 text-xs text-slate-600">{student.organisation || '—'}</td>
                       <td className="py-3.5 px-3">
                         <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-slate-100 text-xs font-bold text-slate-700 border border-slate-200">

@@ -194,12 +194,12 @@ export default function CompanyProfilePage() {
                           <div className="w-8 h-8 rounded-lg bg-teal-50 text-teal-700 border border-teal-200 flex items-center justify-center shrink-0 shadow-xs">
                             <GraduationCap className="w-4 h-4" />
                           </div>
-                          <span className="font-bold text-slate-900">{intern.studentName}</span>
+                          <span className="font-bold text-slate-900">{intern.fullName}</span>
                         </div>
                       </td>
                       <td className="py-3.5 px-3 text-xs text-slate-600">{intern.email}</td>
-                      <td className="py-3.5 px-3 text-xs text-slate-600">{intern.studentNo}</td>
-                      <td className="py-3.5 px-3 text-xs text-slate-600">{intern.program}</td>
+                      <td className="py-3.5 px-3 text-xs text-slate-600">{intern.studentNumber}</td>
+                      <td className="py-3.5 px-3 text-xs text-slate-600">{intern.degreeProgram}</td>
                       <td className="py-3.5 px-3 pr-5 text-xs text-slate-600">{intern.yearOfStudy}</td>
                     </tr>
                   ))

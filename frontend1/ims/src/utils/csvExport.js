@@ -31,7 +31,7 @@ export function exportToCSV(data, fileName) {
 export async function exportToCSVWithFallback(data, fileName, fallbackUrl) {
   if (fallbackUrl) {
     try {
-      const response = await fetch(fallbackUrl, { method: 'GET' });
+      const response = await fetch(fallbackUrl, { method: 'GET', credentials: 'include' });
       if (!response.ok) throw new Error('Fallback export failed');
       const blob = await response.blob();
       const url = URL.createObjectURL(blob);
