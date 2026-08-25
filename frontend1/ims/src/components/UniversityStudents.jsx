@@ -16,7 +16,7 @@ import {
 import { useAuth } from '../context/AuthContext';
 import {
   fetchStudents,
-  fetchAcademicUnits,
+  fetchSchools,
   fetchCompanies,
   createStudent,
   updateStudent,
@@ -53,7 +53,7 @@ export default function UniversityStudents() {
   const [searchParams] = useSearchParams();
   const selectedUnitId = searchParams.get('unitId');
   const [allStudents, setAllStudents] = useState([]);
-  const [academicUnits, setAcademicUnits] = useState([]);
+  const [schools, setSchools] = useState([]);
   const [companies, setCompanies] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -76,11 +76,11 @@ export default function UniversityStudents() {
     try {
       const [studentsData, unitsData, companiesData] = await Promise.all([
         fetchStudents(),
-        user.universityId ? fetchAcademicUnits(user.universityId) : Promise.resolve([]),
+        user.universityId ? fetchSchools() : Promise.resolve([]),
         fetchCompanies(),
       ]);
       setAllStudents(Array.isArray(studentsData) ? studentsData : []);
-      setAcademicUnits(Array.isArray(unitsData) ? unitsData : []);
+      setSchools(Array.isArray(unitsData) ? unitsData : []);
       setCompanies(Array.isArray(companiesData) ? companiesData : []);
     } catch (err) {
       setError(err.message || 'Unable to load data.');
@@ -94,18 +94,18 @@ export default function UniversityStudents() {
     if (!selectedUnitId) return null; // null = no filter
     const ids = new Set([String(selectedUnitId)]);
     // Also include child units
-    academicUnits.forEach((u) => {
-      if (String(u.parentUnitId) === String(selectedUnitId)) {
-        ids.add(String(u.unitId));
+    schools.forEach((u) => {
+      if (String(u.parentSchoolId) === String(selectedUnitId)) {
+        ids.add(String(u.schoolId));
       }
     });
     return ids;
-  }, [selectedUnitId, academicUnits]);
+  }, [selectedUnitId, schools]);
 
   const myStudents = useMemo(() => {
     let list = allStudents;
     if (includedUnitIds) {
-      list = list.filter((s) => includedUnitIds.has(String(s.unitId)));
+      list = list.filter((s) => includedUnitIds.has(String(s.schoolId)));
     }
     return list;
   }, [allStudents, includedUnitIds]);
@@ -115,14 +115,14 @@ export default function UniversityStudents() {
     // School filter
     if (schoolFilter) {
       if (schoolFilter === 'unassigned') {
-        list = list.filter((s) => !s.unitId);
+        list = list.filter((s) => !s.schoolId);
       } else {
         const filterId = String(schoolFilter);
-        const childIds = academicUnits
-          .filter((u) => String(u.parentUnitId) === filterId)
-          .map((u) => String(u.unitId));
+        const childIds = schools
+          .filter((u) => String(u.parentSchoolId) === filterId)
+          .map((u) => String(u.schoolId));
         const includeIds = new Set([filterId, ...childIds]);
-        list = list.filter((s) => includeIds.has(String(s.unitId)));
+        list = list.filter((s) => includeIds.has(String(s.schoolId)));
       }
     }
     // Search filter
@@ -137,22 +137,22 @@ export default function UniversityStudents() {
       );
     }
     return list;
-  }, [myStudents, searchQuery, schoolFilter, academicUnits]);
+  }, [myStudents, searchQuery, schoolFilter, schools]);
 
   const unitsByParent = useMemo(() => {
     const map = {};
-    academicUnits.forEach((u) => {
-      const key = u.parentUnitId || 'root';
+    schools.forEach((u) => {
+      const key = u.parentSchoolId || 'root';
       if (!map[key]) map[key] = [];
       map[key].push(u);
     });
     return map;
-  }, [academicUnits]);
+  }, [schools]);
 
   const studentsByUnit = useMemo(() => {
     const map = {};
     filteredStudents.forEach((s) => {
-      const key = s.unitId || 'unassigned';
+      const key = s.schoolId || 'unassigned';
       if (!map[key]) map[key] = [];
       map[key].push(s);
     });
@@ -222,7 +222,7 @@ export default function UniversityStudents() {
 
   function getUnitName(unitId) {
     if (!unitId) return 'Unassigned';
-    const unit = academicUnits.find((u) => u.unitId === unitId);
+    const unit = schools.find((u) => u.schoolId === unitId);
     return unit ? unit.unitName : `Unit ${unitId}`;
   }
 
@@ -410,8 +410,8 @@ export default function UniversityStudents() {
                 className="w-full text-xs rounded-xl border border-slate-300 px-3 py-2 focus:border-teal-600 focus:ring-2 focus:ring-teal-600/20 focus:outline-none"
               >
                 <option value="">Select unit...</option>
-                {academicUnits.map((u) => (
-                  <option key={u.unitId} value={u.unitId}>{u.unitName}</option>
+                {schools.map((u) => (
+                  <option key={u.schoolId} value={u.schoolId}>{u.schoolName}</option>
                 ))}
               </select>
             </div>

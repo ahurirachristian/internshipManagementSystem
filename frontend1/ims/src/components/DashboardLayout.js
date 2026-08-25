@@ -145,13 +145,9 @@ export default function DashboardLayout({
   ];
 
   const settingsLinks = [
-    { to: '/university/academic-units', icon: <Network className={SIDEBAR_ICON_SIZE} />, label: 'Academic Units', roles: ['SUPERVISOR'] },
     { to: '/university/schools', icon: <Building2 className={SIDEBAR_ICON_SIZE} />, label: 'Schools', roles: ['SUPERVISOR'] },
     { to: '/university/departments', icon: <ListChecks className={SIDEBAR_ICON_SIZE} />, label: 'Departments', roles: ['SUPERVISOR'] },
     { to: '/university/programmes', icon: <BookOpen className={SIDEBAR_ICON_SIZE} />, label: 'Programmes', roles: ['SUPERVISOR'] },
-    { to: '/university/courses', icon: <BookOpen className={SIDEBAR_ICON_SIZE} />, label: 'Courses', roles: ['SUPERVISOR'] },
-    { to: '/university/staff', icon: <Users className={SIDEBAR_ICON_SIZE} />, label: 'Staff', roles: ['SUPERVISOR'] },
-    { to: '/university/unit-courses', icon: <Link2 className={SIDEBAR_ICON_SIZE} />, label: 'Unit Courses', roles: ['SUPERVISOR'] },
     { to: '/admin/users', icon: <Users className={SIDEBAR_ICON_SIZE} />, label: 'User Management', roles: ['ADMIN'] },
     { to: '/file-management', icon: <FolderOpen className={SIDEBAR_ICON_SIZE} />, label: 'File Management', roles: ['ADMIN'] },
     { to: '/admin/audit-logs', icon: <ListChecks className={SIDEBAR_ICON_SIZE} />, label: 'Audit Logs', roles: ['ADMIN'] },

@@ -5,7 +5,6 @@ import {
   createSchool,
   updateSchool,
   deleteSchool,
-  fetchAcademicUnits,
 } from '../../services/api';
 import ExportButton from '../ExportButton';
 import Pagination from '../Pagination';

@@ -9,7 +9,7 @@ import {
   fetchCompanies,
   fetchSupervisors,
   fetchUniversity,
-  fetchAcademicUnits,
+  fetchSchools,
   fetchUniversitySupervisors,
   fetchIndustrialSupervisors,
   updateStudent,
@@ -52,7 +52,7 @@ export default function UniversityDashboard() {
   const [supervisors, setSupervisors] = useState([]);
   const [university, setUniversity] = useState(null);
   const [studentsViewMode, setStudentsViewMode] = useState('all');
-  const [academicUnits, setAcademicUnits] = useState([]);
+  const [schools, setSchools] = useState([]);
   const [expandedUnits, setExpandedUnits] = useState({});
   const [searchParams] = useSearchParams();
   const selectedUnitId = searchParams.get('unitId');
@@ -133,8 +133,8 @@ export default function UniversityDashboard() {
   async function loadAcademicUnits() {
     try {
       if (user.universityId) {
-        const data = await fetchAcademicUnits(user.universityId);
-        setAcademicUnits(Array.isArray(data) ? data : []);
+        const data = await fetchSchools();
+        setSchools(Array.isArray(data) ? data : []);
       }
     } catch (err) {
       console.error('Failed to load academic units', err);
@@ -147,36 +147,36 @@ export default function UniversityDashboard() {
 
   function getUnitName(unitId) {
     if (!unitId) return 'Unassigned';
-    const unit = academicUnits.find((u) => u.unitId === unitId);
+    const unit = schools.find((u) => u.schoolId === unitId);
     return unit ? unit.unitName : `Unit ${unitId}`;
   }
 
   const topUnits = useMemo(
-    () => academicUnits.filter((u) => !u.parentUnitId),
-    [academicUnits]
+    () => schools.filter((u) => !u.parentSchoolId),
+    [schools]
   );
 
   const childUnitsMap = useMemo(() => {
     const map = {};
-    academicUnits.forEach((u) => {
-      if (u.parentUnitId) {
-        if (!map[u.parentUnitId]) map[u.parentUnitId] = [];
-        map[u.parentUnitId].push(u);
+    schools.forEach((u) => {
+      if (u.parentSchoolId) {
+        if (!map[u.parentSchoolId]) map[u.parentSchoolId] = [];
+        map[u.parentSchoolId].push(u);
       }
     });
     return map;
-  }, [academicUnits]);
+  }, [schools]);
 
   const includedUnitIds = useMemo(() => {
     if (!selectedUnitId) return null;
     const ids = new Set([String(selectedUnitId)]);
-    academicUnits.forEach((u) => {
-      if (String(u.parentUnitId) === String(selectedUnitId)) {
-        ids.add(String(u.unitId));
+    schools.forEach((u) => {
+      if (String(u.parentSchoolId) === String(selectedUnitId)) {
+        ids.add(String(u.schoolId));
       }
     });
     return ids;
-  }, [selectedUnitId, academicUnits]);
+  }, [selectedUnitId, schools]);
 
   const students = useMemo(
     () => allStudents,
