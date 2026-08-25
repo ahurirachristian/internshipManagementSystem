@@ -278,3 +278,85 @@ Runbook-style, idempotent, gated ETL for the production MySQL DB:
 - First import attempts stalled transiently (~10 tables in); root cause not
   pinned — rerun completed cleanly. If seen again: check processlist for a
   stuck importer before assuming dump corruption.
+
+---
+
+## M6a — CRUD Controllers (2026-08-25, branch migration/schema-b)
+
+Commit: `1293627`
+
+### What landed
+- `SchoolController.java` — GET/POST/PUT/DELETE + CSV export for `/api/schools`
+- `DepartmentController.java` — GET/POST/PUT/DELETE + CSV export for `/api/departments`
+- `ProgrammeController.java` — GET/POST/PUT/DELETE + CSV export for `/api/programmes`
+
+### Entity PK fix
+Initial attempt used `@GeneratedValue(IDENTITY)` on School/Department/Programme
+— caused `StaleObjectStateException` with Hibernate 7 on rows already seeded
+with explicit IDs. Reverted to plain `@Id` without `@GeneratedValue`; seeders
+assign explicit IDs and POST endpoints require client-supplied IDs.
+
+### Repository finders added
+- `SchoolRepository` — `findByUniversityId`, `findBySchoolNameContainingIgnoreCase`, `findByType`
+- `DepartmentRepository` — `findBySchoolId`, `findByUniversityId`, `findByDepartmentNameContainingIgnoreCase`
+- `ProgrammeRepository` — `findByDepartmentId`, `findBySchoolId`, `findByUniversityId`, `findByProgrammeNameContainingIgnoreCase`
+
+### Tests
+33/33 green (full suite unchanged).
+
+---
+
+## M6b — Frontend CRUD pages (2026-08-25, branch migration/schema-b)
+
+Commit: `fd0cf08`
+
+### What landed
+- `api.js` — +12 functions: `fetchSchools`, `createSchool`, `updateSchool`, `deleteSchool`, `exportSchoolsCsv`, `fetchDepartments`, `createDepartment`, `updateDepartment`, `deleteDepartment`, `exportDepartmentsCsv`, `fetchProgrammes`, `createProgramme`, `updateProgramme`, `deleteProgramme`, `exportProgrammesCsv`
+- `SchoolsManagement.jsx` — full CRUD table + create/edit modal + CSV export
+- `DepartmentsManagement.jsx` — full CRUD table + create/edit modal + CSV export
+- `ProgrammesManagement.jsx` — full CRUD table + create/edit modal + CSV export
+- `App.js` — routes `/university/schools`, `/departments`, `/programmes`
+- `DashboardLayout.js` — sidebar nav entries for Schools, Departments, Programmes
+
+### Build
+Frontend build clean, no warnings.
+
+---
+
+## M6c — Purge A-side academic package (2026-08-25, branch migration/schema-b)
+
+Commit: `971fc77`
+
+### Scope: 24 files changed, 3,343 deletions
+Backend (12 files deleted):
+- `academic/` package — `AcademicUnit.java`, `AcademicUnitDto.java`, `AcademicUnitService.java`, `AcademicUnitController.java`
+- `academic/Course.java`, `academic/CourseDto.java`, `academic/CourseService.java`
+- `academic/Staff.java`, `academic/StaffDto.java`, `academic/StaffService.java`
+- `academic/UnitCourse.java`, `academic/UnitCourseDto.java`
+- `AcademicUnitController.java` (root-level MVC controller)
+- `UniversityAcademicController.java`
+
+Frontend (4 components deleted):
+- `AcademicUnitsManagement.jsx`, `CoursesManagement.jsx`, `StaffManagement.jsx`, `UnitCoursesManagement.jsx`
+
+Dead api.js functions removed; `App.js` old routes removed; `DashboardLayout.js` old nav entries removed.
+
+### Caller fixes
+- `UniversityStudents.jsx` — `fetchAcademicUnits()` → `fetchSchools()`; field renames: `unitId→schoolId`, `parentUnitId→parentSchoolId`, `unitName→schoolName`
+- `UniversityDashboard.js` — same pattern
+
+### Tests
+33/33 green.
+
+---
+
+## M7 — Config alignment + docs + final schema.sql (2026-08-25, branch migration/schema-b)
+
+### schema.sql regenerated
+Dropped 4 dead tables: `academic_units`, `courses`, `staff`, `unit_courses`.
+Table count: 24 → 20. 13 constraints preserved.
+
+### Documentation updates
+- `ONBOARDING.md` §1 — Model B marked as target-of-record; Model A marked as purged
+- `ONBOARDING.md` role table — SUPERVISOR description updated (no more "Issue student credentials")
+- `MIGRATION-MODELB-LOG.md` — M6a/M6b/M6c/M7 sections appended

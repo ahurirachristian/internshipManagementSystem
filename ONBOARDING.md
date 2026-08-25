@@ -19,7 +19,7 @@ An **Internship Management System** for Ugandan universities: universities regis
 | Role | Who they are | What they do |
 |------|--------------|--------------|
 | `STUDENT` | The intern | Maintain profile, write daily diary entries, view progress |
-| `SUPERVISOR` | University staff | Issue student credentials, manage academic units/courses/staff, review diaries |
+| `SUPERVISOR` | University staff | Manage schools/departments/programmes, review diaries |
 | `COMPANY` | Company rep | Manage company profile, view assigned interns |
 | `ADMIN` | System admin | Users, universities, companies, placements, audit logs |
 
@@ -37,18 +37,19 @@ Two non-obvious facts that will save you hours:
 1. **The backend serves two UIs.** Legacy Thymeleaf templates (`backend/src/main/resources/templates/`, server-rendered MVC pages) AND the React SPA. React is the primary UI; the Thymeleaf pages still exist and some MVC controllers are live.
 2. **Roles have no `ROLE_` prefix.** Authorities match raw enum names (`ADMIN`, `SUPERVISOR`…) because `CustomUserDetailsService` wraps `user.getRole().name()` directly. If you write `hasRole('ADMIN')` it will fail — use `hasAuthority('ADMIN')`.
 
-### ⚠️ Merge status (2026-08-24): two parallel schema models coexist
+### ⚠️ Migration status (2026-08-25): Model B is target-of-record
 
-Merging `origin/developer` into `fred` brought in a **second, competing database migration** (PR #21/#22 by Chris). Current state:
+The Model A → Model B migration is complete through M6c. Model B is the sole schema.
 
-| | Model A — **active** (fred) | Model B — **dormant** (Chris, kept for reference) |
+| | Model A (purged M6c) | Model B — **active** |
 |---|---|---|
-| Academic structure | `academic/AcademicUnit` tree, `Course`, `Staff`, `UnitCourse` | `school/School`, `programme/Programme`, `department/Department` |
-| Student | `student/StudentProfile` (studentName/studentNo/organisation/supervisor strings) | `student/Student` + their DTO shape (firstName/internshipCompany/companyId String…) |
-| Supervisors | string columns on profiles | `supervisor/IndustrialSupervisor`, `UniversitySupervisor` entities |
-| Companies | `company/Company` | `company/InternshipCompany` |
+| Academic structure | ~~`academic/AcademicUnit`, `Course`, `Staff`, `UnitCourse`~~ | `school/School`, `programme/Programme`, `department/Department` |
+| Student | ~~`student/StudentProfile`~~ | `student/Student` + StudentDto |
+| Supervisors | ~~string columns on profiles~~ | `supervisor/IndustrialSupervisor`, `UniversitySupervisor` |
+| Companies | ~~`company/Company`~~ | `company/InternshipCompany` |
 
-Model A drives everything that runs today (React app, APIs, tests, docs). Model B's packages compile standalone and their tables get created on boot, but nothing reads/writes them yet. **Do not build new features against Model B** until the team decides which schema wins — raise it with Chris/the team lead. Resolution details: shared core files kept Model A; Chris's incompatible seeder rewrites were rejected (recoverable from `developer` history); his intended runtime config (default `mysql` profile, `ddl-auto=none`) was likewise not activated.
+Model B drives everything. The old A-side entities/repos/controllers/seeders were deleted in M6c.
+String supervisor columns remain in `placements`/`evaluations` for backward compatibility but will be dropped later.
 
 ---
 
@@ -109,21 +110,20 @@ Then open `http://localhost:3000/login`.
 ├── backend/                     Spring Boot app (all Java code lives here)
 │   └── src/main/java/com/example/demo/
 │       ├── auth/                SecurityConfig, UserEntity, Role, UserService, OAuth stubs, seeders
-│       ├── academic/            AcademicUnit (tree), Course, Staff, UnitCourse + repos + seeder + controller
-│       ├── company/             Company, CompanyDepartment, CompanySupervisor + service + controllers
+│       ├── company/             InternshipCompany, CompanyDepartment, CompanySupervisor + controllers
 │       ├── country/             Country entity/repo/service/seeder (reference data)
 │       ├── controller/          Auth/Dashboard/Student/Diary/Admin/University REST + MVC controllers
-│       ├── department/          ⚠️ Model B (dormant) — see "Merge status" in §1
-│       ├── dto/                 Validated request DTOs (StudentCredentialRequest, CompanyRequest, …)
+│       ├── department/          Department entity + CRUD controller (M6a)
+│       ├── dto/                 Validated request DTOs (StudentDto, CompanyRequest, …)
 │       ├── evaluation/          Evaluation entity/repo/controller
 │       ├── placement/           Placement, Vacancy entities/repos/controllers
-│       ├── programme/           ⚠️ Model B (dormant) — seeder alone is ~5,600 lines
-│       ├── role/                ⚠️ Model B (dormant) — Role entity, distinct from auth.Role enum
-│       ├── school/              ⚠️ Model B (dormant) — 1,500+-line seeder
-│       ├── supervisor/          ⚠️ Model B (dormant) — Industrial/UniversitySupervisor entities
+│       ├── programme/           Programme entity + CRUD controller (M6a) — seeder ~5,600 lines
+│       ├── role/                ⚠️ dormant — Role entity, distinct from auth.Role enum
+│       ├── school/              School entity + CRUD controller (M6a) — seeder ~1,500 lines
+│       ├── supervisor/          Industrial/UniversitySupervisor entities
 │       ├── audit/               AuditLog entity/repo/controller/service
 │       ├── service/             StudentService, UniversityService, AdminService
-│       ├── student/             StudentProfile, DayDiary entities + repos + diary seeders
+│       ├── student/             Student, DayDiary entities + repos + seeders
 │       └── university/          University entity/repo/seeder
 ├── frontend1/ims/               React SPA ← the real UI ("1" in the name is intentional)
 │   ├── src/App.js               Router + role guards (263 lines — read this first)
@@ -193,11 +193,11 @@ CORS is `allowedOriginPatterns("*")` **with** `allowCredentials(true)` and CSRF 
 
 ## 5. Database layer
 
-Schema is fully Hibernate-managed (`ddl-auto`: `create-drop` on dev, `update` on mysql). No `schema.sql`. `mega_backcopy.sql` is the reference design + seed data but is **not auto-loaded**.
+Schema is Hibernate-managed (`ddl-auto`: `create-drop` on dev, `update` on mysql). `schema.sql` exists as MySQL DDL reference (20 tables, regenerated M7).
 
-### 16 tables
+### 20 tables
 
-`countries` · `universities` · `company` *(singular!)* · `company_departments` · `company_supervisors` · `users` · `academic_units` *(self-referencing tree)* · `courses` · `unit_courses` *(junction)* · `staff` · `student_profiles` · `day_diaries` · `placements` · `evaluations` · `vacancies` · `audit_logs`
+`countries` · `universities` · `internship_companies` · `company_departments` · `company_supervisors` · `users` · `student_profiles` · `students` · `day_diaries` · `placements` · `evaluations` · `schools` · `departments` · `programmes` · `industrial_supervisors` · `university_supervisors` · `vacancies` · `roles` · `audit_logs` · `company`
 
 Full column-by-column reference: `CODEBASE_ANALYSIS.md §3`.
 
@@ -210,39 +210,33 @@ TRUE JPA RELATIONS (annotated @ManyToOne/@OneToMany):
   Company        1:N  CompanyDepartment      FK company_id
   Company        1:N  CompanySupervisor      FK company_id
   CompanyDept    1:N  CompanySupervisor      FK department_id (nullable)
-  StudentProfile 1:N  DayDiary               FK student_profile_id
+  Student        1:N  DayDiary               FK student_id
 
-DB-LEVEL FKs THAT EXIST ONLY IN mega_backcopy.sql (Hibernate never creates them):
+DB-LEVEL FKs THAT EXIST ONLY IN schema.sql (Hibernate creates them):
   users.company_id / university_id → ON DELETE SET NULL
-  academic_units.university_id → CASCADE ; parent_unit_id self-ref → SET NULL
-  courses.university_id → CASCADE
-  staff.university_id → SET NULL ; staff.unit_id → SET NULL
-  unit_courses.unit_id / course_id → CASCADE
-  student_profiles.unit_id → SET NULL ; course_id → RESTRICT ;
-      academic_supervisor_id / field_supervisor_id → SET NULL
+  student_profiles.academic_supervisor_id / field_supervisor_id → SET NULL
+  student_profiles.course_id → RESTRICT ; unit_id → SET NULL
+  internship_companies.country_id → references countries.id
 
 SOFT ASSOCIATIONS (no FK anywhere — joined by app code):
-  placements.student_id        → student_profiles.id   (Long; seeder proves target)
-  placements.company_id        → company.id
+  placements.student_id        → students.id
+  placements.company_id        → internship_companies.id
+  placements.company_supervisor_id → company_supervisors.id
+  placements.university_supervisor_id → university_supervisors.id
   vacancies.company_id         → company.id
-  evaluations.student_id       → student_profiles.id   (by convention only!)
+  evaluations.student_id       → students.id
   evaluations.placement_id     → placements.id
-  placements.university_supervisor → users.username    (string!)
-  placements.company_supervisor    → free-text person name
-  evaluations.supervisor_username  → users.username    (string)
+  evaluations.supervisor_user_id → users.id
   audit_logs.username              → users.username    (string)
-  student_profiles.organisation    → company.name      (SUBSTRING match!)
-  student_profiles.academic_supervisor → mixed: staff.full_name OR users.username
   users.companyId / universityId   → plain columns, no JPA mapping at all
   *.country                        → never linked to countries table
 ```
 
 Consequences you must internalize:
 
-- Deleting a company does **not** touch placements/vacancies/users pointing at it (under a Hibernate-generated schema).
-- `CompanyService.findStudentsByCompanyId()` matches interns via `findByOrganisationContainingIgnoreCase(company.getName())` — "Airtel Uganda" would also match a student whose organisation says "Airtel Tanzania Ltd". Renaming a company silently breaks matching.
+- Deleting an internship company does **not** touch placements/vacancies/users pointing at it (under a Hibernate-generated schema).
 - `student_profiles.academic_supervisor` (string) can disagree with `academic_supervisor_id` (numeric); both exist and both are used.
-- `evaluations.student_id`'s target is proven only by the seeder using `studentProfile.getId()` — nothing stops future code writing `users.id` there instead.
+- `evaluations.student_id`'s target is proven only by the seeder using `student.getId()` — nothing stops future code writing `users.id` there instead.
 
 ### Config profiles
 
@@ -303,11 +297,11 @@ MVC twins exist: `POST /student/diary/save` (`DayDiaryController`), pages under 
 
 | Controller | Endpoints | Roles |
 |---|---|---|
-| `UniversityApiController` | POST `/api/university/students/credential` — creates student login + profile | SUPERVISOR, ADMIN |
-| `UniversityAcademicController` | Full CRUD + CSV export for `/api/university/academic-units`, `/courses`, `/staff`, `/unit-courses` — strictly tenant-scoped via `requireOwnUniversity()`, parent-cycle detection, orphan cleanup | SUPERVISOR only |
+| `SchoolController` | CRUD + CSV export for `/api/schools` | ADMIN, SUPERVISOR |
+| `DepartmentController` | CRUD + CSV export for `/api/departments` | ADMIN, SUPERVISOR |
+| `ProgrammeController` | CRUD + CSV export for `/api/programmes` | ADMIN, SUPERVISOR |
 | `UniversityController` | GET `/university/universities/search?q=` | STUDENT, SUPERVISOR, ADMIN |
-| `AcademicUnitController` | GET `/api/academic-units?universityId=` — legacy read path, ignores caller's university | ADMIN, SUPERVISOR |
-| `UniversityService` (MVC via DashboardController) | university CRUD w/ uniqueness checks; `getStudentsBySupervisor` matches profile string == supervisor username | — |
+| `UniversityService` (MVC via DashboardController) | university CRUD w/ uniqueness checks | — |
 
 **Companies**
 
@@ -339,28 +333,31 @@ Global error handling: `controller/GlobalExceptionHandler.java` maps validation 
 
 ### Core business flows
 
-1. **University issues student credentials** (`UniversityService.createStudentCredential`): reject duplicate studentNo → insert `UserEntity(role=STUDENT, BCrypt("Student@123"), mustChangePassword=true)` → insert `StudentProfile(year="One", semester="One", organisation/location="Pending", academicSupervisor=<creating supervisor's username>)`. Default password constant: `UniversityService.java:23`.
-2. **Diary lifecycle**: student submits → `status=PENDING`, feedback null → supervisor reviews via `POST /api/diaries/{id}/feedback` → arbitrary status string set (no enum enforcement). Progress milestones are computed from diary counts: ≥5 = mid-term ready, ≥10 = final report ready (`/api/students/me/progress`).
-3. **Company ↔ intern linkage**: purely substring match `student_profiles.organisation CONTAINS company.name` (no FK). See §5 consequences.
-4. **Admin aggregates** (`AdminService`): loads entire tables into memory to compute totals, active students (distinct studentNos with ≥1 diary), average diaries/student, per-student diary counts. Fine now; will hurt at scale.
-5. **Audit logging**: manual `auditLogService.log(...)` calls sprinkled through controllers — often hardcoding the acting role as `"ADMIN"` regardless of who called, always null IP.
+1. **Diary lifecycle**: student submits → `status=PENDING`, feedback null → supervisor reviews via `POST /api/diaries/{id}/feedback` → arbitrary status string set (no enum enforcement). Progress milestones are computed from diary counts: ≥5 = mid-term ready, ≥10 = final report ready (`/api/students/me/progress`).
+2. **Company ↔ intern linkage**: purely substring match `student_profiles.organisation CONTAINS company.name` (no FK). See §5 consequences.
+3. **Admin aggregates** (`AdminService`): loads entire tables into memory to compute totals, active students (distinct studentNos with ≥1 diary), average diaries/student, per-student diary counts. Fine now; will hurt at scale.
+4. **Audit logging**: manual `auditLogService.log(...)` calls sprinkled through controllers — often hardcoding the acting role as `"ADMIN"` regardless of who called, always null IP.
 
 ### Seeding (14 `CommandLineRunner`s, ordered)
 
-All guarded by `count()==0` idempotency checks — they skip when data exists. Order matters because **later seeders reference hardcoded generated IDs**: Nkumba = university 19, Airtel = company 1, Makerere courses = 63/64, unit 18/26, staff 1/2. On anything other than pristine auto-increment sequences these links misfire. One exception to the guards: `CompanyDataSeeder` runs an unguarded "fixup" on every startup linking user `airtel` to the lowest-id company if its link is null.
+All guarded by `count()==0` idempotency checks — they skip when data exists. Order matters because **later seeders reference hardcoded generated IDs**: Nkumba = university 19, Airtel = company 1. On anything other than pristine auto-increment sequences these links misfire. One exception to the guards: `CompanyDataSeeder` runs an unguarded "fixup" on every startup linking user `airtel` to the lowest-id company if its link is null.
 
-Order: countries (196 — rewritten in verbose form by PR #22, same data) → universities (50) → companies+departments+supervisors → academic units (26) → courses (64) → unit-course links (79) → staff (2) → users (6) → student profiles (3) → day diaries (2) → placements (3) → evaluations (2) → vacancies (3) → audit logs (5).
+Order: countries (196) → universities (50) → companies+departments+supervisors → schools (51) → departments (109) → programmes (307) → roles (4) → users (6) → student profiles (3) → students (3) → day diaries (2) → placements (3) → evaluations (2) → vacancies (3) → audit logs (5+).
 
-**Post-merge addition:** the dormant Model B seeders (`School`, `Programme`, `Department`, `Role`) are `@Component CommandLineRunner`s too, so every boot also creates their tables (dev H2 `create-drop`) and runs their inserts — expect noticeably slower startup and extra tables you didn't ask for. They're inert otherwise; nothing queries them yet.
+The school/department/programme seeders produce 51/109/307 rows and run on every dev boot (H2 `create-drop`). They're inert; nothing queries them yet.
 
 ### Tests (`backend/src/test`)
 
-~19 tests total, all H2-backed full-context `@SpringBootTest`/MockMvc:
+33 tests total, all H2-backed full-context `@SpringBootTest`/MockMvc:
 - `AuthAccessTest` (4): URL guarding smoke tests (STUDENT blocked from admin, supervisor reaches credentials…)
 - `AuthFlowIntegrationTest` (13): register→login round-trip, duplicate username 409, password mismatch 400, role mismatch 401, forgot-password paths
-- `UniversityServiceTest` (1, Mockito): credential creation hashes password
+- `StudentCrudIntegrationTest` (4): CRUD gate — create/read/update/delete Student via B APIs
+- `DayDiaryIntegrationTest` (3): diary lifecycle gate — submit, list-by-student, supervisor feedback
+- `PlacementSupervisorIntegrationTest` (4): placement + supervisor linking gate
+- `UniversityServiceTest` (1, Mockito): catalog operations
+- `CountryServiceTest` (2): country search + seeding
 
-**Not covered:** diaries, companies, universities, placements, evaluations, vacancies, academics, audit API, CSV exports — i.e., none of the REST authorization behavior (the riskiest area).
+**Not covered:** companies, evaluations, vacancies, audit API, CSV exports.
 
 ---
 
@@ -383,7 +380,7 @@ CRA (`react-scripts 5.0.1` — unmaintained but functional) + React 19 + react-r
 | `/company/dashboard` | `dashboards/CompanyDashboard.js` | ADMIN, COMPANY |
 | `/company`, `/company/:id` | `CompanyPage.jsx` / `dashboards/CompanyProfilePage.js` | ADMIN, SUPERVISOR(/COMPANY for profile) |
 | `/admin/dashboard`, `/admin/users`, `/admin/audit-logs`, `/admin/universities`, `/admin/placements` | AdminDashboard, AdminUsersPage, AuditLogs, UniversitiesManagement, PlacementMatching | ADMIN only |
-| `/university/academic-units`, `/university/courses`, `/university/staff`, `/university/unit-courses` | AcademicUnitsManagement, CoursesManagement, StaffManagement, UnitCoursesManagement | **SUPERVISOR only** (ADMIN gets bounced — intentional-looking but asymmetric) |
+| `/university/schools`, `/departments`, `/programmes` | SchoolsManagement, DepartmentsManagement, ProgrammesManagement | **SUPERVISOR only** |
 | `/file-management` | `FileManagement.jsx` | all 4 roles |
 | `/`, `*` | redirect to role home or login | |
 
@@ -467,10 +464,10 @@ Read this before assuming standard behavior. Nothing below is hypothetical — e
 | 4 | **`/api/companies` writes have zero method-level authorization**: any authenticated user (incl. STUDENT) can create/update/delete companies. Audit rows for these actions hardcode role `"ADMIN"` regardless of caller. | `company/CompanyController.java` (whole file — no `@PreAuthorize`) |
 | 5 | **Password-hash exposure**: `GET /api/supervisors` serializes raw `UserEntity` objects — BCrypt hashes, emails, provider IDs leak to ADMIN/SUPERVISOR/COMPANY callers. | `SupervisorController.java:24-26` |
 | 6 | **Missing ownership checks**: any STUDENT can delete any diary entry (`DELETE /api/diaries/{id}` allows STUDENT) and read any student's diaries; any supervisor can rewrite any student's entry; any COMPANY user can edit/delete another company's vacancies; evaluations/placements accept any IDs from any allowed role. | `DayDiaryApiController.java:150-151` et al. |
-| 7 | **`must_change_password` is dead code**: seeded/issued students keep `Student@123` forever unless they happen to use forgot-password; nothing enforces or clears the flag. | flag set in seeders/`UniversityService`, read nowhere |
+| 7 | **`must_change_password` is dead code**: seeded/issued students keep `Student@123` forever unless they happen to use forgot-password; nothing enforces or clears the flag. | flag set in seeders, read nowhere |
 | 8 | **Committed secrets & session dumps**: `application.properties` ships `admin/admin123` (lines 5–6) and DB fallback `1234` (line 14); `backend/.env` is git-tracked despite being listed in `.gitignore`; repo-root `cookies.txt`/`newcookies.txt` contain dumped JSESSIONID cookies; all demo passwords are public in seeders. | see `git ls-files` |
 | 9 | **State-changing GET**: `GET /company/delete/{id}` deletes a company — prefetchers/crawlers can trigger destructive actions. | `CompanyWebController` |
-| 10 | **Cross-tenant read**: `GET /api/academic-units?universityId=X` lets a supervisor read any university's units, unlike the otherwise strictly scoped `UniversityAcademicController`. | `AcademicUnitController` |
+| 10 | **Cross-tenant read**: `GET /api/schools?universityId=X` lets a supervisor read any university's schools (no tenant scoping). | `SchoolController` (no `@PreAuthorize` on list endpoint) |
 | 11 | **Dead OAuth2**: starter dependency + Google/LinkedIn/X buttons on the login page + a custom `OAuth2UserService` exist, but `SecurityConfig` never calls `.oauth2Login()` and no clients are registered — buttons dead-end. If enabled naively, OAuth accounts get null passwords, which #2 would let anyone set. | `login.html`, `auth/OAuth2UserService` |
 | 12 | Login responses build **absolute redirect URLs from request host/port** — breaks behind proxies/load balancers. | `AuthApiController.resolveHome` |
 

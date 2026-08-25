@@ -1,16 +1,6 @@
--- AUTO-GENERATED MySQL DDL for Model B (regenerated M5.5, 2026-08-25).
+-- AUTO-GENERATED MySQL DDL for Model B (regenerated M7, 2026-08-25).
 -- Do not edit by hand; regenerate per docs/MIGRATION-MODELB-LOG.md.
 
-
-    create table academic_units (
-        parent_unit_id integer,
-        unit_id integer not null auto_increment,
-        university_id integer not null,
-        short_form varchar(15),
-        unit_name varchar(200) not null,
-        unit_type enum ('Centre','College','Department','Directorate','Faculty','Institute','School') not null,
-        primary key (unit_id)
-    ) engine=InnoDB;
 
     create table audit_logs (
         id bigint not null auto_increment,
@@ -71,15 +61,6 @@
         code varchar(255) not null,
         name varchar(255) not null,
         primary key (id)
-    ) engine=InnoDB;
-
-    create table courses (
-        course_id integer not null auto_increment,
-        university_id integer not null,
-        duration varchar(20) not null,
-        level varchar(20),
-        course_name varchar(200) not null,
-        primary key (course_id)
     ) engine=InnoDB;
 
     create table day_diaries (
@@ -187,17 +168,6 @@
         primary key (school_id)
     ) engine=InnoDB;
 
-    create table staff (
-        staff_id integer not null auto_increment,
-        unit_id integer,
-        university_id integer,
-        contact varchar(20),
-        role varchar(50),
-        email varchar(150),
-        full_name varchar(150) not null,
-        primary key (staff_id)
-    ) engine=InnoDB;
-
     create table student_profiles (
         academic_supervisor_id integer,
         course_id integer,
@@ -246,13 +216,6 @@
         registration_number varchar(255) not null,
         semester varchar(255),
         student_number varchar(255) not null,
-        primary key (id)
-    ) engine=InnoDB;
-
-    create table unit_courses (
-        course_id integer not null,
-        id integer not null auto_increment,
-        unit_id integer not null,
         primary key (id)
     ) engine=InnoDB;
 
@@ -321,9 +284,6 @@
 
     alter table student_profiles 
        add constraint UKm65527m0thexiucy5kbixakh7 unique (student_no);
-
-    alter table unit_courses 
-       add constraint UKqmfpf8ws7ai9wbf4yrh3otqk8 unique (unit_id, course_id);
 
     alter table universities 
        add constraint UK8rm9hirw37dnm3jan4j25xwag unique (short_form);
