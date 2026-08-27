@@ -404,7 +404,7 @@ function UploadDocumentCard({ onAddDocument, currentUser }) {
           <button
             type="submit"
             disabled={isUploading || !selectedFile}
-            className="px-4 py-2 rounded-xl bg-[#063b33] hover:bg-[#042823] text-white text-xs font-bold shadow-sm transition-all flex items-center gap-2 focus-visible:ring-2 focus-visible:ring-teal-600 focus-visible:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
+            className="px-4 py-2 rounded-xl bg-primary hover:bg-primary text-white text-xs font-bold shadow-sm transition-all flex items-center gap-2 focus-visible:ring-2 focus-visible:ring-teal-600 focus-visible:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <UploadCloud className="w-4 h-4" />
             <span>{isUploading ? 'Uploading Document...' : 'Upload Document'}</span>
@@ -544,7 +544,7 @@ function StorageAnalyticsCard({ documents, onFilterByCategory, selectedCategory 
             onClick={() => onFilterByCategory('ALL')}
             className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all ${
               selectedCategory === 'ALL'
-                ? 'bg-[#063b33] text-white shadow-xs'
+                ? 'bg-primary text-white shadow-xs'
                 : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
             } focus-visible:ring-2 focus-visible:ring-teal-600 focus-visible:outline-none`}
           >
@@ -660,7 +660,7 @@ function DocumentListTable({ documents, onDownload, onPreview, onDelete, onShare
         {selectedIds.length > 0 && (
           <div className="flex items-center gap-2 bg-teal-50 border border-teal-200 px-3 py-1.5 rounded-xl animate-in fade-in">
             <span className="text-xs font-bold text-teal-900">{selectedIds.length} selected</span>
-            <button type="button" onClick={handleBatchDownload} className="px-3.5 py-2 bg-[#063b33] text-white hover:bg-[#042823] rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all shadow-xs focus-visible:ring-2 focus-visible:ring-teal-600 focus-visible:outline-none">
+            <button type="button" onClick={handleBatchDownload} className="px-3.5 py-2 bg-primary text-white hover:bg-primary rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all shadow-xs focus-visible:ring-2 focus-visible:ring-teal-600 focus-visible:outline-none">
               <Download className="w-3.5 h-3.5" /> Download Selected
             </button>
             <button type="button" onClick={() => setSelectedIds([])} className="px-3.5 py-2 rounded-xl bg-white hover:bg-slate-100 text-slate-700 text-xs font-bold border border-slate-300 transition-colors shadow-xs">Clear</button>
@@ -712,7 +712,7 @@ function DocumentListTable({ documents, onDownload, onPreview, onDelete, onShare
                     <p className="text-xs text-slate-500 mt-1 mb-4">No documents match your active search or category filter.</p>
                     <div className="flex items-center gap-2">
                       <button type="button" onClick={onResetFilters} className="px-3.5 py-2 bg-white hover:bg-slate-100 text-slate-700 font-bold text-xs rounded-xl border border-slate-300 transition-colors shadow-xs">Clear Filters</button>
-                      <button type="button" onClick={onSeedSample} className="px-3.5 py-2 bg-[#063b33] hover:bg-[#042823] text-white font-bold text-xs rounded-xl transition-colors shadow-xs focus-visible:ring-2 focus-visible:ring-teal-600 focus-visible:outline-none">Load Official Templates</button>
+                      <button type="button" onClick={onSeedSample} className="px-3.5 py-2 bg-primary hover:bg-primary text-white font-bold text-xs rounded-xl transition-colors shadow-xs focus-visible:ring-2 focus-visible:ring-teal-600 focus-visible:outline-none">Load Official Templates</button>
                     </div>
                   </div>
                 </td>
@@ -758,7 +758,7 @@ function DocumentListTable({ documents, onDownload, onPreview, onDelete, onShare
                     </td>
                     <td className="py-3.5 px-3">
                       <div className="flex items-center gap-2">
-                        <div className="w-6 h-6 rounded-full bg-[#063b33] text-white flex items-center justify-center text-[10px] font-bold shrink-0" aria-hidden="true">
+                        <div className="w-6 h-6 rounded-full bg-primary text-white flex items-center justify-center text-[10px] font-bold shrink-0" aria-hidden="true">
                           {(doc.uploadedBy || 'U').slice(0, 2).toUpperCase()}
                         </div>
                         <span className="text-xs font-semibold text-slate-900">{doc.uploadedBy || 'Unknown'}</span>
@@ -781,7 +781,7 @@ function DocumentListTable({ documents, onDownload, onPreview, onDelete, onShare
                         <button type="button" onClick={() => handleShareClick(doc)} className="p-1.5 text-slate-600 hover:text-teal-900 hover:bg-teal-50 rounded-lg transition-colors relative focus-visible:ring-2 focus-visible:ring-teal-600 focus-visible:outline-none" aria-label={`Share ${doc.name}`} title="Share Link">
                           {copiedId === doc.id ? <Check className="w-4 h-4 text-emerald-600" /> : <Share2 className="w-4 h-4" />}
                         </button>
-                        <button type="button" onClick={() => handleDownload(doc)} className="p-1.5 bg-[#063b33] hover:bg-[#042823] text-white rounded-lg transition-all shadow-xs focus-visible:ring-2 focus-visible:ring-teal-600 focus-visible:outline-none flex items-center gap-1 px-2.5 font-bold text-xs" aria-label={`Download ${doc.name}`}>
+                        <button type="button" onClick={() => handleDownload(doc)} className="p-1.5 bg-primary hover:bg-primary text-white rounded-lg transition-all shadow-xs focus-visible:ring-2 focus-visible:ring-teal-600 focus-visible:outline-none flex items-center gap-1 px-2.5 font-bold text-xs" aria-label={`Download ${doc.name}`}>
                           <Download className="w-3.5 h-3.5" /><span className="hidden sm:inline">Download</span>
                         </button>
                         <button type="button" onClick={() => { if (window.confirm(`Delete "${doc.name}" from repository?`)) onDelete(doc.id); }} className="p-1.5 text-slate-400 hover:text-rose-700 hover:bg-rose-50 rounded-lg transition-colors focus-visible:ring-2 focus-visible:ring-rose-600 focus-visible:outline-none" aria-label={`Delete ${doc.name}`} title="Delete">
@@ -910,7 +910,7 @@ function DocumentPreviewModal({ document: doc, onClose, onDownload }) {
             <button type="button" onClick={handleCopyLink} className="flex-1 sm:flex-none px-3.5 py-2 rounded-xl bg-white hover:bg-slate-100 text-slate-700 text-xs font-semibold border border-slate-300 transition-colors flex items-center justify-center gap-1.5 shadow-xs">
               {copied ? <><Check className="w-4 h-4 text-emerald-600" /><span>Link Copied!</span></> : <><Share2 className="w-4 h-4" /><span>Share Link</span></>}
             </button>
-            <button type="button" onClick={() => onDownload(doc)} className="flex-1 sm:flex-none px-4 py-2 rounded-xl bg-[#063b33] hover:bg-[#042823] text-white text-xs font-bold transition-all flex items-center justify-center gap-1.5 shadow-sm">
+            <button type="button" onClick={() => onDownload(doc)} className="flex-1 sm:flex-none px-4 py-2 rounded-xl bg-primary hover:bg-primary text-white text-xs font-bold transition-all flex items-center justify-center gap-1.5 shadow-sm">
               <Download className="w-4 h-4" /><span>Download ({doc.size || '—'})</span>
             </button>
           </div>

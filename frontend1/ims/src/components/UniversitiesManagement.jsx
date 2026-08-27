@@ -170,7 +170,7 @@ export default function UniversitiesManagement() {
             <button
               type="button"
               onClick={() => openModal(null)}
-              className="h-9 px-3.5 py-2 rounded-xl bg-[#063b33] hover:bg-[#042823] text-white text-xs font-bold shadow-xs transition-all flex items-center gap-1.5 focus-visible:ring-2 focus-visible:ring-teal-600 focus-visible:outline-none"
+              className="h-9 px-3.5 py-2 rounded-xl bg-primary hover:bg-primary text-white text-xs font-bold shadow-xs transition-all flex items-center gap-1.5 focus-visible:ring-2 focus-visible:ring-teal-600 focus-visible:outline-none"
             >
               <Plus className="w-4 h-4" />
               <span>Add University</span>
@@ -281,7 +281,7 @@ export default function UniversitiesManagement() {
                         <button
                           type="button"
                           onClick={() => openModal(null)}
-                          className="px-3.5 py-2 bg-[#063b33] hover:bg-[#042823] text-white font-bold text-xs rounded-xl transition-colors shadow-xs focus-visible:ring-2 focus-visible:ring-teal-600 focus-visible:outline-none"
+                          className="px-3.5 py-2 bg-primary hover:bg-primary text-white font-bold text-xs rounded-xl transition-colors shadow-xs focus-visible:ring-2 focus-visible:ring-teal-600 focus-visible:outline-none"
                         >
                           Add University
                         </button>
@@ -332,7 +332,7 @@ export default function UniversitiesManagement() {
                       onClick={() => setCurrentPage(page)}
                       className={`min-w-[28px] h-7 rounded-lg text-xs font-semibold transition-colors ${
                         currentPage === page
-                          ? 'bg-[#063b33] text-white'
+                          ? 'bg-primary text-white'
                           : 'text-slate-600 hover:bg-slate-200'
                       }`}
                     >
@@ -462,7 +462,7 @@ export default function UniversitiesManagement() {
                   <button
                     type="submit"
                     disabled={loading}
-                    className="flex-1 sm:flex-none px-4 py-2 rounded-xl bg-[#063b33] hover:bg-[#042823] text-white text-xs font-bold transition-all flex items-center justify-center gap-1.5 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="flex-1 sm:flex-none px-4 py-2 rounded-xl bg-primary hover:bg-primary text-white text-xs font-bold transition-all flex items-center justify-center gap-1.5 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {loading ? 'Saving...' : editingId ? 'Save Changes' : 'Create University'}
                   </button>

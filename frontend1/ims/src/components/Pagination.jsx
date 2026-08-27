@@ -34,7 +34,7 @@ export default function Pagination({ currentPage, setCurrentPage, totalPages }) 
               onClick={() => setCurrentPage(page)}
               className={`min-w-[28px] h-7 rounded-lg text-xs font-semibold transition-colors ${
                 currentPage === page
-                  ? 'bg-[#063b33] text-white'
+                  ? 'bg-primary text-white'
                   : 'text-slate-600 hover:bg-slate-200'
               }`}
             >

@@ -121,7 +121,7 @@ export default function CompanyDashboard() {
           <button
             type="button"
             onClick={() => setEditOpen(true)}
-            className="h-9 px-3.5 py-2 rounded-xl bg-[#063b33] hover:bg-[#042823] text-white text-xs font-bold shadow-xs transition-all flex items-center gap-1.5 focus-visible:ring-2 focus-visible:ring-teal-600 focus-visible:outline-none"
+            className="h-9 px-3.5 py-2 rounded-xl bg-primary hover:bg-primary text-white text-xs font-bold shadow-xs transition-all flex items-center gap-1.5 focus-visible:ring-2 focus-visible:ring-teal-600 focus-visible:outline-none"
           >
             <Pencil className="w-4 h-4" />
             <span>Edit Profile</span>

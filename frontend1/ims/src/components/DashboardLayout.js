@@ -326,7 +326,7 @@ export default function DashboardLayout({
             </div>
 
             <button className="flex items-center gap-2.5 pl-1.5 pr-3 py-1 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-full transition-all focus-visible:ring-2 focus-visible:ring-teal-600 focus-visible:outline-none">
-              <div className="w-8 h-8 rounded-full bg-[#063b33] text-white flex items-center justify-center text-xs font-bold shadow-xs ring-1 ring-teal-500/30">
+              <div className="w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center text-xs font-bold shadow-xs ring-1 ring-teal-500/30">
                 {initials}
               </div>
               <div className="text-left hidden sm:block">
@@ -353,7 +353,7 @@ export default function DashboardLayout({
                   key={tab.id}
                   className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold transition-all ${
                     activeTab === tab.id
-                      ? 'bg-[#063b33] text-white shadow-xs'
+                      ? 'bg-primary text-white shadow-xs'
                       : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
                   } focus-visible:ring-2 focus-visible:ring-teal-600 focus-visible:outline-none`}
                   onClick={() => onTabChange(tab.id)}

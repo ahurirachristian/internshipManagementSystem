@@ -248,7 +248,7 @@ export default function EvaluationFormModal({ placement, onClose, onSaved }) {
                   <button
                     type="submit"
                     disabled={submitting}
-                    className="px-4 py-2 rounded-xl bg-[#063b33] hover:bg-[#042823] text-white text-xs font-bold transition-all flex items-center gap-1.5 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="px-4 py-2 rounded-xl bg-primary hover:bg-primary text-white text-xs font-bold transition-all flex items-center gap-1.5 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {submitting ? 'Saving...' : companyEval ? 'Update Company Scores' : 'Save Company Scores'}
                   </button>
@@ -317,7 +317,7 @@ export default function EvaluationFormModal({ placement, onClose, onSaved }) {
                   <button
                     type="submit"
                     disabled={submitting}
-                    className="px-4 py-2 rounded-xl bg-[#063b33] hover:bg-[#042823] text-white text-xs font-bold transition-all flex items-center gap-1.5 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="px-4 py-2 rounded-xl bg-primary hover:bg-primary text-white text-xs font-bold transition-all flex items-center gap-1.5 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {submitting ? 'Saving...' : universityEval ? 'Update University Scores' : 'Save University Scores'}
                   </button>

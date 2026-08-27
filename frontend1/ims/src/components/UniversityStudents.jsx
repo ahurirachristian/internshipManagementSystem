@@ -487,7 +487,7 @@ export default function UniversityStudents() {
             <button
               type="submit"
               disabled={addLoading}
-              className="px-4 py-2 rounded-xl bg-[#063b33] hover:bg-[#042823] text-white text-xs font-bold transition-all flex items-center gap-1.5 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-4 py-2 rounded-xl bg-primary hover:bg-primary text-white text-xs font-bold transition-all flex items-center gap-1.5 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <Plus className="w-4 h-4" />
               {addLoading ? 'Creating...' : 'Create Student'}
@@ -563,7 +563,7 @@ export default function UniversityStudents() {
           <button
             type="button"
             onClick={() => setShowAddForm(!showAddForm)}
-            className="h-9 px-3.5 py-2 rounded-xl bg-[#063b33] hover:bg-[#042823] text-white text-xs font-bold shadow-xs transition-all flex items-center gap-1.5"
+            className="h-9 px-3.5 py-2 rounded-xl bg-primary hover:bg-primary text-white text-xs font-bold shadow-xs transition-all flex items-center gap-1.5"
           >
             <Plus className="w-4 h-4" />
             <span>Add Student</span>
@@ -580,7 +580,7 @@ export default function UniversityStudents() {
             onClick={() => setSchoolFilter(null)}
             className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
               !schoolFilter
-                ? 'bg-[#063b33] text-white shadow-xs'
+                ? 'bg-primary text-white shadow-xs'
                 : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
             }`}
           >
@@ -593,7 +593,7 @@ export default function UniversityStudents() {
               onClick={() => setSchoolFilter(schoolFilter === unit.unitId ? null : unit.unitId)}
               className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
                 schoolFilter === unit.unitId
-                  ? 'bg-[#063b33] text-white shadow-xs'
+                  ? 'bg-primary text-white shadow-xs'
                   : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
               }`}
             >
@@ -606,7 +606,7 @@ export default function UniversityStudents() {
               onClick={() => setSchoolFilter(schoolFilter === 'unassigned' ? null : 'unassigned')}
               className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
                 schoolFilter === 'unassigned'
-                  ? 'bg-[#063b33] text-white shadow-xs'
+                  ? 'bg-primary text-white shadow-xs'
                   : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
               }`}
             >

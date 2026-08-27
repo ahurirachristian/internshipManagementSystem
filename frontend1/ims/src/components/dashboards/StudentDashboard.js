@@ -194,7 +194,7 @@ export default function StudentDashboard() {
           <p className="text-sm text-slate-600 mb-4">You do not have a student profile yet. Create one to get started.</p>
           <button
             onClick={openProfileModal}
-            className="px-3.5 py-2 rounded-xl bg-[#063b33] hover:bg-[#042823] text-white text-xs font-bold transition-all flex items-center gap-1.5 shadow-xs focus-visible:ring-2 focus-visible:ring-teal-600 focus-visible:outline-none"
+            className="px-3.5 py-2 rounded-xl bg-primary hover:bg-primary text-white text-xs font-bold transition-all flex items-center gap-1.5 shadow-xs focus-visible:ring-2 focus-visible:ring-teal-600 focus-visible:outline-none"
           >
             Create Profile
           </button>
@@ -234,7 +234,7 @@ export default function StudentDashboard() {
         </div>
         <button
           onClick={openProfileModal}
-          className="px-3.5 py-2 rounded-xl bg-[#063b33] hover:bg-[#042823] text-white text-xs font-bold transition-all flex items-center gap-1.5 shadow-xs focus-visible:ring-2 focus-visible:ring-teal-600 focus-visible:outline-none"
+          className="px-3.5 py-2 rounded-xl bg-primary hover:bg-primary text-white text-xs font-bold transition-all flex items-center gap-1.5 shadow-xs focus-visible:ring-2 focus-visible:ring-teal-600 focus-visible:outline-none"
         >
           <Pencil className="w-3.5 h-3.5" />
           Edit Profile
@@ -302,7 +302,7 @@ export default function StudentDashboard() {
               )}
               <button
                 type="submit"
-                className="px-3.5 py-2 rounded-xl bg-[#063b33] hover:bg-[#042823] text-white text-xs font-bold transition-all flex items-center gap-1.5 shadow-xs focus-visible:ring-2 focus-visible:ring-teal-600 focus-visible:outline-none"
+                className="px-3.5 py-2 rounded-xl bg-primary hover:bg-primary text-white text-xs font-bold transition-all flex items-center gap-1.5 shadow-xs focus-visible:ring-2 focus-visible:ring-teal-600 focus-visible:outline-none"
               >
                 {editingDiaryId ? 'Update Entry' : 'Save Entry'}
               </button>

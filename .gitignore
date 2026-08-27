@@ -2,6 +2,7 @@
 CODEBASE_ANALYSIS.md
 BaseStyle.md
 DesignStyle.md
+DESIGN_PORT_PLAN.md
 
 # ---- Java / Spring Boot ----
 backend/target/
@@ -35,4 +36,4 @@ cookies.txt
 newcookies.txt
 
 # ---- External/design reference assets (not part of the app) ----
-riho-admin-dashboard (1)/
+riho-admin-dashboard/

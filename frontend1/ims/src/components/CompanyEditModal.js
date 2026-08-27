@@ -144,7 +144,7 @@ export default function CompanyEditModal({ company, title, onClose, onSubmit }) 
             Cancel
           </button>
           <button type="submit" onClick={handleSubmit} disabled={busy}
-            className="px-3.5 py-2 rounded-xl bg-[#063b33] hover:bg-[#042823] text-white text-xs font-bold transition-all flex items-center gap-1.5 shadow-xs focus-visible:ring-2 focus-visible:ring-teal-600 focus-visible:outline-none disabled:opacity-50 disabled:cursor-not-allowed">
+            className="px-3.5 py-2 rounded-xl bg-primary hover:bg-primary text-white text-xs font-bold transition-all flex items-center gap-1.5 shadow-xs focus-visible:ring-2 focus-visible:ring-teal-600 focus-visible:outline-none disabled:opacity-50 disabled:cursor-not-allowed">
             {busy ? 'Saving...' : 'Save Changes'}
           </button>
         </div>
