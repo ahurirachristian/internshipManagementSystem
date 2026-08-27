@@ -1,32 +1,18 @@
-import React, { useState } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
-import { GraduationCap, ChevronRight, LogOut, X } from 'lucide-react';
-import { getThemePalette } from '../../theme';
+import { GraduationCap, ChevronRight, X } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
-import { navGroupsForRole, ROLE_LABELS } from './nav';
+import { navGroupsForRole } from './nav';
 
 export function Sidebar({
   isOpenMobile,
   onCloseMobile,
   isCollapsed,
-  onToggleCollapse,
-  primaryColor = '#0a4d4c',
-  isDark = false,
 }) {
-  const palette = getThemePalette(primaryColor, isDark);
   const location = useLocation();
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
 
   const role = user?.role || 'STUDENT';
-  const roleLabel = ROLE_LABELS[role] || role;
-  const displayName = user?.username || 'User';
-  const initials = displayName.slice(0, 2).toUpperCase();
-
   const groups = navGroupsForRole(role);
-
-  async function handleLogout() {
-    await logout();
-  }
 
   return (
     <>
@@ -131,36 +117,6 @@ export function Sidebar({
             </div>
           ))}
         </div>
-
-        {/* Sidebar Footer User Card */}
-        {!isCollapsed && (
-          <div className="p-3 border-t border-white/10 bg-black/10 shrink-0 space-y-2">
-            <div className="flex items-center gap-2.5 min-w-0">
-              <div className="w-8 h-8 rounded-full bg-white/15 ring-1 ring-white/20 text-white flex items-center justify-center text-xs font-bold shrink-0">
-                {initials}
-              </div>
-              <div className="min-w-0">
-                <span className="text-xs font-semibold text-white block truncate">
-                  {displayName}
-                </span>
-                <span
-                  style={{ color: 'var(--sidebar-text-muted, #9fcbc4)' }}
-                  className="text-[10px] block truncate"
-                >
-                  {roleLabel}
-                </span>
-              </div>
-            </div>
-            <button
-              type="button"
-              onClick={handleLogout}
-              className="w-full flex items-center justify-center gap-2 py-2 rounded-lg text-xs font-semibold text-white/70 hover:text-white hover:bg-white/10 transition-all"
-            >
-              <LogOut className="w-4 h-4" />
-              <span>Logout</span>
-            </button>
-          </div>
-        )}
       </aside>
     </>
   );
