@@ -51,6 +51,9 @@ public class Student {
     @Column(name = "phone_number", nullable = true)
     private String phoneNumber;
 
+    @Column(name = "gender", nullable = true)
+    private String gender;
+
     // R3 preserved columns (MIGRATION_PLAN.md): carried over from Model A
     @Column(name = "intake", nullable = true)
     private String intake;
@@ -181,6 +184,14 @@ public class Student {
 
     public void setPhoneNumber(String phoneNumber) {
         this.phoneNumber = phoneNumber;
+    }
+
+    public String getGender() {
+        return gender;
+    }
+
+    public void setGender(String gender) {
+        this.gender = gender;
     }
 
     public String getIntake() {

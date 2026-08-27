@@ -31,6 +31,9 @@ public class Placement {
     @Column(nullable = false)
     private Long companyId;
 
+    @Column(name = "university_id", nullable = true)
+    private Long universityId;
+
     @Column(nullable = false)
     private String universitySupervisor;
 
@@ -84,6 +87,14 @@ public class Placement {
 
     public void setCompanyId(Long companyId) {
         this.companyId = companyId;
+    }
+
+    public Long getUniversityId() {
+        return universityId;
+    }
+
+    public void setUniversityId(Long universityId) {
+        this.universityId = universityId;
     }
 
     public String getUniversitySupervisor() {

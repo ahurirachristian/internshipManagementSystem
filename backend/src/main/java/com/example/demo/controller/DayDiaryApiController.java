@@ -121,6 +121,7 @@ public class DayDiaryApiController {
         }
         diary.setId(null);
         diary.setStudentId(student.getId());
+        diary.setUniversityId(student.getUniversityId());
         DayDiary saved = dayDiaryRepository.save(diary);
         auditLogService.log(principal.getName(), "STUDENT", "CREATE", "DayDiary",
                 "Created diary entry for " + fullName(student), null);
