@@ -33,3 +33,6 @@ Thumbs.db
 # ---- Misc ----
 cookies.txt
 newcookies.txt
+
+# ---- External/design reference assets (not part of the app) ----
+riho-admin-dashboard (1)/
