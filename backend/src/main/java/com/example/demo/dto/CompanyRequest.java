@@ -23,6 +23,9 @@ public class CompanyRequest {
     @NotBlank(message = "Website is required")
     private String website;
 
+    @NotBlank(message = "Phone is required")
+    private String phone;
+
     @NotBlank(message = "Postal address is required")
     private String postalAddress;
 
@@ -70,6 +73,14 @@ public class CompanyRequest {
 
     public void setWebsite(String website) {
         this.website = website;
+    }
+
+    public String getPhone() {
+        return phone;
+    }
+
+    public void setPhone(String phone) {
+        this.phone = phone;
     }
 
     public String getPostalAddress() {

@@ -414,3 +414,63 @@ export async function fetchSupervisors(type) {
   });
   return parseResponse(response);
 }
+
+export async function fetchVacancies() {
+  const response = await fetch(`${API_ROOT}/api/vacancies`, {
+    credentials: 'include',
+  });
+  return parseResponse(response);
+}
+
+export async function fetchVacancy(id) {
+  const response = await fetch(`${API_ROOT}/api/vacancies/${id}`, {
+    credentials: 'include',
+  });
+  return parseResponse(response);
+}
+
+export async function fetchVacanciesByCompany(companyId) {
+  const response = await fetch(`${API_ROOT}/api/vacancies/company/${companyId}`, {
+    credentials: 'include',
+  });
+  return parseResponse(response);
+}
+
+export async function fetchVacanciesByStatus(status) {
+  const response = await fetch(`${API_ROOT}/api/vacancies/status?status=${encodeURIComponent(status)}`, {
+    credentials: 'include',
+  });
+  return parseResponse(response);
+}
+
+export async function createVacancy(vacancy) {
+  const response = await fetch(`${API_ROOT}/api/vacancies`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    credentials: 'include',
+    body: JSON.stringify(vacancy),
+  });
+  return parseResponse(response);
+}
+
+export async function updateVacancy(id, vacancy) {
+  const response = await fetch(`${API_ROOT}/api/vacancies/${id}`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    credentials: 'include',
+    body: JSON.stringify(vacancy),
+  });
+  return parseResponse(response);
+}
+
+export async function deleteVacancy(id) {
+  const response = await fetch(`${API_ROOT}/api/vacancies/${id}`, {
+    method: 'DELETE',
+    credentials: 'include',
+  });
+  return parseResponse(response);
+}

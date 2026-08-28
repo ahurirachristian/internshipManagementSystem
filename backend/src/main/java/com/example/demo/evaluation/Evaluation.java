@@ -27,16 +27,16 @@ public class Evaluation {
     @Column(nullable = false)
     private String supervisorUsername;
 
-    @Column(nullable = false)
+    @Column(nullable = true)
     private Integer punctuality;
 
-    @Column(nullable = false)
+    @Column(nullable = true)
     private Integer practicalWorkEthics;
 
-    @Column(nullable = false)
+    @Column(nullable = true)
     private Integer attendance;
 
-    @Column(nullable = false)
+    @Column(nullable = true)
     private Integer workplacePerformance;
 
     @Column(nullable = true)

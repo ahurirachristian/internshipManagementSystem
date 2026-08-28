@@ -26,9 +26,9 @@ public class UniversityDataSeeder implements CommandLineRunner {
             University e;
             e = new University();
             e.setUniversityId(1L);
-            e.setName("Makerere University");
-            e.setCode("MAK");
-            e.setEmail("info@mak.ac.ug");
+            e.setName("Massachusetts Institute of Technology");
+            e.setCode("MIT");
+            e.setEmail("info@mit.edu");
             list.add(e);
             e = new University();
             e.setUniversityId(2L);

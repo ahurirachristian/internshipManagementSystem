@@ -33,11 +33,17 @@ public class StudentProfileDataSeeder implements CommandLineRunner {
             e.setPictureUrl("/images/student-placeholder.png");
             e.setRegistrationNumber("REG-1001");
             e.setStudentNumber("STU-2026-001");
-            e.setUniversitySupervisor("Dr. Emily Carter");
+            e.setUniversitySupervisor("university");
             e.setUsername("student");
             e.setYearOfStudy(3);
             list.add(e);
             repository.saveAll(list);
         }
+        repository.findByUsername("student").ifPresent(student -> {
+            if (!"university".equals(student.getUniversitySupervisor())) {
+                student.setUniversitySupervisor("university");
+                repository.save(student);
+            }
+        });
     }
 }

@@ -70,10 +70,10 @@ export default function EvaluationFormModal({ placement, onClose, onSaved }) {
         placementId: placement.id,
         supervisorType: 'COMPANY',
         supervisorUsername: placement.companySupervisor,
-        punctuality: Number(companyForm.punctuality),
-        practicalWorkEthics: Number(companyForm.practicalWorkEthics),
-        attendance: Number(companyForm.attendance),
-        workplacePerformance: Number(companyForm.workplacePerformance),
+        punctuality: toNumberOrNull(companyForm.punctuality),
+        practicalWorkEthics: toNumberOrNull(companyForm.practicalWorkEthics),
+        attendance: toNumberOrNull(companyForm.attendance),
+        workplacePerformance: toNumberOrNull(companyForm.workplacePerformance),
         logbookQuality: null,
         academicReport: null,
         presentation: null,
@@ -108,10 +108,10 @@ export default function EvaluationFormModal({ placement, onClose, onSaved }) {
         practicalWorkEthics: null,
         attendance: null,
         workplacePerformance: null,
-        logbookQuality: Number(universityForm.logbookQuality),
-        academicReport: Number(universityForm.academicReport),
-        presentation: Number(universityForm.presentation),
-        overallGrade: Number(universityForm.overallGrade),
+        logbookQuality: toNumberOrNull(universityForm.logbookQuality),
+        academicReport: toNumberOrNull(universityForm.academicReport),
+        presentation: toNumberOrNull(universityForm.presentation),
+        overallGrade: toNumberOrNull(universityForm.overallGrade),
       };
       const existing = evaluations.find((e) => e.supervisorType === 'UNIVERSITY');
       if (existing) {
@@ -126,6 +126,12 @@ export default function EvaluationFormModal({ placement, onClose, onSaved }) {
     } finally {
       setSubmitting(false);
     }
+  }
+
+  function toNumberOrNull(value) {
+    if (value === '' || value === null || value === undefined) return null;
+    const num = Number(value);
+    return Number.isNaN(num) ? null : num;
   }
 
   const companyEval = evaluations.find((e) => e.supervisorType === 'COMPANY');

@@ -8,6 +8,7 @@ const initialForm = {
   branch: '',
   email: '',
   website: '',
+  phone: '',
   postalAddress: '',
   physicalAddress: '',
 };
@@ -44,6 +45,7 @@ export default function CompanyPage() {
       branch: existingCompany.department || '',
       email: existingCompany.email || '',
       website: existingCompany.website || '',
+      phone: existingCompany.phone || '',
       postalAddress: existingCompany.profile?.split(' | ')[0] || '',
       physicalAddress: existingCompany.profile?.split(' | ')[1] || '',
     } : initialForm);
@@ -73,6 +75,7 @@ export default function CompanyPage() {
         branch: form.branch.trim(),
         email: form.email.trim(),
         website: form.website.trim(),
+        phone: form.phone.trim(),
         postalAddress: form.postalAddress.trim(),
         physicalAddress: form.physicalAddress.trim(),
       };
@@ -105,34 +108,35 @@ export default function CompanyPage() {
     }
   }
 
-  const tableRows = companies.map((company) => {
-      const [postalAddress, physicalAddress] = company.profile?.split(' | ') || ['', ''];
-      return (
-        <tr key={company.id} style={{ borderBottom: '1px solid #f3f4f6' }}>
-          <td style={{ padding: '16px 24px', fontSize: '0.875rem', color: '#111827' }}>{company.name}</td>
-          <td style={{ padding: '16px 24px', fontSize: '0.875rem', color: '#374151' }}>{company.location}</td>
-          <td style={{ padding: '16px 24px', fontSize: '0.875rem', color: '#374151' }}>{company.department}</td>
-          <td style={{ padding: '16px 24px', fontSize: '0.875rem', color: '#374151' }}>{company.email}</td>
-          <td style={{ padding: '16px 24px', fontSize: '0.875rem', color: '#374151' }}>
-            <a href={company.website} target="_blank" rel="noreferrer" style={{ color: '#065f46', textDecoration: 'none' }}>
-              {company.website}
-            </a>
-          </td>
-          <td style={{ padding: '16px 24px', fontSize: '0.875rem', color: '#374151' }}>{postalAddress}</td>
-          <td style={{ padding: '16px 24px', fontSize: '0.875rem' }}>
-            <div style={{ display: 'flex', gap: '8px' }}>
-              <button className="icon-button edit" onClick={() => openModal(company)}>
-                Edit
-              </button>
-              <button className="icon-button delete" onClick={() => handleDelete(company.id)}>
-                Delete
-              </button>
-            </div>
-          </td>
-        </tr>
+      const tableRows = companies.map((company) => {
+          const [postalAddress, physicalAddress] = company.profile?.split(' | ') || ['', ''];
+          return (
+            <tr key={company.id} style={{ borderBottom: '1px solid #f3f4f6' }}>
+              <td style={{ padding: '16px 24px', fontSize: '0.875rem', color: '#111827' }}>{company.name}</td>
+              <td style={{ padding: '16px 24px', fontSize: '0.875rem', color: '#374151' }}>{company.location}</td>
+              <td style={{ padding: '16px 24px', fontSize: '0.875rem', color: '#374151' }}>{company.department}</td>
+              <td style={{ padding: '16px 24px', fontSize: '0.875rem', color: '#374151' }}>{company.email}</td>
+              <td style={{ padding: '16px 24px', fontSize: '0.875rem', color: '#374151' }}>
+                <a href={company.website} target="_blank" rel="noreferrer" style={{ color: '#065f46', textDecoration: 'none' }}>
+                  {company.website}
+                </a>
+              </td>
+              <td style={{ padding: '16px 24px', fontSize: '0.875rem', color: '#374151' }}>{company.phone}</td>
+              <td style={{ padding: '16px 24px', fontSize: '0.875rem', color: '#374151' }}>{postalAddress}</td>
+              <td style={{ padding: '16px 24px', fontSize: '0.875rem' }}>
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  <button className="icon-button edit" onClick={() => openModal(company)}>
+                    Edit
+                  </button>
+                  <button className="icon-button delete" onClick={() => handleDelete(company.id)}>
+                    Delete
+                  </button>
+                </div>
+              </td>
+            </tr>
+          );
+        }
       );
-    }
-  );
 
   return (
     <div className="flex-1 flex flex-col w-full p-6 bg-gray-50 min-h-screen">
@@ -165,14 +169,15 @@ export default function CompanyPage() {
                 <th style={{ padding: '16px 24px', fontSize: '0.875rem', fontWeight: 600, color: '#374151' }}>Branch</th>
                 <th style={{ padding: '16px 24px', fontSize: '0.875rem', fontWeight: 600, color: '#374151' }}>Email</th>
                 <th style={{ padding: '16px 24px', fontSize: '0.875rem', fontWeight: 600, color: '#374151' }}>Website</th>
+                <th style={{ padding: '16px 24px', fontSize: '0.875rem', fontWeight: 600, color: '#374151' }}>Phone</th>
                 <th style={{ padding: '16px 24px', fontSize: '0.875rem', fontWeight: 600, color: '#374151' }}>Postal Address</th>
-                <th style={{ padding: '16px 24px', fontSize: '0.875rem', fontWeight: 600, color: '#374151' }}>Actions</th>
+                <th style={{ padding: '16px 24px', fontSize: '0.875rem' }}>Actions</th>
               </tr>
             </thead>
             <tbody>
               {companies.length > 0 ? tableRows : (
-                <tr>
-                  <td colSpan="7" className="empty-row" style={{ padding: '24px' }}>
+                 <tr>
+                  <td colSpan="8" className="empty-row" style={{ padding: '24px' }}>
                     No companies found. Add one to get started.
                   </td>
                 </tr>
@@ -226,6 +231,13 @@ export default function CompanyPage() {
                 <input
                   value={form.website}
                   onChange={(e) => setForm({ ...form, website: e.target.value })}
+                />
+              </label>
+              <label>
+                Phone
+                <input
+                  value={form.phone}
+                  onChange={(e) => setForm({ ...form, phone: e.target.value })}
                 />
               </label>
               <label>

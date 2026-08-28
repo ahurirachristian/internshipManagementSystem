@@ -70,6 +70,7 @@ public class CompanyController {
         company.setName(request.getName());
         company.setLocation(request.getCountry());
         company.setEmail(request.getEmail());
+        company.setPhone(request.getPhone());
         company.setWebsite(request.getWebsite());
         company.setProfile((request.getPostalAddress() != null ? request.getPostalAddress() : "") + " | " + (request.getPhysicalAddress() != null ? request.getPhysicalAddress() : ""));
         company.setDepartment(request.getBranch());
@@ -86,6 +87,7 @@ public class CompanyController {
                     existing.setName(request.getName());
                     existing.setLocation(request.getCountry());
                     existing.setEmail(request.getEmail());
+                    existing.setPhone(request.getPhone());
                     existing.setWebsite(request.getWebsite());
                     existing.setProfile((request.getPostalAddress() != null ? request.getPostalAddress() : "") + " | " + (request.getPhysicalAddress() != null ? request.getPhysicalAddress() : ""));
                     existing.setDepartment(request.getBranch());

@@ -1,6 +1,7 @@
 package com.example.demo.controller;
 
 import java.util.List;
+import java.util.stream.Collectors;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -22,10 +23,12 @@ public class SupervisorController {
     }
 
     @GetMapping
-    public List<UserEntity> getSupervisors(@RequestParam(required = false) String type) {
+    public List<SupervisorDto> getSupervisors(@RequestParam(required = false) String type) {
         List<UserEntity> supervisors = userRepository.findByRole(Role.SUPERVISOR);
         if (type == null || type.isBlank()) {
-            return supervisors;
+            return supervisors.stream()
+                    .map(this::toDto)
+                    .collect(Collectors.toList());
         }
         String upperType = type.trim().toUpperCase();
         return supervisors.stream()
@@ -38,6 +41,17 @@ public class SupervisorController {
                     }
                     return true;
                 })
-                .toList();
+                .map(this::toDto)
+                .collect(Collectors.toList());
+    }
+
+    private SupervisorDto toDto(UserEntity user) {
+        return new SupervisorDto(
+                user.getId(),
+                user.getUsername(),
+                user.getRole().name(),
+                user.getCompanyId(),
+                user.getUniversityId()
+        );
     }
 }

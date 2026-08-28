@@ -14,6 +14,7 @@ import CompanyProfilePage from './components/dashboards/CompanyProfilePage';
 import CompanyPage from './components/CompanyPage';
 import UniversitiesManagement from './components/UniversitiesManagement';
 import PlacementMatching from './components/PlacementMatching';
+import VacanciesManagement from './components/VacanciesManagement';
 import FileManagement from './components/FileManagement';
 import DashboardLayout from './components/DashboardLayout';
 import './App.css';
@@ -136,8 +137,16 @@ function AppRoutes() {
       <Route
         path="/admin/placements"
         element={
+          <ProtectedRoute roles={['ADMIN', 'SUPERVISOR']}>
+            <PlacementMatching />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/vacancies"
+        element={
           <ProtectedRoute role="ADMIN">
-            <PlacementsPage />
+            <VacanciesManagement />
           </ProtectedRoute>
         }
       />
