@@ -8,7 +8,6 @@ import {
   Trash2,
   Share2,
   Search,
-  ArrowUpDown,
   CheckSquare,
   Square,
   Check,
@@ -20,15 +19,24 @@ import {
   CheckCircle,
   AlertCircle,
   X,
-  HardDrive,
-  TrendingUp,
   Info,
-  RefreshCw
+  RefreshCw,
+  FolderClosed,
+  Upload,
+  Users,
+  Globe,
+  FileCode,
+  FileArchive
 } from 'lucide-react';
 import DashboardLayout from './DashboardLayout';
 import { useAuth } from '../context/AuthContext';
 import CustomSelect from './CustomSelect';
 import { KpiCard } from './ui/KpiCard';
+import { TableCard } from './ui/TableCard';
+import { FilterTabs } from './ui/FilterTabs';
+import { Avatar } from './ui/Avatar';
+import { EmptyState } from './ui/EmptyState';
+import { Modal } from './ui/Modal';
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -177,7 +185,6 @@ function UploadDocumentCard({ onAddDocument, currentUser }) {
         clearInterval(interval);
         setUploadProgress(100);
 
-        const ext = selectedFile.name.split('.').pop()?.toLowerCase() || '';
         const sizeBytes = selectedFile.size;
 
         const doc = {
@@ -220,27 +227,7 @@ function UploadDocumentCard({ onAddDocument, currentUser }) {
   };
 
   return (
-    <section
-      id="upload-document-container"
-      aria-labelledby="upload-document-heading"
-      className="bg-white dark:bg-slate-900 rounded-2xl p-6 sm:p-7 border border-slate-200 dark:border-slate-800 shadow-xs relative overflow-hidden"
-    >
-      <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-teal-700 via-teal-600 to-emerald-500" />
-
-      <div className="mb-6">
-        <div className="flex items-center gap-2">
-          <h2 id="upload-document-heading" className="text-xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">
-            Upload Document
-          </h2>
-          <span className="text-xs font-semibold px-2 py-0.5 bg-teal-50 text-teal-800 border border-teal-200 rounded-full">
-            Institutional Repository
-          </span>
-        </div>
-        <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
-          Share logbook templates, evaluation forms, or internship guidelines with students and staff.
-        </p>
-      </div>
-
+    <>
       <div aria-live="polite" className="sr-only">
         {errorMessage && `Error: ${errorMessage}`}
         {successMessage && `Success: ${successMessage}`}
@@ -412,7 +399,7 @@ function UploadDocumentCard({ onAddDocument, currentUser }) {
           </button>
         </div>
       </form>
-    </section>
+    </>
   );
 }
 
@@ -554,212 +541,293 @@ function StorageAnalyticsCard({ documents, onFilterByCategory, selectedCategory 
 // DocumentListTable
 // ---------------------------------------------------------------------------
 
-function DocumentListTable({ documents, onDownload, onPreview, onDelete, onShare, onResetFilters, onSeedSample }) {
+function DocumentListTable({ documents, activeCategory, onCategoryChange, searchQuery, onSearchChange, onDownload, onPreview, onDelete, onShare, onRequestBulkDelete, onResetFilters, onSeedSample, canUpload, onUploadClick }) {
   const [selectedIds, setSelectedIds] = useState([]);
-  const [sortField, setSortField] = useState('date');
-  const [sortAsc, setSortAsc] = useState(false);
-  const [copiedId, setCopiedId] = useState(null);
+
+  const isAllSelected = documents.length > 0 && documents.every((d) => selectedIds.includes(d.id));
 
   const toggleSelectAll = () => {
-    setSelectedIds((prev) => prev.length === documents.length ? [] : documents.map((d) => d.id));
+    if (isAllSelected) {
+      setSelectedIds(selectedIds.filter((id) => !documents.some((d) => d.id === id)));
+    } else {
+      const newIds = new Set([...selectedIds, ...documents.map((d) => d.id)]);
+      setSelectedIds(Array.from(newIds));
+    }
   };
 
   const toggleSelectOne = (id) => {
     setSelectedIds((prev) => prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]);
   };
 
-  const handleSort = (field) => {
-    if (sortField === field) setSortAsc(!sortAsc);
-    else { setSortField(field); setSortAsc(true); }
+  const handleDeleteOne = (doc) => {
+    if (window.confirm(`Delete "${doc.name}" from repository?`)) {
+      onDelete(doc.id);
+      setSelectedIds((prev) => prev.filter((id) => id !== doc.id));
+    }
   };
 
-  const sorted = useMemo(() => {
-    return [...documents].sort((a, b) => {
-      let cmp = 0;
-      if (sortField === 'name') cmp = (a.name || '').localeCompare(b.name || '');
-      else if (sortField === 'category') cmp = (a.category || '').localeCompare(b.category || '');
-      else if (sortField === 'date') cmp = new Date(a.date || 0) - new Date(b.date || 0);
-      else if (sortField === 'downloads') cmp = (a.downloads || 0) - (b.downloads || 0);
-      return sortAsc ? cmp : -cmp;
-    });
-  }, [documents, sortField, sortAsc]);
-
-  const getFileIcon = (fileType) => {
-    const icons = {
-      pdf:  <div className="w-8 h-8 rounded-lg bg-rose-50 text-rose-700 border border-rose-200 flex items-center justify-center font-bold text-[10px] shrink-0 shadow-xs">PDF</div>,
-      docx: <div className="w-8 h-8 rounded-lg bg-blue-50 text-blue-700 border border-blue-200 flex items-center justify-center font-bold text-[10px] shrink-0 shadow-xs">DOC</div>,
-      xlsx: <div className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center justify-center font-bold text-[10px] shrink-0 shadow-xs">XLS</div>,
-      pptx: <div className="w-8 h-8 rounded-lg bg-amber-50 text-amber-700 border border-amber-200 flex items-center justify-center font-bold text-[10px] shrink-0 shadow-xs">PPT</div>,
-      zip:  <div className="w-8 h-8 rounded-lg bg-purple-50 text-purple-700 border border-purple-200 flex items-center justify-center font-bold text-[10px] shrink-0 shadow-xs">ZIP</div>,
+  const getIconTile = (fileType) => {
+    const tile = {
+      pdf:  { icon: FileText,       label: 'PDF',  bg: 'bg-rose-50 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400 border-rose-200/60 dark:border-rose-800/60' },
+      docx: { icon: FileText,       label: 'DOC',  bg: 'bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 border-blue-200/60 dark:border-blue-800/60' },
+      xlsx: { icon: FileSpreadsheet,label: 'XLS',  bg: 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 border-emerald-200/60 dark:border-emerald-800/60' },
+      pptx: { icon: FileText,       label: 'PPT',  bg: 'bg-amber-50 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 border-amber-200/60 dark:border-amber-800/60' },
+      zip:  { icon: FileArchive,    label: 'ZIP',  bg: 'bg-orange-50 dark:bg-orange-950/60 text-orange-600 dark:text-orange-400 border-orange-200/60 dark:border-orange-800/60' },
+      code: { icon: FileCode,       label: 'CODE', bg: 'bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 border-indigo-200/60 dark:border-indigo-800/60' },
     };
-    return icons[fileType] || <div className="w-8 h-8 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-300 dark:border-slate-700 flex items-center justify-center font-bold text-[10px] shrink-0 shadow-xs">FILE</div>;
+    return tile[fileType || ''] || { icon: FileText, label: 'FILE', bg: 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700' };
   };
 
   const getCategoryBadge = (cat) => {
     const map = {
-      'Logbook Templates':     'bg-teal-50 text-teal-900 border-teal-300',
-      'Evaluation Forms':      'bg-sky-50 text-sky-900 border-sky-300',
-      'Internship Guidelines': 'bg-emerald-50 text-emerald-950 border-emerald-300',
-      'MoU Agreements':        'bg-violet-50 text-violet-950 border-violet-300',
-      'Weekly Reports':        'bg-amber-50 text-amber-950 border-amber-300',
-      'Appraisal Sheets':      'bg-rose-50 text-rose-950 border-rose-300',
+      'Logbook Templates':     'bg-teal-50 text-teal-800 border-teal-300',
+      'Evaluation Forms':      'bg-sky-50 text-sky-800 border-sky-300',
+      'Internship Guidelines': 'bg-emerald-50 text-emerald-800 border-emerald-300',
+      'MoU Agreements':        'bg-violet-50 text-violet-800 border-violet-300',
+      'Weekly Reports':        'bg-amber-50 text-amber-800 border-amber-300',
+      'Appraisal Sheets':      'bg-rose-50 text-rose-800 border-rose-300',
     };
-    return map[cat] || 'bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-slate-100 border-slate-300 dark:border-slate-700';
+    return map[cat] || 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-300 dark:border-slate-700';
   };
 
-  const handleShareClick = (doc) => {
-    onShare(doc);
-    setCopiedId(doc.id);
-    setTimeout(() => setCopiedId(null), 2000);
+  const getAudienceIcon = (audience) => {
+    switch (audience) {
+      case 'Students':   return <Users className="w-3 h-3 text-blue-500" />;
+      case 'Supervisors':return <Users className="w-3 h-3 text-emerald-500" />;
+      case 'Companies':  return <Globe className="w-3 h-3 text-amber-500" />;
+      case 'All':
+      default:           return <Globe className="w-3 h-3 text-teal-500" />;
+    }
   };
 
-  const handleBatchDownload = () => {
-    selectedIds.forEach((id) => {
-      const doc = documents.find((d) => d.id === id);
-      if (doc) onDownload(doc);
-    });
-    setSelectedIds([]);
-  };
-
-  const handleDownload = (doc) => {
-    onDownload({ ...doc, downloads: (doc.downloads || 0) + 1 });
-  };
+  const categories = useMemo(() => {
+    const base = [
+      { id: 'ALL', label: 'All Files', count: documents.length },
+      ...CATEGORY_NAMES.map((name) => ({
+        id: name,
+        label: name,
+        count: documents.filter((d) => d.category === name).length,
+      })),
+    ];
+    return base;
+  }, [documents]);
 
   return (
-    <section id="documents-table-container" aria-labelledby="documents-table-title" className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs overflow-hidden">
-      <div className="p-4 sm:p-5 border-b border-slate-100 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-slate-50/70">
-        <div>
-          <h2 id="documents-table-title" className="text-base font-bold text-slate-900 dark:text-slate-100">Repository Documents</h2>
-          <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Showing {sorted.length} approved institution files</p>
-        </div>
-        {selectedIds.length > 0 && (
-          <div className="flex items-center gap-2 bg-teal-50 border border-teal-200 px-3 py-1.5 rounded-xl animate-in fade-in">
-            <span className="text-xs font-bold text-teal-900">{selectedIds.length} selected</span>
-            <button type="button" onClick={handleBatchDownload} className="px-3.5 py-2 bg-primary text-white hover:bg-primary rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all shadow-xs focus-visible:ring-2 focus-visible:ring-teal-600 focus-visible:outline-none">
-              <Download className="w-3.5 h-3.5" /> Download Selected
+    <TableCard
+      title="Repository Documents"
+      subtitle={`Manage ${documents.length} approved institution files and templates`}
+      icon={FolderClosed}
+      actions={
+        <div className="flex items-center gap-2">
+          {documents.length === 0 && onSeedSample && (
+            <button
+              type="button"
+              onClick={onSeedSample}
+              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors shadow-xs"
+            >
+              <Sparkles className="w-3.5 h-3.5" />
+              <span>Load Official Templates</span>
             </button>
-            <button type="button" onClick={() => setSelectedIds([])} className="px-3.5 py-2 rounded-xl bg-white dark:bg-slate-900 hover:bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-bold border border-slate-300 dark:border-slate-700 transition-colors shadow-xs">Clear</button>
+          )}
+          {canUpload && (
+            <button
+              type="button"
+              onClick={onUploadClick}
+              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold text-white hover:opacity-95 transition-opacity shadow-xs bg-primary"
+            >
+              <Upload className="w-3.5 h-3.5" />
+              <span>Upload File</span>
+            </button>
+          )}
+        </div>
+      }
+    >
+      <div className="px-5 py-4 border-b border-slate-200 dark:border-slate-800 flex flex-col lg:flex-row lg:items-center justify-between gap-4 bg-slate-50/40 dark:bg-slate-900/40">
+        <FilterTabs
+          tabs={categories}
+          activeTab={activeCategory}
+          onChange={onCategoryChange}
+        />
+
+        <div className="flex items-center gap-3 w-full lg:w-auto">
+          {selectedIds.length > 0 && (
+            <button
+              type="button"
+              onClick={() => onRequestBulkDelete(selectedIds)}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-rose-50 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400 border border-rose-200/80 dark:border-rose-800/80 hover:bg-rose-100 transition-colors shrink-0"
+            >
+              <Trash2 className="w-3.5 h-3.5" />
+              <span>Delete ({selectedIds.length})</span>
+            </button>
+          )}
+
+          <div className="relative flex-1 sm:w-64">
+            <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => onSearchChange(e.target.value)}
+              placeholder="Search file name, uploader..."
+              className="w-full pl-9 pr-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 text-xs placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-teal-600"
+            />
           </div>
-        )}
+        </div>
       </div>
 
       <div className="overflow-x-auto">
-        <table className="w-full text-left border-collapse" aria-label="Repository files list">
+        <table className="w-full text-left border-collapse min-w-[800px]">
           <thead>
-            <tr className="border-b border-slate-200 dark:border-slate-800 bg-slate-50/90 dark:bg-slate-800/60 text-[11px] font-bold uppercase tracking-wider text-slate-800 dark:text-slate-200">
-              <th scope="col" className="p-3.5 pl-5 w-10">
-                <button type="button" onClick={toggleSelectAll} className="text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:text-slate-100 focus-visible:ring-2 focus-visible:ring-teal-600 rounded p-0.5" aria-label={selectedIds.length === documents.length ? 'Deselect all' : 'Select all'}>
-                  {selectedIds.length > 0 && selectedIds.length === documents.length ? <CheckSquare className="w-4 h-4 text-teal-700" /> : <Square className="w-4 h-4 text-slate-400" />}
+            <tr className="border-b border-slate-200 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-800/60 text-[12px] font-semibold text-slate-600 dark:text-slate-300 uppercase tracking-wider">
+              <th className="px-5 py-3.5 w-10">
+                <button
+                  type="button"
+                  onClick={toggleSelectAll}
+                  className="flex items-center justify-center text-slate-400 hover:text-slate-700 dark:hover:text-slate-200"
+                >
+                  {isAllSelected ? (
+                    <CheckSquare className="w-4 h-4 text-teal-600 dark:text-teal-400" />
+                  ) : (
+                    <Square className="w-4 h-4" />
+                  )}
                 </button>
               </th>
-              <th scope="col" className="py-3.5 px-3">
-                <button type="button" onClick={() => handleSort('name')} className="flex items-center gap-1.5 hover:text-teal-900 font-bold focus-visible:ring-2 focus-visible:ring-teal-600 rounded" aria-sort={sortField === 'name' ? (sortAsc ? 'ascending' : 'descending') : 'none'}>
-                  <span>File Name</span><ArrowUpDown className="w-3.5 h-3.5 text-slate-400" />
-                </button>
-              </th>
-              <th scope="col" className="py-3.5 px-3">
-                <button type="button" onClick={() => handleSort('category')} className="flex items-center gap-1.5 hover:text-teal-900 font-bold focus-visible:ring-2 focus-visible:ring-teal-600 rounded" aria-sort={sortField === 'category' ? (sortAsc ? 'ascending' : 'descending') : 'none'}>
-                  <span>Category</span><ArrowUpDown className="w-3.5 h-3.5 text-slate-400" />
-                </button>
-              </th>
-              <th scope="col" className="py-3.5 px-3"><span className="font-bold">Uploaded By</span></th>
-              <th scope="col" className="py-3.5 px-3">
-                <button type="button" onClick={() => handleSort('date')} className="flex items-center gap-1.5 hover:text-teal-900 font-bold focus-visible:ring-2 focus-visible:ring-teal-600 rounded" aria-sort={sortField === 'date' ? (sortAsc ? 'ascending' : 'descending') : 'none'}>
-                  <span>Date</span><ArrowUpDown className="w-3.5 h-3.5 text-slate-400" />
-                </button>
-              </th>
-              <th scope="col" className="py-3.5 px-3 pr-5 text-right">
-                <button type="button" onClick={() => handleSort('downloads')} className="inline-flex items-center gap-1.5 hover:text-teal-900 font-bold focus-visible:ring-2 focus-visible:ring-teal-600 rounded" aria-sort={sortField === 'downloads' ? (sortAsc ? 'ascending' : 'descending') : 'none'}>
-                  <span>Downloads / Action</span><ArrowUpDown className="w-3.5 h-3.5 text-slate-400" />
-                </button>
-              </th>
+              <th className="px-4 py-3.5">File Name</th>
+              <th className="px-4 py-3.5">Category</th>
+              <th className="px-4 py-3.5">Size</th>
+              <th className="px-4 py-3.5">Uploaded By</th>
+              <th className="px-4 py-3.5">Last Modified</th>
+              <th className="px-4 py-3.5">Audience</th>
+              <th className="px-5 py-3.5 text-right">Actions</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-100 dark:divide-slate-800 text-sm">
-            {sorted.length === 0 ? (
-              <tr>
-                <td colSpan={6} className="py-12 px-4 text-center">
-                  <div className="max-w-sm mx-auto flex flex-col items-center">
-                    <div className="w-12 h-12 rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-800 flex items-center justify-center text-slate-400 mb-3">
-                      <FileText className="w-6 h-6" />
-                    </div>
-                    <h3 className="text-base font-bold text-slate-800 dark:text-slate-200">No documents found</h3>
-                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 mb-4">No documents match your active search or category filter.</p>
-                    <div className="flex items-center gap-2">
-                      <button type="button" onClick={onResetFilters} className="px-3.5 py-2 bg-white dark:bg-slate-900 hover:bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold text-xs rounded-xl border border-slate-300 dark:border-slate-700 transition-colors shadow-xs">Clear Filters</button>
-                      <button type="button" onClick={onSeedSample} className="px-3.5 py-2 bg-primary hover:bg-primary text-white font-bold text-xs rounded-xl transition-colors shadow-xs focus-visible:ring-2 focus-visible:ring-teal-600 focus-visible:outline-none">Load Official Templates</button>
-                    </div>
-                  </div>
-                </td>
-              </tr>
-            ) : (
-              sorted.map((doc) => {
+          <tbody className="divide-y divide-slate-100 dark:divide-slate-800 text-xs">
+            {documents.length > 0 ? (
+              documents.map((doc) => {
                 const isSelected = selectedIds.includes(doc.id);
                 const ft = doc.fileType || guessFileType(doc.name);
+                const tile = getIconTile(ft);
+                const IconComponent = tile.icon;
+
                 return (
-                  <tr key={doc.id} className={`hover:bg-slate-50/80 dark:hover:bg-slate-800/60 transition-colors ${isSelected ? 'bg-teal-50/30' : ''}`}>
-                    <td className="p-3.5 pl-5">
-                      <button type="button" onClick={() => toggleSelectOne(doc.id)} className="text-slate-400 hover:text-slate-800 dark:text-slate-200 focus-visible:ring-2 focus-visible:ring-teal-600 rounded p-0.5" aria-label={`Select ${doc.name}`}>
-                        {isSelected ? <CheckSquare className="w-4 h-4 text-teal-700" /> : <Square className="w-4 h-4" />}
+                  <tr
+                    key={doc.id}
+                    className={`transition-colors ${
+                      isSelected
+                        ? 'bg-teal-50/40 dark:bg-teal-950/20'
+                        : 'hover:bg-slate-50/70 dark:hover:bg-slate-800/40'
+                    }`}
+                  >
+                    <td className="px-5 py-3.5">
+                      <button
+                        type="button"
+                        onClick={() => toggleSelectOne(doc.id)}
+                        className="flex items-center justify-center text-slate-400 hover:text-slate-700 dark:hover:text-slate-200"
+                      >
+                        {isSelected ? (
+                          <CheckSquare className="w-4 h-4 text-teal-600 dark:text-teal-400" />
+                        ) : (
+                          <Square className="w-4 h-4" />
+                        )}
                       </button>
                     </td>
-                    <td className="py-3.5 px-3">
-                      <div className="flex items-start gap-3">
-                        {getFileIcon(ft)}
-                        <div className="min-w-0 max-w-xs sm:max-w-sm md:max-w-md">
-                          <div className="flex items-center gap-2 flex-wrap">
-                            <button type="button" onClick={() => onPreview(doc)} className="font-bold text-slate-900 dark:text-slate-100 hover:text-teal-700 text-left transition-colors truncate focus-visible:underline focus-visible:outline-none">
+
+                    <td className="px-4 py-3.5">
+                      <div className="flex items-center gap-3">
+                        <div
+                          className={`w-9 h-9 rounded-xl border ${tile.bg} flex items-center justify-center font-mono font-bold text-[10px] shrink-0 shadow-2xs`}
+                        >
+                          <IconComponent className="w-4 h-4" />
+                        </div>
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-1.5">
+                            <button
+                              type="button"
+                              onClick={() => onPreview(doc)}
+                              className="font-semibold text-slate-800 dark:text-slate-100 block truncate max-w-xs hover:text-teal-700 transition-colors focus-visible:underline focus-visible:outline-none"
+                            >
                               {doc.name}
                             </button>
-                            <span className="text-[10px] font-semibold px-1.5 py-0.2 rounded bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-800">
+                            <span className="text-[10px] font-semibold px-1.5 py-0.2 rounded bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-800 shrink-0">
                               v{doc.version || '1.0'}
                             </span>
                             {doc.verified !== false && (
-                              <span className="text-emerald-700" title="Institutionally verified" aria-label="Verified document">
+                              <span className="text-emerald-600 dark:text-emerald-400 shrink-0" title="Institutionally verified">
                                 <ShieldCheck className="w-3.5 h-3.5" />
                               </span>
                             )}
                           </div>
-                          <p className="text-xs text-slate-500 dark:text-slate-400 truncate mt-0.5">
-                            {doc.originalFilename || doc.name} • {doc.size || '—'} • Audience: <span className="font-semibold text-slate-700 dark:text-slate-300">{doc.audience || 'All'}</span>
-                          </p>
+                          <span className="text-[11px] text-slate-400 font-mono">
+                            .{(doc.fileType || guessFileType(doc.name) || 'FILE').toUpperCase()} · {doc.downloads || 0} downloads
+                          </span>
                         </div>
                       </div>
                     </td>
-                    <td className="py-3.5 px-3">
-                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold border ${getCategoryBadge(doc.category)}`}>
+
+                    <td className="px-4 py-3.5">
+                      <span className={`px-2 py-0.5 rounded-full border font-bold text-[11px] ${getCategoryBadge(doc.category)}`}>
                         {doc.category}
                       </span>
                     </td>
-                    <td className="py-3.5 px-3">
+
+                    <td className="px-4 py-3.5 font-mono text-slate-700 dark:text-slate-300">
+                      {doc.size || formatFileSize(doc.sizeBytes)}
+                    </td>
+
+                    <td className="px-4 py-3.5">
                       <div className="flex items-center gap-2">
-                        <div className="w-6 h-6 rounded-full bg-primary text-white flex items-center justify-center text-[10px] font-bold shrink-0" aria-hidden="true">
-                          {(doc.uploadedBy || 'U').slice(0, 2).toUpperCase()}
-                        </div>
-                        <span className="text-xs font-semibold text-slate-900 dark:text-slate-100">{doc.uploadedBy || 'Unknown'}</span>
-                      </div>
-                    </td>
-                    <td className="py-3.5 px-3">
-                      <div className="text-xs font-medium text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
-                        <Clock className="w-3.5 h-3.5 text-slate-400" />
-                        <span>{formatDate(doc.date)}</span>
-                      </div>
-                    </td>
-                    <td className="py-3.5 px-3 pr-5 text-right">
-                      <div className="flex items-center justify-end gap-1.5">
-                        <span className="hidden md:inline-flex text-[11px] font-semibold text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-full border border-slate-200 dark:border-slate-800 mr-1" title="Total downloads">
-                          {doc.downloads || 0} dl
+                        <Avatar
+                          name={doc.uploadedBy || 'Unknown'}
+                          size="xs"
+                        />
+                        <span className="text-slate-700 dark:text-slate-300 font-medium">
+                          {doc.uploadedBy || 'Unknown'}
                         </span>
-                        <button type="button" onClick={() => onPreview(doc)} className="p-1.5 text-slate-600 dark:text-slate-400 hover:text-teal-900 hover:bg-teal-50 rounded-lg transition-colors focus-visible:ring-2 focus-visible:ring-teal-600 focus-visible:outline-none" aria-label={`Preview ${doc.name}`} title="Preview">
-                          <Eye className="w-4 h-4" />
+                      </div>
+                    </td>
+
+                    <td className="px-4 py-3.5 text-slate-500 dark:text-slate-400 text-[11px]">
+                      {formatDate(doc.date)}
+                    </td>
+
+                    <td className="px-4 py-3.5">
+                      <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[11px] font-medium bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
+                        {getAudienceIcon(doc.audience)}
+                        <span>{doc.audience || 'All'}</span>
+                      </div>
+                    </td>
+
+                    <td className="px-5 py-3.5 text-right">
+                      <div className="inline-flex items-center gap-1 justify-end">
+                        <button
+                          type="button"
+                          onClick={() => onPreview(doc)}
+                          title="Preview File"
+                          className="p-1.5 rounded-lg text-slate-400 hover:text-teal-600 hover:bg-teal-50 dark:hover:bg-teal-950/50 transition-colors"
+                        >
+                          <Eye className="w-3.5 h-3.5" />
                         </button>
-                        <button type="button" onClick={() => handleShareClick(doc)} className="p-1.5 text-slate-600 dark:text-slate-400 hover:text-teal-900 hover:bg-teal-50 rounded-lg transition-colors relative focus-visible:ring-2 focus-visible:ring-teal-600 focus-visible:outline-none" aria-label={`Share ${doc.name}`} title="Share Link">
-                          {copiedId === doc.id ? <Check className="w-4 h-4 text-emerald-600" /> : <Share2 className="w-4 h-4" />}
+                        <button
+                          type="button"
+                          onClick={() => onDownload(doc)}
+                          title="Download File"
+                          className="p-1.5 rounded-lg text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-950/50 transition-colors"
+                        >
+                          <Download className="w-3.5 h-3.5" />
                         </button>
-                        <button type="button" onClick={() => handleDownload(doc)} className="p-1.5 bg-primary hover:bg-primary text-white rounded-lg transition-all shadow-xs focus-visible:ring-2 focus-visible:ring-teal-600 focus-visible:outline-none flex items-center gap-1 px-2.5 font-bold text-xs" aria-label={`Download ${doc.name}`}>
-                          <Download className="w-3.5 h-3.5" /><span className="hidden sm:inline">Download</span>
+                        <button
+                          type="button"
+                          onClick={() => onShare(doc)}
+                          title="Share Link"
+                          className="p-1.5 rounded-lg text-slate-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950/50 transition-colors"
+                        >
+                          <Share2 className="w-3.5 h-3.5" />
                         </button>
-                        <button type="button" onClick={() => { if (window.confirm(`Delete "${doc.name}" from repository?`)) onDelete(doc.id); }} className="p-1.5 text-slate-400 hover:text-rose-700 hover:bg-rose-50 rounded-lg transition-colors focus-visible:ring-2 focus-visible:ring-rose-600 focus-visible:outline-none" aria-label={`Delete ${doc.name}`} title="Delete">
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteOne(doc)}
+                          title="Delete File"
+                          className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/50 transition-colors"
+                        >
                           <Trash2 className="w-3.5 h-3.5" />
                         </button>
                       </div>
@@ -767,11 +835,33 @@ function DocumentListTable({ documents, onDownload, onPreview, onDelete, onShare
                   </tr>
                 );
               })
+            ) : (
+              <tr>
+                <td colSpan={8} className="p-0">
+                  <EmptyState
+                    title="No files match filter"
+                    description="No documents match your active category or search filters."
+                    actionLabel="Reset Filters"
+                    onAction={onResetFilters}
+                  />
+                </td>
+              </tr>
             )}
           </tbody>
         </table>
       </div>
-    </section>
+
+      <div className="px-5 py-3 border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
+        <span>
+          Total: <strong className="text-slate-700 dark:text-slate-200">{documents.length}</strong> items displayed
+        </span>
+        {selectedIds.length > 0 && (
+          <span className="text-teal-700 dark:text-teal-400 font-semibold">
+            {selectedIds.length} item(s) selected
+          </span>
+        )}
+      </div>
+    </TableCard>
   );
 }
 
@@ -782,12 +872,6 @@ function DocumentListTable({ documents, onDownload, onPreview, onDelete, onShare
 function DocumentPreviewModal({ document: doc, onClose, onDownload }) {
   const [copied, setCopied] = useState(false);
 
-  useEffect(() => {
-    const handleKey = (e) => { if (e.key === 'Escape') onClose(); };
-    window.addEventListener('keydown', handleKey);
-    return () => window.removeEventListener('keydown', handleKey);
-  }, [onClose]);
-
   if (!doc) return null;
 
   const handleCopyLink = () => {
@@ -797,86 +881,14 @@ function DocumentPreviewModal({ document: doc, onClose, onDownload }) {
   };
 
   return (
-    <div
-      id="document-preview-modal-overlay"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="preview-modal-title"
-      className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 sm:p-6 animate-in fade-in duration-150"
-      onClick={onClose}
-    >
-      <div
-        className="bg-white dark:bg-slate-900 w-full max-w-3xl rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-150"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className="p-4 sm:p-5 bg-slate-50 dark:bg-slate-800/40 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between gap-4">
-          <div className="flex items-center gap-3 min-w-0">
-            <div className="w-10 h-10 rounded-xl bg-teal-50 border border-teal-200 flex items-center justify-center text-teal-800 shrink-0">
-              <FileText className="w-5 h-5" />
-            </div>
-            <div className="min-w-0">
-              <div className="flex items-center gap-2">
-                <h3 id="preview-modal-title" className="text-base font-bold text-slate-900 dark:text-slate-100 truncate">{doc.name}</h3>
-                <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-teal-100 text-teal-900 border border-teal-200 shrink-0">v{doc.version || '1.0'}</span>
-              </div>
-              <p className="text-xs text-slate-500 dark:text-slate-400 truncate">{doc.originalFilename || doc.name} — {doc.category}</p>
-            </div>
-          </div>
-          <button type="button" onClick={onClose} className="p-2 text-slate-400 hover:text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:bg-slate-700 rounded-lg transition-colors focus-visible:ring-2 focus-visible:ring-teal-600 focus-visible:outline-none" aria-label="Close preview">
-            <X className="w-5 h-5" />
-          </button>
-        </div>
-
-        <div className="p-6 overflow-y-auto space-y-6 flex-1">
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 p-3.5 bg-slate-50 dark:bg-slate-800/40 rounded-xl border border-slate-200 dark:border-slate-800 text-xs">
-            <div>
-              <span className="text-slate-500 dark:text-slate-400 font-medium block">Uploaded By</span>
-              <span className="font-bold text-slate-900 dark:text-slate-100">{doc.uploadedBy || 'Unknown'}</span>
-            </div>
-            <div>
-              <span className="text-slate-500 dark:text-slate-400 font-medium block">File Size</span>
-              <span className="font-bold text-slate-900 dark:text-slate-100">{doc.size || '—'}</span>
-            </div>
-            <div>
-              <span className="text-slate-500 dark:text-slate-400 font-medium block">Audience</span>
-              <span className="font-bold text-teal-800">{doc.audience || 'All'}</span>
-            </div>
-            <div>
-              <span className="text-slate-500 dark:text-slate-400 font-medium block">Downloads</span>
-              <span className="font-bold text-slate-900 dark:text-slate-100">{doc.downloads || 0} times</span>
-            </div>
-          </div>
-
-          <div>
-            <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1.5">Document Abstract &amp; Purpose</h4>
-            <p className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed bg-teal-50/30 p-3.5 rounded-xl border border-teal-100">
-              {doc.description || 'Official institutional template provided by the Internship Directorate for student logbooks, assessments, and university compliance.'}
-            </p>
-          </div>
-
-          <div className="border border-slate-200 dark:border-slate-800 rounded-xl p-6 bg-white dark:bg-slate-900 shadow-inner min-h-[220px] flex flex-col justify-between">
-            <div className="border-b border-slate-100 dark:border-slate-800 pb-4">
-              <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 mb-2">
-                <span>REPUBLIC OF UGANDA — INTERNSHIP PORTAL</span>
-                <span>DOC REF: {(doc.id || '').toUpperCase()}</span>
-              </div>
-              <h1 className="text-lg font-bold text-slate-900 dark:text-slate-100 uppercase tracking-tight text-center py-2">{doc.name}</h1>
-              <p className="text-xs text-slate-600 dark:text-slate-400 text-center italic">Faculty Academic Affairs &amp; Industrial Training Board</p>
-            </div>
-            <div className="py-4 space-y-2 text-xs text-slate-600 dark:text-slate-400">
-              <p><strong>Section 1: General Requirements.</strong> All candidates enrolled in the accredited internship programme must adhere strictly to weekly logbook recordings and secure appropriate company mentor endorsements prior to mid-term academic visits.</p>
-              <p><strong>Section 2: Verification and Security.</strong> This document has been verified with cryptographic checksums and stored securely under institutional access policy.</p>
-            </div>
-            <div className="pt-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400">
-              <span className="flex items-center gap-1 text-emerald-700 font-semibold">
-                <ShieldCheck className="w-4 h-4" /> Integrity Verified
-              </span>
-              <span>Page 1 of 4 (Preview Mode)</span>
-            </div>
-          </div>
-        </div>
-
-        <div className="p-4 sm:p-5 bg-slate-50 dark:bg-slate-800/40 border-t border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-3">
+    <Modal
+      isOpen={!!doc}
+      onClose={onClose}
+      title={doc.name}
+      subtitle={`${doc.originalFilename || doc.name} — ${doc.category}`}
+      maxWidth="max-w-3xl"
+      footer={
+        <div className="w-full flex flex-col sm:flex-row items-center justify-between gap-3">
           <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
             <Clock className="w-4 h-4 text-slate-400" />
             <span>Published on {formatDate(doc.date)}</span>
@@ -890,8 +902,57 @@ function DocumentPreviewModal({ document: doc, onClose, onDownload }) {
             </button>
           </div>
         </div>
+      }
+    >
+      <div className="space-y-6">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 p-3.5 bg-slate-50 dark:bg-slate-800/40 rounded-xl border border-slate-200 dark:border-slate-800 text-xs">
+          <div>
+            <span className="text-slate-500 dark:text-slate-400 font-medium block">Uploaded By</span>
+            <span className="font-bold text-slate-900 dark:text-slate-100">{doc.uploadedBy || 'Unknown'}</span>
+          </div>
+          <div>
+            <span className="text-slate-500 dark:text-slate-400 font-medium block">File Size</span>
+            <span className="font-bold text-slate-900 dark:text-slate-100">{doc.size || '—'}</span>
+          </div>
+          <div>
+            <span className="text-slate-500 dark:text-slate-400 font-medium block">Audience</span>
+            <span className="font-bold text-teal-800">{doc.audience || 'All'}</span>
+          </div>
+          <div>
+            <span className="text-slate-500 dark:text-slate-400 font-medium block">Downloads</span>
+            <span className="font-bold text-slate-900 dark:text-slate-100">{doc.downloads || 0} times</span>
+          </div>
+        </div>
+
+        <div>
+          <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1.5">Document Abstract &amp; Purpose</h4>
+          <p className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed bg-teal-50/30 p-3.5 rounded-xl border border-teal-100">
+            {doc.description || 'Official institutional template provided by the Internship Directorate for student logbooks, assessments, and university compliance.'}
+          </p>
+        </div>
+
+        <div className="border border-slate-200 dark:border-slate-800 rounded-xl p-6 bg-white dark:bg-slate-900 shadow-inner min-h-[220px] flex flex-col justify-between">
+          <div className="border-b border-slate-100 dark:border-slate-800 pb-4">
+            <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 mb-2">
+              <span>REPUBLIC OF UGANDA — INTERNSHIP PORTAL</span>
+              <span>DOC REF: {(doc.id || '').toUpperCase()}</span>
+            </div>
+            <h1 className="text-lg font-bold text-slate-900 dark:text-slate-100 uppercase tracking-tight text-center py-2">{doc.name}</h1>
+            <p className="text-xs text-slate-600 dark:text-slate-400 text-center italic">Faculty Academic Affairs &amp; Industrial Training Board</p>
+          </div>
+          <div className="py-4 space-y-2 text-xs text-slate-600 dark:text-slate-400">
+            <p><strong>Section 1: General Requirements.</strong> All candidates enrolled in the accredited internship programme must adhere strictly to weekly logbook recordings and secure appropriate company mentor endorsements prior to mid-term academic visits.</p>
+            <p><strong>Section 2: Verification and Security.</strong> This document has been verified with cryptographic checksums and stored securely under institutional access policy.</p>
+          </div>
+          <div className="pt-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400">
+            <span className="flex items-center gap-1 text-emerald-700 font-semibold">
+              <ShieldCheck className="w-4 h-4" /> Integrity Verified
+            </span>
+            <span>Page 1 of 4 (Preview Mode)</span>
+          </div>
+        </div>
       </div>
-    </div>
+    </Modal>
   );
 }
 
@@ -907,6 +968,9 @@ export default function FileManagement() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('ALL');
   const [previewDoc, setPreviewDoc] = useState(null);
+  const [shareDoc, setShareDoc] = useState(null);
+  const [bulkDeleteIds, setBulkDeleteIds] = useState([]);
+  const [isUploadOpen, setIsUploadOpen] = useState(false);
   const [toastMessage, setToastMessage] = useState(null);
 
   useEffect(() => {
@@ -950,7 +1014,13 @@ export default function FileManagement() {
   };
 
   const handleShareDocument = (doc) => {
-    showToast(`Direct download link for "${doc.name}" copied to clipboard!`);
+    setShareDoc(doc);
+  };
+
+  const handleBulkDeleteConfirm = () => {
+    setDocuments((prev) => prev.filter((d) => !bulkDeleteIds.includes(d.id)));
+    showToast(`${bulkDeleteIds.length} document(s) removed from repository.`);
+    setBulkDeleteIds([]);
   };
 
   const handleSeedSample = () => {
@@ -1009,23 +1079,6 @@ export default function FileManagement() {
           )}
         </div>
 
-        <div className="bg-white dark:bg-slate-900 rounded-2xl p-4 sm:p-5 border border-slate-200 dark:border-slate-800 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <div className="relative flex-1 max-w-md">
-            <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
-            <input
-              type="search"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search by name, category, uploader..."
-              className="w-full pl-9 pr-4 py-2 bg-slate-50 dark:bg-slate-800/40 text-xs rounded-xl border border-slate-300 dark:border-slate-700 focus:border-teal-600 focus:outline-none"
-            />
-          </div>
-        </div>
-
-        {canUpload && (
-          <UploadDocumentCard onAddDocument={handleAddDocument} currentUser={user} />
-        )}
-
         <StorageAnalyticsCard
           documents={documents}
           onFilterByCategory={setSelectedCategory}
@@ -1034,13 +1087,94 @@ export default function FileManagement() {
 
         <DocumentListTable
           documents={filteredDocuments}
+          activeCategory={selectedCategory}
+          onCategoryChange={setSelectedCategory}
+          searchQuery={searchQuery}
+          onSearchChange={setSearchQuery}
           onDownload={handleDownloadDocument}
           onPreview={setPreviewDoc}
           onDelete={handleDeleteDocument}
           onShare={handleShareDocument}
+          onRequestBulkDelete={(ids) => setBulkDeleteIds(ids)}
           onResetFilters={() => { setSelectedCategory('ALL'); setSearchQuery(''); }}
           onSeedSample={handleSeedSample}
+          canUpload={canUpload}
+          onUploadClick={() => setIsUploadOpen(true)}
         />
+
+        {canUpload && (
+          <Modal
+            isOpen={isUploadOpen}
+            onClose={() => setIsUploadOpen(false)}
+            title="Upload Document"
+            subtitle="Publish logbook templates, evaluation forms, or internship guidelines"
+            maxWidth="max-w-2xl"
+          >
+            <UploadDocumentCard onAddDocument={(doc) => { handleAddDocument(doc); setIsUploadOpen(false); }} currentUser={user} />
+          </Modal>
+        )}
+
+        <Modal
+          isOpen={!!shareDoc}
+          onClose={() => setShareDoc(null)}
+          title="Share Secure Link"
+          subtitle={`Generate encrypted shareable URL for ${shareDoc?.name}`}
+          maxWidth="max-w-md"
+          footer={
+            <button
+              type="button"
+              onClick={() => {
+                if (shareDoc) {
+                  navigator.clipboard?.writeText(`https://portal.ims.ac.ug/documents/${shareDoc.id}`);
+                  showToast(`Direct download link for "${shareDoc.name}" copied to clipboard!`);
+                }
+                setShareDoc(null);
+              }}
+              className="px-4 py-2 rounded-xl text-xs font-semibold bg-primary text-white shadow-xs"
+            >
+              Copy Link
+            </button>
+          }
+        >
+          <div className="space-y-3 text-xs">
+            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300">
+              Share URL (Expires in 7 days)
+            </label>
+            <div className="flex items-center gap-2 p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 font-mono text-[11px] text-slate-600 dark:text-slate-300 select-all overflow-x-auto">
+              <span>{`https://portal.ims.ac.ug/documents/${shareDoc?.id || 'doc-token'}`}</span>
+            </div>
+          </div>
+        </Modal>
+
+        <Modal
+          isOpen={bulkDeleteIds.length > 0}
+          onClose={() => setBulkDeleteIds([])}
+          title="Delete Selected Documents"
+          subtitle={`Remove ${bulkDeleteIds.length} document(s) from the repository`}
+          maxWidth="max-w-md"
+          footer={
+            <>
+              <button
+                type="button"
+                onClick={() => setBulkDeleteIds([])}
+                className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleBulkDeleteConfirm}
+                className="px-4 py-2 rounded-xl text-xs font-semibold bg-rose-600 text-white hover:bg-rose-700 transition-colors shadow-xs"
+              >
+                Delete {bulkDeleteIds.length} file(s)
+              </button>
+            </>
+          }
+        >
+          <p className="text-xs text-slate-600 dark:text-slate-400">
+            This will permanently remove the selected documents from the institutional repository. This action cannot be undone.
+          </p>
+        </Modal>
 
         {previewDoc && (
           <DocumentPreviewModal
