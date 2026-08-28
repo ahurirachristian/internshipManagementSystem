@@ -28,6 +28,7 @@ import {
 import DashboardLayout from './DashboardLayout';
 import { useAuth } from '../context/AuthContext';
 import CustomSelect from './CustomSelect';
+import { KpiCard } from './ui/KpiCard';
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -446,62 +447,36 @@ function StorageAnalyticsCard({ documents, onFilterByCategory, selectedCategory 
   return (
     <section id="storage-and-kpis-section" aria-label="Document Storage and Program Analytics" className="space-y-4">
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
-        <div className="bg-white rounded-xl p-4 border border-slate-200 shadow-xs flex items-center justify-between transition-all hover:shadow-md">
-          <div>
-            <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">Active Documents</span>
-            <div className="flex items-baseline gap-2 mt-1">
-              <span className="text-2xl font-bold text-slate-900">{documents.length}</span>
-              <span className="text-xs font-semibold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded flex items-center gap-0.5 border border-emerald-200">
-                <TrendingUp className="w-3 h-3" /> Live
-              </span>
-            </div>
-            <p className="text-[11px] text-slate-500 mt-1">Institutional templates &amp; guides</p>
-          </div>
-          <div className="w-11 h-11 rounded-xl bg-teal-50 border border-teal-200 flex items-center justify-center text-teal-800 shrink-0">
-            <FileText className="w-5 h-5" />
-          </div>
-        </div>
-
-        <div className="bg-white rounded-xl p-4 border border-slate-200 shadow-xs flex items-center justify-between transition-all hover:shadow-md">
-          <div>
-            <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">Total Downloads</span>
-            <div className="flex items-baseline gap-2 mt-1">
-              <span className="text-2xl font-bold text-slate-900">{totalDownloads.toLocaleString()}</span>
-            </div>
-            <p className="text-[11px] text-slate-500 mt-1">By students, faculty &amp; hosts</p>
-          </div>
-          <div className="w-11 h-11 rounded-xl bg-sky-50 border border-sky-200 flex items-center justify-center text-sky-800 shrink-0">
-            <Download className="w-5 h-5" />
-          </div>
-        </div>
-
-        <div className="bg-white rounded-xl p-4 border border-slate-200 shadow-xs flex items-center justify-between transition-all hover:shadow-md">
-          <div>
-            <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">Storage Consumed</span>
-            <div className="flex items-baseline gap-2 mt-1">
-              <span className="text-2xl font-bold text-slate-900">{usedMB} MB</span>
-              <span className="text-xs font-medium text-slate-600">of {maxMB} MB</span>
-            </div>
-            <p className="text-[11px] text-slate-500 mt-1">LocalStorage browser quota</p>
-          </div>
-          <div className="w-11 h-11 rounded-xl bg-emerald-50 border border-emerald-200 flex items-center justify-center text-emerald-800 shrink-0">
-            <HardDrive className="w-5 h-5" />
-          </div>
-        </div>
-
-        <div className="bg-white rounded-xl p-4 border border-slate-200 shadow-xs flex items-center justify-between transition-all hover:shadow-md">
-          <div>
-            <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">Integrity &amp; Trust</span>
-            <div className="flex items-baseline gap-2 mt-1">
-              <span className="text-lg font-bold text-slate-900">Encrypted</span>
-              <span className="text-xs font-bold text-teal-800 bg-teal-50 px-1.5 py-0.5 rounded border border-teal-200">Base64</span>
-            </div>
-            <p className="text-[11px] text-slate-500 mt-1">Stored securely in browser</p>
-          </div>
-          <div className="w-11 h-11 rounded-xl bg-violet-50 border border-violet-200 flex items-center justify-center text-violet-800 shrink-0">
-            <ShieldCheck className="w-5 h-5" />
-          </div>
-        </div>
+        <KpiCard
+          title="Active Documents"
+          value={documents.length}
+          period="Institutional templates &amp; guides"
+          icon="FileText"
+          badgeColor="teal"
+          change="Live"
+        />
+        <KpiCard
+          title="Total Downloads"
+          value={totalDownloads.toLocaleString()}
+          period="By students, faculty &amp; hosts"
+          icon={Download}
+          badgeColor="blue"
+        />
+        <KpiCard
+          title="Storage Consumed"
+          value={`${usedMB} MB`}
+          period={`of ${maxMB} MB LocalStorage quota`}
+          icon="HardDrive"
+          badgeColor="emerald"
+          progress={Math.round((usedMB / Math.max(1, maxMB)) * 100)}
+        />
+        <KpiCard
+          title="Integrity &amp; Trust"
+          value="Encrypted"
+          period="Secured in browser (Base64)"
+          icon={ShieldCheck}
+          badgeColor="purple"
+        />
       </div>
 
       <div className="bg-white rounded-xl p-4 sm:p-5 border border-slate-200 shadow-xs">

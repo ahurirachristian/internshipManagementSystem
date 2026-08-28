@@ -65,23 +65,23 @@ export default function InternshipProgress() {
   }
 
   return (
-    <div className="bg-white rounded-xl border border-slate-200 shadow-xs p-5">
+    <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-xs p-5">
       <div className="flex items-center justify-between mb-5 flex-wrap gap-2">
         <div>
-          <h2 className="text-base font-bold text-slate-900">Internship Progress</h2>
-          <p className="text-xs text-slate-500 mt-0.5">
+          <h2 className="text-base font-bold text-slate-900 dark:text-slate-100">Internship Progress</h2>
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
             {completedCount} of {MILESTONES.length} milestones completed
           </p>
         </div>
-        <div className="text-2xl font-bold text-teal-700">
+        <div className="text-2xl font-bold text-teal-700 dark:text-teal-400">
           {percentage}%
         </div>
       </div>
 
       <div className="relative px-3 pt-2">
-        <div className="absolute top-5 left-6 right-6 h-1 bg-slate-200 rounded-full" />
+        <div className="absolute top-5 left-6 right-6 h-1 bg-slate-200 dark:bg-slate-700 rounded-full" />
         <div
-          className="absolute top-5 left-6 h-1 bg-teal-700 rounded-full transition-all duration-500"
+          className="absolute top-5 left-6 h-1 bg-teal-700 dark:bg-teal-500 rounded-full transition-all duration-500"
           style={{ width: lineWidth }}
         />
 
@@ -97,8 +97,8 @@ export default function InternshipProgress() {
                     isCompleted
                       ? 'bg-teal-700 text-white border-teal-700'
                       : isActive
-                        ? 'bg-white text-teal-700 border-teal-700 ring-4 ring-teal-700/15'
-                        : 'bg-white text-slate-500 border-slate-300'
+                        ? 'bg-white dark:bg-slate-900 text-teal-700 border-teal-700 ring-4 ring-teal-700/15'
+                        : 'bg-white dark:bg-slate-900 text-slate-500 border-slate-300 dark:border-slate-600'
                   }`}
                 >
                   {isCompleted ? (
@@ -109,7 +109,7 @@ export default function InternshipProgress() {
                 </div>
                 <div
                   className={`text-center text-[11px] max-w-[100px] leading-tight ${
-                    isActive || isCompleted ? 'font-semibold text-slate-900' : 'font-normal text-slate-500'
+                    isActive || isCompleted ? 'font-semibold text-slate-900 dark:text-slate-100' : 'font-normal text-slate-500 dark:text-slate-400'
                   }`}
                 >
                   {milestone.label}
