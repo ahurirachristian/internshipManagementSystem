@@ -298,6 +298,9 @@ public class StudentController {
         if (dto.getIntake() != null || create) {
             student.setIntake(dto.getIntake());
         }
+        if (dto.getGender() != null || create) {
+            student.setGender(dto.getGender());
+        }
         if (dto.getAcademicYear() != null || create) {
             student.setAcademicYear(dto.getAcademicYear());
         }
@@ -343,6 +346,7 @@ public class StudentController {
         dto.setDegreeProgram(student.getDegreeProgram());
         dto.setYearOfStudy(student.getYearOfStudy());
         dto.setPhoneNumber(student.getPhoneNumber());
+        dto.setGender(student.getGender());
         dto.setIntake(student.getIntake());
         dto.setAcademicYear(student.getAcademicYear());
         dto.setSemester(student.getSemester());

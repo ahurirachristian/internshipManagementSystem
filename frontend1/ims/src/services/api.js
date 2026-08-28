@@ -176,6 +176,13 @@ export async function fetchUniversityProfile() {
   return parseResponse(response);
 }
 
+export async function fetchUniversityStats() {
+  const response = await fetch(`${API_ROOT}/api/university/stats`, {
+    credentials: 'include',
+  });
+  return parseResponse(response);
+}
+
 export async function createStudent(student) {
   const response = await fetch(`${API_ROOT}/api/students`, {
     method: 'POST',
