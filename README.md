@@ -8,10 +8,10 @@ A Spring Boot application for managing internships, reorganized into `backend/` 
 
 ```
 internshipManagementSystem/
-├── backend/          ─ Working backend (Spring Boot demo reference implementation)
-├── frontend/         ─ Reserved for frontend (currently empty)
+├── backend/           ─ Spring Boot backend (REST API + Thymeleaf web UI)
+├── frontend1/ims/     ─ React frontend (Create React App, react-router-dom)
 ├── README.md
-└── .history/         ─ Git history backups
+└── .history/          ─ Git history backups
 ```
 
 ---
@@ -23,14 +23,15 @@ The `backend/` folder contains the complete reference implementation from the or
 ### Stack
 - **Spring Boot 3.x** (Spring Web, Spring Security, Spring Data JPA, Thymeleaf)
 - **Java 17**
-- **MySQL** (via WampServer) or **H2** (in-memory, for local development)
+- **MySQL 8** (primary database) or **H2** (in-memory, for local development)
 - **Maven** (with wrapper)
+- **React 19** frontend (`frontend1/ims`, Create React App)
 
 ### Features
 - Spring MVC web application
 - Spring Security 6 with role-based access control
 - Thymeleaf templates (login, dashboard, admin, student, supervisor)
-- Role-based access control (STUDENT, SUPERVISOR, ADMIN)
+- Role-based access control (STUDENT, SUPERVISOR, ADMIN, COMPANY)
 - REST API (`/api/me`)
 - Access control tests
 
@@ -63,16 +64,58 @@ The admin dashboard at `/admin/dashboard` provides full user management:
 Login with Google, LinkedIn, or X/Twitter is available on the login page. OAuth2 client credentials need to be configured in `application-dev.properties` or `application-mysql.properties` (see API Reference).
 
 ### Database Configuration
-- **Default profile**: `mysql` (connects to `internshipmanagementsystem_db` on WampServer)
-- **MySQL connection**: `localhost:3306`, user `root`, empty password
+- **Default profile**: `mysql` (connects to `internshipmanagementsystem_db` on `localhost:3306`)
+- **MySQL connection**: `localhost:3306`, user `root`, empty password (configurable via `backend/.env`)
 - **Dev profile**: `dev` (uses H2 in-memory database)
 - **Switch profiles**: update `spring.profiles.active` in `application.properties`
+- **Schema management**: `spring.jpa.hibernate.ddl-auto=none` — the database schema is managed externally (tables are created in MySQL); JPA entities only map to the existing tables.
+
+### Database Schema
+
+The MySQL database `internshipmanagementsystem_db` contains the following tables, each mapped to a JPA entity under `backend/src/main/java/com/example/demo/`:
+
+| Table | Entity | Description |
+|-------|--------|-------------|
+| `users` | `UserEntity` | Authentication accounts (linked to roles) |
+| `roles` | `Role` | Reference table of system roles (e.g. `ROLE_STUDENT`) |
+| `universities` | `University` | Universities offering internships |
+| `schools` | `School` | Schools/faculties within universities |
+| `departments` | `Department` | Departments within schools |
+| `programmes` | `Programme` | Academic programmes (linked to school/department) |
+| `countries` | `Country` | Reference list of countries |
+| `company` | `Company` | Host companies (legacy/seed companies) |
+| `internship_companies` | `InternshipCompany` | Internship host companies |
+| `students` | `Student` | Student records |
+| `student_profiles` | `StudentProfile` | Detailed student internship profiles |
+| `university_supervisors` | `UniversitySupervisor` | University-based supervisors |
+| `industrial_supervisors` | `IndustrialSupervisor` | Company-based supervisors |
+| `placements` | `Placement` | Student placements |
+| `vacancies` | `Vacancy` | Job/internship vacancies |
+| `evaluations` | `Evaluation` | Placement evaluations |
+| `day_diaries` | `DayDiary` | Student daily diary entries |
+| `audit_logs` | `AuditLog` | Audit trail of actions |
+
+### Data Seeders
+
+On startup, idempotent `CommandLineRunner` seeders populate reference/lookup data only when the target table is empty (`if (repository.count() == 0)`). They are generated to mirror the current database contents:
+
+- `DataSeeder` — users (from `users`)
+- `UniversityDataSeeder` — universities (+ links the `university` user to the first university)
+- `CompanyDataSeeder` — companies (+ links the `airtel` user to the first company)
+- `CountryDataSeeder` — countries
+- `SchoolDataSeeder` — schools
+- `DepartmentDataSeeder` — departments
+- `ProgrammeDataSeeder` — programmes
+- `RoleDataSeeder` — roles
+- `StudentProfileDataSeeder` — student profiles
+
+Tables with no seed data (`students`, `university_supervisors`, `industrial_supervisors`, `internship_companies`) have no seeder.
 
 ### How to Run
 
 **With MySQL (default):**
 
-Ensure WampServer MySQL is running, then:
+Ensure MySQL 8 is running on `localhost:3306`, then:
 
 ```bash
 cd backend
@@ -107,9 +150,17 @@ cd backend
 
 ---
 
-## Frontend (`frontend/`)
+## Frontend (`frontend1/ims/`)
 
-Reserved for frontend assets and code. Currently empty.
+A React 19 single-page application (Create React App + `react-router-dom`).
+
+```bash
+cd frontend1/ims
+npm install
+npm start
+```
+
+It runs on [http://localhost:3000](http://localhost:3000) and consumes the backend REST API served from `http://localhost:8082`.
 
 ---
 
@@ -117,7 +168,7 @@ Reserved for frontend assets and code. Currently empty.
 
 - **Java 17+**
 - **Maven 3.6+** (or use the included Maven wrapper `./mvnw`)
-- **WampServer** with MySQL running (for production database access)
+- **MySQL 8** running on `localhost:3306` (for the production database)
 
 ---
 
@@ -127,7 +178,7 @@ Reserved for frontend assets and code. Currently empty.
 
 1. Clone the repository
 2. Ensure **Java 17+** and **Maven 3.6+** are installed
-3. Ensure WampServer is running if using MySQL
+3. Ensure MySQL 8 is running on `localhost:3306` if using the `mysql` profile
 4. Run the app:
    ```bash
    cd backend

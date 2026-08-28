@@ -2,6 +2,7 @@ package com.example.demo.service;
 
 import java.util.List;
 import java.util.Optional;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -49,6 +50,7 @@ public class UniversityService {
         return universityRepository.findById(id);
     }
 
+    @CacheEvict(value = "universities", allEntries = true)
     public University create(UniversityRequest request) {
         if (request.getName() == null || request.getName().isBlank()) {
             throw new IllegalArgumentException("University name is required.");
@@ -64,6 +66,7 @@ public class UniversityService {
         return universityRepository.save(university);
     }
 
+    @CacheEvict(value = "universities", allEntries = true)
     public Optional<University> update(Long id, UniversityRequest request) {
         return universityRepository.findById(id)
                 .map(existing -> {
@@ -77,12 +80,13 @@ public class UniversityService {
                 });
     }
 
+    @CacheEvict(value = "universities", allEntries = true)
     public void deleteById(Long id) {
         universityRepository.deleteById(id);
     }
 
     public UniversityDto toDto(University university) {
-        return new UniversityDto(university.getId(), university.getName(),
+        return new UniversityDto(university.getUniversityId(), university.getName(),
                 university.getCode(), university.getLocation(), university.getEmail());
     }
 

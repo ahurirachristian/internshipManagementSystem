@@ -13,6 +13,9 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 
 @RestController
 @RequestMapping("/api/placements")
@@ -26,8 +29,8 @@ public class PlacementController {
     }
 
     @GetMapping
-    public List<Placement> getPlacements() {
-        return placementService.findAll();
+    public Page<Placement> getPlacements(@PageableDefault(size = 20) Pageable pageable) {
+        return placementService.findAll(pageable);
     }
 
     @GetMapping("/export/csv")

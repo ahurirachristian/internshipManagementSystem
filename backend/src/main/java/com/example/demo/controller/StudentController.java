@@ -17,6 +17,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import com.example.demo.dto.StudentProfileDto;
 import com.example.demo.student.DayDiary;
 import com.example.demo.student.DayDiaryRepository;
@@ -133,8 +136,8 @@ public class StudentController {
 
     @GetMapping
     @PreAuthorize("hasAnyAuthority('ADMIN', 'SUPERVISOR', 'COMPANY')")
-    public List<StudentProfile> getAllStudents() {
-        return studentProfileRepository.findAll();
+    public Page<StudentProfile> getAllStudents(@PageableDefault(size = 20) Pageable pageable) {
+        return studentProfileRepository.findAll(pageable);
     }
 
     @GetMapping("/export/csv")
@@ -180,8 +183,8 @@ public class StudentController {
 
     @GetMapping("/search")
     @PreAuthorize("hasAnyAuthority('ADMIN', 'SUPERVISOR', 'COMPANY')")
-    public List<StudentProfile> searchStudents(@RequestParam String q) {
-        return studentProfileRepository.findByFirstNameContainingIgnoreCaseOrLastNameContainingIgnoreCase(q, q);
+    public Page<StudentProfile> searchStudents(@RequestParam String q, @PageableDefault(size = 20) Pageable pageable) {
+        return studentProfileRepository.findByFirstNameContainingIgnoreCaseOrLastNameContainingIgnoreCase(q, q, pageable);
     }
 
     @PutMapping("/{id}")

@@ -1,6 +1,7 @@
 package com.example.demo.country;
 
 import java.util.List;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -20,6 +21,7 @@ public class CountryService {
         return countryRepository.findByNameContainingIgnoreCase(query);
     }
 
+    @CacheEvict(value = "countries", allEntries = true)
     public Country save(Country country) {
         return countryRepository.save(country);
     }

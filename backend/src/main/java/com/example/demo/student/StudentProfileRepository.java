@@ -2,6 +2,8 @@ package com.example.demo.student;
 
 import java.util.List;
 import java.util.Optional;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface StudentProfileRepository extends JpaRepository<StudentProfile, Long> {
@@ -16,4 +18,6 @@ public interface StudentProfileRepository extends JpaRepository<StudentProfile, 
     List<StudentProfile> findByUniversitySupervisorIgnoreCase(String universitySupervisor);
 
     List<StudentProfile> findByFirstNameContainingIgnoreCaseOrLastNameContainingIgnoreCase(String firstName, String lastName);
+
+    Page<StudentProfile> findByFirstNameContainingIgnoreCaseOrLastNameContainingIgnoreCase(String firstName, String lastName, Pageable pageable);
 }

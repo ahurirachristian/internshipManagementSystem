@@ -2,18 +2,17 @@ package com.example.demo.university;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
 
 @Entity
 @Table(name = "universities")
 public class University {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @Column(name = "university_id", nullable = false)
+    private Long universityId;
 
     @Column(nullable = false, unique = true)
     private String name;
@@ -22,10 +21,10 @@ public class University {
     private String code;
 
     @Column(nullable = true)
-    private String location;
-
-    @Column(nullable = true)
     private String email;
+
+    @Transient
+    private String location;
 
     public University() {
     }
@@ -41,12 +40,12 @@ public class University {
         this.email = email;
     }
 
-    public Long getId() {
-        return id;
+    public Long getUniversityId() {
+        return universityId;
     }
 
-    public void setId(Long id) {
-        this.id = id;
+    public void setUniversityId(Long universityId) {
+        this.universityId = universityId;
     }
 
     public String getName() {
