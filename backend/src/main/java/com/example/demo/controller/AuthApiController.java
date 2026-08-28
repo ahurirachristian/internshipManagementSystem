@@ -29,6 +29,10 @@ import org.springframework.web.bind.annotation.RestController;
 import com.example.demo.audit.AuditLogService;
 import com.example.demo.student.Student;
 import com.example.demo.student.StudentRepository;
+import com.example.demo.company.Company;
+import com.example.demo.company.CompanyRepository;
+import com.example.demo.supervisor.UniversitySupervisor;
+import com.example.demo.supervisor.UniversitySupervisorRepository;
 
 @RestController
 @RequestMapping("/api")
@@ -39,17 +43,23 @@ public class AuthApiController {
     private final PasswordEncoder passwordEncoder;
     private final AuditLogService auditLogService;
     private final StudentRepository studentRepository;
+    private final CompanyRepository companyRepository;
+    private final UniversitySupervisorRepository universitySupervisorRepository;
 
     public AuthApiController(AuthenticationManager authenticationManager,
             UserRepository userRepository,
             PasswordEncoder passwordEncoder,
             AuditLogService auditLogService,
-            StudentRepository studentRepository) {
+            StudentRepository studentRepository,
+            CompanyRepository companyRepository,
+            UniversitySupervisorRepository universitySupervisorRepository) {
         this.authenticationManager = authenticationManager;
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.auditLogService = auditLogService;
         this.studentRepository = studentRepository;
+        this.companyRepository = companyRepository;
+        this.universitySupervisorRepository = universitySupervisorRepository;
     }
 
     @GetMapping("/me")
@@ -172,6 +182,41 @@ public class AuthApiController {
         student.setSemester(body.getOrDefault("semester", null));
         student.setStartDate(parseDateOrNull(body.get("startDate")));
         student.setEndDate(parseDateOrNull(body.get("endDate")));
+
+        // Resolve company
+        String companyName = body.get("internshipCompany");
+        if (companyName != null && !companyName.isBlank()) {
+            companyName = companyName.trim();
+            final String finalCompanyName = companyName;
+            Long companyId = companyRepository.findAll().stream()
+                    .filter(c -> c.getName().equalsIgnoreCase(finalCompanyName))
+                    .map(Company::getId)
+                    .findFirst()
+                    .orElseGet(() -> {
+                        Company newComp = new Company();
+                        newComp.setName(finalCompanyName);
+                        newComp.setSize(Company.Size.Medium);
+                        newComp.setIndustry("Technology");
+                        newComp.setEmail("info@" + finalCompanyName.toLowerCase().replaceAll("[^a-z0-9]", "") + ".com");
+                        newComp.setPhone("Pending");
+                        newComp.setCountry("Uganda");
+                        newComp.setCity("Kampala");
+                        newComp.setPhysicalAddress("Pending");
+                        return companyRepository.save(newComp).getId();
+                    });
+            student.setInternshipCompanyId(companyId);
+        }
+
+        // Resolve university supervisor
+        String supervisorUsername = body.get("universitySupervisor");
+        if (supervisorUsername != null && !supervisorUsername.isBlank()) {
+            supervisorUsername = supervisorUsername.trim();
+            final String finalSupervisorUsername = supervisorUsername;
+            userRepository.findByUsername(finalSupervisorUsername)
+                    .flatMap(u -> universitySupervisorRepository.findByUserId(u.getId()))
+                    .ifPresent(sup -> student.setUniSupervisorId(sup.getId()));
+        }
+
         studentRepository.save(student);
     }
 

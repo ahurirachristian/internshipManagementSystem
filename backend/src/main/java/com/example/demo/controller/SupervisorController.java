@@ -19,7 +19,6 @@ import com.example.demo.supervisor.UniversitySupervisorRepository;
  */
 @RestController
 @RequestMapping("/api/supervisors")
-@PreAuthorize("hasAnyAuthority('ADMIN', 'SUPERVISOR', 'COMPANY')")
 public class SupervisorController {
 
     private final UserRepository userRepository;
@@ -56,6 +55,7 @@ public class SupervisorController {
 
     /** M5: Model-B supervisor rows for placement assignment selects. */
     @GetMapping("/university")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'SUPERVISOR', 'COMPANY')")
     public List<Map<String, Object>> getUniversitySupervisors() {
         return universitySupervisorRepository.findAll().stream()
                 .map(sup -> Map.<String, Object>of(
@@ -68,6 +68,7 @@ public class SupervisorController {
 
     /** M5: Model-B industrial supervisor rows for placement assignment selects. */
     @GetMapping("/industrial")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'SUPERVISOR', 'COMPANY')")
     public List<Map<String, Object>> getIndustrialSupervisors() {
         return industrialSupervisorRepository.findAll().stream()
                 .map(sup -> Map.<String, Object>of(

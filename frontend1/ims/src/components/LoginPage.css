@@ -43,7 +43,11 @@
   justify-content: center;
   padding: clamp(12px, 3vh, 40px) 20px;
   animation: fadeInUp 0.7s ease;
-  overflow: hidden;
+  overflow-y: auto;
+}
+
+.login-wrapper > div {
+  margin: auto;
 }
 
 .login-card {

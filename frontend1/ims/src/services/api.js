@@ -57,14 +57,14 @@ export async function logoutSession() {
   }
 }
 
-export async function register(username, password, confirmPassword, role) {
+export async function register(payload) {
   const response = await fetch(`${API_ROOT}/api/register`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
     },
     credentials: 'include',
-    body: JSON.stringify({ username, password, confirmPassword, role }),
+    body: JSON.stringify(payload),
   });
   return parseResponse(response);
 }

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { GraduationCap, Eye, EyeOff } from 'lucide-react';
-import { register, fetchCompanies, fetchSupervisors, saveMyProfile } from '../services/api';
+import { register, fetchCompanies, fetchSupervisors } from '../services/api';
 import AuthShell from './AuthShell';
 import CustomSelect from './CustomSelect';
 import './LoginPage.css';
@@ -101,8 +101,11 @@ export default function RegisterPage() {
     setError('');
     setLoading(true);
     try {
-      await register(form.username.trim(), form.password, form.confirmPassword, form.role.toUpperCase());
-      const profilePayload = {
+      const registrationPayload = {
+        username: form.username.trim(),
+        password: form.password,
+        confirmPassword: form.confirmPassword,
+        role: form.role.toUpperCase(),
         email: form.email.trim(),
         firstName: form.firstName.trim(),
         lastName: form.lastName.trim(),
@@ -113,11 +116,8 @@ export default function RegisterPage() {
         phoneNumber: form.phoneNumber.trim() || 'Pending',
         internshipCompany: form.internshipCompany.trim(),
         universitySupervisor: form.universitySupervisor.trim(),
-        industrialSupervisorId: form.industrialSupervisorId.trim() || 'Pending',
-        companyId: form.companyId ? Number(form.companyId) : null,
-        pictureUrl: '/images/student-placeholder.png',
       };
-      await saveMyProfile(profilePayload);
+      await register(registrationPayload);
       navigate('/login', { state: { registered: true } });
     } catch (err) {
       setError(err.message || 'Registration failed.');
@@ -141,8 +141,7 @@ export default function RegisterPage() {
     { value: '4', label: 'Year 4' },
     { value: '5', label: 'Year 5' },
   ];
-  const companyOptions = [{ value: '', label: 'Select company' }, ...companies.map((c) => ({ value: c.name, label: c.name }))];
-  const supervisorOptions = [{ value: '', label: 'Select supervisor' }, ...supervisors.map((s) => ({ value: s.username, label: s.username }))];
+
 
   return (
     <AuthShell>
@@ -174,7 +173,7 @@ export default function RegisterPage() {
                   {s.id < step ? '✓' : s.id}
                 </div>
                 <span
-                  className={`mt-2 text-[11px] font-semibold text-center max-w-[70px] leading-tight ${
+                  className={`mt-2 text-[11px] font-semibold text-center max-w-[70px] leading-tight hidden sm:block ${
                     s.id === step ? 'text-teal-900' : 'text-slate-500'
                   }`}
                 >
@@ -209,7 +208,7 @@ export default function RegisterPage() {
                   <span className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none flex items-center justify-center text-xs">@</span>
                 </div>
               </div>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label htmlFor="firstName" className={labelClass}>First Name</label>
                   <input type="text" id="firstName" className={plainInputClass} placeholder="First name" value={form.firstName} onChange={(e) => setField('firstName', e.target.value)} />
@@ -270,12 +269,38 @@ export default function RegisterPage() {
           {step === 3 && (
             <>
               <div>
-                <label className={labelClass}>Internship Company</label>
-                <CustomSelect id="register-internshipCompany" value={form.internshipCompany} onChange={(val) => setField('internshipCompany', val)} options={companyOptions} />
+                <label htmlFor="register-internshipCompany" className={labelClass}>Internship Company</label>
+                <input
+                  type="text"
+                  id="register-internshipCompany"
+                  list="company-list"
+                  className={plainInputClass}
+                  placeholder="Select or type company"
+                  value={form.internshipCompany}
+                  onChange={(e) => setField('internshipCompany', e.target.value)}
+                />
+                <datalist id="company-list">
+                  {companies.map((c) => (
+                    <option key={c.id} value={c.name} />
+                  ))}
+                </datalist>
               </div>
               <div>
-                <label className={labelClass}>University Supervisor</label>
-                <CustomSelect id="register-universitySupervisor" value={form.universitySupervisor} onChange={(val) => setField('universitySupervisor', val)} options={supervisorOptions} />
+                <label htmlFor="register-universitySupervisor" className={labelClass}>University Supervisor</label>
+                <input
+                  type="text"
+                  id="register-universitySupervisor"
+                  list="supervisor-list"
+                  className={plainInputClass}
+                  placeholder="Select or type supervisor"
+                  value={form.universitySupervisor}
+                  onChange={(e) => setField('universitySupervisor', e.target.value)}
+                />
+                <datalist id="supervisor-list">
+                  {supervisors.map((s) => (
+                    <option key={s.id} value={s.username} />
+                  ))}
+                </datalist>
               </div>
             </>
           )}

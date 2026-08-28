@@ -66,6 +66,7 @@ public class SecurityConfig {
                         "/css/**", "/js/**", "/images/**", "/assets/**",
                         "/app.js", "/favicon.ico", "/h2-console/**"
                 ).permitAll()
+                .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/companies", "/api/supervisors").permitAll()
                 .requestMatchers("/admin/**").hasAuthority("ADMIN")
                 .requestMatchers("/university/universities/search").hasAnyAuthority("STUDENT", "SUPERVISOR", "ADMIN")
                 .requestMatchers("/university/**", "/supervisor/**").hasAnyAuthority("SUPERVISOR", "ADMIN")
