@@ -44,10 +44,10 @@ test('renders the admin dashboard for admin users', async () => {
   expect(await screen.findByRole('heading', { name: 'Admin Dashboard' })).toBeInTheDocument();
 });
 
-test('allows admin users to access the student dashboard', async () => {
+test('redirects admin users away from the student dashboard', async () => {
   window.history.pushState({}, '', '/student/dashboard');
   render(<App />);
-  expect(await screen.findByRole('heading', { name: 'Student Dashboard' })).toBeInTheDocument();
+  expect(await screen.findByRole('heading', { name: 'Admin Dashboard' })).toBeInTheDocument();
 });
 
 test('renders the academic units management page for university users', async () => {

@@ -21,6 +21,7 @@ public class StudentDto {
     private String degreeProgram;
     private Integer yearOfStudy;
     private String phoneNumber;
+    private String gender;
     private String intake;
     private String academicYear;
     private String semester;
@@ -141,6 +142,14 @@ public class StudentDto {
 
     public void setPhoneNumber(String phoneNumber) {
         this.phoneNumber = phoneNumber;
+    }
+
+    public String getGender() {
+        return gender;
+    }
+
+    public void setGender(String gender) {
+        this.gender = gender;
     }
 
     public String getIntake() {

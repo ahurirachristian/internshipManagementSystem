@@ -1,18 +1,27 @@
 export const API_ROOT = process.env.REACT_APP_API_ROOT || 'http://localhost:8082';
 
 async function parseResponse(response) {
-  const contentType = response.headers.get('content-type') || '';
-  const payload = contentType.includes('application/json')
-    ? await response.json()
-    : await response.text();
-
   if (!response.ok) {
+    let payload;
+    try {
+      const contentType = response.headers.get('content-type') || '';
+      payload = contentType.includes('application/json')
+        ? await response.json()
+        : await response.text();
+    } catch {
+      payload = null;
+    }
     const message = payload?.error || payload?.message || response.statusText || 'Request failed';
     const error = new Error(message);
     error.status = response.status;
     error.payload = payload;
     throw error;
   }
+
+  const contentType = response.headers.get('content-type') || '';
+  const payload = contentType.includes('application/json')
+    ? await response.json()
+    : await response.text();
 
   return payload;
 }
@@ -162,6 +171,13 @@ export async function fetchUniversityStudents() {
 
 export async function fetchUniversityProfile() {
   const response = await fetch(`${API_ROOT}/api/students/university/profile`, {
+    credentials: 'include',
+  });
+  return parseResponse(response);
+}
+
+export async function fetchUniversityStats() {
+  const response = await fetch(`${API_ROOT}/api/university/stats`, {
     credentials: 'include',
   });
   return parseResponse(response);

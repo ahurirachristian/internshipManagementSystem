@@ -52,6 +52,7 @@ public class DayDiaryDataSeeder implements CommandLineRunner {
         d1.setAccomplishments("Demo completed");
         d1.setStatus("PENDING");
         d1.setStudentId(owner.getId());
+        d1.setUniversityId(owner.getUniversityId());
         dayDiaryRepository.save(d1);
 
         DayDiary d2 = new DayDiary();
@@ -61,6 +62,7 @@ public class DayDiaryDataSeeder implements CommandLineRunner {
         d2.setAccomplishments("More progress");
         d2.setStatus("PENDING");
         d2.setStudentId(owner.getId());
+        d2.setUniversityId(owner.getUniversityId());
         dayDiaryRepository.save(d2);
     }
 }

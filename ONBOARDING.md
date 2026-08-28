@@ -59,7 +59,7 @@ String supervisor columns remain in `placements`/`evaluations` for backward comp
 
 ```bash
 # Terminal 1 — backend (dev profile is the default)
-cd backend && ./mvnw spring-boot:run
+cd backend && ./start.sh spring-boot:run
 # Wait for "Tomcat started on port 8082"
 
 # Terminal 2 — frontend
@@ -67,16 +67,20 @@ cd frontend1/ims && npm start
 # Wait for "Compiled successfully!" → http://localhost:3000
 ```
 
+> `start.sh` sets `JAVA_HOME` (Java is not on PATH on the dev machine). A bare
+> `./mvnw` will fail with "JAVA_HOME is not defined correctly" — always use
+> `backend/start.sh` or `export JAVA_HOME=$HOME/.local/jdks/jdk-17.0.13+11` first.
+
 H2 = throwaway data, recreated every boot by Hibernate `create-drop` + Java seeders. Perfect for daily dev.
 
 ### Full start — MySQL/MariaDB (persistent data)
 
 ```bash
 mysql -u root -p < mega_backcopy.sql        # one-time load (script drops/recreates the DB itself)
-cd backend && ./mvnw spring-boot:run -Dspring-boot.run.profiles=mysql
+cd backend && ./start.sh spring-boot:run -Dspring-boot.run.profiles=mysql
 ```
 
-⚠️ On this specific machine there are environment quirks (Java not on PATH, XAMPP MariaDB vs system MySQL fighting over port 3306, per-profile password overrides). Follow `CODEBASE_ANALYSIS.md §0` verbatim for the exact commands — it is verified against this machine.
+⚠️ On this specific machine there are environment quirks (Java not on PATH, XAMPP MariaDB vs system MySQL fighting over port 3306, per-profile password overrides). Follow `CODEBASE_ANALYSIS.md §0` verbatim for the exact commands — it is verified against this machine. The `mysql` profile defaults to root `/` `kasaggafred001` (system MySQL · override with `MYSQL_PASSWORD=` for XAMPP's passwordless root); the MySQL service must be started first (`sudo systemctl start mysql`).
 
 ### Demo accounts (auto-seeded, idempotent)
 

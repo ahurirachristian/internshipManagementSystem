@@ -90,7 +90,9 @@ export default function PlacementMatching() {
     setLoading(true);
     setError('');
     try {
-      setPlacements(await fetchPlacements());
+      const res = await fetchPlacements();
+      const data = Array.isArray(res) ? res : (res?.content || []);
+      setPlacements(data);
     } catch (err) {
       setPlacements([]);
       if (err.status !== 404) {

@@ -139,7 +139,7 @@
 
 .input-wrapper { position: relative; }
 
-.input-wrapper i {
+.input-wrapper > i {
   position: absolute;
   left: 14px;
   top: 50%;
@@ -441,4 +441,46 @@
     max-height: 100%;
     overflow-y: auto;
   }
+}
+
+/* Register Form Card (white card over teal background) */
+.register-form-card {
+  background-color: #ffffff;
+  border-radius: 16px;
+  padding: 32px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+  width: 100%;
+  max-width: 550px;
+  max-height: 90vh;
+  overflow-y: auto;
+  color: #1f2937;
+}
+
+/* Forgot Password Card */
+.forgot-password-card {
+  width: 100%;
+  max-width: 400px;
+  max-height: 90vh;
+  overflow-y: auto;
+  padding: 24px;
+  box-sizing: border-box;
+  margin: auto;
+  background-color: #ffffff;
+  color: #1f2937;
+  border-radius: 16px;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
+}
+
+/* Modal Overlay Centering */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
 }

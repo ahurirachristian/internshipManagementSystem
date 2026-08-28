@@ -66,37 +66,47 @@ Login with Google, LinkedIn, or X/Twitter is available on the login page. OAuth2
 
 ### Database Configuration
 - **Default profile**: `dev` (H2 in-memory — zero setup; schema recreated each boot)
-- **MySQL profile**: run with `-Dspring-boot.run.profiles=mysql` (connects to `internshipManagementSystem_db`; WampServer/XAMPP both work — `localhost:3306`, user `root`)
+- **MySQL profile**: run with `-Dspring-boot.run.profiles=mysql` (connects to `internshipManagementSystem_db`; `localhost:3306`, user `root`, password `kasaggafred001` by default — override via `MYSQL_PASSWORD=`; XAMPP/MariaDB uses an empty password)
 - **Switch profiles**: use the `-Dspring-boot.run.profiles=` flag, or edit `spring.profiles.active` in `application.properties`
 - See also `backend/DATABASE_CONNECTION_GUIDE.md` for the alternate connection setup proposed on `developer`
 
 ### How to Run
 
-**With MySQL (default):**
+> **Java is not on PATH on the dev machine** — always invoke Maven via the included
+> `backend/start.sh` helper (it sets `JAVA_HOME` automatically), or run
+> `export JAVA_HOME=$HOME/.local/jdks/jdk-17.0.13+11` first. A bare `./mvnw` will fail
+> with "JAVA_HOME is not defined correctly". The React SPA is the primary UI:
+> `cd frontend1/ims && npm start`, then open http://localhost:3000/login.
 
-Ensure WampServer MySQL is running, then:
-
-```bash
-cd backend
-./mvnw spring-boot:run
-```
-
-The app connects to `internshipmanagementsystem_db` on `localhost:3306`.
-
-**Dev profile (H2 in-memory database):**
+**Dev profile (H2 in-memory database, zero setup — default):**
 
 ```bash
 cd backend
-./mvnw spring-boot:run -Dspring-boot.run.profiles=dev
+./start.sh spring-boot:run
 ```
+
+**With MySQL (persistent data):**
+
+Ensure MySQL is running, then:
+
+```bash
+cd backend
+./start.sh spring-boot:run -Dspring-boot.run.profiles=mysql
+```
+
+The app connects to `internshipmanagementsystem_db` on `localhost:3306` as `root`. The
+password default is `kasaggafred001`; override with `MYSQL_PASSWORD=<pw>` (e.g.
+`MYSQL_PASSWORD= ` for XAMPP's passwordless root).
 
 Or package and run the JAR:
 
 ```bash
 cd backend
-./mvnw clean package
-java -jar target/demo-0.0.1-SNAPSHOT.jar
+./start.sh clean package
+$JAVA_HOME/bin/java -jar target/demo-0.0.1-SNAPSHOT.jar
 ```
+
+Note: `java` is also not on PATH, so run the JAR with `$JAVA_HOME/bin/java`.
 
 Then open [http://localhost:8082](http://localhost:8082).
 
@@ -104,7 +114,7 @@ Then open [http://localhost:8082](http://localhost:8082).
 
 ```bash
 cd backend
-./mvnw test
+./start.sh test
 ```
 
 ---
@@ -133,14 +143,14 @@ Reserved for frontend assets and code. Currently empty.
 4. Run the app:
    ```bash
    cd backend
-   ./mvnw spring-boot:run
+   ./start.sh spring-boot:run
    ```
 5. Open [http://localhost:8082](http://localhost:8082)
 
 If you want to use the H2 in-memory database instead, run with the `dev` profile:
 ```bash
 cd backend
-./mvnw spring-boot:run -Dspring-boot.run.profiles=dev
+./start.sh spring-boot:run
 ```
 
 All team members must follow this branching workflow:

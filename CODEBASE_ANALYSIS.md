@@ -33,8 +33,7 @@ A comprehensive analysis of the codebase: structure, data flow, and how everythi
 ```
 TERMINAL 1 — Backend
   cd backend
-  export JAVA_HOME=$HOME/.local/jdks/jdk-17.0.13+11   # Java is not on PATH on this machine
-  ./mvnw spring-boot:run
+  ./start.sh spring-boot:run       # start.sh sets JAVA_HOME automatically
   # dev profile is the default → H2 in-memory database, no MySQL needed
   # First run is slow (downloads Maven + dependencies). Subsequent runs are fast.
   # Wait for: "Started DemoApplication in ~24s" and "Tomcat started on port 8082"
@@ -59,8 +58,7 @@ TERMINAL 1 — Backend
 ```bash
 systemctl is-active mysql || sudo systemctl start mysql   # ensure MySQL is running
 cd "/home/nuera/Forge/satesoft/Internship Management System/backend"
-export JAVA_HOME=$HOME/.local/jdks/jdk-17.0.13+11
-./mvnw spring-boot:run -Dspring-boot.run.profiles=mysql
+./start.sh spring-boot:run -Dspring-boot.run.profiles=mysql
 # Wait for: "Tomcat started on port 8082"
 # Hibernate ddl-auto=update will create any missing B-side tables on first boot.
 ```
@@ -95,7 +93,9 @@ mysql -u root -pkasaggafred001 internshipManagementSystem_db -e "
 ```
 
 Steps 3–4 (backend + frontend) are exactly the "Daily start" commands above.
-The password `kasaggafred001` is hardcoded in `application-mysql.properties`.
+The password `kasaggafred001` is set in `backend/.env` (`MYSQL_PASSWORD`) and as the
+default in `application-mysql.properties` (`${MYSQL_PASSWORD:kasaggafred001}`) — override
+with `MYSQL_PASSWORD=` for XAMPP's passwordless root.
 
 **Why nothing is recreated on later runs:** Hibernate `ddl-auto=update` only
 *adds* missing columns/tables (never wipes), and the Java seeders are
@@ -116,8 +116,7 @@ cd "/home/nuera/Forge/satesoft/Internship Management System"
 
 # Backend — override password to empty (XAMPP root has no password)
 cd "/home/nuera/Forge/satesoft/Internship Management System/backend"
-export JAVA_HOME=$HOME/.local/jdks/jdk-17.0.13+11
-SPRING_DATASOURCE_PASSWORD= ./mvnw spring-boot:run -Dspring-boot.run.profiles=mysql
+MYSQL_PASSWORD= ./start.sh spring-boot:run -Dspring-boot.run.profiles=mysql
 
 # Frontend (separate terminal)
 cd "/home/nuera/Forge/satesoft/Internship Management System/frontend1/ims" && npm start
@@ -182,12 +181,12 @@ curl -s -b /tmp/ims.txt http://localhost:8082/api/me
 
 | Symptom | Root cause | Fix |
 |---------|-----------|-----|
-| `./mvnw: Permission denied` | Wrapper not executable | `chmod +x backend/mvnw` |
-| `./mvnw` fails with `java: command not found` | Java not on PATH on this machine | `export JAVA_HOME=$HOME/.local/jdks/jdk-17.0.13+11` |
+| `./start.sh: Permission denied` | Script not executable | `chmod +x backend/start.sh` |
+| `./mvnw` / `./start.sh` fails with "JAVA_HOME is not defined correctly" | Java not on PATH on this machine | Use `backend/start.sh` (auto-sets `JAVA_HOME`), or `export JAVA_HOME=$HOME/.local/jdks/jdk-17.0.13+11` first |
 | XAMPP MariaDB (`startmysql`) fails to bind 3306 | Port held by system MySQL | Stop it first: `sudo systemctl stop mysql`, then retry `startmysql` |
 | Backend exits with "Connection refused" on 3306 | The database you chose isn't running | System MySQL: `sudo systemctl start mysql`; XAMPP: `sudo /opt/lampp/xampp startmysql` (stop system MySQL first) |
 | Backend won't start with `mysql` profile | Stale schema incompatible with new entities | Hibernate `ddl-auto=update` usually auto-fixes. If not: drop and recreate the database |
-| Auth fails / "Access denied for user 'root'" with mysql profile | Wrong password in `application-mysql.properties` | Password is `kasaggafred001` (system MySQL) or empty (XAMPP MariaDB). For XAMPP: `SPRING_DATASOURCE_PASSWORD= ./mvnw spring-boot:run ...` |
+| Auth fails / "Access denied for user 'root'" with mysql profile | Wrong password | System MySQL uses `kasaggafred001` (default in `.env`/properties). XAMPP/MariaDB root has no password: `MYSQL_PASSWORD= ./start.sh spring-boot:run -Dspring-boot.run.profiles=mysql` |
 | Port already in use (8082/3000/3306) | Another process | `ss -tlnp \| grep -E '8082\|3000\|3306'`, then stop/kill it |
 | Frontend login fails / "failed to fetch" | Backend not running on 8082 | Start backend first |
 | First `./mvnw` run hangs on downloads | Wrapper downloading Maven + deps | Wait; needs internet once |
