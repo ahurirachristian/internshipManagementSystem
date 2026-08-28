@@ -62,7 +62,7 @@
                 <div class="user-chip">
                     <div class="avatar"><i class="fa-solid fa-user-tie"></i></div>
                     <div>
-                        <div class="user-name" th:text="${university != null ? university.name : currentUser}">University User</div>
+                        <div class="user-name" th:text="${university != null ? university.fullName : currentUser}">University User</div>
                         <div class="user-role">University User</div>
                     </div>
                 </div>
@@ -93,18 +93,18 @@
                         <i class="fa-solid fa-school" style="font-size: 2.2rem; color: var(--riho-accent);"></i>
                     </div>
                     <div class="identity-block">
-                        <div class="identity-name" th:text="${university.name}">University Name</div>
+                        <div class="identity-name" th:text="${university.fullName}">University Name</div>
                         <div class="identity-tagline">Partner University &middot; Internship Management</div>
                     </div>
                 </div>
                 <div class="info-grid" style="padding: 6px 22px 22px;">
                     <div class="info-group">
                         <span class="info-label"><span class="label-icon"><i class="fa-solid fa-building-columns"></i></span> University Name</span>
-                        <span class="info-value" th:text="${university.name}">University Name</span>
+                        <span class="info-value" th:text="${university.fullName}">University Name</span>
                     </div>
                     <div class="info-group">
                         <span class="info-label"><span class="label-icon"><i class="fa-solid fa-id-badge"></i></span> University ID</span>
-                        <span class="info-value" th:text="${university.id}">1</span>
+                        <span class="info-value" th:text="${university.universityId}">1</span>
                     </div>
                     <div class="info-group">
                         <span class="info-label"><span class="label-icon"><i class="fa-solid fa-user-tie"></i></span> Administrator</span>

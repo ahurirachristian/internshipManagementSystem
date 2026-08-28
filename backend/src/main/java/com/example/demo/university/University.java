@@ -13,71 +13,48 @@ public class University {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @Column(name = "university_id")
+    private Integer universityId;
 
-    @Column(nullable = false, unique = true)
-    private String name;
+    @Column(name = "short_form", nullable = false, unique = true, length = 15)
+    private String shortForm;
 
-    @Column(nullable = true)
-    private String code;
+    @Column(name = "full_name", nullable = false, unique = true, length = 200)
+    private String fullName;
 
-    @Column(nullable = true)
-    private String location;
+    @Column(length = 100)
+    private String country = "Uganda";
 
-    @Column(nullable = true)
-    private String email;
+    @Column(name = "established_year")
+    private Integer establishedYear;
 
     public University() {
     }
 
-    public University(String name) {
-        this.name = name;
+    public University(String shortForm, String fullName) {
+        this.shortForm = shortForm;
+        this.fullName = fullName;
     }
 
-    public University(String name, String code, String location, String email) {
-        this.name = name;
-        this.code = code;
-        this.location = location;
-        this.email = email;
+    public University(String shortForm, String fullName, String country, Integer establishedYear) {
+        this.shortForm = shortForm;
+        this.fullName = fullName;
+        this.country = country;
+        this.establishedYear = establishedYear;
     }
 
-    public Long getId() {
-        return id;
-    }
+    public Integer getUniversityId() { return universityId; }
+    public void setUniversityId(Integer universityId) { this.universityId = universityId; }
 
-    public void setId(Long id) {
-        this.id = id;
-    }
+    public String getShortForm() { return shortForm; }
+    public void setShortForm(String shortForm) { this.shortForm = shortForm; }
 
-    public String getName() {
-        return name;
-    }
+    public String getFullName() { return fullName; }
+    public void setFullName(String fullName) { this.fullName = fullName; }
 
-    public void setName(String name) {
-        this.name = name;
-    }
+    public String getCountry() { return country; }
+    public void setCountry(String country) { this.country = country; }
 
-    public String getCode() {
-        return code;
-    }
-
-    public void setCode(String code) {
-        this.code = code;
-    }
-
-    public String getLocation() {
-        return location;
-    }
-
-    public void setLocation(String location) {
-        this.location = location;
-    }
-
-    public String getEmail() {
-        return email;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
-    }
+    public Integer getEstablishedYear() { return establishedYear; }
+    public void setEstablishedYear(Integer establishedYear) { this.establishedYear = establishedYear; }
 }

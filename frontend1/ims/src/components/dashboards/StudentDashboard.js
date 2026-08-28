@@ -1,4 +1,5 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState } from 'react';
+import { Pencil, Trash2, MessageSquare, Loader2, CheckCircle, AlertCircle } from 'lucide-react';
 import DashboardLayout from '../DashboardLayout';
 import StudentEditModal from '../StudentEditModal';
 import InternshipProgress from '../InternshipProgress';
@@ -8,7 +9,7 @@ import {
   createDiary,
   deleteDiary,
   fetchMyProfile,
-  fetchStudentDiaries,
+  fetchMyDiaries,
   fetchCompanies,
   fetchSupervisors,
   saveMyProfile,
@@ -21,6 +22,9 @@ const emptyDiaryForm = {
   knowledgeAndSkillsGained: '',
   accomplishments: '',
 };
+
+const inputClass = "w-full bg-white text-slate-900 text-xs rounded-xl border border-slate-300 px-3.5 py-2.5 focus:border-teal-600 focus:ring-2 focus:ring-teal-600/20 focus:outline-none transition-all shadow-xs font-medium";
+const labelClass = "block text-xs font-bold uppercase tracking-wider text-slate-800 mb-1.5";
 
 export default function StudentDashboard() {
   const { user } = useAuth();
@@ -57,7 +61,8 @@ export default function StudentDashboard() {
     loadCompanies();
     loadSupervisors();
     loadDiaries();
-  }, [loadDiaries]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   async function loadProfile() {
     setProfileLoading(true);
@@ -73,6 +78,18 @@ export default function StudentDashboard() {
       }
     } finally {
       setProfileLoading(false);
+    }
+  }
+
+  async function loadDiaries() {
+    setDiaryLoading(true);
+    setDiaryError('');
+    try {
+      setDiaries(await fetchMyDiaries());
+    } catch (err) {
+      setDiaryError(err.message || 'Unable to load diary entries.');
+    } finally {
+      setDiaryLoading(false);
     }
   }
 
@@ -167,53 +184,73 @@ export default function StudentDashboard() {
 
   function renderProfile() {
     if (profileLoading) {
-      return <div className="status-message">Loading profile...</div>;
+      return (
+        <div className="flex items-center justify-center py-12">
+          <Loader2 className="w-5 h-5 text-teal-600 animate-spin" />
+          <span className="ml-2 text-sm text-slate-500">Loading profile...</span>
+        </div>
+      );
     }
     if (profileError && !profile) {
-      return <div className="alert alert-error">{profileError}</div>;
+      return (
+        <div role="alert" className="p-3.5 bg-rose-50 border border-rose-200 rounded-xl flex items-center gap-2.5 text-rose-900 text-sm animate-in fade-in">
+          <AlertCircle className="w-5 h-5 text-rose-600 shrink-0" />
+          <span className="font-medium">{profileError}</span>
+        </div>
+      );
     }
     if (!profile) {
       return (
-        <div className="card-panel">
-          <h2>Complete your profile</h2>
-          <p>You do not have a student profile yet. Create one to get started.</p>
-          <div className="inline-actions">
-            <button className="primary-button" onClick={openProfileModal}>
-              Create Profile
-            </button>
-          </div>
+        <div className="bg-white rounded-xl border border-slate-200 shadow-xs p-6">
+          <h2 className="text-lg font-bold text-slate-900 mb-2">Complete your profile</h2>
+          <p className="text-sm text-slate-600 mb-4">You do not have a student profile yet. Create one to get started.</p>
+          <button
+            onClick={openProfileModal}
+            className="px-3.5 py-2 rounded-xl bg-[#063b33] hover:bg-[#042823] text-white text-xs font-bold transition-all flex items-center gap-1.5 shadow-xs focus-visible:ring-2 focus-visible:ring-teal-600 focus-visible:outline-none"
+          >
+            Create Profile
+          </button>
         </div>
       );
     }
     const details = [
-      ['Full Name', `${profile.firstName || ''} ${profile.lastName || ''}`.trim()],
+      ['Student Name', profile.fullName],
+      ['Student No.', profile.studentNumber],
+      ['Registration No.', profile.registrationNumber],
       ['Email', profile.email],
-      ['Student Number', profile.studentNumber],
-      ['Registration Number', profile.registrationNumber],
-      ['Degree Program', profile.degreeProgram],
+      ['Intake', profile.intake],
+      ['Program', profile.degreeProgram],
+      ['Course Name', profile.courseName],
+      ['Mobile No.', profile.phoneNumber],
       ['Year of Study', profile.yearOfStudy],
-      ['Phone Number', profile.phoneNumber],
-      ['Internship Company', profile.internshipCompany],
-      ['University Supervisor', profile.universitySupervisor],
-      ['Industrial Supervisor ID', profile.industrialSupervisorId],
+      ['Academic Year', profile.academicYear],
+      ['Semester', profile.semester],
+      ['Organisation', profile.organisation],
+      ['Location', profile.location],
+      ['Academic Supervisor', profile.academicSupervisor],
+      ['Field Supervisor', profile.fieldSupervisor],
+      ['Start Date', profile.startDate],
+      ['End Date', profile.endDate],
     ];
     return (
-      <div className="card-panel">
-        <h2>My Profile</h2>
-        <p>Your student details as recorded in the system.</p>
-        <div className="detail-grid">
+      <div className="bg-white rounded-xl border border-slate-200 shadow-xs p-6">
+        <h2 className="text-lg font-bold text-slate-900 mb-1">My Profile</h2>
+        <p className="text-xs text-slate-500 mb-5">Your student details as recorded in the system.</p>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-5">
           {details.map(([label, value]) => (
-            <div className="detail-item" key={label}>
-              <span className="detail-label">{label}</span>
-              <span className="detail-value">{value || '—'}</span>
+            <div key={label} className="bg-slate-50 rounded-xl p-3 border border-slate-200">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-slate-800">{label}</span>
+              <p className="text-sm text-slate-700 mt-1">{value || '—'}</p>
             </div>
           ))}
         </div>
-        <div className="inline-actions">
-          <button className="primary-button" onClick={openProfileModal}>
-            Edit Profile
-          </button>
-        </div>
+        <button
+          onClick={openProfileModal}
+          className="px-3.5 py-2 rounded-xl bg-[#063b33] hover:bg-[#042823] text-white text-xs font-bold transition-all flex items-center gap-1.5 shadow-xs focus-visible:ring-2 focus-visible:ring-teal-600 focus-visible:outline-none"
+        >
+          <Pencil className="w-3.5 h-3.5" />
+          Edit Profile
+        </button>
       </div>
     );
   }
@@ -221,96 +258,137 @@ export default function StudentDashboard() {
   function renderDiary() {
     return (
       <>
-        <div className="card-panel">
-          <h2>{editingDiaryId ? 'Edit Day Diary Entry' : 'New Day Diary Entry'}</h2>
-          <p>
+        <div className="bg-white rounded-xl border border-slate-200 shadow-xs p-6">
+          <h2 className="text-lg font-bold text-slate-900 mb-1">{editingDiaryId ? 'Edit Day Diary Entry' : 'New Day Diary Entry'}</h2>
+          <p className="text-xs text-slate-500 mb-5">
             {editingDiaryId
               ? 'Update the activities and skills gained for this day.'
               : 'Record the activities and skills gained for a day.'}
           </p>
-          <form id="diary-form" onSubmit={handleDiarySubmit} className="modal-form">
-            <label>
-              Date
+          <form id="diary-form" onSubmit={handleDiarySubmit} className="space-y-4">
+            <div>
+              <label htmlFor="diary-date" className={labelClass}>Date <span className="text-rose-600" aria-hidden="true">*</span></label>
               <input
+                id="diary-date"
                 type="date"
                 value={diaryForm.date}
                 onChange={(e) => setDiaryForm({ ...diaryForm, date: e.target.value })}
+                className={inputClass}
               />
-            </label>
-            <label>
-              Daily Activities
+            </div>
+            <div>
+              <label htmlFor="diary-activities" className={labelClass}>Daily Activities <span className="text-rose-600" aria-hidden="true">*</span></label>
               <textarea
+                id="diary-activities"
                 rows="4"
                 value={diaryForm.dailyActivities}
-                onChange={(e) =>
-                  setDiaryForm({ ...diaryForm, dailyActivities: e.target.value })
-                }
+                onChange={(e) => setDiaryForm({ ...diaryForm, dailyActivities: e.target.value })}
+                className={`${inputClass} min-h-[80px] resize-y`}
               />
-            </label>
-            <label>
-              Knowledge &amp; Skills Gained
+            </div>
+            <div>
+              <label htmlFor="diary-skills" className={labelClass}>Knowledge &amp; Skills Gained</label>
               <textarea
+                id="diary-skills"
                 rows="3"
                 value={diaryForm.knowledgeAndSkillsGained}
-                onChange={(e) =>
-                  setDiaryForm({ ...diaryForm, knowledgeAndSkillsGained: e.target.value })
-                }
+                onChange={(e) => setDiaryForm({ ...diaryForm, knowledgeAndSkillsGained: e.target.value })}
+                className={`${inputClass} min-h-[60px] resize-y`}
               />
-            </label>
-            <label>
-              Accomplishments
+            </div>
+            <div>
+              <label htmlFor="diary-accomplishments" className={labelClass}>Accomplishments</label>
               <textarea
+                id="diary-accomplishments"
                 rows="3"
                 value={diaryForm.accomplishments}
-                onChange={(e) =>
-                  setDiaryForm({ ...diaryForm, accomplishments: e.target.value })
-                }
+                onChange={(e) => setDiaryForm({ ...diaryForm, accomplishments: e.target.value })}
+                className={`${inputClass} min-h-[60px] resize-y`}
               />
-            </label>
-            <div className="modal-actions">
+            </div>
+            <div className="flex items-center justify-end gap-3 pt-2">
               {editingDiaryId && (
-                <button type="button" className="secondary-button" onClick={cancelEditDiary}>
+                <button type="button" onClick={cancelEditDiary} className="px-3.5 py-2 rounded-xl bg-white hover:bg-slate-100 text-slate-700 text-xs font-semibold border border-slate-300 transition-colors shadow-xs">
                   Cancel Edit
                 </button>
               )}
-              <button type="submit" className="primary-button">
+              <button
+                type="submit"
+                className="px-3.5 py-2 rounded-xl bg-[#063b33] hover:bg-[#042823] text-white text-xs font-bold transition-all flex items-center gap-1.5 shadow-xs focus-visible:ring-2 focus-visible:ring-teal-600 focus-visible:outline-none"
+              >
                 {editingDiaryId ? 'Update Entry' : 'Save Entry'}
               </button>
             </div>
           </form>
         </div>
 
-        <div className="card-panel">
-          <h2>My Diary Entries</h2>
-          {diaryLoading && <div className="status-message">Loading entries...</div>}
-          {diaries.length === 0 && !diaryLoading && (
-            <p>No diary entries yet. Add your first entry above.</p>
-          )}
-          {diaries.map((entry) => (
-            <div className="diary-entry" key={entry.id}>
-              <h3>{entry.date}</h3>
-              <h4>Daily Activities</h4>
-              <p>{entry.dailyActivities || '—'}</p>
-              <h4>Knowledge &amp; Skills Gained</h4>
-              <p>{entry.knowledgeAndSkillsGained || '—'}</p>
-              <h4>Accomplishments</h4>
-              <p>{entry.accomplishments || '—'}</p>
-              <div className="inline-actions">
-                <button className="icon-button edit" onClick={() => startEditDiary(entry)}>
-                  Edit
-                </button>
-                <button
-                  className="icon-button delete"
-                  onClick={() => handleDeleteDiary(entry.id)}
-                >
-                  Delete
-                </button>
-                <button className="icon-button" onClick={() => setReviewDiary(entry)}>
-                  Review / Comment
-                </button>
-              </div>
+        <div className="bg-white rounded-xl border border-slate-200 shadow-xs p-6">
+          <h2 className="text-lg font-bold text-slate-900 mb-4">My Diary Entries</h2>
+          {diaryLoading && (
+            <div className="flex items-center justify-center py-8">
+              <Loader2 className="w-5 h-5 text-teal-600 animate-spin" />
+              <span className="ml-2 text-sm text-slate-500">Loading entries...</span>
             </div>
-          ))}
+          )}
+          {!diaryLoading && diaries.length === 0 && (
+            <p className="text-sm text-slate-500 text-center py-8">No diary entries yet. Add your first entry above.</p>
+          )}
+          <div className="space-y-3">
+            {diaries.map((entry) => (
+              <div key={entry.id} className="bg-slate-50 rounded-xl p-4 border border-slate-200">
+                <h3 className="text-sm font-bold text-slate-900 mb-3">{entry.date}</h3>
+                <div className="space-y-2 mb-4">
+                  <div>
+                    <span className="text-[11px] font-bold uppercase tracking-wider text-slate-800">Daily Activities</span>
+                    <p className="text-sm text-slate-700 mt-0.5">{entry.dailyActivities || '—'}</p>
+                  </div>
+                  <div>
+                    <span className="text-[11px] font-bold uppercase tracking-wider text-slate-800">Knowledge &amp; Skills Gained</span>
+                    <p className="text-sm text-slate-700 mt-0.5">{entry.knowledgeAndSkillsGained || '—'}</p>
+                  </div>
+                  <div>
+                    <span className="text-[11px] font-bold uppercase tracking-wider text-slate-800">Accomplishments</span>
+                    <p className="text-sm text-slate-700 mt-0.5">{entry.accomplishments || '—'}</p>
+                  </div>
+                  {entry.supervisorFeedback && (
+                    <div>
+                      <span className="text-[11px] font-bold uppercase tracking-wider text-slate-800">Supervisor Feedback</span>
+                      <p className="text-sm text-slate-700 mt-0.5">{entry.supervisorFeedback}</p>
+                    </div>
+                  )}
+                </div>
+                <ul className="flex items-center gap-2 border-t border-slate-200 pt-3">
+                  <li>
+                    <button
+                      onClick={() => startEditDiary(entry)}
+                      className="p-1.5 text-emerald-600 hover:text-emerald-800 hover:bg-emerald-50 rounded-lg transition-colors focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:outline-none"
+                      title="Edit"
+                    >
+                      <Pencil className="w-4 h-4" />
+                    </button>
+                  </li>
+                  <li>
+                    <button
+                      onClick={() => handleDeleteDiary(entry.id)}
+                      className="p-1.5 text-rose-600 hover:text-rose-800 hover:bg-rose-50 rounded-lg transition-colors focus-visible:ring-2 focus-visible:ring-rose-600 focus-visible:outline-none"
+                      title="Delete"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </li>
+                  <li>
+                    <button
+                      onClick={() => setReviewDiary(entry)}
+                      className="p-1.5 text-teal-600 hover:text-teal-800 hover:bg-teal-50 rounded-lg transition-colors focus-visible:ring-2 focus-visible:ring-teal-600 focus-visible:outline-none"
+                      title="Review / Comment"
+                    >
+                      <MessageSquare className="w-4 h-4" />
+                    </button>
+                  </li>
+                </ul>
+              </div>
+            ))}
+          </div>
         </div>
       </>
     );
@@ -334,10 +412,31 @@ export default function StudentDashboard() {
     >
       <InternshipProgress />
 
-      {profileNotice && <div className="alert alert-success">{profileNotice}</div>}
-      {diaryNotice && <div className="alert alert-success">{diaryNotice}</div>}
-      {profileError && <div className="alert alert-error">{profileError}</div>}
-      {diaryError && <div className="alert alert-error">{diaryError}</div>}
+      {profileNotice && (
+        <div role="status" className="p-3.5 bg-emerald-50 border border-emerald-200 rounded-xl flex items-center gap-2.5 text-emerald-950 text-sm animate-in fade-in">
+          <CheckCircle className="w-5 h-5 text-emerald-700 shrink-0" />
+          <span className="font-medium">{profileNotice}</span>
+        </div>
+      )}
+      {diaryNotice && (
+        <div role="status" className="p-3.5 bg-emerald-50 border border-emerald-200 rounded-xl flex items-center gap-2.5 text-emerald-950 text-sm animate-in fade-in">
+          <CheckCircle className="w-5 h-5 text-emerald-700 shrink-0" />
+          <span className="font-medium">{diaryNotice}</span>
+        </div>
+      )}
+      {profileError && (
+        <div role="alert" className="p-3.5 bg-rose-50 border border-rose-200 rounded-xl flex items-center gap-2.5 text-rose-900 text-sm animate-in fade-in">
+          <AlertCircle className="w-5 h-5 text-rose-600 shrink-0" />
+          <span className="font-medium">{profileError}</span>
+        </div>
+      )}
+      {diaryError && (
+        <div role="alert" className="p-3.5 bg-rose-50 border border-rose-200 rounded-xl flex items-center gap-2.5 text-rose-900 text-sm animate-in fade-in">
+          <AlertCircle className="w-5 h-5 text-rose-600 shrink-0" />
+          <span className="font-medium">{diaryError}</span>
+        </div>
+      )}
+
       {activeTab === 'profile' ? renderProfile() : renderDiary()}
 
       {profileModalOpen && (

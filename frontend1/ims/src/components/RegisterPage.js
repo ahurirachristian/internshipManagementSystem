@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { GraduationCap, Eye, EyeOff } from 'lucide-react';
 import { register, fetchCompanies, fetchSupervisors, saveMyProfile } from '../services/api';
 import AuthShell from './AuthShell';
+import CustomSelect from './CustomSelect';
 import './LoginPage.css';
 
 const emptyForm = {
@@ -22,6 +24,10 @@ const emptyForm = {
   industrialSupervisorId: '',
   companyId: '',
 };
+
+const inputClass = "w-full bg-slate-50 text-slate-900 text-sm rounded-xl border-2 border-slate-200 pl-10 pr-10 py-2.5 focus:border-[#063b33] focus:ring-2 focus:ring-[#063b33]/20 focus:outline-none transition-all font-medium";
+const labelClass = "block text-sm font-medium text-slate-700 mb-1.5";
+const plainInputClass = "w-full bg-slate-50 text-slate-900 text-sm rounded-xl border-2 border-slate-200 px-3.5 py-2.5 focus:border-[#063b33] focus:ring-2 focus:ring-[#063b33]/20 focus:outline-none transition-all font-medium";
 
 export default function RegisterPage() {
   const navigate = useNavigate();
@@ -120,318 +126,208 @@ export default function RegisterPage() {
     }
   }
 
+  const steps = [
+    { id: 1, label: 'Basic Info' },
+    { id: 2, label: 'Academic Info' },
+    { id: 3, label: 'Placement Info' },
+    { id: 4, label: 'Finish' },
+  ];
+
+  const yearOptions = [
+    { value: '', label: 'Select Year' },
+    { value: '1', label: 'Year 1' },
+    { value: '2', label: 'Year 2' },
+    { value: '3', label: 'Year 3' },
+    { value: '4', label: 'Year 4' },
+    { value: '5', label: 'Year 5' },
+  ];
+  const companyOptions = [{ value: '', label: 'Select company' }, ...companies.map((c) => ({ value: c.name, label: c.name }))];
+  const supervisorOptions = [{ value: '', label: 'Select supervisor' }, ...supervisors.map((s) => ({ value: s.username, label: s.username }))];
+
   return (
     <AuthShell>
-      <div className="register-form-card">
-          <div className="login-header">
-          <div className="logo">
-            <i className="fa-solid fa-graduation-cap"></i>
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-[480px] flex flex-col p-6 sm:p-8">
+        <div className="text-center mb-6">
+          <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#063b33] to-[#042823] flex items-center justify-center mx-auto mb-3 shadow-lg">
+            <GraduationCap className="w-7 h-7 text-white" />
           </div>
-          <h1>Create Account</h1>
-          <p>Register to get started</p>
+          <h1 className="text-xl font-bold text-slate-900">Create Account</h1>
+          <p className="text-sm text-slate-500 mt-1">Register to get started</p>
         </div>
 
         {error && <div className="alert alert-error show">{error}</div>}
 
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', marginBottom: '32px', padding: '0 16px' }}>
-          {[
-            { num: 1, title: 'Basic Info' },
-            { num: 2, title: 'Academic Info' },
-            { num: 3, title: 'Placement Info' },
-            { num: 4, title: 'Finish' },
-          ].map((s, idx, arr) => (
-            <React.Fragment key={s.num}>
-              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', position: 'relative', zIndex: 10 }}>
+        {/* Step indicator */}
+        <div className="flex items-center justify-between w-full mb-6 px-2">
+          {steps.map((s, idx) => (
+            <React.Fragment key={s.id}>
+              <div className="flex flex-col items-center relative z-10">
                 <div
-                  style={{
-                    width: '36px',
-                    height: '36px',
-                    borderRadius: '50%',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontWeight: 600,
-                    fontSize: '0.875rem',
-                    border: '2px solid #d1d5db',
-                    background: '#ffffff',
-                    color: '#6b7280',
-                    transition: 'all 0.2s',
-                    ...(s.num === step ? { background: '#0f766e', color: '#ffffff', borderColor: '#0f766e', boxShadow: '0 4px 6px -1px rgba(15, 118, 110, 0.3)' } : {}),
-                    ...(s.num < step ? { background: '#0f766e', color: '#ffffff', borderColor: '#0f766e' } : {}),
-                  }}
+                  className={`w-9 h-9 rounded-full flex items-center justify-center text-sm font-semibold border-2 transition-all ${
+                    s.id === step
+                      ? 'bg-[#063b33] text-white border-[#063b33] shadow-md'
+                      : s.id < step
+                        ? 'bg-[#063b33] text-white border-[#063b33]'
+                        : 'bg-white text-slate-500 border-slate-300'
+                  }`}
                 >
-                  {s.num}
+                  {s.id < step ? '✓' : s.id}
                 </div>
                 <span
-                  style={{
-                    marginTop: '8px',
-                    fontSize: '0.75rem',
-                    fontWeight: s.num === step ? 700 : 500,
-                    textAlign: 'center',
-                    color: s.num === step ? '#134e4a' : '#6b7280',
-                  }}
+                  className={`mt-2 text-[11px] font-semibold text-center max-w-[70px] leading-tight ${
+                    s.id === step ? 'text-teal-900' : 'text-slate-500'
+                  }`}
                 >
-                  {s.title}
+                  {s.label}
                 </span>
               </div>
-              {idx < arr.length - 1 && (
+              {idx < steps.length - 1 && (
                 <div
-                  style={{
-                    flex: 1,
-                    height: '4px',
-                    margin: '0 8px',
-                    background: s.num < step ? '#0f766e' : '#d1d5db',
-                    borderRadius: '2px',
-                    marginTop: '-18px',
-                  }}
+                  className={`flex-1 h-1 rounded-full mx-2 ${
+                    s.id < step ? 'bg-[#063b33]' : 'bg-slate-200'
+                  }`}
                 />
               )}
             </React.Fragment>
           ))}
         </div>
 
-        <form onSubmit={handleSubmit} style={{ marginTop: '24px' }}>
+        <form onSubmit={handleSubmit} className="space-y-4">
           {step === 1 && (
             <>
-              <div className="form-group">
-                <label htmlFor="username">Username</label>
-                <div className="input-wrapper">
-                  <input type="text" id="username" className="form-control" placeholder="Enter your username" autoComplete="username" value={form.username} onChange={(e) => setField('username', e.target.value)} />
-                  <i className="fa-solid fa-user"></i>
+              <div>
+                <label htmlFor="username" className={labelClass}>Username</label>
+                <div className="relative">
+                  <input type="text" id="username" className={inputClass} placeholder="Enter your username" autoComplete="username" value={form.username} onChange={(e) => setField('username', e.target.value)} />
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none flex items-center justify-center text-sm font-bold">@</span>
                 </div>
               </div>
-              <div className="form-group">
-                <label htmlFor="email">Email</label>
-                <div className="input-wrapper">
-                  <input type="email" id="email" className="form-control" placeholder="Enter your email" autoComplete="email" value={form.email} onChange={(e) => setField('email', e.target.value)} />
-                  <i className="fa-solid fa-envelope"></i>
+              <div>
+                <label htmlFor="email" className={labelClass}>Email</label>
+                <div className="relative">
+                  <input type="email" id="email" className={inputClass} placeholder="Enter your email" autoComplete="email" value={form.email} onChange={(e) => setField('email', e.target.value)} />
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none flex items-center justify-center text-xs">@</span>
                 </div>
               </div>
-              <div className="form-row">
-                <div className="form-group">
-                  <label htmlFor="firstName">First Name</label>
-                  <div className="input-wrapper">
-                    <input type="text" id="firstName" className="form-control" placeholder="First name" value={form.firstName} onChange={(e) => setField('firstName', e.target.value)} />
-                    <i className="fa-solid fa-user"></i>
-                  </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label htmlFor="firstName" className={labelClass}>First Name</label>
+                  <input type="text" id="firstName" className={plainInputClass} placeholder="First name" value={form.firstName} onChange={(e) => setField('firstName', e.target.value)} />
                 </div>
-                <div className="form-group">
-                  <label htmlFor="lastName">Last Name</label>
-                  <div className="input-wrapper">
-                    <input type="text" id="lastName" className="form-control" placeholder="Last name" value={form.lastName} onChange={(e) => setField('lastName', e.target.value)} />
-                    <i className="fa-solid fa-user"></i>
-                  </div>
+                <div>
+                  <label htmlFor="lastName" className={labelClass}>Last Name</label>
+                  <input type="text" id="lastName" className={plainInputClass} placeholder="Last name" value={form.lastName} onChange={(e) => setField('lastName', e.target.value)} />
                 </div>
               </div>
-              <div className="form-group">
-                <label htmlFor="role">Role</label>
-                <div className="input-wrapper">
-                  <select id="role" className="form-control" value={form.role} onChange={(e) => setField('role', e.target.value)}>
-                    <option value="STUDENT">Student</option>
-                    <option value="SUPERVISOR">Supervisor</option>
-                    <option value="COMPANY">Company</option>
-                    <option value="ADMIN">Admin</option>
-                  </select>
-                  <i className="fa-solid fa-user-tag"></i>
-                </div>
+              <div>
+                <label className={labelClass}>Role</label>
+                <CustomSelect id="register-role" value={form.role} onChange={(val) => setField('role', val)} options={['STUDENT', 'SUPERVISOR', 'COMPANY', 'ADMIN']} />
               </div>
-              <div className="form-group">
-                <label htmlFor="password">Password</label>
-                <div className="input-wrapper">
-                  <input type={showPassword ? 'text' : 'password'} id="password" className="form-control" placeholder="Enter your password" autoComplete="new-password" value={form.password} onChange={(e) => setField('password', e.target.value)} />
-                  <i className="fa-solid fa-lock"></i>
-                  <button type="button" className="toggle-password" aria-label={showPassword ? 'Hide password' : 'Show password'} onClick={() => setShowPassword((s) => !s)}>
-                    <i className={`fa-solid ${showPassword ? 'fa-eye-slash' : 'fa-eye'}`}></i>
+              <div>
+                <label htmlFor="password" className={labelClass}>Password</label>
+                <div className="relative">
+                  <input type={showPassword ? 'text' : 'password'} id="password" className={inputClass} placeholder="Enter your password" autoComplete="new-password" value={form.password} onChange={(e) => setField('password', e.target.value)} />
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none flex items-center justify-center text-xs">🔒</span>
+                  <button type="button" className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-[#063b33] transition-colors" aria-label={showPassword ? 'Hide password' : 'Show password'} onClick={() => setShowPassword((s) => !s)}>
+                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
                 </div>
               </div>
-              <div className="form-group">
-                <label htmlFor="confirmPassword">Confirm Password</label>
-                <div className="input-wrapper">
-                  <input type={showConfirmPassword ? 'text' : 'password'} id="confirmPassword" className="form-control" placeholder="Confirm your password" autoComplete="new-password" value={form.confirmPassword} onChange={(e) => setField('confirmPassword', e.target.value)} />
-                  <i className="fa-solid fa-lock"></i>
-                  <button type="button" className="toggle-password" aria-label={showConfirmPassword ? 'Hide password' : 'Show password'} onClick={() => setShowConfirmPassword((s) => !s)}>
-                    <i className={`fa-solid ${showConfirmPassword ? 'fa-eye-slash' : 'fa-eye'}`}></i>
+              <div>
+                <label htmlFor="confirmPassword" className={labelClass}>Confirm Password</label>
+                <div className="relative">
+                  <input type={showConfirmPassword ? 'text' : 'password'} id="confirmPassword" className={inputClass} placeholder="Confirm your password" autoComplete="new-password" value={form.confirmPassword} onChange={(e) => setField('confirmPassword', e.target.value)} />
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none flex items-center justify-center text-xs">🔒</span>
+                  <button type="button" className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-[#063b33] transition-colors" aria-label={showConfirmPassword ? 'Hide password' : 'Show password'} onClick={() => setShowConfirmPassword((s) => !s)}>
+                    {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
                 </div>
               </div>
-              <label className="checkbox-label">
-                <input type="checkbox" checked={form.agreeTerms} onChange={(e) => setField('agreeTerms', e.target.checked)} />
-                <span>I agree to the terms and conditions</span>
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input type="checkbox" checked={form.agreeTerms} onChange={(e) => setField('agreeTerms', e.target.checked)} className="w-4 h-4 rounded border-slate-300 text-[#063b33] focus:ring-[#063b33]" />
+                <span className="text-sm text-slate-600">I agree to the terms and conditions</span>
               </label>
             </>
           )}
 
           {step === 2 && (
             <>
-              <div className="form-group">
-                <label htmlFor="registrationNumber">Registration Number</label>
-                <div className="input-wrapper">
-                  <input type="text" id="registrationNumber" className="form-control" placeholder="Enter registration number" value={form.registrationNumber} onChange={(e) => setField('registrationNumber', e.target.value)} />
-                  <i className="fa-solid fa-id-card"></i>
-                </div>
+              <div>
+                <label htmlFor="registrationNumber" className={labelClass}>Registration Number</label>
+                <input type="text" id="registrationNumber" className={plainInputClass} placeholder="Enter registration number" value={form.registrationNumber} onChange={(e) => setField('registrationNumber', e.target.value)} />
               </div>
-              <div className="form-group">
-                <label htmlFor="degreeProgram">Degree Program</label>
-                <div className="input-wrapper">
-                  <input type="text" id="degreeProgram" className="form-control" placeholder="Enter degree program" value={form.degreeProgram} onChange={(e) => setField('degreeProgram', e.target.value)} />
-                  <i className="fa-solid fa-graduation-cap"></i>
-                </div>
+              <div>
+                <label htmlFor="degreeProgram" className={labelClass}>Degree Program</label>
+                <input type="text" id="degreeProgram" className={plainInputClass} placeholder="Enter degree program" value={form.degreeProgram} onChange={(e) => setField('degreeProgram', e.target.value)} />
               </div>
-              <div className="form-group">
-                <label htmlFor="yearOfStudy">Year of Study</label>
-                <div className="input-wrapper">
-                  <select id="yearOfStudy" className="form-control" value={form.yearOfStudy} onChange={(e) => setField('yearOfStudy', e.target.value)}>
-                    <option value="">Select year</option>
-                    <option value="1">Year 1</option>
-                    <option value="2">Year 2</option>
-                    <option value="3">Year 3</option>
-                    <option value="4">Year 4</option>
-                    <option value="5">Year 5</option>
-                  </select>
-                  <i className="fa-solid fa-calendar"></i>
-                </div>
+              <div>
+                <label className={labelClass}>Year of Study</label>
+                <CustomSelect id="register-yearOfStudy" value={form.yearOfStudy} onChange={(val) => setField('yearOfStudy', val)} options={yearOptions} />
               </div>
             </>
           )}
 
           {step === 3 && (
             <>
-              <div className="form-group">
-                <label htmlFor="internshipCompany">Internship Company</label>
-                <div className="input-wrapper">
-                  <select id="internshipCompany" className="form-control" value={form.internshipCompany} onChange={(e) => setField('internshipCompany', e.target.value)}>
-                    <option value="">Select company</option>
-                    {companies.map((company) => (
-                      <option key={company.id} value={company.name}>{company.name}</option>
-                    ))}
-                  </select>
-                  <i className="fa-solid fa-building"></i>
-                </div>
+              <div>
+                <label className={labelClass}>Internship Company</label>
+                <CustomSelect id="register-internshipCompany" value={form.internshipCompany} onChange={(val) => setField('internshipCompany', val)} options={companyOptions} />
               </div>
-              <div className="form-group">
-                <label htmlFor="universitySupervisor">University Supervisor</label>
-                <div className="input-wrapper">
-                  <select id="universitySupervisor" className="form-control" value={form.universitySupervisor} onChange={(e) => setField('universitySupervisor', e.target.value)}>
-                    <option value="">Select supervisor</option>
-                    {supervisors.map((supervisor) => (
-                      <option key={supervisor.id} value={supervisor.username}>{supervisor.username}</option>
-                    ))}
-                  </select>
-                  <i className="fa-solid fa-user-tie"></i>
-                </div>
+              <div>
+                <label className={labelClass}>University Supervisor</label>
+                <CustomSelect id="register-universitySupervisor" value={form.universitySupervisor} onChange={(val) => setField('universitySupervisor', val)} options={supervisorOptions} />
               </div>
             </>
           )}
 
           {step === 4 && (
-            <div className="review-card">
-              <h3>Review Your Information</h3>
-              <div className="review-grid">
-                <div className="review-item">
-                  <span className="review-label">Username</span>
-                  <span className="review-value">{form.username}</span>
-                </div>
-                <div className="review-item">
-                  <span className="review-label">Email</span>
-                  <span className="review-value">{form.email}</span>
-                </div>
-                <div className="review-item">
-                  <span className="review-label">Full Name</span>
-                  <span className="review-value">{form.firstName} {form.lastName}</span>
-                </div>
-                <div className="review-item">
-                  <span className="review-label">Role</span>
-                  <span className="review-value">{form.role}</span>
-                </div>
-                <div className="review-item">
-                  <span className="review-label">Registration Number</span>
-                  <span className="review-value">{form.registrationNumber}</span>
-                </div>
-                <div className="review-item">
-                  <span className="review-label">Degree Program</span>
-                  <span className="review-value">{form.degreeProgram}</span>
-                </div>
-                <div className="review-item">
-                  <span className="review-label">Year of Study</span>
-                  <span className="review-value">{form.yearOfStudy}</span>
-                </div>
-                <div className="review-item">
-                  <span className="review-label">Internship Company</span>
-                  <span className="review-value">{form.internshipCompany}</span>
-                </div>
-                <div className="review-item">
-                  <span className="review-label">University Supervisor</span>
-                  <span className="review-value">{form.universitySupervisor}</span>
-                </div>
+            <div className="bg-slate-50 rounded-xl border border-slate-200 p-5">
+              <h3 className="text-sm font-bold text-slate-900 mb-4">Review Your Information</h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {[
+                  ['Username', form.username],
+                  ['Email', form.email],
+                  ['Full Name', `${form.firstName} ${form.lastName}`],
+                  ['Role', form.role],
+                  ['Registration Number', form.registrationNumber],
+                  ['Degree Program', form.degreeProgram],
+                  ['Year of Study', form.yearOfStudy],
+                  ['Internship Company', form.internshipCompany],
+                  ['University Supervisor', form.universitySupervisor],
+                ].map(([label, value]) => (
+                  <div key={label} className="bg-white rounded-lg p-3 border border-slate-200">
+                    <span className="text-[11px] font-bold uppercase tracking-wider text-slate-800">{label}</span>
+                    <p className="text-sm text-slate-700 mt-0.5">{value || '—'}</p>
+                  </div>
+                ))}
               </div>
             </div>
           )}
 
-          <div className="wizard-actions">
+          <div className="flex items-center justify-end gap-3 pt-2">
             {step > 1 && (
-              <button
-                type="button"
-                onClick={prevStep}
-                style={{
-                  padding: '8px 20px',
-                  borderRadius: '8px',
-                  background: '#e5e7eb',
-                  color: '#374151',
-                  fontWeight: 500,
-                  border: 'none',
-                  cursor: 'pointer',
-                  marginRight: '12px',
-                }}
-              >
+              <button type="button" onClick={prevStep} className="px-3.5 py-2 rounded-xl bg-white hover:bg-slate-100 text-slate-700 text-xs font-bold border border-slate-300 transition-colors shadow-xs">
                 Back
               </button>
             )}
             {step < 4 ? (
-              <button
-                type="button"
-                onClick={nextStep}
-                disabled={step === 1 && !step1Valid}
-                style={{
-                  padding: '8px 24px',
-                  borderRadius: '8px',
-                  background: '#0f766e',
-                  color: '#ffffff',
-                  fontWeight: 500,
-                  border: 'none',
-                  cursor: 'pointer',
-                }}
-              >
+              <button type="button" onClick={nextStep} disabled={step === 1 && !step1Valid} className="px-3.5 py-2 rounded-xl bg-[#063b33] hover:bg-[#042823] text-white text-xs font-bold transition-all shadow-xs focus-visible:ring-2 focus-visible:ring-teal-600 focus-visible:outline-none disabled:opacity-50 disabled:cursor-not-allowed">
                 Next
               </button>
             ) : (
-              <button
-                type="submit"
-                disabled={loading}
-                style={{
-                  padding: '8px 24px',
-                  borderRadius: '8px',
-                  background: '#0f766e',
-                  color: '#ffffff',
-                  fontWeight: 500,
-                  border: 'none',
-                  cursor: 'pointer',
-                }}
-              >
+              <button type="submit" disabled={loading} className="px-3.5 py-2 rounded-xl bg-[#063b33] hover:bg-[#042823] text-white text-xs font-bold transition-all shadow-xs focus-visible:ring-2 focus-visible:ring-teal-600 focus-visible:outline-none disabled:opacity-50 disabled:cursor-not-allowed">
                 {loading ? 'Creating Account...' : 'Submit Student'}
               </button>
             )}
           </div>
         </form>
 
-        <div className="login-footer">
-          <p>
-            <Link to="/login">Already have an account? Sign in</Link>
+        <div className="text-center mt-5 pt-5 border-t border-slate-200">
+          <p className="text-xs text-slate-500 font-medium">
+            <Link to="/login" className="text-[#063b33] font-semibold hover:underline">Already have an account? Sign in</Link>
           </p>
         </div>
       </div>
     </AuthShell>
   );
 }
-
-

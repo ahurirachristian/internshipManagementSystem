@@ -1,222 +1,811 @@
 package com.example.demo.country;
 
+import com.example.demo.country.Country;
+import com.example.demo.country.CountryRepository;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
 @Component
+@Order(20)
 public class CountryDataSeeder implements CommandLineRunner {
 
-    private final CountryRepository countryRepository;
+    private final CountryRepository repository;
 
-    public CountryDataSeeder(CountryRepository countryRepository) {
-        this.countryRepository = countryRepository;
+    public CountryDataSeeder(CountryRepository repository) {
+        this.repository = repository;
     }
 
     @Override
     public void run(String... args) {
-        if (countryRepository.count() == 0) {
-            saveAllCountries();
+        if (repository.count() == 0) {
+            java.util.List<Country> list = new java.util.ArrayList<>();
+            Country e;
+            e = new Country();
+            e.setName("Afghanistan");
+            e.setCode("AF");
+            list.add(e);
+            e = new Country();
+            e.setName("Albania");
+            e.setCode("AL");
+            list.add(e);
+            e = new Country();
+            e.setName("Algeria");
+            e.setCode("DZ");
+            list.add(e);
+            e = new Country();
+            e.setName("Andorra");
+            e.setCode("AD");
+            list.add(e);
+            e = new Country();
+            e.setName("Angola");
+            e.setCode("AO");
+            list.add(e);
+            e = new Country();
+            e.setName("Antigua and Barbuda");
+            e.setCode("AG");
+            list.add(e);
+            e = new Country();
+            e.setName("Argentina");
+            e.setCode("AR");
+            list.add(e);
+            e = new Country();
+            e.setName("Armenia");
+            e.setCode("AM");
+            list.add(e);
+            e = new Country();
+            e.setName("Australia");
+            e.setCode("AU");
+            list.add(e);
+            e = new Country();
+            e.setName("Austria");
+            e.setCode("AT");
+            list.add(e);
+            e = new Country();
+            e.setName("Azerbaijan");
+            e.setCode("AZ");
+            list.add(e);
+            e = new Country();
+            e.setName("Bahamas");
+            e.setCode("BS");
+            list.add(e);
+            e = new Country();
+            e.setName("Bahrain");
+            e.setCode("BH");
+            list.add(e);
+            e = new Country();
+            e.setName("Bangladesh");
+            e.setCode("BD");
+            list.add(e);
+            e = new Country();
+            e.setName("Barbados");
+            e.setCode("BB");
+            list.add(e);
+            e = new Country();
+            e.setName("Belarus");
+            e.setCode("BY");
+            list.add(e);
+            e = new Country();
+            e.setName("Belgium");
+            e.setCode("BE");
+            list.add(e);
+            e = new Country();
+            e.setName("Belize");
+            e.setCode("BZ");
+            list.add(e);
+            e = new Country();
+            e.setName("Benin");
+            e.setCode("BJ");
+            list.add(e);
+            e = new Country();
+            e.setName("Bhutan");
+            e.setCode("BT");
+            list.add(e);
+            e = new Country();
+            e.setName("Bolivia");
+            e.setCode("BO");
+            list.add(e);
+            e = new Country();
+            e.setName("Bosnia and Herzegovina");
+            e.setCode("BA");
+            list.add(e);
+            e = new Country();
+            e.setName("Botswana");
+            e.setCode("BW");
+            list.add(e);
+            e = new Country();
+            e.setName("Brazil");
+            e.setCode("BR");
+            list.add(e);
+            e = new Country();
+            e.setName("Brunei");
+            e.setCode("BN");
+            list.add(e);
+            e = new Country();
+            e.setName("Bulgaria");
+            e.setCode("BG");
+            list.add(e);
+            e = new Country();
+            e.setName("Burkina Faso");
+            e.setCode("BF");
+            list.add(e);
+            e = new Country();
+            e.setName("Burundi");
+            e.setCode("BI");
+            list.add(e);
+            e = new Country();
+            e.setName("Cabo Verde");
+            e.setCode("CV");
+            list.add(e);
+            e = new Country();
+            e.setName("Cambodia");
+            e.setCode("KH");
+            list.add(e);
+            e = new Country();
+            e.setName("Cameroon");
+            e.setCode("CM");
+            list.add(e);
+            e = new Country();
+            e.setName("Canada");
+            e.setCode("CA");
+            list.add(e);
+            e = new Country();
+            e.setName("Central African Republic");
+            e.setCode("CF");
+            list.add(e);
+            e = new Country();
+            e.setName("Chad");
+            e.setCode("TD");
+            list.add(e);
+            e = new Country();
+            e.setName("Chile");
+            e.setCode("CL");
+            list.add(e);
+            e = new Country();
+            e.setName("China");
+            e.setCode("CN");
+            list.add(e);
+            e = new Country();
+            e.setName("Colombia");
+            e.setCode("CO");
+            list.add(e);
+            e = new Country();
+            e.setName("Comoros");
+            e.setCode("KM");
+            list.add(e);
+            e = new Country();
+            e.setName("Congo");
+            e.setCode("CG");
+            list.add(e);
+            e = new Country();
+            e.setName("Costa Rica");
+            e.setCode("CR");
+            list.add(e);
+            e = new Country();
+            e.setName("Croatia");
+            e.setCode("HR");
+            list.add(e);
+            e = new Country();
+            e.setName("Cuba");
+            e.setCode("CU");
+            list.add(e);
+            e = new Country();
+            e.setName("Cyprus");
+            e.setCode("CY");
+            list.add(e);
+            e = new Country();
+            e.setName("Czech Republic");
+            e.setCode("CZ");
+            list.add(e);
+            e = new Country();
+            e.setName("Denmark");
+            e.setCode("DK");
+            list.add(e);
+            e = new Country();
+            e.setName("Djibouti");
+            e.setCode("DJ");
+            list.add(e);
+            e = new Country();
+            e.setName("Dominica");
+            e.setCode("DM");
+            list.add(e);
+            e = new Country();
+            e.setName("Dominican Republic");
+            e.setCode("DO");
+            list.add(e);
+            e = new Country();
+            e.setName("East Timor");
+            e.setCode("TL");
+            list.add(e);
+            e = new Country();
+            e.setName("Ecuador");
+            e.setCode("EC");
+            list.add(e);
+            e = new Country();
+            e.setName("Egypt");
+            e.setCode("EG");
+            list.add(e);
+            e = new Country();
+            e.setName("El Salvador");
+            e.setCode("SV");
+            list.add(e);
+            e = new Country();
+            e.setName("Equatorial Guinea");
+            e.setCode("GQ");
+            list.add(e);
+            e = new Country();
+            e.setName("Eritrea");
+            e.setCode("ER");
+            list.add(e);
+            e = new Country();
+            e.setName("Estonia");
+            e.setCode("EE");
+            list.add(e);
+            e = new Country();
+            e.setName("Eswatini");
+            e.setCode("SZ");
+            list.add(e);
+            e = new Country();
+            e.setName("Ethiopia");
+            e.setCode("ET");
+            list.add(e);
+            e = new Country();
+            e.setName("Fiji");
+            e.setCode("FJ");
+            list.add(e);
+            e = new Country();
+            e.setName("Finland");
+            e.setCode("FI");
+            list.add(e);
+            e = new Country();
+            e.setName("France");
+            e.setCode("FR");
+            list.add(e);
+            e = new Country();
+            e.setName("Gabon");
+            e.setCode("GA");
+            list.add(e);
+            e = new Country();
+            e.setName("Gambia");
+            e.setCode("GM");
+            list.add(e);
+            e = new Country();
+            e.setName("Georgia");
+            e.setCode("GE");
+            list.add(e);
+            e = new Country();
+            e.setName("Germany");
+            e.setCode("DE");
+            list.add(e);
+            e = new Country();
+            e.setName("Ghana");
+            e.setCode("GH");
+            list.add(e);
+            e = new Country();
+            e.setName("Greece");
+            e.setCode("GR");
+            list.add(e);
+            e = new Country();
+            e.setName("Grenada");
+            e.setCode("GD");
+            list.add(e);
+            e = new Country();
+            e.setName("Guatemala");
+            e.setCode("GT");
+            list.add(e);
+            e = new Country();
+            e.setName("Guinea");
+            e.setCode("GN");
+            list.add(e);
+            e = new Country();
+            e.setName("Guinea-Bissau");
+            e.setCode("GW");
+            list.add(e);
+            e = new Country();
+            e.setName("Guyana");
+            e.setCode("GY");
+            list.add(e);
+            e = new Country();
+            e.setName("Haiti");
+            e.setCode("HT");
+            list.add(e);
+            e = new Country();
+            e.setName("Honduras");
+            e.setCode("HN");
+            list.add(e);
+            e = new Country();
+            e.setName("Hungary");
+            e.setCode("HU");
+            list.add(e);
+            e = new Country();
+            e.setName("Iceland");
+            e.setCode("IS");
+            list.add(e);
+            e = new Country();
+            e.setName("India");
+            e.setCode("IN");
+            list.add(e);
+            e = new Country();
+            e.setName("Indonesia");
+            e.setCode("ID");
+            list.add(e);
+            e = new Country();
+            e.setName("Iran");
+            e.setCode("IR");
+            list.add(e);
+            e = new Country();
+            e.setName("Iraq");
+            e.setCode("IQ");
+            list.add(e);
+            e = new Country();
+            e.setName("Ireland");
+            e.setCode("IE");
+            list.add(e);
+            e = new Country();
+            e.setName("Israel");
+            e.setCode("IL");
+            list.add(e);
+            e = new Country();
+            e.setName("Italy");
+            e.setCode("IT");
+            list.add(e);
+            e = new Country();
+            e.setName("Ivory Coast");
+            e.setCode("CI");
+            list.add(e);
+            e = new Country();
+            e.setName("Jamaica");
+            e.setCode("JM");
+            list.add(e);
+            e = new Country();
+            e.setName("Japan");
+            e.setCode("JP");
+            list.add(e);
+            e = new Country();
+            e.setName("Jordan");
+            e.setCode("JO");
+            list.add(e);
+            e = new Country();
+            e.setName("Kazakhstan");
+            e.setCode("KZ");
+            list.add(e);
+            e = new Country();
+            e.setName("Kenya");
+            e.setCode("KE");
+            list.add(e);
+            e = new Country();
+            e.setName("Kiribati");
+            e.setCode("KI");
+            list.add(e);
+            e = new Country();
+            e.setName("Kosovo");
+            e.setCode("XK");
+            list.add(e);
+            e = new Country();
+            e.setName("Kuwait");
+            e.setCode("KW");
+            list.add(e);
+            e = new Country();
+            e.setName("Kyrgyzstan");
+            e.setCode("KG");
+            list.add(e);
+            e = new Country();
+            e.setName("Laos");
+            e.setCode("LA");
+            list.add(e);
+            e = new Country();
+            e.setName("Latvia");
+            e.setCode("LV");
+            list.add(e);
+            e = new Country();
+            e.setName("Lebanon");
+            e.setCode("LB");
+            list.add(e);
+            e = new Country();
+            e.setName("Lesotho");
+            e.setCode("LS");
+            list.add(e);
+            e = new Country();
+            e.setName("Liberia");
+            e.setCode("LR");
+            list.add(e);
+            e = new Country();
+            e.setName("Libya");
+            e.setCode("LY");
+            list.add(e);
+            e = new Country();
+            e.setName("Liechtenstein");
+            e.setCode("LI");
+            list.add(e);
+            e = new Country();
+            e.setName("Lithuania");
+            e.setCode("LT");
+            list.add(e);
+            e = new Country();
+            e.setName("Luxembourg");
+            e.setCode("LU");
+            list.add(e);
+            e = new Country();
+            e.setName("Madagascar");
+            e.setCode("MG");
+            list.add(e);
+            e = new Country();
+            e.setName("Malawi");
+            e.setCode("MW");
+            list.add(e);
+            e = new Country();
+            e.setName("Malaysia");
+            e.setCode("MY");
+            list.add(e);
+            e = new Country();
+            e.setName("Maldives");
+            e.setCode("MV");
+            list.add(e);
+            e = new Country();
+            e.setName("Mali");
+            e.setCode("ML");
+            list.add(e);
+            e = new Country();
+            e.setName("Malta");
+            e.setCode("MT");
+            list.add(e);
+            e = new Country();
+            e.setName("Marshall Islands");
+            e.setCode("MH");
+            list.add(e);
+            e = new Country();
+            e.setName("Mauritania");
+            e.setCode("MR");
+            list.add(e);
+            e = new Country();
+            e.setName("Mauritius");
+            e.setCode("MU");
+            list.add(e);
+            e = new Country();
+            e.setName("Mexico");
+            e.setCode("MX");
+            list.add(e);
+            e = new Country();
+            e.setName("Micronesia");
+            e.setCode("FM");
+            list.add(e);
+            e = new Country();
+            e.setName("Moldova");
+            e.setCode("MD");
+            list.add(e);
+            e = new Country();
+            e.setName("Monaco");
+            e.setCode("MC");
+            list.add(e);
+            e = new Country();
+            e.setName("Mongolia");
+            e.setCode("MN");
+            list.add(e);
+            e = new Country();
+            e.setName("Montenegro");
+            e.setCode("ME");
+            list.add(e);
+            e = new Country();
+            e.setName("Morocco");
+            e.setCode("MA");
+            list.add(e);
+            e = new Country();
+            e.setName("Mozambique");
+            e.setCode("MZ");
+            list.add(e);
+            e = new Country();
+            e.setName("Myanmar");
+            e.setCode("MM");
+            list.add(e);
+            e = new Country();
+            e.setName("Namibia");
+            e.setCode("NA");
+            list.add(e);
+            e = new Country();
+            e.setName("Nauru");
+            e.setCode("NR");
+            list.add(e);
+            e = new Country();
+            e.setName("Nepal");
+            e.setCode("NP");
+            list.add(e);
+            e = new Country();
+            e.setName("Netherlands");
+            e.setCode("NL");
+            list.add(e);
+            e = new Country();
+            e.setName("New Zealand");
+            e.setCode("NZ");
+            list.add(e);
+            e = new Country();
+            e.setName("Nicaragua");
+            e.setCode("NI");
+            list.add(e);
+            e = new Country();
+            e.setName("Niger");
+            e.setCode("NE");
+            list.add(e);
+            e = new Country();
+            e.setName("Nigeria");
+            e.setCode("NG");
+            list.add(e);
+            e = new Country();
+            e.setName("North Korea");
+            e.setCode("KP");
+            list.add(e);
+            e = new Country();
+            e.setName("North Macedonia");
+            e.setCode("MK");
+            list.add(e);
+            e = new Country();
+            e.setName("Norway");
+            e.setCode("NO");
+            list.add(e);
+            e = new Country();
+            e.setName("Oman");
+            e.setCode("OM");
+            list.add(e);
+            e = new Country();
+            e.setName("Pakistan");
+            e.setCode("PK");
+            list.add(e);
+            e = new Country();
+            e.setName("Palau");
+            e.setCode("PW");
+            list.add(e);
+            e = new Country();
+            e.setName("Palestine");
+            e.setCode("PS");
+            list.add(e);
+            e = new Country();
+            e.setName("Panama");
+            e.setCode("PA");
+            list.add(e);
+            e = new Country();
+            e.setName("Papua New Guinea");
+            e.setCode("PG");
+            list.add(e);
+            e = new Country();
+            e.setName("Paraguay");
+            e.setCode("PY");
+            list.add(e);
+            e = new Country();
+            e.setName("Peru");
+            e.setCode("PE");
+            list.add(e);
+            e = new Country();
+            e.setName("Philippines");
+            e.setCode("PH");
+            list.add(e);
+            e = new Country();
+            e.setName("Poland");
+            e.setCode("PL");
+            list.add(e);
+            e = new Country();
+            e.setName("Portugal");
+            e.setCode("PT");
+            list.add(e);
+            e = new Country();
+            e.setName("Qatar");
+            e.setCode("QA");
+            list.add(e);
+            e = new Country();
+            e.setName("Romania");
+            e.setCode("RO");
+            list.add(e);
+            e = new Country();
+            e.setName("Russia");
+            e.setCode("RU");
+            list.add(e);
+            e = new Country();
+            e.setName("Rwanda");
+            e.setCode("RW");
+            list.add(e);
+            e = new Country();
+            e.setName("Saint Kitts and Nevis");
+            e.setCode("KN");
+            list.add(e);
+            e = new Country();
+            e.setName("Saint Lucia");
+            e.setCode("LC");
+            list.add(e);
+            e = new Country();
+            e.setName("Saint Vincent and the Grenadines");
+            e.setCode("VC");
+            list.add(e);
+            e = new Country();
+            e.setName("Samoa");
+            e.setCode("WS");
+            list.add(e);
+            e = new Country();
+            e.setName("San Marino");
+            e.setCode("SM");
+            list.add(e);
+            e = new Country();
+            e.setName("Sao Tome and Principe");
+            e.setCode("ST");
+            list.add(e);
+            e = new Country();
+            e.setName("Saudi Arabia");
+            e.setCode("SA");
+            list.add(e);
+            e = new Country();
+            e.setName("Senegal");
+            e.setCode("SN");
+            list.add(e);
+            e = new Country();
+            e.setName("Serbia");
+            e.setCode("RS");
+            list.add(e);
+            e = new Country();
+            e.setName("Seychelles");
+            e.setCode("SC");
+            list.add(e);
+            e = new Country();
+            e.setName("Sierra Leone");
+            e.setCode("SL");
+            list.add(e);
+            e = new Country();
+            e.setName("Singapore");
+            e.setCode("SG");
+            list.add(e);
+            e = new Country();
+            e.setName("Slovakia");
+            e.setCode("SK");
+            list.add(e);
+            e = new Country();
+            e.setName("Slovenia");
+            e.setCode("SI");
+            list.add(e);
+            e = new Country();
+            e.setName("Solomon Islands");
+            e.setCode("SB");
+            list.add(e);
+            e = new Country();
+            e.setName("Somalia");
+            e.setCode("SO");
+            list.add(e);
+            e = new Country();
+            e.setName("South Africa");
+            e.setCode("ZA");
+            list.add(e);
+            e = new Country();
+            e.setName("South Korea");
+            e.setCode("KR");
+            list.add(e);
+            e = new Country();
+            e.setName("South Sudan");
+            e.setCode("SS");
+            list.add(e);
+            e = new Country();
+            e.setName("Spain");
+            e.setCode("ES");
+            list.add(e);
+            e = new Country();
+            e.setName("Sri Lanka");
+            e.setCode("LK");
+            list.add(e);
+            e = new Country();
+            e.setName("Sudan");
+            e.setCode("SD");
+            list.add(e);
+            e = new Country();
+            e.setName("Suriname");
+            e.setCode("SR");
+            list.add(e);
+            e = new Country();
+            e.setName("Sweden");
+            e.setCode("SE");
+            list.add(e);
+            e = new Country();
+            e.setName("Switzerland");
+            e.setCode("CH");
+            list.add(e);
+            e = new Country();
+            e.setName("Syria");
+            e.setCode("SY");
+            list.add(e);
+            e = new Country();
+            e.setName("Taiwan");
+            e.setCode("TW");
+            list.add(e);
+            e = new Country();
+            e.setName("Tajikistan");
+            e.setCode("TJ");
+            list.add(e);
+            e = new Country();
+            e.setName("Tanzania");
+            e.setCode("TZ");
+            list.add(e);
+            e = new Country();
+            e.setName("Thailand");
+            e.setCode("TH");
+            list.add(e);
+            e = new Country();
+            e.setName("Togo");
+            e.setCode("TG");
+            list.add(e);
+            e = new Country();
+            e.setName("Tonga");
+            e.setCode("TO");
+            list.add(e);
+            e = new Country();
+            e.setName("Trinidad and Tobago");
+            e.setCode("TT");
+            list.add(e);
+            e = new Country();
+            e.setName("Tunisia");
+            e.setCode("TN");
+            list.add(e);
+            e = new Country();
+            e.setName("Turkey");
+            e.setCode("TR");
+            list.add(e);
+            e = new Country();
+            e.setName("Turkmenistan");
+            e.setCode("TM");
+            list.add(e);
+            e = new Country();
+            e.setName("Tuvalu");
+            e.setCode("TV");
+            list.add(e);
+            e = new Country();
+            e.setName("Uganda");
+            e.setCode("UG");
+            list.add(e);
+            e = new Country();
+            e.setName("Ukraine");
+            e.setCode("UA");
+            list.add(e);
+            e = new Country();
+            e.setName("United Arab Emirates");
+            e.setCode("AE");
+            list.add(e);
+            e = new Country();
+            e.setName("United Kingdom");
+            e.setCode("GB");
+            list.add(e);
+            e = new Country();
+            e.setName("United States");
+            e.setCode("US");
+            list.add(e);
+            e = new Country();
+            e.setName("Uruguay");
+            e.setCode("UY");
+            list.add(e);
+            e = new Country();
+            e.setName("Uzbekistan");
+            e.setCode("UZ");
+            list.add(e);
+            e = new Country();
+            e.setName("Vanuatu");
+            e.setCode("VU");
+            list.add(e);
+            e = new Country();
+            e.setName("Vatican City");
+            e.setCode("VA");
+            list.add(e);
+            e = new Country();
+            e.setName("Venezuela");
+            e.setCode("VE");
+            list.add(e);
+            e = new Country();
+            e.setName("Vietnam");
+            e.setCode("VN");
+            list.add(e);
+            e = new Country();
+            e.setName("Yemen");
+            e.setCode("YE");
+            list.add(e);
+            e = new Country();
+            e.setName("Zambia");
+            e.setCode("ZM");
+            list.add(e);
+            e = new Country();
+            e.setName("Zimbabwe");
+            e.setCode("ZW");
+            list.add(e);
+            repository.saveAll(list);
         }
-    }
-
-    private void saveAllCountries() {
-        countryRepository.saveAll(java.util.List.of(
-            new Country("Afghanistan", "AF"),
-            new Country("Albania", "AL"),
-            new Country("Algeria", "DZ"),
-            new Country("Andorra", "AD"),
-            new Country("Angola", "AO"),
-            new Country("Antigua and Barbuda", "AG"),
-            new Country("Argentina", "AR"),
-            new Country("Armenia", "AM"),
-            new Country("Australia", "AU"),
-            new Country("Austria", "AT"),
-            new Country("Azerbaijan", "AZ"),
-            new Country("Bahamas", "BS"),
-            new Country("Bahrain", "BH"),
-            new Country("Bangladesh", "BD"),
-            new Country("Barbados", "BB"),
-            new Country("Belarus", "BY"),
-            new Country("Belgium", "BE"),
-            new Country("Belize", "BZ"),
-            new Country("Benin", "BJ"),
-            new Country("Bhutan", "BT"),
-            new Country("Bolivia", "BO"),
-            new Country("Bosnia and Herzegovina", "BA"),
-            new Country("Botswana", "BW"),
-            new Country("Brazil", "BR"),
-            new Country("Brunei", "BN"),
-            new Country("Bulgaria", "BG"),
-            new Country("Burkina Faso", "BF"),
-            new Country("Burundi", "BI"),
-            new Country("Cabo Verde", "CV"),
-            new Country("Cambodia", "KH"),
-            new Country("Cameroon", "CM"),
-            new Country("Canada", "CA"),
-            new Country("Central African Republic", "CF"),
-            new Country("Chad", "TD"),
-            new Country("Chile", "CL"),
-            new Country("China", "CN"),
-            new Country("Colombia", "CO"),
-            new Country("Comoros", "KM"),
-            new Country("Congo", "CG"),
-            new Country("Costa Rica", "CR"),
-            new Country("Croatia", "HR"),
-            new Country("Cuba", "CU"),
-            new Country("Cyprus", "CY"),
-            new Country("Czech Republic", "CZ"),
-            new Country("Denmark", "DK"),
-            new Country("Djibouti", "DJ"),
-            new Country("Dominica", "DM"),
-            new Country("Dominican Republic", "DO"),
-            new Country("East Timor", "TL"),
-            new Country("Ecuador", "EC"),
-            new Country("Egypt", "EG"),
-            new Country("El Salvador", "SV"),
-            new Country("Equatorial Guinea", "GQ"),
-            new Country("Eritrea", "ER"),
-            new Country("Estonia", "EE"),
-            new Country("Eswatini", "SZ"),
-            new Country("Ethiopia", "ET"),
-            new Country("Fiji", "FJ"),
-            new Country("Finland", "FI"),
-            new Country("France", "FR"),
-            new Country("Gabon", "GA"),
-            new Country("Gambia", "GM"),
-            new Country("Georgia", "GE"),
-            new Country("Germany", "DE"),
-            new Country("Ghana", "GH"),
-            new Country("Greece", "GR"),
-            new Country("Grenada", "GD"),
-            new Country("Guatemala", "GT"),
-            new Country("Guinea", "GN"),
-            new Country("Guinea-Bissau", "GW"),
-            new Country("Guyana", "GY"),
-            new Country("Haiti", "HT"),
-            new Country("Honduras", "HN"),
-            new Country("Hungary", "HU"),
-            new Country("Iceland", "IS"),
-            new Country("India", "IN"),
-            new Country("Indonesia", "ID"),
-            new Country("Iran", "IR"),
-            new Country("Iraq", "IQ"),
-            new Country("Ireland", "IE"),
-            new Country("Israel", "IL"),
-            new Country("Italy", "IT"),
-            new Country("Ivory Coast", "CI"),
-            new Country("Jamaica", "JM"),
-            new Country("Japan", "JP"),
-            new Country("Jordan", "JO"),
-            new Country("Kazakhstan", "KZ"),
-            new Country("Kenya", "KE"),
-            new Country("Kiribati", "KI"),
-            new Country("Kosovo", "XK"),
-            new Country("Kuwait", "KW"),
-            new Country("Kyrgyzstan", "KG"),
-            new Country("Laos", "LA"),
-            new Country("Latvia", "LV"),
-            new Country("Lebanon", "LB"),
-            new Country("Lesotho", "LS"),
-            new Country("Liberia", "LR"),
-            new Country("Libya", "LY"),
-            new Country("Liechtenstein", "LI"),
-            new Country("Lithuania", "LT"),
-            new Country("Luxembourg", "LU"),
-            new Country("Madagascar", "MG"),
-            new Country("Malawi", "MW"),
-            new Country("Malaysia", "MY"),
-            new Country("Maldives", "MV"),
-            new Country("Mali", "ML"),
-            new Country("Malta", "MT"),
-            new Country("Marshall Islands", "MH"),
-            new Country("Mauritania", "MR"),
-            new Country("Mauritius", "MU"),
-            new Country("Mexico", "MX"),
-            new Country("Micronesia", "FM"),
-            new Country("Moldova", "MD"),
-            new Country("Monaco", "MC"),
-            new Country("Mongolia", "MN"),
-            new Country("Montenegro", "ME"),
-            new Country("Morocco", "MA"),
-            new Country("Mozambique", "MZ"),
-            new Country("Myanmar", "MM"),
-            new Country("Namibia", "NA"),
-            new Country("Nauru", "NR"),
-            new Country("Nepal", "NP"),
-            new Country("Netherlands", "NL"),
-            new Country("New Zealand", "NZ"),
-            new Country("Nicaragua", "NI"),
-            new Country("Niger", "NE"),
-            new Country("Nigeria", "NG"),
-            new Country("North Korea", "KP"),
-            new Country("North Macedonia", "MK"),
-            new Country("Norway", "NO"),
-            new Country("Oman", "OM"),
-            new Country("Pakistan", "PK"),
-            new Country("Palau", "PW"),
-            new Country("Palestine", "PS"),
-            new Country("Panama", "PA"),
-            new Country("Papua New Guinea", "PG"),
-            new Country("Paraguay", "PY"),
-            new Country("Peru", "PE"),
-            new Country("Philippines", "PH"),
-            new Country("Poland", "PL"),
-            new Country("Portugal", "PT"),
-            new Country("Qatar", "QA"),
-            new Country("Romania", "RO"),
-            new Country("Russia", "RU"),
-            new Country("Rwanda", "RW"),
-            new Country("Saint Kitts and Nevis", "KN"),
-            new Country("Saint Lucia", "LC"),
-            new Country("Saint Vincent and the Grenadines", "VC"),
-            new Country("Samoa", "WS"),
-            new Country("San Marino", "SM"),
-            new Country("Sao Tome and Principe", "ST"),
-            new Country("Saudi Arabia", "SA"),
-            new Country("Senegal", "SN"),
-            new Country("Serbia", "RS"),
-            new Country("Seychelles", "SC"),
-            new Country("Sierra Leone", "SL"),
-            new Country("Singapore", "SG"),
-            new Country("Slovakia", "SK"),
-            new Country("Slovenia", "SI"),
-            new Country("Solomon Islands", "SB"),
-            new Country("Somalia", "SO"),
-            new Country("South Africa", "ZA"),
-            new Country("South Korea", "KR"),
-            new Country("South Sudan", "SS"),
-            new Country("Spain", "ES"),
-            new Country("Sri Lanka", "LK"),
-            new Country("Sudan", "SD"),
-            new Country("Suriname", "SR"),
-            new Country("Sweden", "SE"),
-            new Country("Switzerland", "CH"),
-            new Country("Syria", "SY"),
-            new Country("Taiwan", "TW"),
-            new Country("Tajikistan", "TJ"),
-            new Country("Tanzania", "TZ"),
-            new Country("Thailand", "TH"),
-            new Country("Togo", "TG"),
-            new Country("Tonga", "TO"),
-            new Country("Trinidad and Tobago", "TT"),
-            new Country("Tunisia", "TN"),
-            new Country("Turkey", "TR"),
-            new Country("Turkmenistan", "TM"),
-            new Country("Tuvalu", "TV"),
-            new Country("Uganda", "UG"),
-            new Country("Ukraine", "UA"),
-            new Country("United Arab Emirates", "AE"),
-            new Country("United Kingdom", "GB"),
-            new Country("United States", "US"),
-            new Country("Uruguay", "UY"),
-            new Country("Uzbekistan", "UZ"),
-            new Country("Vanuatu", "VU"),
-            new Country("Vatican City", "VA"),
-            new Country("Venezuela", "VE"),
-            new Country("Vietnam", "VN"),
-            new Country("Yemen", "YE"),
-            new Country("Zambia", "ZM"),
-            new Country("Zimbabwe", "ZW")
-        ));
     }
 }

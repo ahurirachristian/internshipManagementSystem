@@ -1,5 +1,14 @@
 import { useEffect, useState, useMemo } from 'react';
 import DashboardLayout from '../DashboardLayout';
+import {
+  ListChecks,
+  Filter,
+  Search,
+  AlertCircle,
+  X,
+  FileText,
+} from 'lucide-react';
+import CustomSelect from '../CustomSelect';
 
 function formatDate(dateString) {
   if (!dateString) return '—';
@@ -24,6 +33,16 @@ const ACTION_TYPES = [
   { value: 'VIEW', label: 'View' },
   { value: 'EXPORT', label: 'Export' },
 ];
+
+const ACTION_BADGE_STYLES = {
+  CREATE: 'bg-emerald-50 text-emerald-700 border border-emerald-200',
+  UPDATE: 'bg-blue-50 text-blue-700 border border-blue-200',
+  DELETE: 'bg-rose-50 text-rose-700 border border-rose-200',
+  LOGIN: 'bg-emerald-50 text-emerald-700 border border-emerald-200',
+  LOGOUT: 'bg-amber-50 text-amber-700 border border-amber-200',
+  VIEW: 'bg-blue-50 text-blue-700 border border-blue-200',
+  EXPORT: 'bg-blue-50 text-blue-700 border border-blue-200',
+};
 
 const API_ROOT = process.env.REACT_APP_API_ROOT || 'http://localhost:8082';
 
@@ -102,191 +121,153 @@ export default function AuditLogs() {
     });
   }, [logs, searchQuery]);
 
-  function renderTable() {
-    return (
-      <div className="card">
-        <div className="card-header">
-          <span className="card-title"><i className="fa-solid fa-list-check"></i> Audit Logs</span>
-          <span className="card-hint">System activity and change history</span>
-        </div>
-        <div className="table-responsive">
-          <table className="table">
-            <thead>
-              <tr>
-                <th>Timestamp</th>
-                <th>User</th>
-                <th>Role</th>
-                <th>Action</th>
-                <th>Target Entity</th>
-                <th>Details</th>
-                <th>IP Address</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredLogs.length > 0 ? (
-                filteredLogs.map((log, idx) => (
-                  <tr key={log.id || idx}>
-                    <td className="u-name">{formatDate(log.timestamp || log.createdAt)}</td>
-                    <td>{log.username || log.user?.username || '—'}</td>
-                    <td>{log.role || log.user?.role || '—'}</td>
-                    <td>
-                      <span className={`badge ${getActionBadge(log.action)}`}>
-                        <span className="dot"></span>
-                        {log.action || '—'}
-                      </span>
-                    </td>
-                    <td>{log.targetEntity || '—'}</td>
-                    <td>{log.details || log.description || '—'}</td>
-                    <td>{log.ipAddress || '—'}</td>
-                  </tr>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan="7">
-                    <div className="empty-state">
-                      <div className="empty-icon">&#128221;</div>
-                      <h3>{searchQuery ? 'No matching audit logs' : 'No audit logs'}</h3>
-                      <p>
-                        {searchQuery
-                          ? 'No audit logs match your search criteria.'
-                          : 'No audit logs have been recorded yet.'}
-                      </p>
-                    </div>
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <DashboardLayout
       title="Audit Logs"
       subtitle="Review system activity, changes, and access history"
       searchable={false}
     >
-      {error && <div className="alert alert-error">{error}</div>}
-      {loading && <div className="status-message">Loading audit logs...</div>}
+      <div className="space-y-6 max-w-7xl mx-auto">
 
-      {!loading && (
-        <>
-          <div className="card" style={{ marginBottom: '1.5rem' }}>
-            <div className="card-header">
-              <span className="card-title"><i className="fa-solid fa-filter"></i> Filters</span>
+        {/* Error Banner */}
+        {error && (
+          <div role="alert" className="p-3.5 bg-rose-50 border border-rose-200 rounded-xl flex items-center justify-between gap-3 text-rose-900 text-sm animate-in fade-in">
+            <div className="flex items-center gap-2.5">
+              <AlertCircle className="w-5 h-5 text-rose-600 shrink-0" />
+              <span className="font-medium">{error}</span>
             </div>
-            <div
-              style={{
-                display: 'flex',
-                flexWrap: 'wrap',
-                gap: '1rem',
-                alignItems: 'flex-end',
-              }}
-            >
-              <div style={{ flex: '1 1 240px' }}>
-                <label
-                  style={{
-                    display: 'block',
-                    fontSize: '0.85rem',
-                    fontWeight: 600,
-                    marginBottom: '0.35rem',
-                    color: '#4b5563',
-                  }}
-                >
-                  Search
-                </label>
-                <input
-                  type="text"
-                  className="form-control"
-                  placeholder="Username, action, target, details..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                />
-              </div>
-              <div style={{ flex: '1 1 180px' }}>
-                <label
-                  style={{
-                    display: 'block',
-                    fontSize: '0.85rem',
-                    fontWeight: 600,
-                    marginBottom: '0.35rem',
-                    color: '#4b5563',
-                  }}
-                >
-                  Action
-                </label>
-                <select
-                  className="form-control"
-                  value={actionFilter}
-                  onChange={(e) => setActionFilter(e.target.value)}
-                >
-                  {ACTION_TYPES.map((type) => (
-                    <option key={type.value} value={type.value}>
-                      {type.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div style={{ flex: '1 1 180px' }}>
-                <label
-                  style={{
-                    display: 'block',
-                    fontSize: '0.85rem',
-                    fontWeight: 600,
-                    marginBottom: '0.35rem',
-                    color: '#4b5563',
-                  }}
-                >
-                  Start Date
-                </label>
-                <input
-                  type="date"
-                  className="form-control"
-                  value={startDate}
-                  onChange={(e) => setStartDate(e.target.value)}
-                />
-              </div>
-              <div style={{ flex: '1 1 180px' }}>
-                <label
-                  style={{
-                    display: 'block',
-                    fontSize: '0.85rem',
-                    fontWeight: 600,
-                    marginBottom: '0.35rem',
-                    color: '#4b5563',
-                  }}
-                >
-                  End Date
-                </label>
-                <input
-                  type="date"
-                  className="form-control"
-                  value={endDate}
-                  onChange={(e) => setEndDate(e.target.value)}
-                />
-              </div>
-            </div>
+            <button type="button" onClick={() => setError('')} className="text-rose-600 hover:text-rose-900 p-1 rounded" aria-label="Dismiss error">
+              <X className="w-4 h-4" />
+            </button>
           </div>
+        )}
 
-          {renderTable()}
-        </>
-      )}
+        {/* Loading */}
+        {loading && (
+          <div className="flex items-center gap-2 text-xs text-slate-500 font-medium">
+            <div className="w-4 h-4 border-2 border-teal-600 border-t-transparent rounded-full animate-spin" />
+            <span>Loading audit logs...</span>
+          </div>
+        )}
+
+        {!loading && (
+          <>
+            {/* Filter Section */}
+            <section className="bg-white rounded-2xl border border-slate-200 p-5 shadow-xs">
+              <div className="flex items-center gap-2 text-sm font-bold text-slate-900 mb-4">
+                <Filter className="w-4 h-4 text-slate-500" />
+                <span>Filters</span>
+              </div>
+              <div className="flex flex-wrap gap-4 items-end">
+                <div className="flex-1 min-w-[200px]">
+                  <label htmlFor="audit-search" className="block text-xs font-bold uppercase tracking-wider text-slate-800 mb-1.5">
+                    Search
+                  </label>
+                  <input
+                    id="audit-search"
+                    type="text"
+                    placeholder="Username, action, target, details..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="w-full bg-white text-slate-900 text-xs rounded-xl border border-slate-300 px-3.5 py-2.5 focus:border-teal-600 focus:ring-2 focus:ring-teal-600/20 focus:outline-none transition-all shadow-xs font-medium placeholder:text-slate-400"
+                  />
+                </div>
+                <div className="flex-1 min-w-[160px]">
+                  <label htmlFor="audit-action" className="block text-xs font-bold uppercase tracking-wider text-slate-800 mb-1.5">
+                    Action
+                  </label>
+                  <CustomSelect
+                    id="audit-action"
+                    value={actionFilter}
+                    onChange={setActionFilter}
+                    options={ACTION_TYPES}
+                  />
+                </div>
+                <div className="flex-1 min-w-[160px]">
+                  <label htmlFor="audit-start" className="block text-xs font-bold uppercase tracking-wider text-slate-800 mb-1.5">
+                    Start Date
+                  </label>
+                  <input
+                    id="audit-start"
+                    type="date"
+                    value={startDate}
+                    onChange={(e) => setStartDate(e.target.value)}
+                    className="w-full bg-white text-slate-900 text-xs rounded-xl border border-slate-300 px-3.5 py-2.5 focus:border-teal-600 focus:ring-2 focus:ring-teal-600/20 focus:outline-none transition-all shadow-xs font-medium"
+                  />
+                </div>
+                <div className="flex-1 min-w-[160px]">
+                  <label htmlFor="audit-end" className="block text-xs font-bold uppercase tracking-wider text-slate-800 mb-1.5">
+                    End Date
+                  </label>
+                  <input
+                    id="audit-end"
+                    type="date"
+                    value={endDate}
+                    onChange={(e) => setEndDate(e.target.value)}
+                    className="w-full bg-white text-slate-900 text-xs rounded-xl border border-slate-300 px-3.5 py-2.5 focus:border-teal-600 focus:ring-2 focus:ring-teal-600/20 focus:outline-none transition-all shadow-xs font-medium"
+                  />
+                </div>
+              </div>
+            </section>
+
+            {/* Table */}
+            <section className="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
+              <div className="overflow-x-auto custom-scrollbar">
+                <table className="w-full text-left border-collapse" style={{ minWidth: '900px' }} aria-label="Audit logs">
+                  <thead>
+                    <tr className="border-b border-slate-200 bg-slate-50/90 text-[11px] font-bold tracking-wider text-slate-800">
+                      <th scope="col" className="py-3.5 px-3 pl-5">Timestamp</th>
+                      <th scope="col" className="py-3.5 px-3">User</th>
+                      <th scope="col" className="py-3.5 px-3">Role</th>
+                      <th scope="col" className="py-3.5 px-3">Action</th>
+                      <th scope="col" className="py-3.5 px-3">Target Entity</th>
+                      <th scope="col" className="py-3.5 px-3">Details</th>
+                      <th scope="col" className="py-3.5 px-3 pr-5">IP Address</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100 text-sm">
+                    {filteredLogs.length > 0 ? (
+                      filteredLogs.map((log, idx) => (
+                        <tr key={log.id || idx} className="hover:bg-slate-50/80 transition-colors">
+                          <td className="py-3.5 px-3 pl-5 font-bold text-slate-900 text-xs">{formatDate(log.timestamp || log.createdAt)}</td>
+                          <td className="py-3.5 px-3 text-xs text-slate-600">{log.username || log.user?.username || '—'}</td>
+                          <td className="py-3.5 px-3 text-xs text-slate-600">{log.role || log.user?.role || '—'}</td>
+                          <td className="py-3.5 px-3">
+                            <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold ${ACTION_BADGE_STYLES[(log.action || '').toUpperCase()] || 'bg-slate-100 text-slate-600 border border-slate-200'}`}>
+                              {log.action || '—'}
+                            </span>
+                          </td>
+                          <td className="py-3.5 px-3 text-xs text-slate-600">{log.targetEntity || '—'}</td>
+                          <td className="py-3.5 px-3 text-xs text-slate-600 max-w-[200px] truncate">{log.details || log.description || '—'}</td>
+                          <td className="py-3.5 px-3 pr-5 text-xs text-slate-600 font-mono">{log.ipAddress || '—'}</td>
+                        </tr>
+                      ))
+                    ) : (
+                      <tr>
+                        <td colSpan={7} className="py-12 px-4 text-center">
+                          <div className="max-w-sm mx-auto flex flex-col items-center">
+                            <div className="w-12 h-12 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-400 mb-3">
+                              {searchQuery ? <Search className="w-6 h-6" /> : <FileText className="w-6 h-6" />}
+                            </div>
+                            <h3 className="text-base font-bold text-slate-800">
+                              {searchQuery ? 'No results found' : 'No audit logs'}
+                            </h3>
+                            <p className="text-xs text-slate-500 mt-1">
+                              {searchQuery
+                                ? 'No audit logs match your search criteria.'
+                                : 'No audit logs have been recorded yet.'}
+                            </p>
+                          </div>
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </section>
+          </>
+        )}
+      </div>
     </DashboardLayout>
   );
 }
-
-function getActionBadge(action) {
-  const map = {
-    CREATE: 'badge-success',
-    UPDATE: 'badge-info',
-    DELETE: 'badge-danger',
-    LOGIN: 'badge-success',
-    LOGOUT: 'badge-warning',
-    VIEW: 'badge-info',
-    EXPORT: 'badge-info',
-  };
-  return map[(action || '').toUpperCase()] || 'badge-info';
-}
-

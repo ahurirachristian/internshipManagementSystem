@@ -18,12 +18,10 @@ public class CompanyService {
         this.studentProfileRepository = studentProfileRepository;
     }
 
-    // Method to get all companies (used by the list view)
     public List<Company> getAllCompanies() {
         return companyRepository.findAll();
     }
 
-    // Method to get a single company by ID (used by the profile dashboard)
     public Optional<Company> getCompanyById(Long id) {
         return companyRepository.findById(id);
     }
@@ -48,7 +46,16 @@ public class CompanyService {
         companyRepository.deleteById(id);
     }
 
+    /**
+     * Find students placed at a company. Since StudentProfile no longer has a companyId FK,
+     * we look up the company name and match against the organisation field.
+     */
     public List<StudentProfile> findStudentsByCompanyId(Long companyId) {
-        return studentProfileRepository.findByCompanyId(companyId);
+        if (companyId == null) {
+            return List.of();
+        }
+        return companyRepository.findById(companyId)
+                .map(company -> studentProfileRepository.findByOrganisationContainingIgnoreCase(company.getName()))
+                .orElse(List.of());
     }
 }

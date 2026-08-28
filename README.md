@@ -1,6 +1,8 @@
- at# Internship Management System
+# Internship Management System
 
 A Spring Boot application for managing internships, reorganized into `backend/` and `frontend/` folders.
+
+> **Onboarding a new developer?** Start with [`ONBOARDING.md`](ONBOARDING.md) (up-to-date setup, architecture, API inventory, known gotchas) and [`CODEBASE_ANALYSIS.md`](CODEBASE_ANALYSIS.md). Note: parts of this README are outdated — the backend runs on port **8082** (not 8081), and the primary UI is the React SPA in [`frontend1/ims/`](frontend1/ims).
 
 ---
 
@@ -23,7 +25,7 @@ The `backend/` folder contains the complete reference implementation from the or
 ### Stack
 - **Spring Boot 3.x** (Spring Web, Spring Security, Spring Data JPA, Thymeleaf)
 - **Java 17**
-- **MySQL** (production database) or **H2** (in-memory, for local development)
+- **MySQL** (via WampServer) or **H2** (in-memory, for local development)
 - **Maven** (with wrapper)
 
 ### Features
@@ -62,28 +64,31 @@ The admin dashboard at `/admin/dashboard` provides full user management:
 ### OAuth2 Social Login
 Login with Google, LinkedIn, or X/Twitter is available on the login page. OAuth2 client credentials need to be configured in `application-dev.properties` or `application-mysql.properties` (see API Reference).
 
+### Database Configuration
+- **Default profile**: `dev` (H2 in-memory — zero setup; schema recreated each boot)
+- **MySQL profile**: run with `-Dspring-boot.run.profiles=mysql` (connects to `internshipManagementSystem_db`; WampServer/XAMPP both work — `localhost:3306`, user `root`)
+- **Switch profiles**: use the `-Dspring-boot.run.profiles=` flag, or edit `spring.profiles.active` in `application.properties`
+- See also `backend/DATABASE_CONNECTION_GUIDE.md` for the alternate connection setup proposed on `developer`
+
 ### How to Run
 
-**Default (dev profile with H2 in-memory database):**
+**With MySQL (default):**
 
-Just run the app — no database setup needed:
+Ensure WampServer MySQL is running, then:
 
 ```bash
 cd backend
 ./mvnw spring-boot:run
 ```
 
-**Production (MySQL):**
+The app connects to `internshipmanagementsystem_db` on `localhost:3306`.
 
-1. Install MySQL and create the database:
-   ```bash
-   mysql -u root -p -e "CREATE DATABASE IF NOT EXISTS internshipManagementSystem_db;"
-   ```
-2. Run with the MySQL profile:
-   ```bash
-   cd backend
-   ./mvnw spring-boot:run -Dspring-boot.run.profiles=mysql
-   ```
+**Dev profile (H2 in-memory database):**
+
+```bash
+cd backend
+./mvnw spring-boot:run -Dspring-boot.run.profiles=dev
+```
 
 Or package and run the JAR:
 
@@ -93,7 +98,7 @@ cd backend
 java -jar target/demo-0.0.1-SNAPSHOT.jar
 ```
 
-Then open [http://localhost:8081](http://localhost:8081).
+Then open [http://localhost:8082](http://localhost:8082).
 
 ### Running Tests
 
@@ -114,7 +119,7 @@ Reserved for frontend assets and code. Currently empty.
 
 - **Java 17+**
 - **Maven 3.6+** (or use the included Maven wrapper `./mvnw`)
-- **MySQL** (optional, only needed for production; H2 is used by default for local development)
+- **WampServer** with MySQL running (for production database access)
 
 ---
 
@@ -124,14 +129,19 @@ Reserved for frontend assets and code. Currently empty.
 
 1. Clone the repository
 2. Ensure **Java 17+** and **Maven 3.6+** are installed
-3. Run the app with the default dev profile (H2 in-memory database, no extra setup needed):
+3. Ensure WampServer is running if using MySQL
+4. Run the app:
    ```bash
    cd backend
    ./mvnw spring-boot:run
    ```
-4. Open [http://localhost:8081](http://localhost:8081)
+5. Open [http://localhost:8082](http://localhost:8082)
 
-If you want to use MySQL instead, create the database and run with the `mysql` profile as described above.
+If you want to use the H2 in-memory database instead, run with the `dev` profile:
+```bash
+cd backend
+./mvnw spring-boot:run -Dspring-boot.run.profiles=dev
+```
 
 All team members must follow this branching workflow:
 

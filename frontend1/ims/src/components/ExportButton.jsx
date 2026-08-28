@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Download, Loader2 } from 'lucide-react';
 import { exportToCSVWithFallback } from '../utils/csvExport';
 
 export default function ExportButton({
@@ -25,17 +26,17 @@ export default function ExportButton({
   return (
     <button
       type="button"
-      className="secondary-button"
+      className="h-9 px-3.5 py-2 rounded-xl bg-white hover:bg-slate-100 text-slate-700 text-xs font-bold border border-slate-300 transition-colors flex items-center gap-1.5 shadow-xs disabled:opacity-50 disabled:cursor-not-allowed"
       onClick={handleClick}
       disabled={disabled || loading || !data || data.length === 0}
     >
       {loading ? (
         <>
-          <i className="fa-solid fa-spinner fa-spin"></i> Exporting...
+          <Loader2 className="w-4 h-4 animate-spin" /> Exporting...
         </>
       ) : (
         <>
-          <i className="fa-solid fa-download"></i> {label}
+          <Download className="w-4 h-4" /> {label}
         </>
       )}
     </button>

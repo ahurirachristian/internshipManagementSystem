@@ -4,8 +4,12 @@ import java.util.List;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-public interface UniversityRepository extends JpaRepository<University, Long> {
-    List<University> findByNameStartingWithIgnoreCase(String prefix);
+public interface UniversityRepository extends JpaRepository<University, Integer> {
+    List<University> findByFullNameContainingIgnoreCase(String keyword);
 
-    Optional<University> findByNameIgnoreCase(String name);
+    List<University> findByShortFormStartingWithIgnoreCase(String prefix);
+
+    Optional<University> findByShortFormIgnoreCase(String shortForm);
+
+    Optional<University> findByFullNameIgnoreCase(String fullName);
 }
