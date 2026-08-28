@@ -17,7 +17,7 @@ import {
 } from '../../services/api';
 
 const emptyDiaryForm = {
-  date: '',
+  date: new Date().toISOString().split('T')[0],
   dailyActivities: '',
   knowledgeAndSkillsGained: '',
   accomplishments: '',
@@ -43,6 +43,18 @@ export default function StudentDashboard() {
   const [reviewDiary, setReviewDiary] = useState(null);
   const [companies, setCompanies] = useState([]);
   const [supervisors, setSupervisors] = useState([]);
+
+  const loadDiaries = useCallback(async function loadDiaries() {
+    setDiaryLoading(true);
+    setDiaryError('');
+    try {
+      setDiaries(await fetchStudentDiaries(user.username));
+    } catch (err) {
+      setDiaryError(err.message || 'Unable to load diary entries.');
+    } finally {
+      setDiaryLoading(false);
+    }
+  }, [user.username]);
 
   useEffect(() => {
     loadProfile();

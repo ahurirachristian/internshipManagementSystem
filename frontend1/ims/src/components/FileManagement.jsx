@@ -53,16 +53,6 @@ const MAX_SIZE_MB = 25;
 // Helpers
 // ---------------------------------------------------------------------------
 
-function loadDocuments() {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    const parsed = raw ? JSON.parse(raw) : [];
-    return Array.isArray(parsed) ? parsed : [];
-  } catch {
-    return [];
-  }
-}
-
 function formatDate(dateString) {
   if (!dateString) return '—';
   const d = new Date(dateString);
@@ -442,6 +432,19 @@ function StorageAnalyticsCard({ documents, onFilterByCategory, selectedCategory 
       };
     }).filter((c) => c.count > 0);
   }, [documents]);
+
+  async function handleDelete(id) {
+    if (!window.confirm('Delete this file?')) return;
+    setError('');
+    setNotice('');
+    try {
+      await deleteFile(id);
+      setNotice('File deleted successfully.');
+      await loadFiles();
+    } catch (err) {
+      setError(err.message || 'Unable to delete file.');
+    }
+  }
 
   return (
     <section id="storage-and-kpis-section" aria-label="Document Storage and Program Analytics" className="space-y-4">

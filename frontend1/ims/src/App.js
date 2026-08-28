@@ -1,4 +1,4 @@
-import { BrowserRouter, Navigate, Route, Routes, useNavigate } from 'react-router-dom';
+import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import LoginPage from './components/LoginPage';
@@ -9,6 +9,7 @@ import UniversityDashboard from './components/dashboards/UniversityDashboard';
 import CompanyDashboard from './components/dashboards/CompanyDashboard';
 import AdminDashboard from './components/dashboards/AdminDashboard';
 import AdminUsersPage from './components/dashboards/AdminUsersPage';
+import AdminStudentArea from './components/dashboards/AdminStudentArea';
 import AuditLogs from './components/dashboards/AuditLogs';
 import CompanyProfilePage from './components/dashboards/CompanyProfilePage';
 import CompanyPage from './components/CompanyPage';
@@ -100,7 +101,7 @@ function AppRoutes() {
       <Route
         path="/student/dashboard"
         element={
-          <ProtectedRoute roles={["ADMIN", "STUDENT"]}>
+          <ProtectedRoute roles={["STUDENT"]}>
             <StudentDashboard />
           </ProtectedRoute>
         }
@@ -150,6 +151,14 @@ function AppRoutes() {
         element={
           <ProtectedRoute role="ADMIN">
             <AdminDashboard />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/students"
+        element={
+          <ProtectedRoute role="ADMIN">
+            <AdminStudentArea />
           </ProtectedRoute>
         }
       />
