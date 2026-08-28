@@ -20,6 +20,10 @@ import UniversityStudents from './components/UniversityStudents';
 import SchoolsManagement from './components/dashboards/SchoolsManagement';
 import DepartmentsManagement from './components/dashboards/DepartmentsManagement';
 import ProgrammesManagement from './components/dashboards/ProgrammesManagement';
+import AcademicUnitsManagement from './components/dashboards/AcademicUnitsManagement';
+import CourseManagement from './components/dashboards/CourseManagement';
+import StaffManagement from './components/dashboards/StaffManagement';
+import UnitCoursesManagement from './components/dashboards/UnitCoursesManagement';
 import DashboardLayout from './components/DashboardLayout';
 import './App.css';
 
@@ -75,6 +79,38 @@ function ProgrammesPage() {
   return (
     <DashboardLayout title="Programmes Management" subtitle="Manage academic programmes">
       <ProgrammesManagement />
+    </DashboardLayout>
+  );
+}
+
+function AcademicUnitsPage() {
+  return (
+    <DashboardLayout title="Academic Units Management" subtitle="Manage colleges, schools and directorates as academic units">
+      <AcademicUnitsManagement />
+    </DashboardLayout>
+  );
+}
+
+function CoursesPage() {
+  return (
+    <DashboardLayout title="Course Management" subtitle="Manage academic courses offered by the university">
+      <CourseManagement />
+    </DashboardLayout>
+  );
+}
+
+function StaffPage() {
+  return (
+    <DashboardLayout title="Staff Management" subtitle="Manage university supervisors and staff">
+      <StaffManagement />
+    </DashboardLayout>
+  );
+}
+
+function UnitCoursesPage() {
+  return (
+    <DashboardLayout title="Unit Courses" subtitle="Courses offered under each academic unit">
+      <UnitCoursesManagement />
     </DashboardLayout>
   );
 }
@@ -199,6 +235,38 @@ function AppRoutes() {
         element={
           <ProtectedRoute role="SUPERVISOR">
             <ProgrammesPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/university/academic-units"
+        element={
+          <ProtectedRoute role="SUPERVISOR">
+            <AcademicUnitsPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/university/courses"
+        element={
+          <ProtectedRoute role="SUPERVISOR">
+            <CoursesPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/university/staff"
+        element={
+          <ProtectedRoute role="SUPERVISOR">
+            <StaffPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/university/unit-courses"
+        element={
+          <ProtectedRoute role="SUPERVISOR">
+            <UnitCoursesPage />
           </ProtectedRoute>
         }
       />
