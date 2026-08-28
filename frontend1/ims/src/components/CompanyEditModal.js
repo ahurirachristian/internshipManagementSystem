@@ -55,26 +55,26 @@ export default function CompanyEditModal({ company, title, onClose, onSubmit }) 
     }
   }
 
-  const inputClass = "w-full bg-white text-slate-900 text-xs rounded-xl border border-slate-300 px-3.5 py-2.5 focus:border-teal-600 focus:ring-2 focus:ring-teal-600/20 focus:outline-none transition-all shadow-xs font-medium";
-  const labelClass = "block text-xs font-bold uppercase tracking-wider text-slate-800 mb-1.5";
+  const inputClass = "w-full bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 text-xs rounded-xl border border-slate-300 dark:border-slate-700 px-3.5 py-2.5 focus:border-teal-600 focus:ring-2 focus:ring-teal-600/20 focus:outline-none transition-all shadow-xs font-medium";
+  const labelClass = "block text-xs font-bold uppercase tracking-wider text-slate-800 dark:text-slate-200 mb-1.5";
 
   return (
     <div role="dialog" aria-modal="true" aria-labelledby="company-modal-title"
       className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 sm:p-6 animate-in fade-in duration-150"
       onClick={onClose}>
       <div onClick={(e) => e.stopPropagation()}
-        className="bg-white w-full max-w-3xl rounded-2xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-150">
-        <div className="p-4 sm:p-5 bg-slate-50 border-b border-slate-200 flex items-center justify-between gap-4">
+        className="bg-white dark:bg-slate-900 w-full max-w-3xl rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-150">
+        <div className="p-4 sm:p-5 bg-slate-50 dark:bg-slate-800/40 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between gap-4">
           <div className="flex items-center gap-3 min-w-0">
             <div className="w-10 h-10 rounded-xl bg-teal-50 border border-teal-200 flex items-center justify-center text-teal-800 shrink-0">
               <Building2 className="w-5 h-5" />
             </div>
             <div className="min-w-0">
-              <h3 id="company-modal-title" className="text-base font-bold text-slate-900 truncate">{title}</h3>
-              <p className="text-xs text-slate-500 truncate">Fill in the company details below</p>
+              <h3 id="company-modal-title" className="text-base font-bold text-slate-900 dark:text-slate-100 truncate">{title}</h3>
+              <p className="text-xs text-slate-500 dark:text-slate-400 truncate">Fill in the company details below</p>
             </div>
           </div>
-          <button onClick={onClose} className="p-2 text-slate-400 hover:text-slate-700 hover:bg-slate-200 rounded-lg transition-colors" aria-label="Close modal">
+          <button onClick={onClose} className="p-2 text-slate-400 hover:text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:bg-slate-700 rounded-lg transition-colors" aria-label="Close modal">
             <X className="w-5 h-5" />
           </button>
         </div>
@@ -138,9 +138,9 @@ export default function CompanyEditModal({ company, title, onClose, onSubmit }) 
           </div>
         </form>
 
-        <div className="p-4 sm:p-5 bg-slate-50 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-end gap-3">
+        <div className="p-4 sm:p-5 bg-slate-50 dark:bg-slate-800/40 border-t border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row items-center justify-end gap-3">
           <button type="button" onClick={onClose}
-            className="px-3.5 py-2 rounded-xl bg-white hover:bg-slate-100 text-slate-700 text-xs font-bold border border-slate-300 transition-colors shadow-xs">
+            className="px-3.5 py-2 rounded-xl bg-white dark:bg-slate-900 hover:bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-bold border border-slate-300 dark:border-slate-700 transition-colors shadow-xs">
             Cancel
           </button>
           <button type="submit" onClick={handleSubmit} disabled={busy}

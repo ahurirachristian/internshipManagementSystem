@@ -23,8 +23,8 @@ const emptyDiaryForm = {
   accomplishments: '',
 };
 
-const inputClass = "w-full bg-white text-slate-900 text-xs rounded-xl border border-slate-300 px-3.5 py-2.5 focus:border-teal-600 focus:ring-2 focus:ring-teal-600/20 focus:outline-none transition-all shadow-xs font-medium";
-const labelClass = "block text-xs font-bold uppercase tracking-wider text-slate-800 mb-1.5";
+const inputClass = "w-full bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 text-xs rounded-xl border border-slate-300 dark:border-slate-700 px-3.5 py-2.5 focus:border-teal-600 focus:ring-2 focus:ring-teal-600/20 focus:outline-none transition-all shadow-xs font-medium";
+const labelClass = "block text-xs font-bold uppercase tracking-wider text-slate-800 dark:text-slate-200 mb-1.5";
 
 export default function StudentDashboard() {
   const { user } = useAuth();
@@ -175,7 +175,7 @@ export default function StudentDashboard() {
       return (
         <div className="flex items-center justify-center py-12">
           <Loader2 className="w-5 h-5 text-teal-600 animate-spin" />
-          <span className="ml-2 text-sm text-slate-500">Loading profile...</span>
+          <span className="ml-2 text-sm text-slate-500 dark:text-slate-400">Loading profile...</span>
         </div>
       );
     }
@@ -189,9 +189,9 @@ export default function StudentDashboard() {
     }
     if (!profile) {
       return (
-        <div className="bg-white rounded-xl border border-slate-200 shadow-xs p-6">
-          <h2 className="text-lg font-bold text-slate-900 mb-2">Complete your profile</h2>
-          <p className="text-sm text-slate-600 mb-4">You do not have a student profile yet. Create one to get started.</p>
+        <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-xs p-6">
+          <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100 mb-2">Complete your profile</h2>
+          <p className="text-sm text-slate-600 dark:text-slate-400 mb-4">You do not have a student profile yet. Create one to get started.</p>
           <button
             onClick={openProfileModal}
             className="px-3.5 py-2 rounded-xl bg-primary hover:bg-primary text-white text-xs font-bold transition-all flex items-center gap-1.5 shadow-xs focus-visible:ring-2 focus-visible:ring-teal-600 focus-visible:outline-none"
@@ -221,14 +221,14 @@ export default function StudentDashboard() {
       ['End Date', profile.endDate],
     ];
     return (
-      <div className="bg-white rounded-xl border border-slate-200 shadow-xs p-6">
-        <h2 className="text-lg font-bold text-slate-900 mb-1">My Profile</h2>
-        <p className="text-xs text-slate-500 mb-5">Your student details as recorded in the system.</p>
+      <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-xs p-6">
+        <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100 mb-1">My Profile</h2>
+        <p className="text-xs text-slate-500 dark:text-slate-400 mb-5">Your student details as recorded in the system.</p>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-5">
           {details.map(([label, value]) => (
-            <div key={label} className="bg-slate-50 rounded-xl p-3 border border-slate-200">
-              <span className="text-[11px] font-bold uppercase tracking-wider text-slate-800">{label}</span>
-              <p className="text-sm text-slate-700 mt-1">{value || '—'}</p>
+            <div key={label} className="bg-slate-50 dark:bg-slate-800/40 rounded-xl p-3 border border-slate-200 dark:border-slate-800">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-slate-800 dark:text-slate-200">{label}</span>
+              <p className="text-sm text-slate-700 dark:text-slate-300 mt-1">{value || '—'}</p>
             </div>
           ))}
         </div>
@@ -246,9 +246,9 @@ export default function StudentDashboard() {
   function renderDiary() {
     return (
       <>
-        <div className="bg-white rounded-xl border border-slate-200 shadow-xs p-6">
-          <h2 className="text-lg font-bold text-slate-900 mb-1">{editingDiaryId ? 'Edit Day Diary Entry' : 'New Day Diary Entry'}</h2>
-          <p className="text-xs text-slate-500 mb-5">
+        <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-xs p-6">
+          <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100 mb-1">{editingDiaryId ? 'Edit Day Diary Entry' : 'New Day Diary Entry'}</h2>
+          <p className="text-xs text-slate-500 dark:text-slate-400 mb-5">
             {editingDiaryId
               ? 'Update the activities and skills gained for this day.'
               : 'Record the activities and skills gained for a day.'}
@@ -296,7 +296,7 @@ export default function StudentDashboard() {
             </div>
             <div className="flex items-center justify-end gap-3 pt-2">
               {editingDiaryId && (
-                <button type="button" onClick={cancelEditDiary} className="px-3.5 py-2 rounded-xl bg-white hover:bg-slate-100 text-slate-700 text-xs font-semibold border border-slate-300 transition-colors shadow-xs">
+                <button type="button" onClick={cancelEditDiary} className="px-3.5 py-2 rounded-xl bg-white dark:bg-slate-900 hover:bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-semibold border border-slate-300 dark:border-slate-700 transition-colors shadow-xs">
                   Cancel Edit
                 </button>
               )}
@@ -310,42 +310,42 @@ export default function StudentDashboard() {
           </form>
         </div>
 
-        <div className="bg-white rounded-xl border border-slate-200 shadow-xs p-6">
-          <h2 className="text-lg font-bold text-slate-900 mb-4">My Diary Entries</h2>
+        <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-xs p-6">
+          <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100 mb-4">My Diary Entries</h2>
           {diaryLoading && (
             <div className="flex items-center justify-center py-8">
               <Loader2 className="w-5 h-5 text-teal-600 animate-spin" />
-              <span className="ml-2 text-sm text-slate-500">Loading entries...</span>
+              <span className="ml-2 text-sm text-slate-500 dark:text-slate-400">Loading entries...</span>
             </div>
           )}
           {!diaryLoading && diaries.length === 0 && (
-            <p className="text-sm text-slate-500 text-center py-8">No diary entries yet. Add your first entry above.</p>
+            <p className="text-sm text-slate-500 dark:text-slate-400 text-center py-8">No diary entries yet. Add your first entry above.</p>
           )}
           <div className="space-y-3">
             {diaries.map((entry) => (
-              <div key={entry.id} className="bg-slate-50 rounded-xl p-4 border border-slate-200">
-                <h3 className="text-sm font-bold text-slate-900 mb-3">{entry.date}</h3>
+              <div key={entry.id} className="bg-slate-50 dark:bg-slate-800/40 rounded-xl p-4 border border-slate-200 dark:border-slate-800">
+                <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100 mb-3">{entry.date}</h3>
                 <div className="space-y-2 mb-4">
                   <div>
-                    <span className="text-[11px] font-bold uppercase tracking-wider text-slate-800">Daily Activities</span>
-                    <p className="text-sm text-slate-700 mt-0.5">{entry.dailyActivities || '—'}</p>
+                    <span className="text-[11px] font-bold uppercase tracking-wider text-slate-800 dark:text-slate-200">Daily Activities</span>
+                    <p className="text-sm text-slate-700 dark:text-slate-300 mt-0.5">{entry.dailyActivities || '—'}</p>
                   </div>
                   <div>
-                    <span className="text-[11px] font-bold uppercase tracking-wider text-slate-800">Knowledge &amp; Skills Gained</span>
-                    <p className="text-sm text-slate-700 mt-0.5">{entry.knowledgeAndSkillsGained || '—'}</p>
+                    <span className="text-[11px] font-bold uppercase tracking-wider text-slate-800 dark:text-slate-200">Knowledge &amp; Skills Gained</span>
+                    <p className="text-sm text-slate-700 dark:text-slate-300 mt-0.5">{entry.knowledgeAndSkillsGained || '—'}</p>
                   </div>
                   <div>
-                    <span className="text-[11px] font-bold uppercase tracking-wider text-slate-800">Accomplishments</span>
-                    <p className="text-sm text-slate-700 mt-0.5">{entry.accomplishments || '—'}</p>
+                    <span className="text-[11px] font-bold uppercase tracking-wider text-slate-800 dark:text-slate-200">Accomplishments</span>
+                    <p className="text-sm text-slate-700 dark:text-slate-300 mt-0.5">{entry.accomplishments || '—'}</p>
                   </div>
                   {entry.supervisorFeedback && (
                     <div>
-                      <span className="text-[11px] font-bold uppercase tracking-wider text-slate-800">Supervisor Feedback</span>
-                      <p className="text-sm text-slate-700 mt-0.5">{entry.supervisorFeedback}</p>
+                      <span className="text-[11px] font-bold uppercase tracking-wider text-slate-800 dark:text-slate-200">Supervisor Feedback</span>
+                      <p className="text-sm text-slate-700 dark:text-slate-300 mt-0.5">{entry.supervisorFeedback}</p>
                     </div>
                   )}
                 </div>
-                <ul className="flex items-center gap-2 border-t border-slate-200 pt-3">
+                <ul className="flex items-center gap-2 border-t border-slate-200 dark:border-slate-800 pt-3">
                   <li>
                     <button
                       onClick={() => startEditDiary(entry)}

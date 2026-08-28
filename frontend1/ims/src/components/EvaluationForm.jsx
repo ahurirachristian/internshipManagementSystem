@@ -140,7 +140,7 @@ export default function EvaluationFormModal({ placement, onClose, onSaved }) {
   const companyEval = evaluations.find((e) => e.supervisorType === 'COMPANY');
   const universityEval = evaluations.find((e) => e.supervisorType === 'UNIVERSITY');
 
-  const inputClass = "w-full bg-white text-slate-900 text-xs rounded-xl border border-slate-300 px-3.5 py-2.5 focus:border-teal-600 focus:ring-2 focus:ring-teal-600/20 focus:outline-none transition-all shadow-xs font-medium";
+  const inputClass = "w-full bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 text-xs rounded-xl border border-slate-300 dark:border-slate-700 px-3.5 py-2.5 focus:border-teal-600 focus:ring-2 focus:ring-teal-600/20 focus:outline-none transition-all shadow-xs font-medium";
 
   return (
     <div
@@ -152,21 +152,21 @@ export default function EvaluationFormModal({ placement, onClose, onSaved }) {
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        className="bg-white w-full max-w-[900px] rounded-2xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-150"
+        className="bg-white dark:bg-slate-900 w-full max-w-[900px] rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-150"
       >
-        <div className="p-4 sm:p-5 bg-slate-50 border-b border-slate-200 flex items-center justify-between gap-4">
+        <div className="p-4 sm:p-5 bg-slate-50 dark:bg-slate-800/40 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between gap-4">
           <div className="flex items-center gap-3 min-w-0">
             <div className="w-10 h-10 rounded-xl bg-teal-50 border border-teal-200 flex items-center justify-center text-teal-800 shrink-0">
               <ClipboardCheck className="w-5 h-5" />
             </div>
             <div className="min-w-0">
-              <h3 id="eval-modal-title" className="text-base font-bold text-slate-900 truncate">Dual Supervisor Evaluation</h3>
-              <p className="text-xs text-slate-500 truncate">Company and university supervisor scoring</p>
+              <h3 id="eval-modal-title" className="text-base font-bold text-slate-900 dark:text-slate-100 truncate">Dual Supervisor Evaluation</h3>
+              <p className="text-xs text-slate-500 dark:text-slate-400 truncate">Company and university supervisor scoring</p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="p-2 text-slate-400 hover:text-slate-700 hover:bg-slate-200 rounded-lg transition-colors focus-visible:ring-2 focus-visible:ring-teal-600 focus-visible:outline-none"
+            className="p-2 text-slate-400 hover:text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:bg-slate-700 rounded-lg transition-colors focus-visible:ring-2 focus-visible:ring-teal-600 focus-visible:outline-none"
             aria-label="Close modal"
           >
             <X className="w-5 h-5" />
@@ -180,7 +180,7 @@ export default function EvaluationFormModal({ placement, onClose, onSaved }) {
         )}
 
         {loading && (
-          <div className="p-6 text-center text-sm text-slate-500">Loading evaluations...</div>
+          <div className="p-6 text-center text-sm text-slate-500 dark:text-slate-400">Loading evaluations...</div>
         )}
 
         {!loading && (
@@ -192,11 +192,11 @@ export default function EvaluationFormModal({ placement, onClose, onSaved }) {
                   <div className="w-8 h-8 rounded-lg bg-sky-50 border border-sky-200 flex items-center justify-center text-sky-800">
                     <Briefcase className="w-4 h-4" />
                   </div>
-                  <h4 className="text-sm font-bold text-slate-900">Company Supervisor Evaluation</h4>
+                  <h4 className="text-sm font-bold text-slate-900 dark:text-slate-100">Company Supervisor Evaluation</h4>
                 </div>
 
                 <div>
-                  <label htmlFor="punctuality" className="block text-xs font-bold uppercase tracking-wider text-slate-800 mb-1.5">Punctuality</label>
+                  <label htmlFor="punctuality" className="block text-xs font-bold uppercase tracking-wider text-slate-800 dark:text-slate-200 mb-1.5">Punctuality</label>
                   <input
                     id="punctuality"
                     type="number"
@@ -208,7 +208,7 @@ export default function EvaluationFormModal({ placement, onClose, onSaved }) {
                   />
                 </div>
                 <div>
-                  <label htmlFor="practicalWorkEthics" className="block text-xs font-bold uppercase tracking-wider text-slate-800 mb-1.5">Practical Work Ethics</label>
+                  <label htmlFor="practicalWorkEthics" className="block text-xs font-bold uppercase tracking-wider text-slate-800 dark:text-slate-200 mb-1.5">Practical Work Ethics</label>
                   <input
                     id="practicalWorkEthics"
                     type="number"
@@ -220,7 +220,7 @@ export default function EvaluationFormModal({ placement, onClose, onSaved }) {
                   />
                 </div>
                 <div>
-                  <label htmlFor="attendance" className="block text-xs font-bold uppercase tracking-wider text-slate-800 mb-1.5">Attendance</label>
+                  <label htmlFor="attendance" className="block text-xs font-bold uppercase tracking-wider text-slate-800 dark:text-slate-200 mb-1.5">Attendance</label>
                   <input
                     id="attendance"
                     type="number"
@@ -232,7 +232,7 @@ export default function EvaluationFormModal({ placement, onClose, onSaved }) {
                   />
                 </div>
                 <div>
-                  <label htmlFor="workplacePerformance" className="block text-xs font-bold uppercase tracking-wider text-slate-800 mb-1.5">Workplace Performance</label>
+                  <label htmlFor="workplacePerformance" className="block text-xs font-bold uppercase tracking-wider text-slate-800 dark:text-slate-200 mb-1.5">Workplace Performance</label>
                   <input
                     id="workplacePerformance"
                     type="number"
@@ -261,11 +261,11 @@ export default function EvaluationFormModal({ placement, onClose, onSaved }) {
                   <div className="w-8 h-8 rounded-lg bg-violet-50 border border-violet-200 flex items-center justify-center text-violet-800">
                     <GraduationCap className="w-4 h-4" />
                   </div>
-                  <h4 className="text-sm font-bold text-slate-900">University Supervisor Evaluation</h4>
+                  <h4 className="text-sm font-bold text-slate-900 dark:text-slate-100">University Supervisor Evaluation</h4>
                 </div>
 
                 <div>
-                  <label htmlFor="logbookQuality" className="block text-xs font-bold uppercase tracking-wider text-slate-800 mb-1.5">Logbook Quality</label>
+                  <label htmlFor="logbookQuality" className="block text-xs font-bold uppercase tracking-wider text-slate-800 dark:text-slate-200 mb-1.5">Logbook Quality</label>
                   <input
                     id="logbookQuality"
                     type="number"
@@ -277,7 +277,7 @@ export default function EvaluationFormModal({ placement, onClose, onSaved }) {
                   />
                 </div>
                 <div>
-                  <label htmlFor="academicReport" className="block text-xs font-bold uppercase tracking-wider text-slate-800 mb-1.5">Academic Report</label>
+                  <label htmlFor="academicReport" className="block text-xs font-bold uppercase tracking-wider text-slate-800 dark:text-slate-200 mb-1.5">Academic Report</label>
                   <input
                     id="academicReport"
                     type="number"
@@ -289,7 +289,7 @@ export default function EvaluationFormModal({ placement, onClose, onSaved }) {
                   />
                 </div>
                 <div>
-                  <label htmlFor="presentation" className="block text-xs font-bold uppercase tracking-wider text-slate-800 mb-1.5">Presentation</label>
+                  <label htmlFor="presentation" className="block text-xs font-bold uppercase tracking-wider text-slate-800 dark:text-slate-200 mb-1.5">Presentation</label>
                   <input
                     id="presentation"
                     type="number"
@@ -301,7 +301,7 @@ export default function EvaluationFormModal({ placement, onClose, onSaved }) {
                   />
                 </div>
                 <div>
-                  <label htmlFor="overallGrade" className="block text-xs font-bold uppercase tracking-wider text-slate-800 mb-1.5">Overall Grade</label>
+                  <label htmlFor="overallGrade" className="block text-xs font-bold uppercase tracking-wider text-slate-800 dark:text-slate-200 mb-1.5">Overall Grade</label>
                   <input
                     id="overallGrade"
                     type="number"

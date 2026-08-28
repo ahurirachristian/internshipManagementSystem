@@ -127,15 +127,15 @@ export default function AdminDashboard() {
 
   function renderStudents() {
     return (
-      <section className="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
-        <div className="px-5 py-4 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+      <section className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs overflow-hidden">
+        <div className="px-5 py-4 border-b border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-teal-50 border border-teal-200 flex items-center justify-center text-teal-700">
               <GraduationCap className="w-5 h-5" />
             </div>
             <div>
-              <h3 className="text-sm font-bold text-slate-900">Registered Students</h3>
-              <p className="text-[11px] text-slate-500">All registered student profiles and their diary activity</p>
+              <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100">Registered Students</h3>
+              <p className="text-[11px] text-slate-500 dark:text-slate-400">All registered student profiles and their diary activity</p>
             </div>
           </div>
           <ExportButton data={students} fileName="students" exportUrl="/api/students/export/csv" />
@@ -143,7 +143,7 @@ export default function AdminDashboard() {
         <div className="overflow-x-auto custom-scrollbar">
           <table className="w-full text-left border-collapse" style={{ minWidth: '850px' }} aria-label="Registered students">
             <thead>
-              <tr className="border-b border-slate-200 bg-slate-50/90 text-[11px] font-bold tracking-wider text-slate-800">
+              <tr className="border-b border-slate-200 dark:border-slate-800 bg-slate-50/90 dark:bg-slate-800/60 text-[11px] font-bold tracking-wider text-slate-800 dark:text-slate-200">
                 <th scope="col" className="py-3.5 px-3 pl-5">Student</th>
                 <th scope="col" className="py-3.5 px-3">Student No.</th>
                 <th scope="col" className="py-3.5 px-3">Email</th>
@@ -153,29 +153,29 @@ export default function AdminDashboard() {
                 <th scope="col" className="py-3.5 px-3 pr-5">Status</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100 text-sm">
+            <tbody className="divide-y divide-slate-100 dark:divide-slate-800 text-sm">
               {filteredStudents.length > 0 ? (
                 filteredStudents.map((student) => {
                   const count = stats.diaryCounts[student.studentNumber] || 0;
                   return (
-                    <tr key={student.id} className="hover:bg-slate-50/80 transition-colors">
+                    <tr key={student.id} className="hover:bg-slate-50/80 dark:hover:bg-slate-800/60 transition-colors">
                       <td className="py-3.5 px-3 pl-5">
                         <div className="flex items-center gap-3">
                           <div className="w-8 h-8 rounded-lg bg-teal-50 text-teal-700 border border-teal-200 flex items-center justify-center shrink-0 shadow-xs overflow-hidden">
                             <GraduationCap className="w-4 h-4" />
                           </div>
                           <div>
-                            <div className="font-bold text-slate-900">{student.fullName}</div>
-                            <div className="text-[11px] text-slate-500">{student.username}</div>
+                            <div className="font-bold text-slate-900 dark:text-slate-100">{student.fullName}</div>
+                            <div className="text-[11px] text-slate-500 dark:text-slate-400">{student.username}</div>
                           </div>
                         </div>
                       </td>
-                      <td className="py-3.5 px-3 text-xs text-slate-600">{student.username}</td>
-                      <td className="py-3.5 px-3 text-xs text-slate-600">{student.email}</td>
-                      <td className="py-3.5 px-3 text-xs text-slate-600">{student.degreeProgram}</td>
-                      <td className="py-3.5 px-3 text-xs text-slate-600">{student.organisation || '—'}</td>
+                      <td className="py-3.5 px-3 text-xs text-slate-600 dark:text-slate-400">{student.username}</td>
+                      <td className="py-3.5 px-3 text-xs text-slate-600 dark:text-slate-400">{student.email}</td>
+                      <td className="py-3.5 px-3 text-xs text-slate-600 dark:text-slate-400">{student.degreeProgram}</td>
+                      <td className="py-3.5 px-3 text-xs text-slate-600 dark:text-slate-400">{student.organisation || '—'}</td>
                       <td className="py-3.5 px-3">
-                        <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-slate-100 text-xs font-bold text-slate-700 border border-slate-200">
+                        <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-slate-100 dark:bg-slate-700 text-xs font-bold text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-800">
                           {count}
                         </span>
                       </td>
@@ -191,13 +191,13 @@ export default function AdminDashboard() {
                 <tr>
                   <td colSpan={7} className="py-12 px-4 text-center">
                     <div className="max-w-sm mx-auto flex flex-col items-center">
-                      <div className="w-12 h-12 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-400 mb-3">
+                      <div className="w-12 h-12 rounded-full bg-slate-100 dark:bg-slate-700 border border-slate-200 dark:border-slate-800 flex items-center justify-center text-slate-400 mb-3">
                         {searchQuery ? <Search className="w-6 h-6" /> : <GraduationCap className="w-6 h-6" />}
                       </div>
-                      <h3 className="text-base font-bold text-slate-800">
+                      <h3 className="text-base font-bold text-slate-800 dark:text-slate-200">
                         {searchQuery ? 'No matching students' : 'No registered students'}
                       </h3>
-                      <p className="text-xs text-slate-500 mt-1">
+                      <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
                         {searchQuery
                           ? 'No students match your search criteria.'
                           : 'No registered students found.'}
@@ -215,15 +215,15 @@ export default function AdminDashboard() {
 
   function renderDiaries() {
     return (
-      <section className="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
-        <div className="px-5 py-4 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+      <section className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs overflow-hidden">
+        <div className="px-5 py-4 border-b border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-blue-50 border border-blue-200 flex items-center justify-center text-blue-700">
               <BookOpen className="w-5 h-5" />
             </div>
             <div>
-              <h3 className="text-sm font-bold text-slate-900">Day Diary Logs</h3>
-              <p className="text-[11px] text-slate-500">All submitted day diary entries across every student</p>
+              <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100">Day Diary Logs</h3>
+              <p className="text-[11px] text-slate-500 dark:text-slate-400">All submitted day diary entries across every student</p>
             </div>
           </div>
           <ExportButton data={filteredDiaries} fileName="diaries" exportUrl="/api/diaries/export/csv" />
@@ -231,7 +231,7 @@ export default function AdminDashboard() {
         <div className="overflow-x-auto custom-scrollbar">
           <table className="w-full text-left border-collapse" style={{ minWidth: '900px' }} aria-label="Day diary logs">
             <thead>
-              <tr className="border-b border-slate-200 bg-slate-50/90 text-[11px] font-bold tracking-wider text-slate-800">
+              <tr className="border-b border-slate-200 dark:border-slate-800 bg-slate-50/90 dark:bg-slate-800/60 text-[11px] font-bold tracking-wider text-slate-800 dark:text-slate-200">
                 <th scope="col" className="py-3.5 px-3 pl-5">Date</th>
                 <th scope="col" className="py-3.5 px-3">Student</th>
                 <th scope="col" className="py-3.5 px-3">Daily Activities</th>
@@ -240,26 +240,26 @@ export default function AdminDashboard() {
                 <th scope="col" className="py-3.5 px-3 pr-5 text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100 text-sm">
+            <tbody className="divide-y divide-slate-100 dark:divide-slate-800 text-sm">
               {filteredDiaries.length > 0 ? (
                 filteredDiaries.map((entry) => {
                   return (
-                    <tr key={entry.id} className="hover:bg-slate-50/80 transition-colors">
-                      <td className="py-3.5 px-3 pl-5 font-bold text-slate-900 text-xs">{formatDate(entry.date)}</td>
+                    <tr key={entry.id} className="hover:bg-slate-50/80 dark:hover:bg-slate-800/60 transition-colors">
+                      <td className="py-3.5 px-3 pl-5 font-bold text-slate-900 dark:text-slate-100 text-xs">{formatDate(entry.date)}</td>
                       <td className="py-3.5 px-3">
                         <div className="flex items-center gap-3">
                           <div className="w-8 h-8 rounded-lg bg-teal-50 text-teal-700 border border-teal-200 flex items-center justify-center shrink-0 shadow-xs">
                             <GraduationCap className="w-4 h-4" />
                           </div>
                           <div>
-                            <div className="font-bold text-slate-900">{entry.studentName}</div>
-                            <div className="text-[11px] text-slate-500">{entry.studentNumber}</div>
+                            <div className="font-bold text-slate-900 dark:text-slate-100">{entry.studentName}</div>
+                            <div className="text-[11px] text-slate-500 dark:text-slate-400">{entry.studentNumber}</div>
                           </div>
                         </div>
                       </td>
-                      <td className="py-3.5 px-3 text-xs text-slate-600 max-w-[180px] truncate">{entry.dailyActivities || '—'}</td>
-                      <td className="py-3.5 px-3 text-xs text-slate-600 max-w-[180px] truncate">{entry.knowledgeAndSkillsGained || '—'}</td>
-                      <td className="py-3.5 px-3 text-xs text-slate-600 max-w-[180px] truncate">{entry.accomplishments || '—'}</td>
+                      <td className="py-3.5 px-3 text-xs text-slate-600 dark:text-slate-400 max-w-[180px] truncate">{entry.dailyActivities || '—'}</td>
+                      <td className="py-3.5 px-3 text-xs text-slate-600 dark:text-slate-400 max-w-[180px] truncate">{entry.knowledgeAndSkillsGained || '—'}</td>
+                      <td className="py-3.5 px-3 text-xs text-slate-600 dark:text-slate-400 max-w-[180px] truncate">{entry.accomplishments || '—'}</td>
                       <td className="py-3.5 px-3 pr-5 text-right">
                         <ul className="flex items-center justify-end gap-1 list-none p-0 m-0">
                           <li>
@@ -282,13 +282,13 @@ export default function AdminDashboard() {
                 <tr>
                   <td colSpan={6} className="py-12 px-4 text-center">
                     <div className="max-w-sm mx-auto flex flex-col items-center">
-                      <div className="w-12 h-12 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-400 mb-3">
+                      <div className="w-12 h-12 rounded-full bg-slate-100 dark:bg-slate-700 border border-slate-200 dark:border-slate-800 flex items-center justify-center text-slate-400 mb-3">
                         {searchQuery ? <Search className="w-6 h-6" /> : <FileText className="w-6 h-6" />}
                       </div>
-                      <h3 className="text-base font-bold text-slate-800">
+                      <h3 className="text-base font-bold text-slate-800 dark:text-slate-200">
                         {searchQuery ? 'No matching diary entries' : 'No diary entries'}
                       </h3>
-                      <p className="text-xs text-slate-500 mt-1">
+                      <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
                         {searchQuery
                           ? 'No diary entries match your search criteria.'
                           : 'No day diary entries have been submitted yet.'}
@@ -344,7 +344,7 @@ export default function AdminDashboard() {
 
         {/* Loading */}
         {loading && (
-          <div className="flex items-center gap-2 text-xs text-slate-500 font-medium">
+          <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400 font-medium">
             <div className="w-4 h-4 border-2 border-teal-600 border-t-transparent rounded-full animate-spin" />
             <span>Loading admin dashboard...</span>
           </div>
@@ -354,40 +354,40 @@ export default function AdminDashboard() {
           <>
             {/* Metric Cards */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-              <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-xs flex items-center gap-4">
+              <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 shadow-xs flex items-center gap-4">
                 <div className="w-10 h-10 rounded-xl bg-teal-50 border border-teal-200 flex items-center justify-center text-teal-700 shrink-0">
                   <GraduationCap className="w-5 h-5" />
                 </div>
                 <div>
-                  <div className="text-2xl font-extrabold text-slate-900">{stats.totalStudents}</div>
-                  <div className="text-xs font-semibold text-slate-500">Registered Students</div>
+                  <div className="text-2xl font-extrabold text-slate-900 dark:text-slate-100">{stats.totalStudents}</div>
+                  <div className="text-xs font-semibold text-slate-500 dark:text-slate-400">Registered Students</div>
                 </div>
               </div>
-              <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-xs flex items-center gap-4">
+              <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 shadow-xs flex items-center gap-4">
                 <div className="w-10 h-10 rounded-xl bg-blue-50 border border-blue-200 flex items-center justify-center text-blue-700 shrink-0">
                   <BookOpen className="w-5 h-5" />
                 </div>
                 <div>
-                  <div className="text-2xl font-extrabold text-slate-900">{stats.totalDiaryEntries}</div>
-                  <div className="text-xs font-semibold text-slate-500">Day Diary Logs Submitted</div>
+                  <div className="text-2xl font-extrabold text-slate-900 dark:text-slate-100">{stats.totalDiaryEntries}</div>
+                  <div className="text-xs font-semibold text-slate-500 dark:text-slate-400">Day Diary Logs Submitted</div>
                 </div>
               </div>
-              <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-xs flex items-center gap-4">
+              <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 shadow-xs flex items-center gap-4">
                 <div className="w-10 h-10 rounded-xl bg-emerald-50 border border-emerald-200 flex items-center justify-center text-emerald-700 shrink-0">
                   <CheckCircle className="w-5 h-5" />
                 </div>
                 <div>
-                  <div className="text-2xl font-extrabold text-slate-900">{stats.activeStudents}</div>
-                  <div className="text-xs font-semibold text-slate-500">Active Students</div>
+                  <div className="text-2xl font-extrabold text-slate-900 dark:text-slate-100">{stats.activeStudents}</div>
+                  <div className="text-xs font-semibold text-slate-500 dark:text-slate-400">Active Students</div>
                 </div>
               </div>
-              <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-xs flex items-center gap-4">
+              <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 shadow-xs flex items-center gap-4">
                 <div className="w-10 h-10 rounded-xl bg-amber-50 border border-amber-200 flex items-center justify-center text-amber-700 shrink-0">
                   <TrendingUp className="w-5 h-5" />
                 </div>
                 <div>
-                  <div className="text-2xl font-extrabold text-slate-900">{stats.average.toFixed(1)}</div>
-                  <div className="text-xs font-semibold text-slate-500">Avg Logs per Student</div>
+                  <div className="text-2xl font-extrabold text-slate-900 dark:text-slate-100">{stats.average.toFixed(1)}</div>
+                  <div className="text-xs font-semibold text-slate-500 dark:text-slate-400">Avg Logs per Student</div>
                 </div>
               </div>
             </div>

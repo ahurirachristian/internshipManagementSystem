@@ -128,7 +128,7 @@ export default function AuditLogs() {
 
         {/* Loading */}
         {loading && (
-          <div className="flex items-center gap-2 text-xs text-slate-500 font-medium">
+          <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400 font-medium">
             <div className="w-4 h-4 border-2 border-teal-600 border-t-transparent rounded-full animate-spin" />
             <span>Loading audit logs...</span>
           </div>
@@ -137,14 +137,14 @@ export default function AuditLogs() {
         {!loading && (
           <>
             {/* Filter Section */}
-            <section className="bg-white rounded-2xl border border-slate-200 p-5 shadow-xs">
-              <div className="flex items-center gap-2 text-sm font-bold text-slate-900 mb-4">
-                <Filter className="w-4 h-4 text-slate-500" />
+            <section className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 shadow-xs">
+              <div className="flex items-center gap-2 text-sm font-bold text-slate-900 dark:text-slate-100 mb-4">
+                <Filter className="w-4 h-4 text-slate-500 dark:text-slate-400" />
                 <span>Filters</span>
               </div>
               <div className="flex flex-wrap gap-4 items-end">
                 <div className="flex-1 min-w-[200px]">
-                  <label htmlFor="audit-search" className="block text-xs font-bold uppercase tracking-wider text-slate-800 mb-1.5">
+                  <label htmlFor="audit-search" className="block text-xs font-bold uppercase tracking-wider text-slate-800 dark:text-slate-200 mb-1.5">
                     Search
                   </label>
                   <input
@@ -153,11 +153,11 @@ export default function AuditLogs() {
                     placeholder="Username, action, target, details..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full bg-white text-slate-900 text-xs rounded-xl border border-slate-300 px-3.5 py-2.5 focus:border-teal-600 focus:ring-2 focus:ring-teal-600/20 focus:outline-none transition-all shadow-xs font-medium placeholder:text-slate-400"
+                    className="w-full bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 text-xs rounded-xl border border-slate-300 dark:border-slate-700 px-3.5 py-2.5 focus:border-teal-600 focus:ring-2 focus:ring-teal-600/20 focus:outline-none transition-all shadow-xs font-medium placeholder:text-slate-400"
                   />
                 </div>
                 <div className="flex-1 min-w-[160px]">
-                  <label htmlFor="audit-action" className="block text-xs font-bold uppercase tracking-wider text-slate-800 mb-1.5">
+                  <label htmlFor="audit-action" className="block text-xs font-bold uppercase tracking-wider text-slate-800 dark:text-slate-200 mb-1.5">
                     Action
                   </label>
                   <CustomSelect
@@ -168,7 +168,7 @@ export default function AuditLogs() {
                   />
                 </div>
                 <div className="flex-1 min-w-[160px]">
-                  <label htmlFor="audit-start" className="block text-xs font-bold uppercase tracking-wider text-slate-800 mb-1.5">
+                  <label htmlFor="audit-start" className="block text-xs font-bold uppercase tracking-wider text-slate-800 dark:text-slate-200 mb-1.5">
                     Start Date
                   </label>
                   <input
@@ -176,11 +176,11 @@ export default function AuditLogs() {
                     type="date"
                     value={startDate}
                     onChange={(e) => setStartDate(e.target.value)}
-                    className="w-full bg-white text-slate-900 text-xs rounded-xl border border-slate-300 px-3.5 py-2.5 focus:border-teal-600 focus:ring-2 focus:ring-teal-600/20 focus:outline-none transition-all shadow-xs font-medium"
+                    className="w-full bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 text-xs rounded-xl border border-slate-300 dark:border-slate-700 px-3.5 py-2.5 focus:border-teal-600 focus:ring-2 focus:ring-teal-600/20 focus:outline-none transition-all shadow-xs font-medium"
                   />
                 </div>
                 <div className="flex-1 min-w-[160px]">
-                  <label htmlFor="audit-end" className="block text-xs font-bold uppercase tracking-wider text-slate-800 mb-1.5">
+                  <label htmlFor="audit-end" className="block text-xs font-bold uppercase tracking-wider text-slate-800 dark:text-slate-200 mb-1.5">
                     End Date
                   </label>
                   <input
@@ -188,18 +188,18 @@ export default function AuditLogs() {
                     type="date"
                     value={endDate}
                     onChange={(e) => setEndDate(e.target.value)}
-                    className="w-full bg-white text-slate-900 text-xs rounded-xl border border-slate-300 px-3.5 py-2.5 focus:border-teal-600 focus:ring-2 focus:ring-teal-600/20 focus:outline-none transition-all shadow-xs font-medium"
+                    className="w-full bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 text-xs rounded-xl border border-slate-300 dark:border-slate-700 px-3.5 py-2.5 focus:border-teal-600 focus:ring-2 focus:ring-teal-600/20 focus:outline-none transition-all shadow-xs font-medium"
                   />
                 </div>
               </div>
             </section>
 
             {/* Table */}
-            <section className="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
+            <section className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs overflow-hidden">
               <div className="overflow-x-auto custom-scrollbar">
                 <table className="w-full text-left border-collapse" style={{ minWidth: '900px' }} aria-label="Audit logs">
                   <thead>
-                    <tr className="border-b border-slate-200 bg-slate-50/90 text-[11px] font-bold tracking-wider text-slate-800">
+                    <tr className="border-b border-slate-200 dark:border-slate-800 bg-slate-50/90 dark:bg-slate-800/60 text-[11px] font-bold tracking-wider text-slate-800 dark:text-slate-200">
                       <th scope="col" className="py-3.5 px-3 pl-5">Timestamp</th>
                       <th scope="col" className="py-3.5 px-3">User</th>
                       <th scope="col" className="py-3.5 px-3">Role</th>
@@ -209,34 +209,34 @@ export default function AuditLogs() {
                       <th scope="col" className="py-3.5 px-3 pr-5">IP Address</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-100 text-sm">
+                  <tbody className="divide-y divide-slate-100 dark:divide-slate-800 text-sm">
                     {filteredLogs.length > 0 ? (
                       filteredLogs.map((log, idx) => (
-                        <tr key={log.id || idx} className="hover:bg-slate-50/80 transition-colors">
-                          <td className="py-3.5 px-3 pl-5 font-bold text-slate-900 text-xs">{formatDate(log.timestamp || log.createdAt)}</td>
-                          <td className="py-3.5 px-3 text-xs text-slate-600">{log.username || log.user?.username || '—'}</td>
-                          <td className="py-3.5 px-3 text-xs text-slate-600">{log.role || log.user?.role || '—'}</td>
+                        <tr key={log.id || idx} className="hover:bg-slate-50/80 dark:hover:bg-slate-800/60 transition-colors">
+                          <td className="py-3.5 px-3 pl-5 font-bold text-slate-900 dark:text-slate-100 text-xs">{formatDate(log.timestamp || log.createdAt)}</td>
+                          <td className="py-3.5 px-3 text-xs text-slate-600 dark:text-slate-400">{log.username || log.user?.username || '—'}</td>
+                          <td className="py-3.5 px-3 text-xs text-slate-600 dark:text-slate-400">{log.role || log.user?.role || '—'}</td>
                           <td className="py-3.5 px-3">
-                            <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold ${ACTION_BADGE_STYLES[(log.action || '').toUpperCase()] || 'bg-slate-100 text-slate-600 border border-slate-200'}`}>
+                            <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold ${ACTION_BADGE_STYLES[(log.action || '').toUpperCase()] || 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-800'}`}>
                               {log.action || '—'}
                             </span>
                           </td>
-                          <td className="py-3.5 px-3 text-xs text-slate-600">{log.targetEntity || '—'}</td>
-                          <td className="py-3.5 px-3 text-xs text-slate-600 max-w-[200px] truncate">{log.details || log.description || '—'}</td>
-                          <td className="py-3.5 px-3 pr-5 text-xs text-slate-600 font-mono">{log.ipAddress || '—'}</td>
+                          <td className="py-3.5 px-3 text-xs text-slate-600 dark:text-slate-400">{log.targetEntity || '—'}</td>
+                          <td className="py-3.5 px-3 text-xs text-slate-600 dark:text-slate-400 max-w-[200px] truncate">{log.details || log.description || '—'}</td>
+                          <td className="py-3.5 px-3 pr-5 text-xs text-slate-600 dark:text-slate-400 font-mono">{log.ipAddress || '—'}</td>
                         </tr>
                       ))
                     ) : (
                       <tr>
                         <td colSpan={7} className="py-12 px-4 text-center">
                           <div className="max-w-sm mx-auto flex flex-col items-center">
-                            <div className="w-12 h-12 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-400 mb-3">
+                            <div className="w-12 h-12 rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-800 flex items-center justify-center text-slate-400 mb-3">
                               {searchQuery ? <Search className="w-6 h-6" /> : <FileText className="w-6 h-6" />}
                             </div>
-                            <h3 className="text-base font-bold text-slate-800">
+                            <h3 className="text-base font-bold text-slate-800 dark:text-slate-200">
                               {searchQuery ? 'No results found' : 'No audit logs'}
                             </h3>
-                            <p className="text-xs text-slate-500 mt-1">
+                            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
                               {searchQuery
                                 ? 'No audit logs match your search criteria.'
                                 : 'No audit logs have been recorded yet.'}

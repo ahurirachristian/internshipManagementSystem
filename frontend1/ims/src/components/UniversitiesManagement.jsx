@@ -161,7 +161,7 @@ export default function UniversitiesManagement() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search universities..."
-              className="w-full sm:w-52 bg-white text-slate-900 text-xs rounded-xl border border-slate-300 pl-9 pr-3 py-2 focus:border-teal-600 focus:ring-2 focus:ring-teal-600/20 focus:outline-none transition-all shadow-xs font-medium placeholder:text-slate-400"
+              className="w-full sm:w-52 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 text-xs rounded-xl border border-slate-300 dark:border-slate-700 pl-9 pr-3 py-2 focus:border-teal-600 focus:ring-2 focus:ring-teal-600/20 focus:outline-none transition-all shadow-xs font-medium placeholder:text-slate-400"
               aria-label="Search universities"
             />
           </div>
@@ -194,18 +194,18 @@ export default function UniversitiesManagement() {
 
       {/* Loading */}
       {loading && (
-        <div className="flex items-center gap-2 text-xs text-slate-500 font-medium">
+        <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400 font-medium">
           <div className="w-4 h-4 border-2 border-teal-600 border-t-transparent rounded-full animate-spin" />
           <span>Loading universities...</span>
         </div>
       )}
 
       {/* Table */}
-      <section id="universities-table-container" aria-labelledby="universities-table-title" className="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
+      <section id="universities-table-container" aria-labelledby="universities-table-title" className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs overflow-hidden">
         <div className="overflow-x-auto custom-scrollbar">
           <table className="w-full text-left border-collapse" style={{ minWidth: '800px' }} aria-label="Universities list">
             <thead>
-              <tr className="border-b border-slate-200 bg-slate-50/90 text-[11px] font-bold tracking-wider text-slate-800">
+              <tr className="border-b border-slate-200 dark:border-slate-800 bg-slate-50/90 dark:bg-slate-800/60 text-[11px] font-bold tracking-wider text-slate-800 dark:text-slate-200">
                 <th scope="col" className="py-3.5 px-3 pl-5">ID</th>
                 <th scope="col" className="py-3.5 px-3">University Name</th>
                 <th scope="col" className="py-3.5 px-3">Short Form</th>
@@ -214,25 +214,25 @@ export default function UniversitiesManagement() {
                 <th scope="col" className="py-3.5 px-3 pr-5 text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100 text-sm">
+            <tbody className="divide-y divide-slate-100 dark:divide-slate-800 text-sm">
               {paginatedUniversities.length > 0 ? paginatedUniversities.map((university) => (
-                <tr key={university.universityId} className="hover:bg-slate-50/80 transition-colors">
-                  <td className="py-3.5 px-3 pl-5 text-xs font-medium text-slate-500">{university.universityId}</td>
+                <tr key={university.universityId} className="hover:bg-slate-50/80 dark:hover:bg-slate-800/60 transition-colors">
+                  <td className="py-3.5 px-3 pl-5 text-xs font-medium text-slate-500 dark:text-slate-400">{university.universityId}</td>
                   <td className="py-3.5 px-3">
                     <div className="flex items-center gap-3">
                       <div className="w-8 h-8 rounded-lg bg-teal-50 text-teal-700 border border-teal-200 flex items-center justify-center shrink-0 shadow-xs">
                         <GraduationCap className="w-4 h-4" />
                       </div>
-                      <span className="font-bold text-slate-900">{university.fullName}</span>
+                      <span className="font-bold text-slate-900 dark:text-slate-100">{university.fullName}</span>
                     </div>
                   </td>
                   <td className="py-3.5 px-3">
-                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 border border-slate-200">
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-800">
                       {university.shortForm || '—'}
                     </span>
                   </td>
-                  <td className="py-3.5 px-3 text-xs text-slate-600">{university.country || '—'}</td>
-                  <td className="py-3.5 px-3 text-xs text-slate-600">{university.establishedYear || '—'}</td>
+                  <td className="py-3.5 px-3 text-xs text-slate-600 dark:text-slate-400">{university.country || '—'}</td>
+                  <td className="py-3.5 px-3 text-xs text-slate-600 dark:text-slate-400">{university.establishedYear || '—'}</td>
                   <td className="py-3.5 px-3 pr-5 text-right">
                     <ul className="flex items-center justify-end gap-1 list-none p-0 m-0">
                       <li>
@@ -264,13 +264,13 @@ export default function UniversitiesManagement() {
                 <tr>
                   <td colSpan={6} className="py-12 px-4 text-center">
                     <div className="max-w-sm mx-auto flex flex-col items-center">
-                      <div className="w-12 h-12 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-400 mb-3">
+                      <div className="w-12 h-12 rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-800 flex items-center justify-center text-slate-400 mb-3">
                         {searchQuery ? <Search className="w-6 h-6" /> : <FileText className="w-6 h-6" />}
                       </div>
-                      <h3 className="text-base font-bold text-slate-800">
+                      <h3 className="text-base font-bold text-slate-800 dark:text-slate-200">
                         {searchQuery ? 'No results found' : 'No universities found'}
                       </h3>
-                      <p className="text-xs text-slate-500 mt-1 mb-4">
+                      <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 mb-4">
                         {searchQuery ? (
                           <>No universities match &ldquo;<strong>{searchQuery}</strong>&rdquo;. Try a different search term.</>
                         ) : (
@@ -296,7 +296,7 @@ export default function UniversitiesManagement() {
 
         {/* Pagination */}
         {filteredUniversities.length > ITEMS_PER_PAGE && (
-          <div className="px-5 py-3 border-t border-slate-200 bg-slate-50/90 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-600">
+          <div className="px-5 py-3 border-t border-slate-200 dark:border-slate-800 bg-slate-50/90 dark:bg-slate-800/60 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-600 dark:text-slate-400">
             <span>
               Showing {((currentPage - 1) * ITEMS_PER_PAGE) + 1}–{Math.min(currentPage * ITEMS_PER_PAGE, filteredUniversities.length)} of {filteredUniversities.length} universities
             </span>
@@ -305,7 +305,7 @@ export default function UniversitiesManagement() {
                 type="button"
                 onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
                 disabled={currentPage === 1}
-                className="p-1.5 rounded-lg text-slate-600 hover:bg-slate-200 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                className="p-1.5 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:bg-slate-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
                 aria-label="Previous page"
               >
                 <ChevronLeft className="w-4 h-4" />
@@ -333,7 +333,7 @@ export default function UniversitiesManagement() {
                       className={`min-w-[28px] h-7 rounded-lg text-xs font-semibold transition-colors ${
                         currentPage === page
                           ? 'bg-primary text-white'
-                          : 'text-slate-600 hover:bg-slate-200'
+                          : 'text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:bg-slate-700'
                       }`}
                     >
                       {page}
@@ -344,7 +344,7 @@ export default function UniversitiesManagement() {
                 type="button"
                 onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
                 disabled={currentPage === totalPages}
-                className="p-1.5 rounded-lg text-slate-600 hover:bg-slate-200 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                className="p-1.5 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:bg-slate-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
                 aria-label="Next page"
               >
                 <ChevronRight className="w-4 h-4" />
@@ -365,22 +365,22 @@ export default function UniversitiesManagement() {
         >
           <div
             onClick={(e) => e.stopPropagation()}
-            className="bg-white w-full max-w-lg rounded-2xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-150"
+            className="bg-white dark:bg-slate-900 w-full max-w-lg rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-150"
           >
             {/* Modal Header */}
-            <div className="p-4 sm:p-5 bg-slate-50 border-b border-slate-200 flex items-center justify-between gap-4">
+            <div className="p-4 sm:p-5 bg-slate-50 dark:bg-slate-800/40 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between gap-4">
               <div className="flex items-center gap-3 min-w-0">
                 <div className="w-10 h-10 rounded-xl bg-teal-50 border border-teal-200 flex items-center justify-center text-teal-800 shrink-0">
                   <GraduationCap className="w-5 h-5" />
                 </div>
-                <h3 id="university-modal-title" className="text-base font-bold text-slate-900">
+                <h3 id="university-modal-title" className="text-base font-bold text-slate-900 dark:text-slate-100">
                   {editingId ? 'Edit University' : 'Add University'}
                 </h3>
               </div>
               <button
                 type="button"
                 onClick={closeModal}
-                className="p-2 text-slate-400 hover:text-slate-700 hover:bg-slate-200 rounded-lg transition-colors focus-visible:ring-2 focus-visible:ring-teal-600 focus-visible:outline-none"
+                className="p-2 text-slate-400 hover:text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:bg-slate-700 rounded-lg transition-colors focus-visible:ring-2 focus-visible:ring-teal-600 focus-visible:outline-none"
                 aria-label="Close modal"
               >
                 <X className="w-5 h-5" />
@@ -391,7 +391,7 @@ export default function UniversitiesManagement() {
             <form onSubmit={handleSubmit} className="flex flex-col flex-1 min-h-0">
               <div className="p-6 space-y-5 overflow-y-auto flex-1">
                 <div>
-                  <label htmlFor="uni-fullName" className="block text-xs font-bold uppercase tracking-wider text-slate-800 mb-1.5">
+                  <label htmlFor="uni-fullName" className="block text-xs font-bold uppercase tracking-wider text-slate-800 dark:text-slate-200 mb-1.5">
                     University Name <span className="text-rose-600" aria-hidden="true">*</span>
                   </label>
                   <input
@@ -401,11 +401,11 @@ export default function UniversitiesManagement() {
                     onChange={(e) => setForm({ ...form, fullName: e.target.value })}
                     placeholder="e.g. Makerere University"
                     required
-                    className="w-full bg-white text-slate-900 text-xs rounded-xl border border-slate-300 px-3.5 py-2.5 focus:border-teal-600 focus:ring-2 focus:ring-teal-600/20 focus:outline-none transition-all shadow-xs font-medium"
+                    className="w-full bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 text-xs rounded-xl border border-slate-300 dark:border-slate-700 px-3.5 py-2.5 focus:border-teal-600 focus:ring-2 focus:ring-teal-600/20 focus:outline-none transition-all shadow-xs font-medium"
                   />
                 </div>
                 <div>
-                  <label htmlFor="uni-shortForm" className="block text-xs font-bold uppercase tracking-wider text-slate-800 mb-1.5">
+                  <label htmlFor="uni-shortForm" className="block text-xs font-bold uppercase tracking-wider text-slate-800 dark:text-slate-200 mb-1.5">
                     Short Form / Abbreviation <span className="text-rose-600" aria-hidden="true">*</span>
                   </label>
                   <input
@@ -415,11 +415,11 @@ export default function UniversitiesManagement() {
                     onChange={(e) => setForm({ ...form, shortForm: e.target.value })}
                     placeholder="e.g. MAK"
                     required
-                    className="w-full bg-white text-slate-900 text-xs rounded-xl border border-slate-300 px-3.5 py-2.5 focus:border-teal-600 focus:ring-2 focus:ring-teal-600/20 focus:outline-none transition-all shadow-xs font-medium"
+                    className="w-full bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 text-xs rounded-xl border border-slate-300 dark:border-slate-700 px-3.5 py-2.5 focus:border-teal-600 focus:ring-2 focus:ring-teal-600/20 focus:outline-none transition-all shadow-xs font-medium"
                   />
                 </div>
                 <div>
-                  <label htmlFor="uni-country" className="block text-xs font-bold uppercase tracking-wider text-slate-800 mb-1.5">
+                  <label htmlFor="uni-country" className="block text-xs font-bold uppercase tracking-wider text-slate-800 dark:text-slate-200 mb-1.5">
                     Country
                   </label>
                   <input
@@ -428,11 +428,11 @@ export default function UniversitiesManagement() {
                     value={form.country}
                     onChange={(e) => setForm({ ...form, country: e.target.value })}
                     placeholder="e.g. Uganda"
-                    className="w-full bg-white text-slate-900 text-xs rounded-xl border border-slate-300 px-3.5 py-2.5 focus:border-teal-600 focus:ring-2 focus:ring-teal-600/20 focus:outline-none transition-all shadow-xs font-medium"
+                    className="w-full bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 text-xs rounded-xl border border-slate-300 dark:border-slate-700 px-3.5 py-2.5 focus:border-teal-600 focus:ring-2 focus:ring-teal-600/20 focus:outline-none transition-all shadow-xs font-medium"
                   />
                 </div>
                 <div>
-                  <label htmlFor="uni-establishedYear" className="block text-xs font-bold uppercase tracking-wider text-slate-800 mb-1.5">
+                  <label htmlFor="uni-establishedYear" className="block text-xs font-bold uppercase tracking-wider text-slate-800 dark:text-slate-200 mb-1.5">
                     Established Year
                   </label>
                   <input
@@ -443,19 +443,19 @@ export default function UniversitiesManagement() {
                     placeholder="e.g. 1922"
                     min="1800"
                     max="2100"
-                    className="w-full bg-white text-slate-900 text-xs rounded-xl border border-slate-300 px-3.5 py-2.5 focus:border-teal-600 focus:ring-2 focus:ring-teal-600/20 focus:outline-none transition-all shadow-xs font-medium"
+                    className="w-full bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 text-xs rounded-xl border border-slate-300 dark:border-slate-700 px-3.5 py-2.5 focus:border-teal-600 focus:ring-2 focus:ring-teal-600/20 focus:outline-none transition-all shadow-xs font-medium"
                   />
                 </div>
               </div>
 
               {/* Modal Footer */}
-              <div className="p-4 sm:p-5 bg-slate-50 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-3">
+              <div className="p-4 sm:p-5 bg-slate-50 dark:bg-slate-800/40 border-t border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-3">
                 <div />
                 <div className="flex items-center gap-2.5 w-full sm:w-auto">
                   <button
                     type="button"
                     onClick={closeModal}
-                    className="flex-1 sm:flex-none px-3.5 py-2 rounded-xl bg-white hover:bg-slate-100 text-slate-700 text-xs font-semibold border border-slate-300 transition-colors"
+                    className="flex-1 sm:flex-none px-3.5 py-2 rounded-xl bg-white dark:bg-slate-900 hover:bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-semibold border border-slate-300 dark:border-slate-700 transition-colors"
                   >
                     Cancel
                   </button>

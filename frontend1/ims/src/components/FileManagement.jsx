@@ -223,20 +223,20 @@ function UploadDocumentCard({ onAddDocument, currentUser }) {
     <section
       id="upload-document-container"
       aria-labelledby="upload-document-heading"
-      className="bg-white rounded-2xl p-6 sm:p-7 border border-slate-200 shadow-xs relative overflow-hidden"
+      className="bg-white dark:bg-slate-900 rounded-2xl p-6 sm:p-7 border border-slate-200 dark:border-slate-800 shadow-xs relative overflow-hidden"
     >
       <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-teal-700 via-teal-600 to-emerald-500" />
 
       <div className="mb-6">
         <div className="flex items-center gap-2">
-          <h2 id="upload-document-heading" className="text-xl font-bold text-slate-900 tracking-tight">
+          <h2 id="upload-document-heading" className="text-xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">
             Upload Document
           </h2>
           <span className="text-xs font-semibold px-2 py-0.5 bg-teal-50 text-teal-800 border border-teal-200 rounded-full">
             Institutional Repository
           </span>
         </div>
-        <p className="text-sm text-slate-600 mt-1">
+        <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
           Share logbook templates, evaluation forms, or internship guidelines with students and staff.
         </p>
       </div>
@@ -274,7 +274,7 @@ function UploadDocumentCard({ onAddDocument, currentUser }) {
       <form onSubmit={handleSubmit} className="space-y-5" noValidate>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
           <div>
-            <label htmlFor="document-category-select" className="block text-xs font-bold uppercase tracking-wider text-slate-800 mb-1.5">
+            <label htmlFor="document-category-select" className="block text-xs font-bold uppercase tracking-wider text-slate-800 dark:text-slate-200 mb-1.5">
               Category <span className="text-rose-600" aria-hidden="true">*</span>
             </label>
             <CustomSelect
@@ -284,14 +284,14 @@ function UploadDocumentCard({ onAddDocument, currentUser }) {
               options={CATEGORIES.map((cat) => ({ value: cat.name, label: cat.name }))}
               required
             />
-            <p className="text-[11px] text-slate-600 mt-1.5 flex items-center gap-1">
+            <p className="text-[11px] text-slate-600 dark:text-slate-400 mt-1.5 flex items-center gap-1">
               <Info className="w-3.5 h-3.5 text-teal-600" />
               {CATEGORIES.find((c) => c.name === category)?.desc}
             </p>
           </div>
 
           <div>
-            <label htmlFor="document-file-input" className="block text-xs font-bold uppercase tracking-wider text-slate-800 mb-1.5">
+            <label htmlFor="document-file-input" className="block text-xs font-bold uppercase tracking-wider text-slate-800 dark:text-slate-200 mb-1.5">
               File <span className="text-rose-600" aria-hidden="true">*</span>
             </label>
             <input
@@ -312,17 +312,17 @@ function UploadDocumentCard({ onAddDocument, currentUser }) {
                   ? 'border-teal-500 bg-teal-50/70 ring-2 ring-teal-500/20'
                   : selectedFile
                   ? 'border-emerald-300 bg-emerald-50/30'
-                  : 'border-slate-300 bg-slate-50/60 hover:bg-slate-100/80 hover:border-slate-400'
+                  : 'border-slate-300 dark:border-slate-700 bg-slate-50/60 hover:bg-slate-100/80 hover:border-slate-400'
               }`}
             >
               {selectedFile ? (
                 <div className="flex items-center gap-3 w-full text-left">
-                  <div className="p-2 bg-white rounded-lg border border-slate-200 shadow-xs">
+                  <div className="p-2 bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800 shadow-xs">
                     {getFileIcon(selectedFile.name)}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-xs font-bold text-slate-900 truncate">{selectedFile.name}</p>
-                    <p className="text-[11px] text-slate-500">
+                    <p className="text-xs font-bold text-slate-900 dark:text-slate-100 truncate">{selectedFile.name}</p>
+                    <p className="text-[11px] text-slate-500 dark:text-slate-400">
                       {(selectedFile.size / (1024 * 1024)).toFixed(2)} MB — Ready to publish
                     </p>
                   </div>
@@ -340,15 +340,15 @@ function UploadDocumentCard({ onAddDocument, currentUser }) {
                   <button
                     type="button"
                     onClick={(e) => { e.stopPropagation(); fileInputRef.current?.click(); }}
-                    className="px-3.5 py-2 bg-white hover:bg-slate-100 text-slate-700 text-xs font-bold rounded-xl border border-slate-300 transition-colors shrink-0 shadow-xs"
+                    className="px-3.5 py-2 bg-white dark:bg-slate-900 hover:bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-bold rounded-xl border border-slate-300 dark:border-slate-700 transition-colors shrink-0 shadow-xs"
                   >
                     Choose File
                   </button>
-                  <span className="text-xs text-slate-500 truncate">No file chosen (or drag & drop here)</span>
+                  <span className="text-xs text-slate-500 dark:text-slate-400 truncate">No file chosen (or drag & drop here)</span>
                 </div>
               )}
             </div>
-            <p className="text-[11px] text-slate-500 mt-1.5">
+            <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1.5">
               Supported: PDF, Word, Excel, PowerPoint, ZIP (Max {MAX_SIZE_MB} MB)
             </p>
           </div>
@@ -356,8 +356,8 @@ function UploadDocumentCard({ onAddDocument, currentUser }) {
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2">
           <div className="sm:col-span-2">
-            <label htmlFor="document-custom-title" className="block text-xs font-bold uppercase tracking-wider text-slate-800 mb-1">
-              Display Title <span className="text-slate-500 font-normal text-[11px]">(Optional)</span>
+            <label htmlFor="document-custom-title" className="block text-xs font-bold uppercase tracking-wider text-slate-800 dark:text-slate-200 mb-1">
+              Display Title <span className="text-slate-500 dark:text-slate-400 font-normal text-[11px]">(Optional)</span>
             </label>
             <input
               id="document-custom-title"
@@ -365,11 +365,11 @@ function UploadDocumentCard({ onAddDocument, currentUser }) {
               value={customTitle}
               onChange={(e) => setCustomTitle(e.target.value)}
               placeholder="e.g. Mandatory Student Weekly Logbook 2026"
-              className="w-full bg-white text-slate-900 text-xs rounded-xl border border-slate-300 px-3.5 py-2 focus:border-teal-600 focus:ring-2 focus:ring-teal-600/20 focus:outline-none transition-all shadow-xs"
+              className="w-full bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 text-xs rounded-xl border border-slate-300 dark:border-slate-700 px-3.5 py-2 focus:border-teal-600 focus:ring-2 focus:ring-teal-600/20 focus:outline-none transition-all shadow-xs"
             />
           </div>
           <div>
-            <label htmlFor="document-target-audience" className="block text-xs font-bold uppercase tracking-wider text-slate-800 mb-1">
+            <label htmlFor="document-target-audience" className="block text-xs font-bold uppercase tracking-wider text-slate-800 dark:text-slate-200 mb-1">
               Target Audience
             </label>
             <CustomSelect
@@ -479,25 +479,25 @@ function StorageAnalyticsCard({ documents, onFilterByCategory, selectedCategory 
         />
       </div>
 
-      <div className="bg-white rounded-xl p-4 sm:p-5 border border-slate-200 shadow-xs">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 mb-3 border-b border-slate-100">
+      <div className="bg-white dark:bg-slate-900 rounded-xl p-4 sm:p-5 border border-slate-200 dark:border-slate-800 shadow-xs">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 mb-3 border-b border-slate-100 dark:border-slate-800">
           <div>
             <div className="flex items-center gap-2">
               <Layers className="w-4 h-4 text-teal-700" />
-              <h3 className="text-sm font-bold text-slate-900">Storage Allocation by Document Category</h3>
+              <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100">Storage Allocation by Document Category</h3>
             </div>
-            <p className="text-xs text-slate-500 mt-0.5">
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
               Click any category chip below to filter the documents repository instantly.
             </p>
           </div>
           <div className="text-right shrink-0">
-            <span className="text-xs font-bold text-slate-900">{usedMB} MB used</span>
-            <span className="text-xs text-slate-500"> ({quotaPercent.toFixed(1)}% quota)</span>
+            <span className="text-xs font-bold text-slate-900 dark:text-slate-100">{usedMB} MB used</span>
+            <span className="text-xs text-slate-500 dark:text-slate-400"> ({quotaPercent.toFixed(1)}% quota)</span>
           </div>
         </div>
 
         {totalUsedBytes > 0 && (
-          <div className="w-full h-3 bg-slate-100 rounded-full overflow-hidden flex shadow-inner mb-3.5" role="progressbar" aria-label="Storage allocation by category" aria-valuenow={Math.round(quotaPercent)} aria-valuemin={0} aria-valuemax={100}>
+          <div className="w-full h-3 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden flex shadow-inner mb-3.5" role="progressbar" aria-label="Storage allocation by category" aria-valuenow={Math.round(quotaPercent)} aria-valuemin={0} aria-valuemax={100}>
             {categoryStats.map((item) => {
               const segWidth = (item.sizeBytes / totalUsedBytes) * 100;
               return (
@@ -520,7 +520,7 @@ function StorageAnalyticsCard({ documents, onFilterByCategory, selectedCategory 
             className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all ${
               selectedCategory === 'ALL'
                 ? 'bg-primary text-white shadow-xs'
-                : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:bg-slate-700'
             } focus-visible:ring-2 focus-visible:ring-teal-600 focus-visible:outline-none`}
           >
             All Categories ({documents.length})
@@ -535,7 +535,7 @@ function StorageAnalyticsCard({ documents, onFilterByCategory, selectedCategory 
                 className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold transition-all border ${
                   isActive
                     ? 'border-slate-800 bg-slate-900 text-white shadow-xs'
-                    : 'border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100'
+                    : 'border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/40 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:bg-slate-800'
                 } focus-visible:ring-2 focus-visible:ring-teal-600 focus-visible:outline-none`}
               >
                 <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: item.color }} aria-hidden="true" />
@@ -592,7 +592,7 @@ function DocumentListTable({ documents, onDownload, onPreview, onDelete, onShare
       pptx: <div className="w-8 h-8 rounded-lg bg-amber-50 text-amber-700 border border-amber-200 flex items-center justify-center font-bold text-[10px] shrink-0 shadow-xs">PPT</div>,
       zip:  <div className="w-8 h-8 rounded-lg bg-purple-50 text-purple-700 border border-purple-200 flex items-center justify-center font-bold text-[10px] shrink-0 shadow-xs">ZIP</div>,
     };
-    return icons[fileType] || <div className="w-8 h-8 rounded-lg bg-slate-100 text-slate-700 border border-slate-300 flex items-center justify-center font-bold text-[10px] shrink-0 shadow-xs">FILE</div>;
+    return icons[fileType] || <div className="w-8 h-8 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-300 dark:border-slate-700 flex items-center justify-center font-bold text-[10px] shrink-0 shadow-xs">FILE</div>;
   };
 
   const getCategoryBadge = (cat) => {
@@ -604,7 +604,7 @@ function DocumentListTable({ documents, onDownload, onPreview, onDelete, onShare
       'Weekly Reports':        'bg-amber-50 text-amber-950 border-amber-300',
       'Appraisal Sheets':      'bg-rose-50 text-rose-950 border-rose-300',
     };
-    return map[cat] || 'bg-slate-100 text-slate-900 border-slate-300';
+    return map[cat] || 'bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-slate-100 border-slate-300 dark:border-slate-700';
   };
 
   const handleShareClick = (doc) => {
@@ -626,11 +626,11 @@ function DocumentListTable({ documents, onDownload, onPreview, onDelete, onShare
   };
 
   return (
-    <section id="documents-table-container" aria-labelledby="documents-table-title" className="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
-      <div className="p-4 sm:p-5 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-slate-50/70">
+    <section id="documents-table-container" aria-labelledby="documents-table-title" className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs overflow-hidden">
+      <div className="p-4 sm:p-5 border-b border-slate-100 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-slate-50/70">
         <div>
-          <h2 id="documents-table-title" className="text-base font-bold text-slate-900">Repository Documents</h2>
-          <p className="text-xs text-slate-500 mt-0.5">Showing {sorted.length} approved institution files</p>
+          <h2 id="documents-table-title" className="text-base font-bold text-slate-900 dark:text-slate-100">Repository Documents</h2>
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Showing {sorted.length} approved institution files</p>
         </div>
         {selectedIds.length > 0 && (
           <div className="flex items-center gap-2 bg-teal-50 border border-teal-200 px-3 py-1.5 rounded-xl animate-in fade-in">
@@ -638,7 +638,7 @@ function DocumentListTable({ documents, onDownload, onPreview, onDelete, onShare
             <button type="button" onClick={handleBatchDownload} className="px-3.5 py-2 bg-primary text-white hover:bg-primary rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all shadow-xs focus-visible:ring-2 focus-visible:ring-teal-600 focus-visible:outline-none">
               <Download className="w-3.5 h-3.5" /> Download Selected
             </button>
-            <button type="button" onClick={() => setSelectedIds([])} className="px-3.5 py-2 rounded-xl bg-white hover:bg-slate-100 text-slate-700 text-xs font-bold border border-slate-300 transition-colors shadow-xs">Clear</button>
+            <button type="button" onClick={() => setSelectedIds([])} className="px-3.5 py-2 rounded-xl bg-white dark:bg-slate-900 hover:bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-bold border border-slate-300 dark:border-slate-700 transition-colors shadow-xs">Clear</button>
           </div>
         )}
       </div>
@@ -646,9 +646,9 @@ function DocumentListTable({ documents, onDownload, onPreview, onDelete, onShare
       <div className="overflow-x-auto">
         <table className="w-full text-left border-collapse" aria-label="Repository files list">
           <thead>
-            <tr className="border-b border-slate-200 bg-slate-50/90 text-[11px] font-bold uppercase tracking-wider text-slate-800">
+            <tr className="border-b border-slate-200 dark:border-slate-800 bg-slate-50/90 dark:bg-slate-800/60 text-[11px] font-bold uppercase tracking-wider text-slate-800 dark:text-slate-200">
               <th scope="col" className="p-3.5 pl-5 w-10">
-                <button type="button" onClick={toggleSelectAll} className="text-slate-500 hover:text-slate-900 focus-visible:ring-2 focus-visible:ring-teal-600 rounded p-0.5" aria-label={selectedIds.length === documents.length ? 'Deselect all' : 'Select all'}>
+                <button type="button" onClick={toggleSelectAll} className="text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:text-slate-100 focus-visible:ring-2 focus-visible:ring-teal-600 rounded p-0.5" aria-label={selectedIds.length === documents.length ? 'Deselect all' : 'Select all'}>
                   {selectedIds.length > 0 && selectedIds.length === documents.length ? <CheckSquare className="w-4 h-4 text-teal-700" /> : <Square className="w-4 h-4 text-slate-400" />}
                 </button>
               </th>
@@ -675,18 +675,18 @@ function DocumentListTable({ documents, onDownload, onPreview, onDelete, onShare
               </th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-100 text-sm">
+          <tbody className="divide-y divide-slate-100 dark:divide-slate-800 text-sm">
             {sorted.length === 0 ? (
               <tr>
                 <td colSpan={6} className="py-12 px-4 text-center">
                   <div className="max-w-sm mx-auto flex flex-col items-center">
-                    <div className="w-12 h-12 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-400 mb-3">
+                    <div className="w-12 h-12 rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-800 flex items-center justify-center text-slate-400 mb-3">
                       <FileText className="w-6 h-6" />
                     </div>
-                    <h3 className="text-base font-bold text-slate-800">No documents found</h3>
-                    <p className="text-xs text-slate-500 mt-1 mb-4">No documents match your active search or category filter.</p>
+                    <h3 className="text-base font-bold text-slate-800 dark:text-slate-200">No documents found</h3>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 mb-4">No documents match your active search or category filter.</p>
                     <div className="flex items-center gap-2">
-                      <button type="button" onClick={onResetFilters} className="px-3.5 py-2 bg-white hover:bg-slate-100 text-slate-700 font-bold text-xs rounded-xl border border-slate-300 transition-colors shadow-xs">Clear Filters</button>
+                      <button type="button" onClick={onResetFilters} className="px-3.5 py-2 bg-white dark:bg-slate-900 hover:bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold text-xs rounded-xl border border-slate-300 dark:border-slate-700 transition-colors shadow-xs">Clear Filters</button>
                       <button type="button" onClick={onSeedSample} className="px-3.5 py-2 bg-primary hover:bg-primary text-white font-bold text-xs rounded-xl transition-colors shadow-xs focus-visible:ring-2 focus-visible:ring-teal-600 focus-visible:outline-none">Load Official Templates</button>
                     </div>
                   </div>
@@ -697,9 +697,9 @@ function DocumentListTable({ documents, onDownload, onPreview, onDelete, onShare
                 const isSelected = selectedIds.includes(doc.id);
                 const ft = doc.fileType || guessFileType(doc.name);
                 return (
-                  <tr key={doc.id} className={`hover:bg-slate-50/80 transition-colors ${isSelected ? 'bg-teal-50/30' : ''}`}>
+                  <tr key={doc.id} className={`hover:bg-slate-50/80 dark:hover:bg-slate-800/60 transition-colors ${isSelected ? 'bg-teal-50/30' : ''}`}>
                     <td className="p-3.5 pl-5">
-                      <button type="button" onClick={() => toggleSelectOne(doc.id)} className="text-slate-400 hover:text-slate-800 focus-visible:ring-2 focus-visible:ring-teal-600 rounded p-0.5" aria-label={`Select ${doc.name}`}>
+                      <button type="button" onClick={() => toggleSelectOne(doc.id)} className="text-slate-400 hover:text-slate-800 dark:text-slate-200 focus-visible:ring-2 focus-visible:ring-teal-600 rounded p-0.5" aria-label={`Select ${doc.name}`}>
                         {isSelected ? <CheckSquare className="w-4 h-4 text-teal-700" /> : <Square className="w-4 h-4" />}
                       </button>
                     </td>
@@ -708,10 +708,10 @@ function DocumentListTable({ documents, onDownload, onPreview, onDelete, onShare
                         {getFileIcon(ft)}
                         <div className="min-w-0 max-w-xs sm:max-w-sm md:max-w-md">
                           <div className="flex items-center gap-2 flex-wrap">
-                            <button type="button" onClick={() => onPreview(doc)} className="font-bold text-slate-900 hover:text-teal-700 text-left transition-colors truncate focus-visible:underline focus-visible:outline-none">
+                            <button type="button" onClick={() => onPreview(doc)} className="font-bold text-slate-900 dark:text-slate-100 hover:text-teal-700 text-left transition-colors truncate focus-visible:underline focus-visible:outline-none">
                               {doc.name}
                             </button>
-                            <span className="text-[10px] font-semibold px-1.5 py-0.2 rounded bg-slate-100 text-slate-600 border border-slate-200">
+                            <span className="text-[10px] font-semibold px-1.5 py-0.2 rounded bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-800">
                               v{doc.version || '1.0'}
                             </span>
                             {doc.verified !== false && (
@@ -720,8 +720,8 @@ function DocumentListTable({ documents, onDownload, onPreview, onDelete, onShare
                               </span>
                             )}
                           </div>
-                          <p className="text-xs text-slate-500 truncate mt-0.5">
-                            {doc.originalFilename || doc.name} • {doc.size || '—'} • Audience: <span className="font-semibold text-slate-700">{doc.audience || 'All'}</span>
+                          <p className="text-xs text-slate-500 dark:text-slate-400 truncate mt-0.5">
+                            {doc.originalFilename || doc.name} • {doc.size || '—'} • Audience: <span className="font-semibold text-slate-700 dark:text-slate-300">{doc.audience || 'All'}</span>
                           </p>
                         </div>
                       </div>
@@ -736,24 +736,24 @@ function DocumentListTable({ documents, onDownload, onPreview, onDelete, onShare
                         <div className="w-6 h-6 rounded-full bg-primary text-white flex items-center justify-center text-[10px] font-bold shrink-0" aria-hidden="true">
                           {(doc.uploadedBy || 'U').slice(0, 2).toUpperCase()}
                         </div>
-                        <span className="text-xs font-semibold text-slate-900">{doc.uploadedBy || 'Unknown'}</span>
+                        <span className="text-xs font-semibold text-slate-900 dark:text-slate-100">{doc.uploadedBy || 'Unknown'}</span>
                       </div>
                     </td>
                     <td className="py-3.5 px-3">
-                      <div className="text-xs font-medium text-slate-800 flex items-center gap-1.5">
+                      <div className="text-xs font-medium text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
                         <Clock className="w-3.5 h-3.5 text-slate-400" />
                         <span>{formatDate(doc.date)}</span>
                       </div>
                     </td>
                     <td className="py-3.5 px-3 pr-5 text-right">
                       <div className="flex items-center justify-end gap-1.5">
-                        <span className="hidden md:inline-flex text-[11px] font-semibold text-slate-600 bg-slate-100 px-2 py-0.5 rounded-full border border-slate-200 mr-1" title="Total downloads">
+                        <span className="hidden md:inline-flex text-[11px] font-semibold text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-full border border-slate-200 dark:border-slate-800 mr-1" title="Total downloads">
                           {doc.downloads || 0} dl
                         </span>
-                        <button type="button" onClick={() => onPreview(doc)} className="p-1.5 text-slate-600 hover:text-teal-900 hover:bg-teal-50 rounded-lg transition-colors focus-visible:ring-2 focus-visible:ring-teal-600 focus-visible:outline-none" aria-label={`Preview ${doc.name}`} title="Preview">
+                        <button type="button" onClick={() => onPreview(doc)} className="p-1.5 text-slate-600 dark:text-slate-400 hover:text-teal-900 hover:bg-teal-50 rounded-lg transition-colors focus-visible:ring-2 focus-visible:ring-teal-600 focus-visible:outline-none" aria-label={`Preview ${doc.name}`} title="Preview">
                           <Eye className="w-4 h-4" />
                         </button>
-                        <button type="button" onClick={() => handleShareClick(doc)} className="p-1.5 text-slate-600 hover:text-teal-900 hover:bg-teal-50 rounded-lg transition-colors relative focus-visible:ring-2 focus-visible:ring-teal-600 focus-visible:outline-none" aria-label={`Share ${doc.name}`} title="Share Link">
+                        <button type="button" onClick={() => handleShareClick(doc)} className="p-1.5 text-slate-600 dark:text-slate-400 hover:text-teal-900 hover:bg-teal-50 rounded-lg transition-colors relative focus-visible:ring-2 focus-visible:ring-teal-600 focus-visible:outline-none" aria-label={`Share ${doc.name}`} title="Share Link">
                           {copiedId === doc.id ? <Check className="w-4 h-4 text-emerald-600" /> : <Share2 className="w-4 h-4" />}
                         </button>
                         <button type="button" onClick={() => handleDownload(doc)} className="p-1.5 bg-primary hover:bg-primary text-white rounded-lg transition-all shadow-xs focus-visible:ring-2 focus-visible:ring-teal-600 focus-visible:outline-none flex items-center gap-1 px-2.5 font-bold text-xs" aria-label={`Download ${doc.name}`}>
@@ -806,68 +806,68 @@ function DocumentPreviewModal({ document: doc, onClose, onDownload }) {
       onClick={onClose}
     >
       <div
-        className="bg-white w-full max-w-3xl rounded-2xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-150"
+        className="bg-white dark:bg-slate-900 w-full max-w-3xl rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-150"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="p-4 sm:p-5 bg-slate-50 border-b border-slate-200 flex items-center justify-between gap-4">
+        <div className="p-4 sm:p-5 bg-slate-50 dark:bg-slate-800/40 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between gap-4">
           <div className="flex items-center gap-3 min-w-0">
             <div className="w-10 h-10 rounded-xl bg-teal-50 border border-teal-200 flex items-center justify-center text-teal-800 shrink-0">
               <FileText className="w-5 h-5" />
             </div>
             <div className="min-w-0">
               <div className="flex items-center gap-2">
-                <h3 id="preview-modal-title" className="text-base font-bold text-slate-900 truncate">{doc.name}</h3>
+                <h3 id="preview-modal-title" className="text-base font-bold text-slate-900 dark:text-slate-100 truncate">{doc.name}</h3>
                 <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-teal-100 text-teal-900 border border-teal-200 shrink-0">v{doc.version || '1.0'}</span>
               </div>
-              <p className="text-xs text-slate-500 truncate">{doc.originalFilename || doc.name} — {doc.category}</p>
+              <p className="text-xs text-slate-500 dark:text-slate-400 truncate">{doc.originalFilename || doc.name} — {doc.category}</p>
             </div>
           </div>
-          <button type="button" onClick={onClose} className="p-2 text-slate-400 hover:text-slate-700 hover:bg-slate-200 rounded-lg transition-colors focus-visible:ring-2 focus-visible:ring-teal-600 focus-visible:outline-none" aria-label="Close preview">
+          <button type="button" onClick={onClose} className="p-2 text-slate-400 hover:text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:bg-slate-700 rounded-lg transition-colors focus-visible:ring-2 focus-visible:ring-teal-600 focus-visible:outline-none" aria-label="Close preview">
             <X className="w-5 h-5" />
           </button>
         </div>
 
         <div className="p-6 overflow-y-auto space-y-6 flex-1">
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 p-3.5 bg-slate-50 rounded-xl border border-slate-200 text-xs">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 p-3.5 bg-slate-50 dark:bg-slate-800/40 rounded-xl border border-slate-200 dark:border-slate-800 text-xs">
             <div>
-              <span className="text-slate-500 font-medium block">Uploaded By</span>
-              <span className="font-bold text-slate-900">{doc.uploadedBy || 'Unknown'}</span>
+              <span className="text-slate-500 dark:text-slate-400 font-medium block">Uploaded By</span>
+              <span className="font-bold text-slate-900 dark:text-slate-100">{doc.uploadedBy || 'Unknown'}</span>
             </div>
             <div>
-              <span className="text-slate-500 font-medium block">File Size</span>
-              <span className="font-bold text-slate-900">{doc.size || '—'}</span>
+              <span className="text-slate-500 dark:text-slate-400 font-medium block">File Size</span>
+              <span className="font-bold text-slate-900 dark:text-slate-100">{doc.size || '—'}</span>
             </div>
             <div>
-              <span className="text-slate-500 font-medium block">Audience</span>
+              <span className="text-slate-500 dark:text-slate-400 font-medium block">Audience</span>
               <span className="font-bold text-teal-800">{doc.audience || 'All'}</span>
             </div>
             <div>
-              <span className="text-slate-500 font-medium block">Downloads</span>
-              <span className="font-bold text-slate-900">{doc.downloads || 0} times</span>
+              <span className="text-slate-500 dark:text-slate-400 font-medium block">Downloads</span>
+              <span className="font-bold text-slate-900 dark:text-slate-100">{doc.downloads || 0} times</span>
             </div>
           </div>
 
           <div>
-            <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-1.5">Document Abstract &amp; Purpose</h4>
-            <p className="text-sm text-slate-700 leading-relaxed bg-teal-50/30 p-3.5 rounded-xl border border-teal-100">
+            <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1.5">Document Abstract &amp; Purpose</h4>
+            <p className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed bg-teal-50/30 p-3.5 rounded-xl border border-teal-100">
               {doc.description || 'Official institutional template provided by the Internship Directorate for student logbooks, assessments, and university compliance.'}
             </p>
           </div>
 
-          <div className="border border-slate-200 rounded-xl p-6 bg-white shadow-inner min-h-[220px] flex flex-col justify-between">
-            <div className="border-b border-slate-100 pb-4">
-              <div className="flex items-center justify-between text-xs text-slate-500 mb-2">
+          <div className="border border-slate-200 dark:border-slate-800 rounded-xl p-6 bg-white dark:bg-slate-900 shadow-inner min-h-[220px] flex flex-col justify-between">
+            <div className="border-b border-slate-100 dark:border-slate-800 pb-4">
+              <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 mb-2">
                 <span>REPUBLIC OF UGANDA — INTERNSHIP PORTAL</span>
                 <span>DOC REF: {(doc.id || '').toUpperCase()}</span>
               </div>
-              <h1 className="text-lg font-bold text-slate-900 uppercase tracking-tight text-center py-2">{doc.name}</h1>
-              <p className="text-xs text-slate-600 text-center italic">Faculty Academic Affairs &amp; Industrial Training Board</p>
+              <h1 className="text-lg font-bold text-slate-900 dark:text-slate-100 uppercase tracking-tight text-center py-2">{doc.name}</h1>
+              <p className="text-xs text-slate-600 dark:text-slate-400 text-center italic">Faculty Academic Affairs &amp; Industrial Training Board</p>
             </div>
-            <div className="py-4 space-y-2 text-xs text-slate-600">
+            <div className="py-4 space-y-2 text-xs text-slate-600 dark:text-slate-400">
               <p><strong>Section 1: General Requirements.</strong> All candidates enrolled in the accredited internship programme must adhere strictly to weekly logbook recordings and secure appropriate company mentor endorsements prior to mid-term academic visits.</p>
               <p><strong>Section 2: Verification and Security.</strong> This document has been verified with cryptographic checksums and stored securely under institutional access policy.</p>
             </div>
-            <div className="pt-4 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-500">
+            <div className="pt-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400">
               <span className="flex items-center gap-1 text-emerald-700 font-semibold">
                 <ShieldCheck className="w-4 h-4" /> Integrity Verified
               </span>
@@ -876,13 +876,13 @@ function DocumentPreviewModal({ document: doc, onClose, onDownload }) {
           </div>
         </div>
 
-        <div className="p-4 sm:p-5 bg-slate-50 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-3">
-          <div className="flex items-center gap-2 text-xs text-slate-500">
+        <div className="p-4 sm:p-5 bg-slate-50 dark:bg-slate-800/40 border-t border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-3">
+          <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
             <Clock className="w-4 h-4 text-slate-400" />
             <span>Published on {formatDate(doc.date)}</span>
           </div>
           <div className="flex items-center gap-2.5 w-full sm:w-auto">
-            <button type="button" onClick={handleCopyLink} className="flex-1 sm:flex-none px-3.5 py-2 rounded-xl bg-white hover:bg-slate-100 text-slate-700 text-xs font-semibold border border-slate-300 transition-colors flex items-center justify-center gap-1.5 shadow-xs">
+            <button type="button" onClick={handleCopyLink} className="flex-1 sm:flex-none px-3.5 py-2 rounded-xl bg-white dark:bg-slate-900 hover:bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-semibold border border-slate-300 dark:border-slate-700 transition-colors flex items-center justify-center gap-1.5 shadow-xs">
               {copied ? <><Check className="w-4 h-4 text-emerald-600" /><span>Link Copied!</span></> : <><Share2 className="w-4 h-4" /><span>Share Link</span></>}
             </button>
             <button type="button" onClick={() => onDownload(doc)} className="flex-1 sm:flex-none px-4 py-2 rounded-xl bg-primary hover:bg-primary text-white text-xs font-bold transition-all flex items-center justify-center gap-1.5 shadow-sm">
@@ -995,21 +995,21 @@ export default function FileManagement() {
               <span>/</span>
               <span>Documents &amp; Templates</span>
             </div>
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">File Management</h1>
-            <p className="text-sm text-slate-600 mt-1">Shared documents for the internship programme</p>
+            <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-slate-100 tracking-tight">File Management</h1>
+            <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">Shared documents for the internship programme</p>
           </div>
           {(selectedCategory !== 'ALL' || searchQuery) && (
             <button
               type="button"
               onClick={() => { setSelectedCategory('ALL'); setSearchQuery(''); }}
-              className="self-start sm:self-auto px-3.5 py-2 bg-white hover:bg-slate-100 text-slate-700 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-colors border border-slate-300 shadow-xs"
+              className="self-start sm:self-auto px-3.5 py-2 bg-white dark:bg-slate-900 hover:bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-colors border border-slate-300 dark:border-slate-700 shadow-xs"
             >
               <RefreshCw className="w-3.5 h-3.5" /><span>Reset Active Filters</span>
             </button>
           )}
         </div>
 
-        <div className="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div className="bg-white dark:bg-slate-900 rounded-2xl p-4 sm:p-5 border border-slate-200 dark:border-slate-800 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="relative flex-1 max-w-md">
             <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
             <input
@@ -1017,7 +1017,7 @@ export default function FileManagement() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search by name, category, uploader..."
-              className="w-full pl-9 pr-4 py-2 bg-slate-50 text-xs rounded-xl border border-slate-300 focus:border-teal-600 focus:outline-none"
+              className="w-full pl-9 pr-4 py-2 bg-slate-50 dark:bg-slate-800/40 text-xs rounded-xl border border-slate-300 dark:border-slate-700 focus:border-teal-600 focus:outline-none"
             />
           </div>
         </div>
