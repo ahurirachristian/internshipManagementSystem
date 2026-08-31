@@ -1,18 +1,27 @@
 export const API_ROOT = process.env.REACT_APP_API_ROOT || 'http://localhost:8082';
 
 async function parseResponse(response) {
-  const contentType = response.headers.get('content-type') || '';
-  const payload = contentType.includes('application/json')
-    ? await response.json()
-    : await response.text();
-
   if (!response.ok) {
+    let payload;
+    try {
+      const contentType = response.headers.get('content-type') || '';
+      payload = contentType.includes('application/json')
+        ? await response.json()
+        : await response.text();
+    } catch {
+      payload = null;
+    }
     const message = payload?.error || payload?.message || response.statusText || 'Request failed';
     const error = new Error(message);
     error.status = response.status;
     error.payload = payload;
     throw error;
   }
+
+  const contentType = response.headers.get('content-type') || '';
+  const payload = contentType.includes('application/json')
+    ? await response.json()
+    : await response.text();
 
   return payload;
 }
@@ -57,14 +66,14 @@ export async function logoutSession() {
   }
 }
 
-export async function register(username, password, confirmPassword, role) {
+export async function register(payload) {
   const response = await fetch(`${API_ROOT}/api/register`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
     },
     credentials: 'include',
-    body: JSON.stringify({ username, password, confirmPassword, role }),
+    body: JSON.stringify(payload),
   });
   return parseResponse(response);
 }

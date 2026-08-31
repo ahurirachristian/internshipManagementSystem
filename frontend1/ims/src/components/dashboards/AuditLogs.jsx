@@ -72,6 +72,22 @@ export default function AuditLogs() {
 
       if (cancelled) return;
 
+      if (!response.ok) {
+        let payload;
+        try {
+          const contentType = response.headers.get('content-type') || '';
+          payload = contentType.includes('application/json')
+            ? await response.json()
+            : await response.text();
+        } catch {
+          payload = null;
+        }
+        const message = payload?.error || payload?.message || response.statusText || 'Request failed';
+        if (!cancelled) setError(message);
+        if (!cancelled) setLoading(false);
+        return;
+      }
+
       try {
         const data = await response.json();
         setLogs(Array.isArray(data) ? data : []);
