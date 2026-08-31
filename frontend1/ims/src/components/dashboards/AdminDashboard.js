@@ -485,6 +485,7 @@ export default function AdminDashboard() {
 
             {activeTab === 'students' && renderStudents()}
             {activeTab === 'diaries' && renderDiaries()}
+            {activeTab === 'system' && renderSystem()}
           </>
         )}
       </div>
