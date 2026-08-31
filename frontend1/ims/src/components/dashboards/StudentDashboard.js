@@ -1,10 +1,9 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { Pencil, Trash2, MessageSquare, Loader2, CheckCircle, AlertCircle } from 'lucide-react';
 import DashboardLayout from '../DashboardLayout';
 import StudentEditModal from '../StudentEditModal';
 import InternshipProgress from '../InternshipProgress';
 import DiaryReviewModal from '../DiaryReviewModal';
-import { useAuth } from '../../context/AuthContext';
 import {
   createDiary,
   deleteDiary,
@@ -27,7 +26,6 @@ const inputClass = "w-full bg-white dark:bg-slate-900 text-slate-900 dark:text-s
 const labelClass = "block text-xs font-bold uppercase tracking-wider text-slate-800 dark:text-slate-200 mb-1.5";
 
 export default function StudentDashboard() {
-  const { user } = useAuth();
   const [activeTab, setActiveTab] = useState('profile');
   const [profile, setProfile] = useState(null);
   const [profileLoading, setProfileLoading] = useState(true);
@@ -48,13 +46,13 @@ export default function StudentDashboard() {
     setDiaryLoading(true);
     setDiaryError('');
     try {
-      setDiaries(await fetchStudentDiaries(user.username));
+      setDiaries(await fetchMyDiaries());
     } catch (err) {
       setDiaryError(err.message || 'Unable to load diary entries.');
     } finally {
       setDiaryLoading(false);
     }
-  }, [user.username]);
+  }, []);
 
   useEffect(() => {
     loadProfile();
@@ -78,18 +76,6 @@ export default function StudentDashboard() {
       }
     } finally {
       setProfileLoading(false);
-    }
-  }
-
-  async function loadDiaries() {
-    setDiaryLoading(true);
-    setDiaryError('');
-    try {
-      setDiaries(await fetchMyDiaries());
-    } catch (err) {
-      setDiaryError(err.message || 'Unable to load diary entries.');
-    } finally {
-      setDiaryLoading(false);
     }
   }
 

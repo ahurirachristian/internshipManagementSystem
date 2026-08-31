@@ -3,7 +3,9 @@ import { Link } from 'react-router-dom';
 import DashboardLayout from '../DashboardLayout';
 import ExportButton from '../ExportButton';
 import DiaryReviewModal from '../DiaryReviewModal';
-import { fetchDiaries, fetchStudents } from '../../services/api';
+import StudentEditModal from '../StudentEditModal';
+import { Modal } from '../ui/Modal';
+import { fetchDiaries, fetchStudents, updateStudent, deleteStudent } from '../../services/api';
 import {
   GraduationCap,
   BookOpen,
@@ -14,6 +16,12 @@ import {
   FileText,
   Search,
   MessageSquare,
+  Settings,
+  Building2,
+  Landmark,
+  Briefcase,
+  ScrollText,
+  Users,
 } from 'lucide-react';
 
 function formatDate(dateString) {
@@ -142,9 +150,24 @@ export default function AdminDashboard() {
   function renderActions(student) {
     return (
       <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-        <button className="icon-button" onClick={() => setViewStudent(student)}>View</button>
-        <button className="icon-button edit" onClick={() => setEditStudent(student)}>Edit</button>
-        <button className="icon-button delete" onClick={() => handleDeleteStudent(student.id)}>Delete</button>
+        <button
+          className="px-2.5 py-1 text-xs font-medium rounded-lg border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+          onClick={() => setViewStudent(student)}
+        >
+          View
+        </button>
+        <button
+          className="px-2.5 py-1 text-xs font-medium rounded-lg border border-teal-200 dark:border-teal-800 text-teal-700 dark:text-teal-400 hover:bg-teal-50 dark:hover:bg-teal-900/30 transition-colors"
+          onClick={() => setEditStudent(student)}
+        >
+          Edit
+        </button>
+        <button
+          className="px-2.5 py-1 text-xs font-medium rounded-lg border border-rose-200 dark:border-rose-800 text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-900/30 transition-colors"
+          onClick={() => handleDeleteStudent(student.id)}
+        >
+          Delete
+        </button>
       </div>
     );
   }
@@ -330,43 +353,38 @@ export default function AdminDashboard() {
   }
 
   function renderSystem() {
+    const controls = [
+      { to: '/company', icon: Building2, title: 'Company Management', desc: 'Add, edit, and manage company profiles and locations.' },
+      { to: '/admin/universities', icon: Landmark, title: 'University Settings', desc: 'Configure registered universities and supervisor assignments.' },
+      { to: '/admin/placements', icon: Briefcase, title: 'Placement Approvals', desc: 'Review and approve student placement assignments.' },
+      { to: '/admin/audit-logs', icon: ScrollText, title: 'Audit Logs', desc: 'Track system activity, access history, and changes.' },
+      { to: '/admin/users', icon: Users, title: 'User Management', desc: 'Manage user accounts, roles, and permissions.' },
+    ];
     return (
-      <div className="card">
-        <div className="card-header">
-          <span className="card-title"><i className="fa-solid fa-gear"></i> System Controls</span>
-          <span className="card-hint">High-level administration and data management</span>
+      <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5">
+        <div className="flex items-center gap-2.5 mb-1">
+          <Settings className="w-4 h-4 text-teal-600" />
+          <h2 className="text-sm font-semibold text-slate-800 dark:text-slate-100">System Controls</h2>
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px', marginTop: '16px' }}>
-          <Link to="/company" className="card" style={{ textDecoration: 'none', color: 'inherit' }}>
-            <div className="card-header">
-              <span className="card-title"><i className="fa-solid fa-building"></i> Company Management</span>
-            </div>
-            <p style={{ opacity: 0.7, fontSize: '0.875rem' }}>Add, edit, and manage company profiles and locations.</p>
-          </Link>
-          <Link to="/admin/universities" className="card" style={{ textDecoration: 'none', color: 'inherit' }}>
-            <div className="card-header">
-              <span className="card-title"><i className="fa-solid fa-university"></i> University Settings</span>
-            </div>
-            <p style={{ opacity: 0.7, fontSize: '0.875rem' }}>Configure registered universities and supervisor assignments.</p>
-          </Link>
-          <Link to="/admin/placements" className="card" style={{ textDecoration: 'none', color: 'inherit' }}>
-            <div className="card-header">
-              <span className="card-title"><i className="fa-solid fa-users-rectangle"></i> Placement Approvals</span>
-            </div>
-            <p style={{ opacity: 0.7, fontSize: '0.875rem' }}>Review and approve student placement assignments.</p>
-          </Link>
-          <Link to="/admin/audit-logs" className="card" style={{ textDecoration: 'none', color: 'inherit' }}>
-            <div className="card-header">
-              <span className="card-title"><i className="fa-solid fa-list-check"></i> Audit Logs</span>
-            </div>
-            <p style={{ opacity: 0.7, fontSize: '0.875rem' }}>Track system activity, access history, and changes.</p>
-          </Link>
-          <Link to="/admin/users" className="card" style={{ textDecoration: 'none', color: 'inherit' }}>
-            <div className="card-header">
-              <span className="card-title"><i className="fa-solid fa-users"></i> User Management</span>
-            </div>
-            <p style={{ opacity: 0.7, fontSize: '0.875rem' }}>Manage user accounts, roles, and permissions.</p>
-          </Link>
+        <p className="text-xs text-slate-500 dark:text-slate-400 mb-4">High-level administration and data management</p>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {controls.map(({ to, icon: Icon, title, desc }) => (
+            <Link
+              key={to}
+              to={to}
+              className="group rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-800/40 p-4 hover:border-teal-300 dark:hover:border-teal-700 hover:shadow-sm transition-all"
+            >
+              <div className="flex items-center gap-2.5 mb-2">
+                <div className="w-8 h-8 rounded-lg bg-teal-50 border border-teal-200 flex items-center justify-center text-teal-700 shrink-0">
+                  <Icon className="w-4 h-4" />
+                </div>
+                <span className="text-sm font-semibold text-slate-800 dark:text-slate-100 group-hover:text-teal-700 dark:group-hover:text-teal-500">
+                  {title}
+                </span>
+              </div>
+              <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">{desc}</p>
+            </Link>
+          ))}
         </div>
       </div>
     );
@@ -496,37 +514,36 @@ export default function AdminDashboard() {
         />
       )}
 
-      {viewStudent && (
-        <div className="modal-overlay" onClick={() => setViewStudent(null)}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-header">
-              <h2>Student Details</h2>
-              <button className="close-button" onClick={() => setViewStudent(null)}>
-                ×
-              </button>
+      <Modal
+        isOpen={!!viewStudent}
+        onClose={() => setViewStudent(null)}
+        title="Student Details"
+        maxWidth="max-w-xl"
+      >
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4">
+          {[
+            ['Full Name', `${viewStudent?.firstName || ''} ${viewStudent?.lastName || ''}`.trim()],
+            ['Email', viewStudent?.email],
+            ['Student Number', viewStudent?.studentNumber],
+            ['Registration Number', viewStudent?.registrationNumber],
+            ['Degree Program', viewStudent?.degreeProgram],
+            ['Year of Study', viewStudent?.yearOfStudy],
+            ['Phone Number', viewStudent?.phoneNumber],
+            ['Internship Company', viewStudent?.internshipCompany],
+            ['University Supervisor', viewStudent?.universitySupervisor],
+            ['Industrial Supervisor ID', viewStudent?.industrialSupervisorId],
+          ].map(([label, value]) => (
+            <div key={label} className="flex flex-col gap-0.5">
+              <span className="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wide">
+                {label}
+              </span>
+              <span className="text-sm text-slate-800 dark:text-slate-100">
+                {value || '—'}
+              </span>
             </div>
-            <div className="detail-grid">
-              {[
-                ['Full Name', `${viewStudent.firstName || ''} ${viewStudent.lastName || ''}`.trim()],
-                ['Email', viewStudent.email],
-                ['Student Number', viewStudent.studentNumber],
-                ['Registration Number', viewStudent.registrationNumber],
-                ['Degree Program', viewStudent.degreeProgram],
-                ['Year of Study', viewStudent.yearOfStudy],
-                ['Phone Number', viewStudent.phoneNumber],
-                ['Internship Company', viewStudent.internshipCompany],
-                ['University Supervisor', viewStudent.universitySupervisor],
-                ['Industrial Supervisor ID', viewStudent.industrialSupervisorId],
-              ].map(([label, value]) => (
-                <div className="detail-item" key={label}>
-                  <span className="detail-label">{label}</span>
-                  <span className="detail-value">{value || '—'}</span>
-                </div>
-              ))}
-            </div>
-          </div>
+          ))}
         </div>
-      )}
+      </Modal>
     </DashboardLayout>
   );
 }
