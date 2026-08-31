@@ -23,6 +23,10 @@ import {
   deleteStudent,
 } from '../services/api';
 import StudentEditModal from './StudentEditModal';
+import { FilterTabs } from './ui/FilterTabs';
+import { KpiCard } from './ui/KpiCard';
+import { EmptyState } from './ui/EmptyState';
+import ExportButton from './ExportButton';
 
 const emptyStudentForm = {
   studentName: '',
@@ -487,7 +491,7 @@ export default function UniversityStudents() {
             <button
               type="submit"
               disabled={addLoading}
-              className="px-4 py-2 rounded-xl bg-[#063b33] hover:bg-[#042823] text-white text-xs font-bold transition-all flex items-center gap-1.5 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-4 py-2 rounded-xl bg-primary hover:bg-primary text-white text-xs font-bold transition-all flex items-center gap-1.5 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <Plus className="w-4 h-4" />
               {addLoading ? 'Creating...' : 'Create Student'}
@@ -560,10 +564,16 @@ export default function UniversityStudents() {
               className="w-52 bg-white text-slate-900 text-xs rounded-xl border border-slate-300 pl-9 pr-3 py-2 focus:border-teal-600 focus:ring-2 focus:ring-teal-600/20 focus:outline-none"
             />
           </div>
+          <ExportButton data={filteredStudents.map((s) => ({
+            name: s.fullName,
+            studentNumber: s.studentNumber,
+            email: s.username,
+            degreeProgram: s.degreeProgram,
+          }))} fileName="students" />
           <button
             type="button"
             onClick={() => setShowAddForm(!showAddForm)}
-            className="h-9 px-3.5 py-2 rounded-xl bg-[#063b33] hover:bg-[#042823] text-white text-xs font-bold shadow-xs transition-all flex items-center gap-1.5"
+            className="h-9 px-3.5 py-2 rounded-xl bg-primary hover:bg-primary text-white text-xs font-bold shadow-xs transition-all flex items-center gap-1.5"
           >
             <Plus className="w-4 h-4" />
             <span>Add Student</span>
@@ -571,54 +581,56 @@ export default function UniversityStudents() {
         </div>
       </div>
 
-      {/* School Filter Chips */}
+      {/* School Filter */}
       {topUnits.length > 0 && (
         <div className="flex flex-wrap items-center gap-2">
-          <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Filter by School:</span>
-          <button
-            type="button"
-            onClick={() => setSchoolFilter(null)}
-            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
-              !schoolFilter
-                ? 'bg-[#063b33] text-white shadow-xs'
-                : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
-            }`}
-          >
-            All
-          </button>
-          {topUnits.map((unit) => (
-            <button
-              key={unit.unitId}
-              type="button"
-              onClick={() => setSchoolFilter(schoolFilter === unit.unitId ? null : unit.unitId)}
-              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
-                schoolFilter === unit.unitId
-                  ? 'bg-[#063b33] text-white shadow-xs'
-                  : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
-              }`}
-            >
-              {unit.shortForm || unit.unitName}
-            </button>
-          ))}
-          {(studentsByUnit['unassigned'] || []).length > 0 && (
-            <button
-              type="button"
-              onClick={() => setSchoolFilter(schoolFilter === 'unassigned' ? null : 'unassigned')}
-              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
-                schoolFilter === 'unassigned'
-                  ? 'bg-[#063b33] text-white shadow-xs'
-                  : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
-              }`}
-            >
-              Unassigned
-            </button>
-          )}
+          <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mr-1">Filter by School:</span>
+          <FilterTabs
+            tabs={[
+              { id: 'All', label: 'All Schools', count: myStudents.length },
+              ...topUnits.map((unit) => ({
+                id: String(unit.unitId),
+                label: unit.shortForm || unit.unitName,
+                count: (studentsByUnit[String(unit.unitId)] || []).length,
+              })),
+              ...((studentsByUnit['unassigned'] || []).length > 0
+                ? [{ id: 'unassigned', label: 'Unassigned', count: (studentsByUnit['unassigned'] || []).length }]
+                : []),
+            ]}
+            activeTab={schoolFilter === null ? 'All' : String(schoolFilter)}
+            onChange={(id) => setSchoolFilter(id === 'All' ? null : id)}
+          />
         </div>
       )}
 
+      {/* Summary KPI Row */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <KpiCard title="Total Students" value={myStudents.length} period="in this university" icon="Users" badgeColor="teal" />
+        <KpiCard
+          title="Assigned"
+          value={myStudents.filter((s) => s.schoolId).length}
+          period="to an academic unit"
+          icon="CheckCircle2"
+          badgeColor="emerald"
+        />
+        <KpiCard
+          title="Unassigned"
+          value={myStudents.filter((s) => !s.schoolId).length}
+          period="no academic unit"
+          icon="FileText"
+          badgeColor="rose"
+        />
+        <KpiCard
+          title="With Placement"
+          value={myStudents.filter((s) => s.internshipCompanyId).length}
+          period="host company linked"
+          icon="FolderKanban"
+          badgeColor="blue"
+        />
+      </div>
+
       {/* Add Student Form */}
       {showAddForm && renderAddForm()}
-
       {/* Students grouped by Academic Unit */}
       {topUnits.length > 0 ? (
         topUnits.map((unit) => {

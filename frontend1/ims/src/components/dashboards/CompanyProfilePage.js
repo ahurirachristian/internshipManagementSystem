@@ -65,7 +65,7 @@ export default function CompanyProfilePage() {
   if (loading) {
     return (
       <DashboardLayout title="Company Profile">
-        <div className="flex items-center gap-2 text-xs text-slate-500 font-medium">
+        <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400 font-medium">
           <div className="w-4 h-4 border-2 border-teal-600 border-t-transparent rounded-full animate-spin" />
           <span>Loading company...</span>
         </div>
@@ -129,22 +129,22 @@ export default function CompanyProfilePage() {
         )}
 
         {/* Company Details */}
-        <section className="bg-white rounded-2xl border border-slate-200 p-6 shadow-xs">
+        <section className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 shadow-xs">
           <div className="flex items-center justify-between gap-4 mb-5">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-xl bg-teal-50 border border-teal-200 flex items-center justify-center text-teal-700">
                 <Building2 className="w-5 h-5" />
               </div>
               <div>
-                <h3 className="text-sm font-bold text-slate-900">{company.name}</h3>
-                <p className="text-[11px] text-slate-500">Company details and their assigned interns</p>
+                <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100">{company.name}</h3>
+                <p className="text-[11px] text-slate-500 dark:text-slate-400">Company details and their assigned interns</p>
               </div>
             </div>
             {canEdit && (
               <button
                 type="button"
                 onClick={() => setEditOpen(true)}
-                className="h-9 px-3.5 py-2 rounded-xl bg-[#063b33] hover:bg-[#042823] text-white text-xs font-bold shadow-xs transition-all flex items-center gap-1.5 focus-visible:ring-2 focus-visible:ring-teal-600 focus-visible:outline-none"
+                className="h-9 px-3.5 py-2 rounded-xl bg-primary hover:bg-primary text-white text-xs font-bold shadow-xs transition-all flex items-center gap-1.5 focus-visible:ring-2 focus-visible:ring-teal-600 focus-visible:outline-none"
               >
                 <Pencil className="w-4 h-4" />
                 <span>Edit Company</span>
@@ -153,31 +153,31 @@ export default function CompanyProfilePage() {
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
             {details.map(([label, value]) => (
-              <div key={label} className="bg-slate-50 rounded-xl p-3 border border-slate-200">
-                <div className="text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">{label}</div>
-                <div className="text-sm font-bold text-slate-900">{value || '—'}</div>
+              <div key={label} className="bg-slate-50 dark:bg-slate-800/40 rounded-xl p-3 border border-slate-200 dark:border-slate-800">
+                <div className="text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">{label}</div>
+                <div className="text-sm font-bold text-slate-900 dark:text-slate-100">{value || '—'}</div>
               </div>
             ))}
           </div>
         </section>
 
         {/* Interns Table */}
-        <section className="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
-          <div className="px-5 py-4 border-b border-slate-200">
+        <section className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs overflow-hidden">
+          <div className="px-5 py-4 border-b border-slate-200 dark:border-slate-800">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-xl bg-blue-50 border border-blue-200 flex items-center justify-center text-blue-700">
                 <GraduationCap className="w-5 h-5" />
               </div>
               <div>
-                <h3 className="text-sm font-bold text-slate-900">Assigned Interns</h3>
-                <p className="text-[11px] text-slate-500">Students placed at this company</p>
+                <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100">Assigned Interns</h3>
+                <p className="text-[11px] text-slate-500 dark:text-slate-400">Students placed at this company</p>
               </div>
             </div>
           </div>
           <div className="overflow-x-auto custom-scrollbar">
             <table className="w-full text-left border-collapse" style={{ minWidth: '700px' }} aria-label="Assigned interns">
               <thead>
-                <tr className="border-b border-slate-200 bg-slate-50/90 text-[11px] font-bold tracking-wider text-slate-800">
+                <tr className="border-b border-slate-200 dark:border-slate-800 bg-slate-50/90 dark:bg-slate-800/60 text-[11px] font-bold tracking-wider text-slate-800 dark:text-slate-200">
                   <th scope="col" className="py-3.5 px-3 pl-5">Intern</th>
                   <th scope="col" className="py-3.5 px-3">Email</th>
                   <th scope="col" className="py-3.5 px-3">Student Number</th>
@@ -185,33 +185,33 @@ export default function CompanyProfilePage() {
                   <th scope="col" className="py-3.5 px-3 pr-5">Year</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100 text-sm">
+              <tbody className="divide-y divide-slate-100 dark:divide-slate-800 text-sm">
                 {interns.length > 0 ? (
                   interns.map((intern) => (
-                    <tr key={intern.id} className="hover:bg-slate-50/80 transition-colors">
+                    <tr key={intern.id} className="hover:bg-slate-50/80 dark:hover:bg-slate-800/60 transition-colors">
                       <td className="py-3.5 px-3 pl-5">
                         <div className="flex items-center gap-3">
                           <div className="w-8 h-8 rounded-lg bg-teal-50 text-teal-700 border border-teal-200 flex items-center justify-center shrink-0 shadow-xs">
                             <GraduationCap className="w-4 h-4" />
                           </div>
-                          <span className="font-bold text-slate-900">{intern.fullName}</span>
+                          <span className="font-bold text-slate-900 dark:text-slate-100">{intern.fullName}</span>
                         </div>
                       </td>
-                      <td className="py-3.5 px-3 text-xs text-slate-600">{intern.email}</td>
-                      <td className="py-3.5 px-3 text-xs text-slate-600">{intern.studentNumber}</td>
-                      <td className="py-3.5 px-3 text-xs text-slate-600">{intern.degreeProgram}</td>
-                      <td className="py-3.5 px-3 pr-5 text-xs text-slate-600">{intern.yearOfStudy}</td>
+                      <td className="py-3.5 px-3 text-xs text-slate-600 dark:text-slate-400">{intern.email}</td>
+                      <td className="py-3.5 px-3 text-xs text-slate-600 dark:text-slate-400">{intern.studentNumber}</td>
+                      <td className="py-3.5 px-3 text-xs text-slate-600 dark:text-slate-400">{intern.degreeProgram}</td>
+                      <td className="py-3.5 px-3 pr-5 text-xs text-slate-600 dark:text-slate-400">{intern.yearOfStudy}</td>
                     </tr>
                   ))
                 ) : (
                   <tr>
                     <td colSpan={5} className="py-12 px-4 text-center">
                       <div className="max-w-sm mx-auto flex flex-col items-center">
-                        <div className="w-12 h-12 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-400 mb-3">
+                        <div className="w-12 h-12 rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-800 flex items-center justify-center text-slate-400 mb-3">
                           <GraduationCap className="w-6 h-6" />
                         </div>
-                        <h3 className="text-base font-bold text-slate-800">No interns assigned</h3>
-                        <p className="text-xs text-slate-500 mt-1">No interns assigned to this company yet.</p>
+                        <h3 className="text-base font-bold text-slate-800 dark:text-slate-200">No interns assigned</h3>
+                        <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">No interns assigned to this company yet.</p>
                       </div>
                     </td>
                   </tr>

@@ -3,6 +3,7 @@ import { useSearchParams } from 'react-router-dom';
 import DashboardLayout from '../DashboardLayout';
 import StudentEditModal from '../StudentEditModal';
 import { useAuth } from '../../context/AuthContext';
+import { useTheme } from '../../context/ThemeContext';
 import {
   deleteStudent,
   fetchUniversityStudents,
@@ -68,6 +69,7 @@ const CHART_COLORS = ['#0d9488', '#f59e0b', '#8b5cf6', '#e11d48', '#0ea5e9', '#8
 
 export default function UniversityDashboard() {
   const { user } = useAuth();
+  const { isDark } = useTheme();
   const [activeTab, setActiveTab] = useState('students');
   const [allStudents, setAllStudents] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -324,22 +326,22 @@ export default function UniversityDashboard() {
 
   function renderStudentRow(student) {
     return (
-      <tr key={student.id} className="hover:bg-slate-50/80 transition-colors">
+      <tr key={student.id} className="hover:bg-slate-50/80 dark:hover:bg-slate-800/60 transition-colors">
         <td className="py-3.5 px-3 pl-5">
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 rounded-lg bg-teal-50 text-teal-700 border border-teal-200 flex items-center justify-center shrink-0 shadow-xs">
               <GraduationCap className="w-4 h-4" />
             </div>
-            <span className="font-bold text-slate-900">{student.fullName}</span>
+            <span className="font-bold text-slate-900 dark:text-slate-100">{student.fullName}</span>
           </div>
         </td>
-        <td className="py-3.5 px-3 text-xs text-slate-600">{student.username}</td>
-        <td className="py-3.5 px-3 text-xs text-slate-600">{student.studentNumber}</td>
-        <td className="py-3.5 px-3 text-xs text-slate-600">{student.degreeProgram}</td>
-        <td className="py-3.5 px-3 text-xs text-slate-600">{student.yearOfStudy}</td>
+        <td className="py-3.5 px-3 text-xs text-slate-600 dark:text-slate-400">{student.username}</td>
+        <td className="py-3.5 px-3 text-xs text-slate-600 dark:text-slate-400">{student.studentNumber}</td>
+        <td className="py-3.5 px-3 text-xs text-slate-600 dark:text-slate-400">{student.degreeProgram}</td>
+        <td className="py-3.5 px-3 text-xs text-slate-600 dark:text-slate-400">{student.yearOfStudy}</td>
         <td className="py-3.5 px-3">
           {student.internshipCompanyId ? (
-            <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-700">
+            <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-700 dark:text-slate-300">
               <Building2 className="w-3.5 h-3.5 text-slate-400" />
               {getCompanyName(student)}
             </span>
@@ -382,7 +384,7 @@ export default function UniversityDashboard() {
       <div className="overflow-x-auto custom-scrollbar">
         <table className="w-full text-left border-collapse" style={{ minWidth: '850px' }} aria-label="Students list">
           <thead>
-            <tr className="border-b border-slate-200 bg-slate-50/90 text-[11px] font-bold tracking-wider text-slate-800">
+            <tr className="border-b border-slate-200 dark:border-slate-800 bg-slate-50/90 dark:bg-slate-800/60 text-[11px] font-bold tracking-wider text-slate-800 dark:text-slate-200">
               <th scope="col" className="py-3.5 px-3 pl-5">Name</th>
               <th scope="col" className="py-3.5 px-3">Username</th>
               <th scope="col" className="py-3.5 px-3">Student Number</th>
@@ -392,18 +394,18 @@ export default function UniversityDashboard() {
               <th scope="col" className="py-3.5 px-3 pr-5 text-right">Actions</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-100 text-sm">
+          <tbody className="divide-y divide-slate-100 dark:divide-slate-800 text-sm">
             {list.length > 0 ? (
               list.map((student) => renderStudentRow(student))
             ) : (
               <tr>
                 <td colSpan={7} className="py-12 px-4 text-center">
                   <div className="max-w-sm mx-auto flex flex-col items-center">
-                    <div className="w-12 h-12 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-400 mb-3">
+                    <div className="w-12 h-12 rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-800 flex items-center justify-center text-slate-400 mb-3">
                       <GraduationCap className="w-6 h-6" />
                     </div>
-                    <h3 className="text-base font-bold text-slate-800">No students</h3>
-                    <p className="text-xs text-slate-500 mt-1">No students found.</p>
+                    <h3 className="text-base font-bold text-slate-800 dark:text-slate-200">No students</h3>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">No students found.</p>
                   </div>
                 </td>
               </tr>
@@ -428,19 +430,19 @@ export default function UniversityDashboard() {
             const isExpanded = expandedUnits[unit.schoolId];
 
             return (
-              <div key={unit.schoolId} className="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
+              <div key={unit.schoolId} className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs overflow-hidden">
                 <button
                   type="button"
                   onClick={() => toggleUnit(unit.schoolId)}
-                  className="w-full px-5 py-4 flex items-center justify-between hover:bg-slate-50/80 transition-colors"
+                  className="w-full px-5 py-4 flex items-center justify-between hover:bg-slate-50/80 dark:hover:bg-slate-800/60 transition-colors"
                 >
                   <div className="flex items-center gap-3">
                     <div className="w-8 h-8 rounded-lg bg-blue-50 text-blue-700 border border-blue-200 flex items-center justify-center">
                       <School className="w-4 h-4" />
                     </div>
                     <div className="text-left">
-                      <div className="text-sm font-bold text-slate-900">{unit.schoolName}</div>
-                      <div className="text-[11px] text-slate-500">
+                      <div className="text-sm font-bold text-slate-900 dark:text-slate-100">{unit.schoolName}</div>
+                      <div className="text-[11px] text-slate-500 dark:text-slate-400">
                         {unit.schoolCode} &middot; {totalCount} student{totalCount !== 1 ? 's' : ''}
                       </div>
                     </div>
@@ -449,7 +451,7 @@ export default function UniversityDashboard() {
                 </button>
 
                 {isExpanded && (
-                  <div className="border-t border-slate-200">
+                  <div className="border-t border-slate-200 dark:border-slate-800">
                     {unitStudents.length > 0 ? (
                       renderAllStudentsTable(unitStudents)
                     ) : (
@@ -460,14 +462,14 @@ export default function UniversityDashboard() {
                       const childStudents = studentsByUnit[String(child.schoolId)] || [];
                       const childExpanded = expandedUnits[child.schoolId];
                       return (
-                        <div key={child.schoolId} className="border-t border-slate-100">
+                        <div key={child.schoolId} className="border-t border-slate-100 dark:border-slate-800">
                           <button
                             type="button"
                             onClick={() => toggleUnit(child.schoolId)}
-                            className="w-full px-5 py-3 flex items-center justify-between hover:bg-slate-50/80 transition-colors pl-12"
+                            className="w-full px-5 py-3 flex items-center justify-between hover:bg-slate-50/80 dark:hover:bg-slate-800/60 transition-colors pl-12"
                           >
                             <div className="flex items-center gap-2">
-                              <div className="text-xs font-bold text-slate-700">{child.schoolName}</div>
+                              <div className="text-xs font-bold text-slate-700 dark:text-slate-300">{child.schoolName}</div>
                               <span className="text-[10px] text-slate-400">({childStudents.length})</span>
                             </div>
                             {childExpanded ? <ChevronDown className="w-3 h-3 text-slate-400" /> : <ChevronRight className="w-3 h-3 text-slate-400" />}
@@ -488,10 +490,10 @@ export default function UniversityDashboard() {
         )}
 
         {(studentsByUnit['unassigned'] || []).length > 0 && (
-          <div className="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
-            <div className="px-5 py-4 border-b border-slate-200">
-              <h3 className="text-sm font-bold text-slate-900">Unassigned Students</h3>
-              <p className="text-[11px] text-slate-500">Students not yet assigned to an academic unit</p>
+          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs overflow-hidden">
+            <div className="px-5 py-4 border-b border-slate-200 dark:border-slate-800">
+              <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100">Unassigned Students</h3>
+              <p className="text-[11px] text-slate-500 dark:text-slate-400">Students not yet assigned to an academic unit</p>
             </div>
             {renderAllStudentsTable(studentsByUnit['unassigned'])}
           </div>
@@ -503,7 +505,7 @@ export default function UniversityDashboard() {
   function renderStudents() {
     if (loading) {
       return (
-        <div className="flex items-center gap-2 text-xs text-slate-500 font-medium">
+        <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400 font-medium">
           <div className="w-4 h-4 border-2 border-teal-600 border-t-transparent rounded-full animate-spin" />
           <span>Loading students...</span>
         </div>
@@ -512,59 +514,59 @@ export default function UniversityDashboard() {
     return (
       <>
         <div className="grid grid-cols-3 gap-4">
-          <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-xs">
-            <div className="text-2xl font-extrabold text-slate-900">{counts.total}</div>
-            <div className="text-xs font-semibold text-slate-500">Total Students</div>
+          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 shadow-xs">
+            <div className="text-2xl font-extrabold text-slate-900 dark:text-slate-100">{counts.total}</div>
+            <div className="text-xs font-semibold text-slate-500 dark:text-slate-400">Total Students</div>
           </div>
-          <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-xs">
-            <div className="text-2xl font-extrabold text-slate-900">{counts.assigned}</div>
-            <div className="text-xs font-semibold text-slate-500">Assigned to a Company</div>
+          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 shadow-xs">
+            <div className="text-2xl font-extrabold text-slate-900 dark:text-slate-100">{counts.assigned}</div>
+            <div className="text-xs font-semibold text-slate-500 dark:text-slate-400">Assigned to a Company</div>
           </div>
-          <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-xs">
-            <div className="text-2xl font-extrabold text-slate-900">{counts.pending}</div>
-            <div className="text-xs font-semibold text-slate-500">Awaiting Placement</div>
+          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 shadow-xs">
+            <div className="text-2xl font-extrabold text-slate-900 dark:text-slate-100">{counts.pending}</div>
+            <div className="text-xs font-semibold text-slate-500 dark:text-slate-400">Awaiting Placement</div>
           </div>
         </div>
 
         <div className="grid grid-cols-4 gap-4">
-          <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-xs">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 shadow-xs">
             <div className="text-2xl font-extrabold text-teal-700">{schools.length}</div>
-            <div className="text-xs font-semibold text-slate-500">Schools</div>
+            <div className="text-xs font-semibold text-slate-500 dark:text-slate-400">Schools</div>
           </div>
-          <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-xs">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 shadow-xs">
             <div className="text-2xl font-extrabold text-teal-700">{departments.length}</div>
-            <div className="text-xs font-semibold text-slate-500">Departments</div>
+            <div className="text-xs font-semibold text-slate-500 dark:text-slate-400">Departments</div>
           </div>
-          <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-xs">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 shadow-xs">
             <div className="text-2xl font-extrabold text-teal-700">{programmes.length}</div>
-            <div className="text-xs font-semibold text-slate-500">Programmes</div>
+            <div className="text-xs font-semibold text-slate-500 dark:text-slate-400">Programmes</div>
           </div>
-          <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-xs">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 shadow-xs">
             <div className="text-2xl font-extrabold text-teal-700">{counts.total > 0 ? Math.round((counts.assigned / counts.total) * 100) : 0}%</div>
-            <div className="text-xs font-semibold text-slate-500">Placement Rate</div>
+            <div className="text-xs font-semibold text-slate-500 dark:text-slate-400">Placement Rate</div>
           </div>
         </div>
 
-        <section className="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
-          <div className="px-5 py-4 border-b border-slate-200">
+        <section className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs overflow-hidden">
+          <div className="px-5 py-4 border-b border-slate-200 dark:border-slate-800">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-teal-50 border border-teal-200 flex items-center justify-center text-teal-700">
                   <GraduationCap className="w-5 h-5" />
                 </div>
                 <div>
-                  <h3 className="text-sm font-bold text-slate-900">My Students</h3>
-                  <p className="text-[11px] text-slate-500">Students assigned under your supervision</p>
+                  <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100">My Students</h3>
+                  <p className="text-[11px] text-slate-500 dark:text-slate-400">Students assigned under your supervision</p>
                 </div>
               </div>
-              <div className="flex items-center bg-slate-100 rounded-xl p-1">
+              <div className="flex items-center bg-slate-100 dark:bg-slate-800 rounded-xl p-1">
                 <button
                   type="button"
                   onClick={() => setStudentsViewMode('all')}
                   className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
                     studentsViewMode === 'all'
-                      ? 'bg-[#063b33] text-white shadow-xs'
-                      : 'text-slate-600 hover:text-slate-900'
+                      ? 'bg-primary text-white shadow-xs'
+                      : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:text-slate-100'
                   }`}
                 >
                   <List className="w-3.5 h-3.5" />
@@ -575,8 +577,8 @@ export default function UniversityDashboard() {
                   onClick={() => setStudentsViewMode('bySchool')}
                   className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
                     studentsViewMode === 'bySchool'
-                      ? 'bg-[#063b33] text-white shadow-xs'
-                      : 'text-slate-600 hover:text-slate-900'
+                      ? 'bg-primary text-white shadow-xs'
+                      : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:text-slate-100'
                   }`}
                 >
                   <School className="w-3.5 h-3.5" />
@@ -602,25 +604,25 @@ export default function UniversityDashboard() {
   }
 
   function renderCredentials() {
-    const selectClass = "w-full bg-white text-slate-900 text-xs rounded-xl border border-slate-300 px-3.5 py-2.5 focus:border-teal-600 focus:ring-2 focus:ring-teal-600/20 focus:outline-none transition-all shadow-xs font-medium";
+    const selectClass = "w-full bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 text-xs rounded-xl border border-slate-300 dark:border-slate-700 px-3.5 py-2.5 focus:border-teal-600 focus:ring-2 focus:ring-teal-600/20 focus:outline-none transition-all shadow-xs font-medium";
     return (
-      <section className="bg-white rounded-2xl border border-slate-200 p-6 shadow-xs">
+      <section className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 shadow-xs">
         <div className="flex items-center gap-3 mb-4">
           <div className="w-10 h-10 rounded-xl bg-teal-50 border border-teal-200 flex items-center justify-center text-teal-700">
             <UserPlus className="w-5 h-5" />
           </div>
           <div>
-            <h3 className="text-sm font-bold text-slate-900">Assign Student Placement</h3>
-            <p className="text-[11px] text-slate-500">Attach a registered student to a company and supervisors.</p>
+            <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100">Assign Student Placement</h3>
+            <p className="text-[11px] text-slate-500 dark:text-slate-400">Attach a registered student to a company and supervisors.</p>
           </div>
         </div>
         {allStudents.length === 0 ? (
-          <p className="text-xs text-slate-500">No students available to assign yet.</p>
+          <p className="text-xs text-slate-500 dark:text-slate-400">No students available to assign yet.</p>
         ) : (
         <form onSubmit={handleAssignSubmit} className="space-y-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label htmlFor="assign-student" className="block text-xs font-bold uppercase tracking-wider text-slate-800 mb-1.5">
+              <label htmlFor="assign-student" className="block text-xs font-bold uppercase tracking-wider text-slate-800 dark:text-slate-200 mb-1.5">
                 Student <span className="text-rose-600">*</span>
               </label>
               <select
@@ -639,7 +641,7 @@ export default function UniversityDashboard() {
               </select>
             </div>
             <div>
-              <label htmlFor="assign-company" className="block text-xs font-bold uppercase tracking-wider text-slate-800 mb-1.5">
+              <label htmlFor="assign-company" className="block text-xs font-bold uppercase tracking-wider text-slate-800 dark:text-slate-200 mb-1.5">
                 Company
               </label>
               <select
@@ -655,7 +657,7 @@ export default function UniversityDashboard() {
               </select>
             </div>
             <div>
-              <label htmlFor="assign-uni-supervisor" className="block text-xs font-bold uppercase tracking-wider text-slate-800 mb-1.5">
+              <label htmlFor="assign-uni-supervisor" className="block text-xs font-bold uppercase tracking-wider text-slate-800 dark:text-slate-200 mb-1.5">
                 University Supervisor
               </label>
               <select
@@ -671,7 +673,7 @@ export default function UniversityDashboard() {
               </select>
             </div>
             <div>
-              <label htmlFor="assign-ind-supervisor" className="block text-xs font-bold uppercase tracking-wider text-slate-800 mb-1.5">
+              <label htmlFor="assign-ind-supervisor" className="block text-xs font-bold uppercase tracking-wider text-slate-800 dark:text-slate-200 mb-1.5">
                 Industrial Supervisor
               </label>
               <select
@@ -691,7 +693,7 @@ export default function UniversityDashboard() {
             <button
               type="submit"
               disabled={assignLoading || !assignForm.studentId}
-              className="h-9 px-3.5 py-2 rounded-xl bg-[#063b33] hover:bg-[#042823] text-white text-xs font-bold shadow-xs transition-all flex items-center gap-1.5 focus-visible:ring-2 focus-visible:ring-teal-600 focus-visible:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
+              className="h-9 px-3.5 py-2 rounded-xl bg-primary hover:bg-primary text-white text-xs font-bold shadow-xs transition-all flex items-center gap-1.5 focus-visible:ring-2 focus-visible:ring-teal-600 focus-visible:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <UserPlus className="w-4 h-4" />
               {assignLoading ? 'Saving...' : 'Assign Placement'}
@@ -706,22 +708,22 @@ export default function UniversityDashboard() {
   function renderAcademicStructure() {
     return (
       <div className="space-y-6">
-        <section className="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
-          <div className="px-5 py-4 border-b border-slate-200">
+        <section className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs overflow-hidden">
+          <div className="px-5 py-4 border-b border-slate-200 dark:border-slate-800">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-xl bg-blue-50 border border-blue-200 flex items-center justify-center text-blue-700">
                 <School className="w-5 h-5" />
               </div>
               <div>
-                <h3 className="text-sm font-bold text-slate-900">Schools</h3>
-                <p className="text-[11px] text-slate-500">{schools.length} school{schools.length !== 1 ? 's' : ''} registered</p>
+                <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100">Schools</h3>
+                <p className="text-[11px] text-slate-500 dark:text-slate-400">{schools.length} school{schools.length !== 1 ? 's' : ''} registered</p>
               </div>
             </div>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="border-b border-slate-200 bg-slate-50/90 text-[11px] font-bold tracking-wider text-slate-800">
+                <tr className="border-b border-slate-200 dark:border-slate-800 bg-slate-50/90 dark:bg-slate-800/60 text-[11px] font-bold tracking-wider text-slate-800 dark:text-slate-200">
                   <th className="py-3 px-4">ID</th>
                   <th className="py-3 px-4">Name</th>
                   <th className="py-3 px-4">Code</th>
@@ -729,14 +731,14 @@ export default function UniversityDashboard() {
                   <th className="py-3 px-4">Students</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100 text-sm">
+              <tbody className="divide-y divide-slate-100 dark:divide-slate-800 text-sm">
                 {schools.map((s) => (
-                  <tr key={s.schoolId} className="hover:bg-slate-50/80">
-                    <td className="py-3 px-4 text-xs text-slate-600">{s.schoolId}</td>
-                    <td className="py-3 px-4 text-xs font-semibold text-slate-900">{s.schoolName}</td>
-                    <td className="py-3 px-4 text-xs text-slate-600">{s.schoolCode || '—'}</td>
-                    <td className="py-3 px-4 text-xs text-slate-600">{s.type || '—'}</td>
-                    <td className="py-3 px-4 text-xs text-slate-600">
+                  <tr key={s.schoolId} className="hover:bg-slate-50/80 dark:hover:bg-slate-800/60">
+                    <td className="py-3 px-4 text-xs text-slate-600 dark:text-slate-400">{s.schoolId}</td>
+                    <td className="py-3 px-4 text-xs font-semibold text-slate-900 dark:text-slate-100">{s.schoolName}</td>
+                    <td className="py-3 px-4 text-xs text-slate-600 dark:text-slate-400">{s.schoolCode || '—'}</td>
+                    <td className="py-3 px-4 text-xs text-slate-600 dark:text-slate-400">{s.type || '—'}</td>
+                    <td className="py-3 px-4 text-xs text-slate-600 dark:text-slate-400">
                       {allStudents.filter((st) => String(st.schoolId) === String(s.schoolId)).length}
                     </td>
                   </tr>
@@ -750,33 +752,33 @@ export default function UniversityDashboard() {
         </section>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <section className="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
-            <div className="px-5 py-4 border-b border-slate-200">
+          <section className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs overflow-hidden">
+            <div className="px-5 py-4 border-b border-slate-200 dark:border-slate-800">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-violet-50 border border-violet-200 flex items-center justify-center text-violet-700">
                   <ListChecks className="w-5 h-5" />
                 </div>
                 <div>
-                  <h3 className="text-sm font-bold text-slate-900">Departments</h3>
-                  <p className="text-[11px] text-slate-500">{departments.length} department{departments.length !== 1 ? 's' : ''}</p>
+                  <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100">Departments</h3>
+                  <p className="text-[11px] text-slate-500 dark:text-slate-400">{departments.length} department{departments.length !== 1 ? 's' : ''}</p>
                 </div>
               </div>
             </div>
             <div className="max-h-72 overflow-y-auto">
               <table className="w-full text-left border-collapse">
-                <thead className="sticky top-0 bg-slate-50/90">
-                  <tr className="border-b border-slate-200 text-[11px] font-bold tracking-wider text-slate-800">
+                <thead className="sticky top-0 bg-slate-50/90 dark:bg-slate-800/60">
+                  <tr className="border-b border-slate-200 dark:border-slate-800 text-[11px] font-bold tracking-wider text-slate-800 dark:text-slate-200">
                     <th className="py-2.5 px-4">Name</th>
                     <th className="py-2.5 px-4">School</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100 text-sm">
+                <tbody className="divide-y divide-slate-100 dark:divide-slate-800 text-sm">
                   {departments.map((d) => {
                     const school = schools.find((s) => String(s.schoolId) === String(d.schoolId));
                     return (
-                      <tr key={d.departmentId} className="hover:bg-slate-50/80">
-                        <td className="py-2.5 px-4 text-xs font-semibold text-slate-900">{d.departmentName}</td>
-                        <td className="py-2.5 px-4 text-xs text-slate-600">{school ? school.schoolName : '—'}</td>
+                      <tr key={d.departmentId} className="hover:bg-slate-50/80 dark:hover:bg-slate-800/60">
+                        <td className="py-2.5 px-4 text-xs font-semibold text-slate-900 dark:text-slate-100">{d.departmentName}</td>
+                        <td className="py-2.5 px-4 text-xs text-slate-600 dark:text-slate-400">{school ? school.schoolName : '—'}</td>
                       </tr>
                     );
                   })}
@@ -788,33 +790,33 @@ export default function UniversityDashboard() {
             </div>
           </section>
 
-          <section className="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
-            <div className="px-5 py-4 border-b border-slate-200">
+          <section className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs overflow-hidden">
+            <div className="px-5 py-4 border-b border-slate-200 dark:border-slate-800">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-amber-50 border border-amber-200 flex items-center justify-center text-amber-700">
                   <BookOpen className="w-5 h-5" />
                 </div>
                 <div>
-                  <h3 className="text-sm font-bold text-slate-900">Programmes</h3>
-                  <p className="text-[11px] text-slate-500">{programmes.length} programme{programmes.length !== 1 ? 's' : ''}</p>
+                  <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100">Programmes</h3>
+                  <p className="text-[11px] text-slate-500 dark:text-slate-400">{programmes.length} programme{programmes.length !== 1 ? 's' : ''}</p>
                 </div>
               </div>
             </div>
             <div className="max-h-72 overflow-y-auto">
               <table className="w-full text-left border-collapse">
-                <thead className="sticky top-0 bg-slate-50/90">
-                  <tr className="border-b border-slate-200 text-[11px] font-bold tracking-wider text-slate-800">
+                <thead className="sticky top-0 bg-slate-50/90 dark:bg-slate-800/60">
+                  <tr className="border-b border-slate-200 dark:border-slate-800 text-[11px] font-bold tracking-wider text-slate-800 dark:text-slate-200">
                     <th className="py-2.5 px-4">Name</th>
                     <th className="py-2.5 px-4">Code</th>
                     <th className="py-2.5 px-4">Level</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100 text-sm">
+                <tbody className="divide-y divide-slate-100 dark:divide-slate-800 text-sm">
                   {programmes.map((p) => (
-                    <tr key={p.programmeId} className="hover:bg-slate-50/80">
-                      <td className="py-2.5 px-4 text-xs font-semibold text-slate-900">{p.programmeName}</td>
-                      <td className="py-2.5 px-4 text-xs text-slate-600">{p.programmeCode}</td>
-                      <td className="py-2.5 px-4 text-xs text-slate-600">{p.programmeLevel}</td>
+                    <tr key={p.programmeId} className="hover:bg-slate-50/80 dark:hover:bg-slate-800/60">
+                      <td className="py-2.5 px-4 text-xs font-semibold text-slate-900 dark:text-slate-100">{p.programmeName}</td>
+                      <td className="py-2.5 px-4 text-xs text-slate-600 dark:text-slate-400">{p.programmeCode}</td>
+                      <td className="py-2.5 px-4 text-xs text-slate-600 dark:text-slate-400">{p.programmeLevel}</td>
                     </tr>
                   ))}
                   {programmes.length === 0 && (
@@ -855,15 +857,15 @@ export default function UniversityDashboard() {
     return (
       <div className="space-y-6">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <section className="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
-            <div className="px-5 py-4 border-b border-slate-200">
+          <section className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs overflow-hidden">
+            <div className="px-5 py-4 border-b border-slate-200 dark:border-slate-800">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-teal-50 border border-teal-200 flex items-center justify-center text-teal-700">
                   <Briefcase className="w-5 h-5" />
                 </div>
                 <div>
-                  <h3 className="text-sm font-bold text-slate-900">Companies Hosting Interns</h3>
-                  <p className="text-[11px] text-slate-500">
+                  <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100">Companies Hosting Interns</h3>
+                  <p className="text-[11px] text-slate-500 dark:text-slate-400">
                     {stats?.companies?.distinctCompanies || 0} distinct company/companies
                   </p>
                 </div>
@@ -872,16 +874,16 @@ export default function UniversityDashboard() {
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse">
                 <thead>
-                  <tr className="border-b border-slate-200 bg-slate-50/90 text-[11px] font-bold tracking-wider text-slate-800">
+                  <tr className="border-b border-slate-200 dark:border-slate-800 bg-slate-50/90 dark:bg-slate-800/60 text-[11px] font-bold tracking-wider text-slate-800 dark:text-slate-200">
                     <th className="py-3 px-4">Company</th>
                     <th className="py-3 px-4">Interns</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100 text-sm">
+                <tbody className="divide-y divide-slate-100 dark:divide-slate-800 text-sm">
                   {companies.length > 0 ? companies.map((c) => (
-                    <tr key={c.id} className="hover:bg-slate-50/80">
-                      <td className="py-3 px-4 text-xs font-semibold text-slate-900">{c.companyName}</td>
-                      <td className="py-3 px-4 text-xs text-slate-600">{c.internCount}</td>
+                    <tr key={c.id} className="hover:bg-slate-50/80 dark:hover:bg-slate-800/60">
+                      <td className="py-3 px-4 text-xs font-semibold text-slate-900 dark:text-slate-100">{c.companyName}</td>
+                      <td className="py-3 px-4 text-xs text-slate-600 dark:text-slate-400">{c.internCount}</td>
                     </tr>
                   )) : (
                     <tr><td colSpan={2} className="py-8 text-center text-xs text-slate-400">No companies hosting interns yet</td></tr>
@@ -891,15 +893,15 @@ export default function UniversityDashboard() {
             </div>
           </section>
 
-          <section className="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
-            <div className="px-5 py-4 border-b border-slate-200">
+          <section className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs overflow-hidden">
+            <div className="px-5 py-4 border-b border-slate-200 dark:border-slate-800">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-amber-50 border border-amber-200 flex items-center justify-center text-amber-700">
                   <ClipboardCheck className="w-5 h-5" />
                 </div>
                 <div>
-                  <h3 className="text-sm font-bold text-slate-900">Placement Status</h3>
-                  <p className="text-[11px] text-slate-500">Distribution across the internship lifecycle</p>
+                  <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100">Placement Status</h3>
+                  <p className="text-[11px] text-slate-500 dark:text-slate-400">Distribution across the internship lifecycle</p>
                 </div>
               </div>
             </div>
@@ -908,13 +910,13 @@ export default function UniversityDashboard() {
                 const n = byStatus[s] || 0;
                 return (
                   <div key={s} className="flex items-center justify-between">
-                    <span className="text-xs font-semibold text-slate-700 uppercase">{s}</span>
-                    <span className="inline-flex items-center justify-center min-w-9 px-2.5 py-1 text-xs font-extrabold text-slate-800 bg-slate-100 rounded-lg">{n}</span>
+                    <span className="text-xs font-semibold text-slate-700 dark:text-slate-300 uppercase">{s}</span>
+                    <span className="inline-flex items-center justify-center min-w-9 px-2.5 py-1 text-xs font-extrabold text-slate-800 dark:text-slate-200 bg-slate-100 dark:bg-slate-800 rounded-lg">{n}</span>
                   </div>
                 );
               })}
-              <div className="pt-2 flex items-center justify-between border-t border-slate-100">
-                <span className="text-xs font-bold text-slate-900">Placement Rate</span>
+              <div className="pt-2 flex items-center justify-between border-t border-slate-100 dark:border-slate-800">
+                <span className="text-xs font-bold text-slate-900 dark:text-slate-100">Placement Rate</span>
                 <span className="text-xs font-extrabold text-teal-700">{stats?.rosters?.placementRatePct ?? 0}%</span>
               </div>
               {Object.keys(byStatus).length === 0 && (
@@ -952,10 +954,23 @@ export default function UniversityDashboard() {
     ];
     const hasScores = scoreRadar.some((d) => d.value > 0);
 
+    const chartGrid = isDark ? '#1e293b' : '#e2e8f0';
+    const chartTick = isDark ? '#94a3b8' : '#64748b';
+    const chartTickProps = { fontSize: 12, fill: chartTick };
+    const chartTooltipStyle = {
+      backgroundColor: isDark ? '#0f172a' : '#ffffff',
+      border: `1px solid ${isDark ? '#1e293b' : '#e2e8f0'}`,
+      color: isDark ? '#e2e8f0' : '#0f172a',
+      borderRadius: '8px',
+      fontSize: '12px',
+    };
+    const chartLabelStyle = { color: isDark ? '#e2e8f0' : '#0f172a' };
+    const chartLegendStyle = { color: isDark ? '#cbd5e1' : '#334155' };
+
     const card = (title, subtitle, children) => (
-      <section className="bg-white rounded-2xl border border-slate-200 shadow-xs p-5">
-        <h3 className="text-sm font-bold text-slate-900 mb-0.5">{title}</h3>
-        <p className="text-[11px] text-slate-500 mb-4">{subtitle}</p>
+      <section className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs p-5">
+        <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100 mb-0.5">{title}</h3>
+        <p className="text-[11px] text-slate-500 dark:text-slate-400 mb-4">{subtitle}</p>
         {children}
       </section>
     );
@@ -971,10 +986,10 @@ export default function UniversityDashboard() {
             byYear.length ? (
               <ResponsiveContainer width="100%" height={240}>
                 <BarChart data={byYear} margin={{ top: 5, right: 10, left: -20, bottom: 0 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-                  <XAxis dataKey="year" tick={{ fontSize: 12 }} />
-                  <YAxis allowDecimals={false} tick={{ fontSize: 12 }} />
-                  <Tooltip />
+                  <CartesianGrid strokeDasharray="3 3" stroke={chartGrid} />
+                  <XAxis dataKey="year" tick={chartTickProps} />
+                  <YAxis allowDecimals={false} tick={chartTickProps} />
+                  <Tooltip contentStyle={chartTooltipStyle} labelStyle={chartLabelStyle} />
                   <Bar dataKey="count" fill="#0d9488" radius={[6, 6, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
@@ -988,8 +1003,8 @@ export default function UniversityDashboard() {
                   <Pie data={byGender} dataKey="count" nameKey="gender" cx="50%" cy="50%" outerRadius={90} label>
                     {byGender.map((_, i) => <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />)}
                   </Pie>
-                  <Tooltip />
-                  <Legend />
+                  <Tooltip contentStyle={chartTooltipStyle} labelStyle={chartLabelStyle} />
+                  <Legend wrapperStyle={chartLegendStyle} />
                 </PieChart>
               </ResponsiveContainer>
             ) : empty('No gender data yet')
@@ -1001,11 +1016,11 @@ export default function UniversityDashboard() {
             bySchool.length ? (
               <ResponsiveContainer width="100%" height={260}>
                 <BarChart data={bySchool} margin={{ top: 5, right: 10, left: -20, bottom: 0 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-                  <XAxis dataKey="name" tick={{ fontSize: 10 }} interval={0} />
-                  <YAxis allowDecimals={false} tick={{ fontSize: 12 }} />
-                  <Tooltip />
-                  <Legend />
+                  <CartesianGrid strokeDasharray="3 3" stroke={chartGrid} />
+                  <XAxis dataKey="name" tick={{ fontSize: 10, fill: chartTick }} interval={0} />
+                  <YAxis allowDecimals={false} tick={chartTickProps} />
+                  <Tooltip contentStyle={chartTooltipStyle} labelStyle={chartLabelStyle} />
+                  <Legend wrapperStyle={chartLegendStyle} />
                   <Bar dataKey="count" name="Total" fill="#f59e0b" radius={[6, 6, 0, 0]} />
                   <Bar dataKey="assigned" name="Placed" fill="#0d9488" radius={[6, 6, 0, 0]} />
                 </BarChart>
@@ -1017,10 +1032,10 @@ export default function UniversityDashboard() {
             byProgramme.length ? (
               <ResponsiveContainer width="100%" height={260}>
                 <BarChart data={byProgramme} layout="vertical" margin={{ top: 5, right: 20, left: 10, bottom: 0 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-                  <XAxis type="number" allowDecimals={false} tick={{ fontSize: 12 }} />
-                  <YAxis type="category" dataKey="programme" width={150} tick={{ fontSize: 10 }} />
-                  <Tooltip />
+                  <CartesianGrid strokeDasharray="3 3" stroke={chartGrid} />
+                  <XAxis type="number" allowDecimals={false} tick={chartTickProps} />
+                  <YAxis type="category" dataKey="programme" width={150} tick={chartTickProps} />
+                  <Tooltip contentStyle={chartTooltipStyle} labelStyle={chartLabelStyle} />
                   <Bar dataKey="count" fill="#8b5cf6" radius={[0, 6, 6, 0]} />
                 </BarChart>
               </ResponsiveContainer>
@@ -1033,10 +1048,10 @@ export default function UniversityDashboard() {
             byCompany.length ? (
               <ResponsiveContainer width="100%" height={240}>
                 <BarChart data={byCompany} layout="vertical" margin={{ top: 5, right: 20, left: 10, bottom: 0 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-                  <XAxis type="number" allowDecimals={false} tick={{ fontSize: 12 }} />
-                  <YAxis type="category" dataKey="company" width={120} tick={{ fontSize: 10 }} />
-                  <Tooltip />
+                  <CartesianGrid strokeDasharray="3 3" stroke={chartGrid} />
+                  <XAxis type="number" allowDecimals={false} tick={chartTickProps} />
+                  <YAxis type="category" dataKey="company" width={120} tick={chartTickProps} />
+                  <Tooltip contentStyle={chartTooltipStyle} labelStyle={chartLabelStyle} />
                   <Bar dataKey="interns" fill="#0ea5e9" radius={[0, 6, 6, 0]} />
                 </BarChart>
               </ResponsiveContainer>
@@ -1050,8 +1065,8 @@ export default function UniversityDashboard() {
                   <Pie data={placementPie} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={90} label>
                     {placementPie.map((_, i) => <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />)}
                   </Pie>
-                  <Tooltip />
-                  <Legend />
+                  <Tooltip contentStyle={chartTooltipStyle} labelStyle={chartLabelStyle} />
+                  <Legend wrapperStyle={chartLegendStyle} />
                 </PieChart>
               </ResponsiveContainer>
             ) : empty('No placement data yet')
@@ -1064,8 +1079,8 @@ export default function UniversityDashboard() {
                   <Pie data={diaryPie} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={90} label>
                     {diaryPie.map((_, i) => <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />)}
                   </Pie>
-                  <Tooltip />
-                  <Legend />
+                  <Tooltip contentStyle={chartTooltipStyle} labelStyle={chartLabelStyle} />
+                  <Legend wrapperStyle={chartLegendStyle} />
                 </PieChart>
               </ResponsiveContainer>
             ) : empty('No diary data yet')
@@ -1076,11 +1091,11 @@ export default function UniversityDashboard() {
           hasScores ? (
             <ResponsiveContainer width="100%" height={280}>
               <RadarChart data={scoreRadar} outerRadius={110}>
-                <PolarGrid />
-                <PolarAngleAxis dataKey="metric" tick={{ fontSize: 12 }} />
-                <PolarRadiusAxis angle={30} domain={[0, 10]} />
+                <PolarGrid stroke={chartGrid} />
+                <PolarAngleAxis dataKey="metric" tick={chartTickProps} />
+                <PolarRadiusAxis angle={30} domain={[0, 10]} tick={chartTickProps} />
                 <Radar dataKey="value" stroke="#0d9488" fill="#0d9488" fillOpacity={0.4} />
-                <Tooltip />
+                <Tooltip contentStyle={chartTooltipStyle} labelStyle={chartLabelStyle} />
               </RadarChart>
             </ResponsiveContainer>
           ) : empty('No evaluation scores yet')
@@ -1099,29 +1114,29 @@ export default function UniversityDashboard() {
       <div className="space-y-6">
         <div className="grid grid-cols-3 gap-4">
           {statCards.map(([label, value]) => (
-            <div key={label} className="bg-white rounded-2xl border border-slate-200 p-5 shadow-xs">
-              <div className="text-2xl font-extrabold text-slate-900">{value}</div>
-              <div className="text-xs font-semibold text-slate-500">{label}</div>
+            <div key={label} className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 shadow-xs">
+              <div className="text-2xl font-extrabold text-slate-900 dark:text-slate-100">{value}</div>
+              <div className="text-xs font-semibold text-slate-500 dark:text-slate-400">{label}</div>
             </div>
           ))}
         </div>
 
-        <section className="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
-          <div className="px-5 py-4 border-b border-slate-200">
+        <section className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs overflow-hidden">
+          <div className="px-5 py-4 border-b border-slate-200 dark:border-slate-800">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-xl bg-rose-50 border border-rose-200 flex items-center justify-center text-rose-700">
                 <FileText className="w-5 h-5" />
               </div>
               <div>
-                <h3 className="text-sm font-bold text-slate-900">Recent Diary Submissions</h3>
-                <p className="text-[11px] text-slate-500">Latest logbook entries from your students</p>
+                <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100">Recent Diary Submissions</h3>
+                <p className="text-[11px] text-slate-500 dark:text-slate-400">Latest logbook entries from your students</p>
               </div>
             </div>
           </div>
           <div className="overflow-x-auto custom-scrollbar">
             <table className="w-full text-left border-collapse" style={{ minWidth: '700px' }} aria-label="Diary submissions">
               <thead>
-                <tr className="border-b border-slate-200 bg-slate-50/90 text-[11px] font-bold tracking-wider text-slate-800">
+                <tr className="border-b border-slate-200 dark:border-slate-800 bg-slate-50/90 dark:bg-slate-800/60 text-[11px] font-bold tracking-wider text-slate-800 dark:text-slate-200">
                   <th className="py-3 px-4">Student</th>
                   <th className="py-3 px-4">Student No</th>
                   <th className="py-3 px-4">Date</th>
@@ -1130,12 +1145,12 @@ export default function UniversityDashboard() {
                   <th className="py-3 px-4 pr-5 text-right">Review</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100 text-sm">
+              <tbody className="divide-y divide-slate-100 dark:divide-slate-800 text-sm">
                 {d.recent.length > 0 ? d.recent.map((row) => (
-                  <tr key={row.id} className="hover:bg-slate-50/80">
-                    <td className="py-3 px-4 text-xs font-semibold text-slate-900">{row.studentName}</td>
-                    <td className="py-3 px-4 text-xs text-slate-600">{row.studentNo}</td>
-                    <td className="py-3 px-4 text-xs text-slate-600">{row.date}</td>
+                  <tr key={row.id} className="hover:bg-slate-50/80 dark:hover:bg-slate-800/60">
+                    <td className="py-3 px-4 text-xs font-semibold text-slate-900 dark:text-slate-100">{row.studentName}</td>
+                    <td className="py-3 px-4 text-xs text-slate-600 dark:text-slate-400">{row.studentNo}</td>
+                    <td className="py-3 px-4 text-xs text-slate-600 dark:text-slate-400">{row.date}</td>
                     <td className="py-3 px-4">
                       <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
                         row.status === 'PENDING' ? 'bg-amber-50 text-amber-700'
@@ -1145,7 +1160,7 @@ export default function UniversityDashboard() {
                         {row.status || 'PENDING'}
                       </span>
                     </td>
-                    <td className="py-3 px-4 text-xs text-slate-600">{row.hasFeedback ? 'Yes' : '—'}</td>
+                    <td className="py-3 px-4 text-xs text-slate-600 dark:text-slate-400">{row.hasFeedback ? 'Yes' : '—'}</td>
                     <td className="py-3 px-4 pr-5 text-right">
                       <button
                         type="button"
@@ -1181,29 +1196,29 @@ export default function UniversityDashboard() {
       <div className="space-y-6">
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
           {statCards.map(([label, value]) => (
-            <div key={label} className="bg-white rounded-2xl border border-slate-200 p-5 shadow-xs">
-              <div className="text-2xl font-extrabold text-slate-900">{value}</div>
-              <div className="text-xs font-semibold text-slate-500">{label}</div>
+            <div key={label} className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 shadow-xs">
+              <div className="text-2xl font-extrabold text-slate-900 dark:text-slate-100">{value}</div>
+              <div className="text-xs font-semibold text-slate-500 dark:text-slate-400">{label}</div>
             </div>
           ))}
         </div>
 
-        <section className="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
-          <div className="px-5 py-4 border-b border-slate-200">
+        <section className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs overflow-hidden">
+          <div className="px-5 py-4 border-b border-slate-200 dark:border-slate-800">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-xl bg-violet-50 border border-violet-200 flex items-center justify-center text-violet-700">
                 <Star className="w-5 h-5" />
               </div>
               <div>
-                <h3 className="text-sm font-bold text-slate-900">Evaluation & Progress</h3>
-                <p className="text-[11px] text-slate-500">Per-student evaluation status and report milestones (5 = mid-term, 10 = final)</p>
+                <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100">Evaluation & Progress</h3>
+                <p className="text-[11px] text-slate-500 dark:text-slate-400">Per-student evaluation status and report milestones (5 = mid-term, 10 = final)</p>
               </div>
             </div>
           </div>
           <div className="overflow-x-auto custom-scrollbar">
             <table className="w-full text-left border-collapse" style={{ minWidth: '820px' }} aria-label="Evaluations">
               <thead>
-                <tr className="border-b border-slate-200 bg-slate-50/90 text-[11px] font-bold tracking-wider text-slate-800">
+                <tr className="border-b border-slate-200 dark:border-slate-800 bg-slate-50/90 dark:bg-slate-800/60 text-[11px] font-bold tracking-wider text-slate-800 dark:text-slate-200">
                   <th className="py-3 px-4">Student</th>
                   <th className="py-3 px-4">Student No</th>
                   <th className="py-3 px-4">Status</th>
@@ -1212,21 +1227,21 @@ export default function UniversityDashboard() {
                   <th className="py-3 px-4">Final Report</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100 text-sm">
+              <tbody className="divide-y divide-slate-100 dark:divide-slate-800 text-sm">
                 {e.byStudent.length > 0 ? e.byStudent.map((s) => (
-                  <tr key={s.studentId} className="hover:bg-slate-50/80">
-                    <td className="py-3 px-4 text-xs font-semibold text-slate-900">{s.studentName}</td>
-                    <td className="py-3 px-4 text-xs text-slate-600">{s.studentNo}</td>
+                  <tr key={s.studentId} className="hover:bg-slate-50/80 dark:hover:bg-slate-800/60">
+                    <td className="py-3 px-4 text-xs font-semibold text-slate-900 dark:text-slate-100">{s.studentName}</td>
+                    <td className="py-3 px-4 text-xs text-slate-600 dark:text-slate-400">{s.studentNo}</td>
                     <td className="py-3 px-4">
                       <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
-                        s.evaluated ? 'bg-emerald-50 text-emerald-700' : 'bg-slate-100 text-slate-600'
+                        s.evaluated ? 'bg-emerald-50 text-emerald-700' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400'
                       }`}>
                         {s.evaluated ? 'Evaluated' : 'Not Evaluated'}
                       </span>
                     </td>
-                    <td className="py-3 px-4 text-xs text-slate-600">{s.diaryCount}</td>
-                    <td className="py-3 px-4 text-xs text-slate-600">{s.midTermReady ? '✓' : '—'}</td>
-                    <td className="py-3 px-4 text-xs text-slate-600">{s.finalReportReady ? '✓' : '—'}</td>
+                    <td className="py-3 px-4 text-xs text-slate-600 dark:text-slate-400">{s.diaryCount}</td>
+                    <td className="py-3 px-4 text-xs text-slate-600 dark:text-slate-400">{s.midTermReady ? '✓' : '—'}</td>
+                    <td className="py-3 px-4 text-xs text-slate-600 dark:text-slate-400">{s.finalReportReady ? '✓' : '—'}</td>
                   </tr>
                 )) : (
                   <tr><td colSpan={6} className="py-10 text-center text-xs text-slate-400">No students to show</td></tr>
@@ -1281,21 +1296,21 @@ export default function UniversityDashboard() {
         )}
 
         {university && (
-          <section className="bg-white rounded-2xl border border-slate-200 p-6 shadow-xs">
+          <section className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 shadow-xs">
             <div className="flex items-center gap-3 mb-4">
               <div className="w-10 h-10 rounded-xl bg-teal-50 border border-teal-200 flex items-center justify-center text-teal-700">
                 <Building2 className="w-5 h-5" />
               </div>
               <div>
-                <h3 className="text-sm font-bold text-slate-900">{university.fullName}</h3>
-                <p className="text-[11px] text-slate-500">University Profile</p>
+                <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100">{university.fullName}</h3>
+                <p className="text-[11px] text-slate-500 dark:text-slate-400">University Profile</p>
               </div>
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
               {universityDetails.map(([label, value]) => (
-                <div key={label} className="bg-slate-50 rounded-xl p-3 border border-slate-200">
-                  <div className="text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">{label}</div>
-                  <div className="text-sm font-bold text-slate-900">{value || '—'}</div>
+                <div key={label} className="bg-slate-50 dark:bg-slate-800/40 rounded-xl p-3 border border-slate-200 dark:border-slate-800">
+                  <div className="text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">{label}</div>
+                  <div className="text-sm font-bold text-slate-900 dark:text-slate-100">{value || '—'}</div>
                 </div>
               ))}
             </div>
@@ -1327,27 +1342,27 @@ export default function UniversityDashboard() {
       {reviewDiary && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-black/40" onClick={() => setReviewDiary(null)} />
-          <form onSubmit={handleDiaryReview} className="relative w-full max-w-lg bg-white rounded-2xl border border-slate-200 shadow-xl p-6 space-y-4">
+          <form onSubmit={handleDiaryReview} className="relative w-full max-w-lg bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xl p-6 space-y-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-teal-50 border border-teal-200 flex items-center justify-center text-teal-700">
                   <ClipboardCheck className="w-5 h-5" />
                 </div>
                 <div>
-                  <h3 className="text-sm font-bold text-slate-900">Review Diary</h3>
-                  <p className="text-[11px] text-slate-500">{reviewDiary.studentName} · {reviewDiary.date}</p>
+                  <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100">Review Diary</h3>
+                  <p className="text-[11px] text-slate-500 dark:text-slate-400">{reviewDiary.studentName} · {reviewDiary.date}</p>
                 </div>
               </div>
-              <button type="button" onClick={() => setReviewDiary(null)} className="text-slate-400 hover:text-slate-700 p-1 rounded" aria-label="Close">
+              <button type="button" onClick={() => setReviewDiary(null)} className="text-slate-400 hover:text-slate-700 dark:text-slate-300 p-1 rounded" aria-label="Close">
                 <X className="w-5 h-5" />
               </button>
             </div>
             <div>
-              <label className="block text-xs font-bold uppercase tracking-wider text-slate-800 mb-1.5">Status</label>
+              <label className="block text-xs font-bold uppercase tracking-wider text-slate-800 dark:text-slate-200 mb-1.5">Status</label>
               <select
                 value={reviewForm.status}
                 onChange={(e) => setReviewForm({ ...reviewForm, status: e.target.value })}
-                className="w-full bg-white text-slate-900 text-xs rounded-xl border border-slate-300 px-3.5 py-2.5 focus:border-teal-600 focus:ring-2 focus:ring-teal-600/20 focus:outline-none transition-all shadow-xs font-medium"
+                className="w-full bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 text-xs rounded-xl border border-slate-300 dark:border-slate-700 px-3.5 py-2.5 focus:border-teal-600 focus:ring-2 focus:ring-teal-600/20 focus:outline-none transition-all shadow-xs font-medium"
               >
                 <option value="APPROVED">Approved</option>
                 <option value="NEEDS_REVISION">Needs Revision</option>
@@ -1355,20 +1370,20 @@ export default function UniversityDashboard() {
               </select>
             </div>
             <div>
-              <label className="block text-xs font-bold uppercase tracking-wider text-slate-800 mb-1.5">Feedback</label>
+              <label className="block text-xs font-bold uppercase tracking-wider text-slate-800 dark:text-slate-200 mb-1.5">Feedback</label>
               <textarea
                 value={reviewForm.feedback}
                 onChange={(e) => setReviewForm({ ...reviewForm, feedback: e.target.value })}
                 rows={4}
                 placeholder="Feedback to the student..."
-                className="w-full bg-white text-slate-900 text-xs rounded-xl border border-slate-300 px-3.5 py-2.5 focus:border-teal-600 focus:ring-2 focus:ring-teal-600/20 focus:outline-none transition-all shadow-xs font-medium"
+                className="w-full bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 text-xs rounded-xl border border-slate-300 dark:border-slate-700 px-3.5 py-2.5 focus:border-teal-600 focus:ring-2 focus:ring-teal-600/20 focus:outline-none transition-all shadow-xs font-medium"
               />
             </div>
             <div className="flex justify-end gap-2 pt-2">
-              <button type="button" onClick={() => setReviewDiary(null)} className="h-9 px-3.5 py-2 rounded-xl border border-slate-300 text-slate-700 text-xs font-bold hover:bg-slate-50 transition-all">
+              <button type="button" onClick={() => setReviewDiary(null)} className="h-9 px-3.5 py-2 rounded-xl border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 text-xs font-bold hover:bg-slate-50 dark:bg-slate-800/40 transition-all">
                 Cancel
               </button>
-              <button type="submit" className="h-9 px-3.5 py-2 rounded-xl bg-[#063b33] hover:bg-[#042823] text-white text-xs font-bold shadow-xs transition-all flex items-center gap-1.5">
+              <button type="submit" className="h-9 px-3.5 py-2 rounded-xl bg-primary hover:bg-primary text-white text-xs font-bold shadow-xs transition-all flex items-center gap-1.5">
                 <ClipboardCheck className="w-4 h-4" />
                 Save Review
               </button>

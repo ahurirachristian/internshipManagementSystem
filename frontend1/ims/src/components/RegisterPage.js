@@ -25,9 +25,9 @@ const emptyForm = {
   companyId: '',
 };
 
-const inputClass = "w-full bg-slate-50 text-slate-900 text-sm rounded-xl border-2 border-slate-200 pl-10 pr-10 py-2.5 focus:border-[#063b33] focus:ring-2 focus:ring-[#063b33]/20 focus:outline-none transition-all font-medium";
+const inputClass = "w-full bg-slate-50 text-slate-900 text-sm rounded-xl border-2 border-slate-200 pl-10 pr-10 py-2.5 focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none transition-all font-medium";
 const labelClass = "block text-sm font-medium text-slate-700 mb-1.5";
-const plainInputClass = "w-full bg-slate-50 text-slate-900 text-sm rounded-xl border-2 border-slate-200 px-3.5 py-2.5 focus:border-[#063b33] focus:ring-2 focus:ring-[#063b33]/20 focus:outline-none transition-all font-medium";
+const plainInputClass = "w-full bg-slate-50 text-slate-900 text-sm rounded-xl border-2 border-slate-200 px-3.5 py-2.5 focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none transition-all font-medium";
 
 export default function RegisterPage() {
   const navigate = useNavigate();
@@ -147,7 +147,7 @@ export default function RegisterPage() {
     <AuthShell>
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-[480px] flex flex-col p-6 sm:p-8">
         <div className="text-center mb-6">
-          <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#063b33] to-[#042823] flex items-center justify-center mx-auto mb-3 shadow-lg">
+          <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-primary to-primary flex items-center justify-center mx-auto mb-3 shadow-lg">
             <GraduationCap className="w-7 h-7 text-white" />
           </div>
           <h1 className="text-xl font-bold text-slate-900">Create Account</h1>
@@ -164,9 +164,9 @@ export default function RegisterPage() {
                 <div
                   className={`w-9 h-9 rounded-full flex items-center justify-center text-sm font-semibold border-2 transition-all ${
                     s.id === step
-                      ? 'bg-[#063b33] text-white border-[#063b33] shadow-md'
+                      ? 'bg-primary text-white border-primary shadow-md'
                       : s.id < step
-                        ? 'bg-[#063b33] text-white border-[#063b33]'
+                        ? 'bg-primary text-white border-primary'
                         : 'bg-white text-slate-500 border-slate-300'
                   }`}
                 >
@@ -183,7 +183,7 @@ export default function RegisterPage() {
               {idx < steps.length - 1 && (
                 <div
                   className={`flex-1 h-1 rounded-full mx-2 ${
-                    s.id < step ? 'bg-[#063b33]' : 'bg-slate-200'
+                    s.id < step ? 'bg-primary' : 'bg-slate-200'
                   }`}
                 />
               )}
@@ -227,7 +227,7 @@ export default function RegisterPage() {
                 <div className="relative">
                   <input type={showPassword ? 'text' : 'password'} id="password" className={inputClass} placeholder="Enter your password" autoComplete="new-password" value={form.password} onChange={(e) => setField('password', e.target.value)} />
                   <span className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none flex items-center justify-center text-xs">🔒</span>
-                  <button type="button" className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-[#063b33] transition-colors" aria-label={showPassword ? 'Hide password' : 'Show password'} onClick={() => setShowPassword((s) => !s)}>
+                  <button type="button" className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-primary transition-colors" aria-label={showPassword ? 'Hide password' : 'Show password'} onClick={() => setShowPassword((s) => !s)}>
                     {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
                 </div>
@@ -237,13 +237,13 @@ export default function RegisterPage() {
                 <div className="relative">
                   <input type={showConfirmPassword ? 'text' : 'password'} id="confirmPassword" className={inputClass} placeholder="Confirm your password" autoComplete="new-password" value={form.confirmPassword} onChange={(e) => setField('confirmPassword', e.target.value)} />
                   <span className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none flex items-center justify-center text-xs">🔒</span>
-                  <button type="button" className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-[#063b33] transition-colors" aria-label={showConfirmPassword ? 'Hide password' : 'Show password'} onClick={() => setShowConfirmPassword((s) => !s)}>
+                  <button type="button" className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-primary transition-colors" aria-label={showConfirmPassword ? 'Hide password' : 'Show password'} onClick={() => setShowConfirmPassword((s) => !s)}>
                     {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
                 </div>
               </div>
               <label className="flex items-center gap-2 cursor-pointer">
-                <input type="checkbox" checked={form.agreeTerms} onChange={(e) => setField('agreeTerms', e.target.checked)} className="w-4 h-4 rounded border-slate-300 text-[#063b33] focus:ring-[#063b33]" />
+                <input type="checkbox" checked={form.agreeTerms} onChange={(e) => setField('agreeTerms', e.target.checked)} className="w-4 h-4 rounded border-slate-300 text-primary focus:ring-primary" />
                 <span className="text-sm text-slate-600">I agree to the terms and conditions</span>
               </label>
             </>
@@ -336,11 +336,11 @@ export default function RegisterPage() {
               </button>
             )}
             {step < 4 ? (
-              <button type="button" onClick={nextStep} disabled={step === 1 && !step1Valid} className="px-3.5 py-2 rounded-xl bg-[#063b33] hover:bg-[#042823] text-white text-xs font-bold transition-all shadow-xs focus-visible:ring-2 focus-visible:ring-teal-600 focus-visible:outline-none disabled:opacity-50 disabled:cursor-not-allowed">
+              <button type="button" onClick={nextStep} disabled={step === 1 && !step1Valid} className="px-3.5 py-2 rounded-xl bg-primary hover:bg-primary text-white text-xs font-bold transition-all shadow-xs focus-visible:ring-2 focus-visible:ring-teal-600 focus-visible:outline-none disabled:opacity-50 disabled:cursor-not-allowed">
                 Next
               </button>
             ) : (
-              <button type="submit" disabled={loading} className="px-3.5 py-2 rounded-xl bg-[#063b33] hover:bg-[#042823] text-white text-xs font-bold transition-all shadow-xs focus-visible:ring-2 focus-visible:ring-teal-600 focus-visible:outline-none disabled:opacity-50 disabled:cursor-not-allowed">
+              <button type="submit" disabled={loading} className="px-3.5 py-2 rounded-xl bg-primary hover:bg-primary text-white text-xs font-bold transition-all shadow-xs focus-visible:ring-2 focus-visible:ring-teal-600 focus-visible:outline-none disabled:opacity-50 disabled:cursor-not-allowed">
                 {loading ? 'Creating Account...' : 'Submit Student'}
               </button>
             )}
@@ -349,7 +349,7 @@ export default function RegisterPage() {
 
         <div className="text-center mt-5 pt-5 border-t border-slate-200">
           <p className="text-xs text-slate-500 font-medium">
-            <Link to="/login" className="text-[#063b33] font-semibold hover:underline">Already have an account? Sign in</Link>
+            <Link to="/login" className="text-primary font-semibold hover:underline">Already have an account? Sign in</Link>
           </p>
         </div>
       </div>

@@ -180,18 +180,18 @@ export default function CompanyPage() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search companies..."
-              className="w-full sm:w-52 bg-white text-slate-900 text-xs rounded-xl border border-slate-300 pl-9 pr-3 py-2 focus:border-teal-600 focus:ring-2 focus:ring-teal-600/20 focus:outline-none transition-all shadow-xs font-medium placeholder:text-slate-400"
+              className="w-full sm:w-52 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 text-xs rounded-xl border border-slate-300 dark:border-slate-700 pl-9 pr-3 py-2 focus:border-teal-600 focus:ring-2 focus:ring-teal-600/20 focus:outline-none transition-all shadow-xs font-medium placeholder:text-slate-400"
               aria-label="Search companies"
             />
           </div>
           <div className="flex items-center gap-2.5">
-            <div className="[&_button]:h-9 [&_button]:px-3.5 [&_button]:py-2 [&_button]:rounded-xl [&_button]:text-xs [&_button]:font-bold [&_button]:border-slate-300 [&_button]:bg-white [&_button]:text-slate-700 [&_button]:hover:bg-slate-100 [&_button]:transition-colors [&_button]:flex [&_button]:items-center [&_button]:gap-1.5 [&_button]:shadow-xs [&_button]:border [&_button]:disabled:opacity-50 [&_button]:disabled:cursor-not-allowed">
+            <div className="[&_button]:h-9 [&_button]:px-3.5 [&_button]:py-2 [&_button]:rounded-xl [&_button]:text-xs [&_button]:font-bold [&_button]:border-slate-300 dark:border-slate-700 [&_button]:bg-white dark:bg-slate-900 [&_button]:text-slate-700 dark:text-slate-300 [&_button]:hover:bg-slate-100 dark:bg-slate-800 [&_button]:transition-colors [&_button]:flex [&_button]:items-center [&_button]:gap-1.5 [&_button]:shadow-xs [&_button]:border [&_button]:disabled:opacity-50 [&_button]:disabled:cursor-not-allowed">
               <ExportButton data={companies} fileName="companies" exportUrl="/api/companies/export/csv" />
             </div>
             <button
               type="button"
               onClick={() => openModal(null)}
-              className="h-9 px-3.5 py-2 rounded-xl bg-[#063b33] hover:bg-[#042823] text-white text-xs font-bold shadow-xs transition-all flex items-center gap-1.5 focus-visible:ring-2 focus-visible:ring-teal-600 focus-visible:outline-none"
+              className="h-9 px-3.5 py-2 rounded-xl bg-primary hover:bg-primary text-white text-xs font-bold shadow-xs transition-all flex items-center gap-1.5 focus-visible:ring-2 focus-visible:ring-teal-600 focus-visible:outline-none"
             >
               <Plus className="w-4 h-4" />
               <span>Add Company</span>
@@ -215,18 +215,18 @@ export default function CompanyPage() {
 
       {/* Loading */}
       {loading && (
-        <div className="flex items-center gap-2 text-xs text-slate-500 font-medium">
+        <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400 font-medium">
           <div className="w-4 h-4 border-2 border-teal-600 border-t-transparent rounded-full animate-spin" />
           <span>Loading companies...</span>
         </div>
       )}
 
       {/* Table */}
-      <section className="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
+      <section className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs overflow-hidden">
         <div className="overflow-x-auto custom-scrollbar">
           <table className="w-full text-left border-collapse" style={{ minWidth: '900px' }} aria-label="Companies list">
             <thead>
-              <tr className="border-b border-slate-200 bg-slate-50/90 text-[11px] font-bold tracking-wider text-slate-800">
+              <tr className="border-b border-slate-200 dark:border-slate-800 bg-slate-50/90 dark:bg-slate-800/60 text-[11px] font-bold tracking-wider text-slate-800 dark:text-slate-200">
                 <th scope="col" className="py-3.5 px-3 pl-5">Company Name</th>
                 <th scope="col" className="py-3.5 px-3">Industry</th>
                 <th scope="col" className="py-3.5 px-3">Country</th>
@@ -236,27 +236,27 @@ export default function CompanyPage() {
                 <th scope="col" className="py-3.5 px-3 pr-5 text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100 text-sm">
+            <tbody className="divide-y divide-slate-100 dark:divide-slate-800 text-sm">
               {paginatedCompanies.length > 0 ? paginatedCompanies.map((company) => (
-                <tr key={company.id} className="hover:bg-slate-50/80 transition-colors">
+                <tr key={company.id} className="hover:bg-slate-50/80 dark:hover:bg-slate-800/60 transition-colors">
                   <td className="py-3.5 px-3 pl-5">
                     <div className="flex items-center gap-3">
                       <div className="w-8 h-8 rounded-lg bg-teal-50 text-teal-700 border border-teal-200 flex items-center justify-center shrink-0 shadow-xs">
                         <Building2 className="w-4 h-4" />
                       </div>
-                      <span className="font-bold text-slate-900">{company.name}</span>
+                      <span className="font-bold text-slate-900 dark:text-slate-100">{company.name}</span>
                     </div>
                   </td>
-                  <td className="py-3.5 px-3 text-xs text-slate-600">{company.industry || '—'}</td>
-                  <td className="py-3.5 px-3 text-xs text-slate-600">{company.country || '—'}</td>
-                  <td className="py-3.5 px-3 text-xs text-slate-600">{company.city || '—'}</td>
-                  <td className="py-3.5 px-3 text-xs text-slate-600">{company.email || '—'}</td>
+                  <td className="py-3.5 px-3 text-xs text-slate-600 dark:text-slate-400">{company.industry || '—'}</td>
+                  <td className="py-3.5 px-3 text-xs text-slate-600 dark:text-slate-400">{company.country || '—'}</td>
+                  <td className="py-3.5 px-3 text-xs text-slate-600 dark:text-slate-400">{company.city || '—'}</td>
+                  <td className="py-3.5 px-3 text-xs text-slate-600 dark:text-slate-400">{company.email || '—'}</td>
                   <td className="py-3.5 px-3">
                     {company.website ? (
                       <a href={company.website.startsWith('http') ? company.website : `https://${company.website}`} target="_blank" rel="noreferrer" className="text-xs text-teal-700 hover:text-teal-900 hover:underline transition-colors">
                         {company.website}
                       </a>
-                    ) : <span className="text-xs text-slate-600">—</span>}
+                    ) : <span className="text-xs text-slate-600 dark:text-slate-400">—</span>}
                   </td>
                   <td className="py-3.5 px-3 pr-5 text-right">
                     <ul className="flex items-center justify-end gap-1 list-none p-0 m-0">
@@ -289,13 +289,13 @@ export default function CompanyPage() {
                 <tr>
                   <td colSpan={7} className="py-12 px-4 text-center">
                     <div className="max-w-sm mx-auto flex flex-col items-center">
-                      <div className="w-12 h-12 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-400 mb-3">
+                      <div className="w-12 h-12 rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-800 flex items-center justify-center text-slate-400 mb-3">
                         {searchQuery ? <Search className="w-6 h-6" /> : <FileText className="w-6 h-6" />}
                       </div>
-                      <h3 className="text-base font-bold text-slate-800">
+                      <h3 className="text-base font-bold text-slate-800 dark:text-slate-200">
                         {searchQuery ? 'No results found' : 'No companies found'}
                       </h3>
-                      <p className="text-xs text-slate-500 mt-1 mb-4">
+                      <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 mb-4">
                         {searchQuery ? (
                           <>No companies match &ldquo;<strong>{searchQuery}</strong>&rdquo;. Try a different search term.</>
                         ) : (
@@ -306,7 +306,7 @@ export default function CompanyPage() {
                         <button
                           type="button"
                           onClick={() => openModal(null)}
-                          className="px-3.5 py-2 bg-[#063b33] hover:bg-[#042823] text-white font-bold text-xs rounded-xl transition-colors shadow-xs focus-visible:ring-2 focus-visible:ring-teal-600 focus-visible:outline-none"
+                          className="px-3.5 py-2 bg-primary hover:bg-primary text-white font-bold text-xs rounded-xl transition-colors shadow-xs focus-visible:ring-2 focus-visible:ring-teal-600 focus-visible:outline-none"
                         >
                           Add Company
                         </button>
@@ -321,7 +321,7 @@ export default function CompanyPage() {
 
         {/* Pagination */}
         {filteredCompanies.length >= ITEMS_PER_PAGE && (
-          <div className="px-5 py-3 border-t border-slate-200 bg-slate-50/90 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-600">
+          <div className="px-5 py-3 border-t border-slate-200 dark:border-slate-800 bg-slate-50/90 dark:bg-slate-800/60 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-600 dark:text-slate-400">
             <span>
               Showing {((currentPage - 1) * ITEMS_PER_PAGE) + 1}–{Math.min(currentPage * ITEMS_PER_PAGE, filteredCompanies.length)} of {filteredCompanies.length} companies
             </span>
@@ -330,7 +330,7 @@ export default function CompanyPage() {
                 type="button"
                 onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
                 disabled={currentPage === 1}
-                className="p-1.5 rounded-lg text-slate-600 hover:bg-slate-200 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                className="p-1.5 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:bg-slate-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
                 aria-label="Previous page"
               >
                 <ChevronLeft className="w-4 h-4" />
@@ -357,8 +357,8 @@ export default function CompanyPage() {
                       onClick={() => setCurrentPage(page)}
                       className={`min-w-[28px] h-7 rounded-lg text-xs font-semibold transition-colors ${
                         currentPage === page
-                          ? 'bg-[#063b33] text-white'
-                          : 'text-slate-600 hover:bg-slate-200'
+                          ? 'bg-primary text-white'
+                          : 'text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:bg-slate-700'
                       }`}
                     >
                       {page}
@@ -369,7 +369,7 @@ export default function CompanyPage() {
                 type="button"
                 onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
                 disabled={currentPage === totalPages}
-                className="p-1.5 rounded-lg text-slate-600 hover:bg-slate-200 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                className="p-1.5 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:bg-slate-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
                 aria-label="Next page"
               >
                 <ChevronRight className="w-4 h-4" />
@@ -390,22 +390,22 @@ export default function CompanyPage() {
         >
           <div
             onClick={(e) => e.stopPropagation()}
-            className="bg-white w-full max-w-lg rounded-2xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-150"
+            className="bg-white dark:bg-slate-900 w-full max-w-lg rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-150"
           >
             {/* Modal Header */}
-            <div className="p-4 sm:p-5 bg-slate-50 border-b border-slate-200 flex items-center justify-between gap-4">
+            <div className="p-4 sm:p-5 bg-slate-50 dark:bg-slate-800/40 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between gap-4">
               <div className="flex items-center gap-3 min-w-0">
                 <div className="w-10 h-10 rounded-xl bg-teal-50 border border-teal-200 flex items-center justify-center text-teal-800 shrink-0">
                   <Building2 className="w-5 h-5" />
                 </div>
-                <h3 id="company-modal-title" className="text-base font-bold text-slate-900">
+                <h3 id="company-modal-title" className="text-base font-bold text-slate-900 dark:text-slate-100">
                   {editingId ? 'Edit Company' : 'Add Company'}
                 </h3>
               </div>
               <button
                 type="button"
                 onClick={closeModal}
-                className="p-2 text-slate-400 hover:text-slate-700 hover:bg-slate-200 rounded-lg transition-colors focus-visible:ring-2 focus-visible:ring-teal-600 focus-visible:outline-none"
+                className="p-2 text-slate-400 hover:text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:bg-slate-700 rounded-lg transition-colors focus-visible:ring-2 focus-visible:ring-teal-600 focus-visible:outline-none"
                 aria-label="Close modal"
               >
                 <X className="w-5 h-5" />
@@ -416,7 +416,7 @@ export default function CompanyPage() {
             <form onSubmit={handleSubmit} className="flex flex-col flex-1 min-h-0">
               <div className="p-6 space-y-5 overflow-y-auto flex-1">
                 <div>
-                  <label htmlFor="co-name" className="block text-xs font-bold uppercase tracking-wider text-slate-800 mb-1.5">
+                  <label htmlFor="co-name" className="block text-xs font-bold uppercase tracking-wider text-slate-800 dark:text-slate-200 mb-1.5">
                     Company Name <span className="text-rose-600" aria-hidden="true">*</span>
                   </label>
                   <input
@@ -426,12 +426,12 @@ export default function CompanyPage() {
                     onChange={(e) => setForm({ ...form, name: e.target.value })}
                     placeholder="e.g. Airtel Uganda"
                     required
-                    className="w-full bg-white text-slate-900 text-xs rounded-xl border border-slate-300 px-3.5 py-2.5 focus:border-teal-600 focus:ring-2 focus:ring-teal-600/20 focus:outline-none transition-all shadow-xs font-medium"
+                    className="w-full bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 text-xs rounded-xl border border-slate-300 dark:border-slate-700 px-3.5 py-2.5 focus:border-teal-600 focus:ring-2 focus:ring-teal-600/20 focus:outline-none transition-all shadow-xs font-medium"
                   />
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label htmlFor="co-industry" className="block text-xs font-bold uppercase tracking-wider text-slate-800 mb-1.5">
+                    <label htmlFor="co-industry" className="block text-xs font-bold uppercase tracking-wider text-slate-800 dark:text-slate-200 mb-1.5">
                       Industry
                     </label>
                     <input
@@ -440,11 +440,11 @@ export default function CompanyPage() {
                       value={form.industry}
                       onChange={(e) => setForm({ ...form, industry: e.target.value })}
                       placeholder="e.g. Telecommunications"
-                      className="w-full bg-white text-slate-900 text-xs rounded-xl border border-slate-300 px-3.5 py-2.5 focus:border-teal-600 focus:ring-2 focus:ring-teal-600/20 focus:outline-none transition-all shadow-xs font-medium"
+                      className="w-full bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 text-xs rounded-xl border border-slate-300 dark:border-slate-700 px-3.5 py-2.5 focus:border-teal-600 focus:ring-2 focus:ring-teal-600/20 focus:outline-none transition-all shadow-xs font-medium"
                     />
                   </div>
                   <div>
-                    <label htmlFor="co-registrationNumber" className="block text-xs font-bold uppercase tracking-wider text-slate-800 mb-1.5">
+                    <label htmlFor="co-registrationNumber" className="block text-xs font-bold uppercase tracking-wider text-slate-800 dark:text-slate-200 mb-1.5">
                       Registration No.
                     </label>
                     <input
@@ -453,13 +453,13 @@ export default function CompanyPage() {
                       value={form.registrationNumber}
                       onChange={(e) => setForm({ ...form, registrationNumber: e.target.value })}
                       placeholder="e.g. UBS-2010-12345"
-                      className="w-full bg-white text-slate-900 text-xs rounded-xl border border-slate-300 px-3.5 py-2.5 focus:border-teal-600 focus:ring-2 focus:ring-teal-600/20 focus:outline-none transition-all shadow-xs font-medium"
+                      className="w-full bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 text-xs rounded-xl border border-slate-300 dark:border-slate-700 px-3.5 py-2.5 focus:border-teal-600 focus:ring-2 focus:ring-teal-600/20 focus:outline-none transition-all shadow-xs font-medium"
                     />
                   </div>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label htmlFor="co-country" className="block text-xs font-bold uppercase tracking-wider text-slate-800 mb-1.5">
+                    <label htmlFor="co-country" className="block text-xs font-bold uppercase tracking-wider text-slate-800 dark:text-slate-200 mb-1.5">
                       Country
                     </label>
                     <input
@@ -468,11 +468,11 @@ export default function CompanyPage() {
                       value={form.country}
                       onChange={(e) => setForm({ ...form, country: e.target.value })}
                       placeholder="e.g. Uganda"
-                      className="w-full bg-white text-slate-900 text-xs rounded-xl border border-slate-300 px-3.5 py-2.5 focus:border-teal-600 focus:ring-2 focus:ring-teal-600/20 focus:outline-none transition-all shadow-xs font-medium"
+                      className="w-full bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 text-xs rounded-xl border border-slate-300 dark:border-slate-700 px-3.5 py-2.5 focus:border-teal-600 focus:ring-2 focus:ring-teal-600/20 focus:outline-none transition-all shadow-xs font-medium"
                     />
                   </div>
                   <div>
-                    <label htmlFor="co-city" className="block text-xs font-bold uppercase tracking-wider text-slate-800 mb-1.5">
+                    <label htmlFor="co-city" className="block text-xs font-bold uppercase tracking-wider text-slate-800 dark:text-slate-200 mb-1.5">
                       City
                     </label>
                     <input
@@ -481,13 +481,13 @@ export default function CompanyPage() {
                       value={form.city}
                       onChange={(e) => setForm({ ...form, city: e.target.value })}
                       placeholder="e.g. Kampala"
-                      className="w-full bg-white text-slate-900 text-xs rounded-xl border border-slate-300 px-3.5 py-2.5 focus:border-teal-600 focus:ring-2 focus:ring-teal-600/20 focus:outline-none transition-all shadow-xs font-medium"
+                      className="w-full bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 text-xs rounded-xl border border-slate-300 dark:border-slate-700 px-3.5 py-2.5 focus:border-teal-600 focus:ring-2 focus:ring-teal-600/20 focus:outline-none transition-all shadow-xs font-medium"
                     />
                   </div>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label htmlFor="co-email" className="block text-xs font-bold uppercase tracking-wider text-slate-800 mb-1.5">
+                    <label htmlFor="co-email" className="block text-xs font-bold uppercase tracking-wider text-slate-800 dark:text-slate-200 mb-1.5">
                       Email
                     </label>
                     <input
@@ -496,11 +496,11 @@ export default function CompanyPage() {
                       value={form.email}
                       onChange={(e) => setForm({ ...form, email: e.target.value })}
                       placeholder="e.g. info@company.co.ug"
-                      className="w-full bg-white text-slate-900 text-xs rounded-xl border border-slate-300 px-3.5 py-2.5 focus:border-teal-600 focus:ring-2 focus:ring-teal-600/20 focus:outline-none transition-all shadow-xs font-medium"
+                      className="w-full bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 text-xs rounded-xl border border-slate-300 dark:border-slate-700 px-3.5 py-2.5 focus:border-teal-600 focus:ring-2 focus:ring-teal-600/20 focus:outline-none transition-all shadow-xs font-medium"
                     />
                   </div>
                   <div>
-                    <label htmlFor="co-phone" className="block text-xs font-bold uppercase tracking-wider text-slate-800 mb-1.5">
+                    <label htmlFor="co-phone" className="block text-xs font-bold uppercase tracking-wider text-slate-800 dark:text-slate-200 mb-1.5">
                       Phone
                     </label>
                     <input
@@ -509,12 +509,12 @@ export default function CompanyPage() {
                       value={form.phone}
                       onChange={(e) => setForm({ ...form, phone: e.target.value })}
                       placeholder="e.g. 0700000000"
-                      className="w-full bg-white text-slate-900 text-xs rounded-xl border border-slate-300 px-3.5 py-2.5 focus:border-teal-600 focus:ring-2 focus:ring-teal-600/20 focus:outline-none transition-all shadow-xs font-medium"
+                      className="w-full bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 text-xs rounded-xl border border-slate-300 dark:border-slate-700 px-3.5 py-2.5 focus:border-teal-600 focus:ring-2 focus:ring-teal-600/20 focus:outline-none transition-all shadow-xs font-medium"
                     />
                   </div>
                 </div>
                 <div>
-                  <label htmlFor="co-website" className="block text-xs font-bold uppercase tracking-wider text-slate-800 mb-1.5">
+                  <label htmlFor="co-website" className="block text-xs font-bold uppercase tracking-wider text-slate-800 dark:text-slate-200 mb-1.5">
                     Website
                   </label>
                   <input
@@ -523,11 +523,11 @@ export default function CompanyPage() {
                     value={form.website}
                     onChange={(e) => setForm({ ...form, website: e.target.value })}
                     placeholder="e.g. www.company.co.ug"
-                    className="w-full bg-white text-slate-900 text-xs rounded-xl border border-slate-300 px-3.5 py-2.5 focus:border-teal-600 focus:ring-2 focus:ring-teal-600/20 focus:outline-none transition-all shadow-xs font-medium"
+                    className="w-full bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 text-xs rounded-xl border border-slate-300 dark:border-slate-700 px-3.5 py-2.5 focus:border-teal-600 focus:ring-2 focus:ring-teal-600/20 focus:outline-none transition-all shadow-xs font-medium"
                   />
                 </div>
                 <div>
-                  <label htmlFor="co-postal" className="block text-xs font-bold uppercase tracking-wider text-slate-800 mb-1.5">
+                  <label htmlFor="co-postal" className="block text-xs font-bold uppercase tracking-wider text-slate-800 dark:text-slate-200 mb-1.5">
                     Postal Address
                   </label>
                   <input
@@ -536,11 +536,11 @@ export default function CompanyPage() {
                     value={form.postalAddress}
                     onChange={(e) => setForm({ ...form, postalAddress: e.target.value })}
                     placeholder="e.g. P.O. Box 12345, Kampala"
-                    className="w-full bg-white text-slate-900 text-xs rounded-xl border border-slate-300 px-3.5 py-2.5 focus:border-teal-600 focus:ring-2 focus:ring-teal-600/20 focus:outline-none transition-all shadow-xs font-medium"
+                    className="w-full bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 text-xs rounded-xl border border-slate-300 dark:border-slate-700 px-3.5 py-2.5 focus:border-teal-600 focus:ring-2 focus:ring-teal-600/20 focus:outline-none transition-all shadow-xs font-medium"
                   />
                 </div>
                 <div>
-                  <label htmlFor="co-physical" className="block text-xs font-bold uppercase tracking-wider text-slate-800 mb-1.5">
+                  <label htmlFor="co-physical" className="block text-xs font-bold uppercase tracking-wider text-slate-800 dark:text-slate-200 mb-1.5">
                     Physical Address
                   </label>
                   <input
@@ -549,26 +549,26 @@ export default function CompanyPage() {
                     value={form.physicalAddress}
                     onChange={(e) => setForm({ ...form, physicalAddress: e.target.value })}
                     placeholder="e.g. Plot 1, Airtel Road, Nakawa"
-                    className="w-full bg-white text-slate-900 text-xs rounded-xl border border-slate-300 px-3.5 py-2.5 focus:border-teal-600 focus:ring-2 focus:ring-teal-600/20 focus:outline-none transition-all shadow-xs font-medium"
+                    className="w-full bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 text-xs rounded-xl border border-slate-300 dark:border-slate-700 px-3.5 py-2.5 focus:border-teal-600 focus:ring-2 focus:ring-teal-600/20 focus:outline-none transition-all shadow-xs font-medium"
                   />
                 </div>
               </div>
 
               {/* Modal Footer */}
-              <div className="p-4 sm:p-5 bg-slate-50 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-3">
+              <div className="p-4 sm:p-5 bg-slate-50 dark:bg-slate-800/40 border-t border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-3">
                 <div />
                 <div className="flex items-center gap-2.5 w-full sm:w-auto">
                   <button
                     type="button"
                     onClick={closeModal}
-                    className="flex-1 sm:flex-none px-3.5 py-2 rounded-xl bg-white hover:bg-slate-100 text-slate-700 text-xs font-semibold border border-slate-300 transition-colors"
+                    className="flex-1 sm:flex-none px-3.5 py-2 rounded-xl bg-white dark:bg-slate-900 hover:bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-semibold border border-slate-300 dark:border-slate-700 transition-colors"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
                     disabled={loading}
-                    className="flex-1 sm:flex-none px-4 py-2 rounded-xl bg-[#063b33] hover:bg-[#042823] text-white text-xs font-bold transition-all flex items-center justify-center gap-1.5 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="flex-1 sm:flex-none px-4 py-2 rounded-xl bg-primary hover:bg-primary text-white text-xs font-bold transition-all flex items-center justify-center gap-1.5 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {loading ? 'Saving...' : editingId ? 'Save Changes' : 'Create Company'}
                   </button>

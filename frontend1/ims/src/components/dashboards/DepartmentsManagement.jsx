@@ -145,7 +145,7 @@ export default function DepartmentsManagement() {
             placeholder="Search departments..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-9 pr-3 py-2 text-sm border border-slate-300 rounded-lg focus:border-teal-600 focus:ring-2 focus:ring-teal-600/20"
+            className="w-full pl-9 pr-3 py-2 text-sm border border-slate-300 dark:border-slate-700 rounded-lg focus:border-teal-600 focus:ring-2 focus:ring-teal-600/20"
           />
         </div>
         <ExportButton onExport={handleExport} />
@@ -157,31 +157,31 @@ export default function DepartmentsManagement() {
         </button>
       </div>
 
-      <div className="overflow-x-auto bg-white rounded-lg border border-slate-200">
+      <div className="overflow-x-auto bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800">
         <table className="w-full text-sm">
           <thead>
-            <tr className="bg-slate-50 border-b border-slate-200">
-              <th className="px-4 py-3 text-left font-medium text-slate-600">ID</th>
-              <th className="px-4 py-3 text-left font-medium text-slate-600">Name</th>
-              <th className="px-4 py-3 text-left font-medium text-slate-600">School</th>
-              <th className="px-4 py-3 text-right font-medium text-slate-600">Actions</th>
+            <tr className="bg-slate-50 dark:bg-slate-800/40 border-b border-slate-200 dark:border-slate-800">
+              <th className="px-4 py-3 text-left font-medium text-slate-600 dark:text-slate-400">ID</th>
+              <th className="px-4 py-3 text-left font-medium text-slate-600 dark:text-slate-400">Name</th>
+              <th className="px-4 py-3 text-left font-medium text-slate-600 dark:text-slate-400">School</th>
+              <th className="px-4 py-3 text-right font-medium text-slate-600 dark:text-slate-400">Actions</th>
             </tr>
           </thead>
           <tbody>
             {loading ? (
-              <tr><td colSpan={4} className="px-4 py-8 text-center text-slate-500">Loading...</td></tr>
+              <tr><td colSpan={4} className="px-4 py-8 text-center text-slate-500 dark:text-slate-400">Loading...</td></tr>
             ) : paginatedDepartments.length === 0 ? (
-              <tr><td colSpan={4} className="px-4 py-8 text-center text-slate-500">No departments found.</td></tr>
+              <tr><td colSpan={4} className="px-4 py-8 text-center text-slate-500 dark:text-slate-400">No departments found.</td></tr>
             ) : paginatedDepartments.map((d) => (
-              <tr key={d.departmentId} className="border-b border-slate-100 hover:bg-slate-50">
+              <tr key={d.departmentId} className="border-b border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:bg-slate-800/40">
                 <td className="px-4 py-3 font-mono text-xs">{d.departmentId}</td>
                 <td className="px-4 py-3 font-medium">{d.departmentName}</td>
-                <td className="px-4 py-3 text-slate-500">
+                <td className="px-4 py-3 text-slate-500 dark:text-slate-400">
                   {schoolById[d.schoolId]?.schoolName || d.schoolId}
                 </td>
                 <td className="px-4 py-3 text-right">
-                  <button onClick={() => openEdit(d)} className="p-1 text-slate-500 hover:text-teal-600"><Pencil className="w-4 h-4" /></button>
-                  <button onClick={() => handleDelete(d.departmentId)} className="p-1 text-slate-500 hover:text-red-600 ml-1"><Trash2 className="w-4 h-4" /></button>
+                  <button onClick={() => openEdit(d)} className="p-1 text-slate-500 dark:text-slate-400 hover:text-teal-600"><Pencil className="w-4 h-4" /></button>
+                  <button onClick={() => handleDelete(d.departmentId)} className="p-1 text-slate-500 dark:text-slate-400 hover:text-red-600 ml-1"><Trash2 className="w-4 h-4" /></button>
                 </td>
               </tr>
             ))}
@@ -193,25 +193,25 @@ export default function DepartmentsManagement() {
 
       {modalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-md p-6">
+          <div className="bg-white dark:bg-slate-900 rounded-xl shadow-xl w-full max-w-md p-6">
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-lg font-semibold">{editingId ? 'Edit Department' : 'Create Department'}</h3>
               <button onClick={() => setModalOpen(false)}><X className="w-5 h-5" /></button>
             </div>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">Department ID *</label>
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Department ID *</label>
                 <input type="number" required value={form.departmentId} onChange={(e) => setForm({ ...form, departmentId: e.target.value })}
                   disabled={!!editingId}
-                  className="w-full px-3 py-2 text-sm border rounded-lg disabled:bg-slate-100" />
+                  className="w-full px-3 py-2 text-sm border rounded-lg disabled:bg-slate-100 dark:bg-slate-800" />
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">Department Name *</label>
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Department Name *</label>
                 <input required value={form.departmentName} onChange={(e) => setForm({ ...form, departmentName: e.target.value })}
                   className="w-full px-3 py-2 text-sm border rounded-lg" />
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">School *</label>
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">School *</label>
                 <select required value={form.schoolId} onChange={(e) => setForm({ ...form, schoolId: e.target.value })}
                   className="w-full px-3 py-2 text-sm border rounded-lg">
                   <option value="">Select school...</option>

@@ -7,7 +7,7 @@ export default function Pagination({ currentPage, setCurrentPage, totalPages }) 
         type="button"
         onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
         disabled={currentPage === 1}
-        className="p-1.5 rounded-lg text-slate-600 hover:bg-slate-200 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+        className="p-1.5 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:bg-slate-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
         aria-label="Previous page"
       >
         <ChevronLeft className="w-4 h-4" />
@@ -34,8 +34,8 @@ export default function Pagination({ currentPage, setCurrentPage, totalPages }) 
               onClick={() => setCurrentPage(page)}
               className={`min-w-[28px] h-7 rounded-lg text-xs font-semibold transition-colors ${
                 currentPage === page
-                  ? 'bg-[#063b33] text-white'
-                  : 'text-slate-600 hover:bg-slate-200'
+                  ? 'bg-primary text-white'
+                  : 'text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:bg-slate-700'
               }`}
             >
               {page}
@@ -46,7 +46,7 @@ export default function Pagination({ currentPage, setCurrentPage, totalPages }) 
         type="button"
         onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
         disabled={currentPage === totalPages}
-        className="p-1.5 rounded-lg text-slate-600 hover:bg-slate-200 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+        className="p-1.5 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:bg-slate-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
         aria-label="Next page"
       >
         <ChevronRight className="w-4 h-4" />

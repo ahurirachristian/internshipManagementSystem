@@ -1,7 +1,12 @@
 import { useEffect, useState } from 'react';
+import { Eye, Pencil, Trash2, UserPlus, Users } from 'lucide-react';
 import DashboardLayout from '../DashboardLayout';
 import StudentEditModal from '../StudentEditModal';
 import { deleteStudent, fetchStudents, updateStudent, fetchCompanies, fetchSupervisors } from '../../services/api';
+import { TableCard } from '../ui/TableCard';
+import { Avatar } from '../ui/Avatar';
+import { StatusPill } from '../ui/StatusPill';
+import { Modal } from '../ui/Modal';
 
 export default function AdminStudentArea() {
   const [students, setStudents] = useState([]);
@@ -121,33 +126,33 @@ export default function AdminStudentArea() {
 
   function renderActions(student) {
     return (
-      <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+      <div className="flex items-center gap-2">
         <button
           type="button"
-          className="icon-button"
+          className="w-8 h-8 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors flex items-center justify-center"
           onClick={() => setViewStudent(student)}
           title="View profile"
         >
-          <i className="fa-solid fa-circle-info" />
+          <Eye className="w-4 h-4" />
         </button>
         <button
           type="button"
-          className="icon-button edit"
+          className="w-8 h-8 rounded-lg border border-teal-200 dark:border-teal-800 text-teal-700 dark:text-teal-400 hover:bg-teal-50 dark:hover:bg-teal-900/30 transition-colors flex items-center justify-center"
           onClick={() => {
             setEditStudent(student);
             setEditOpen(true);
           }}
           title="Edit student"
         >
-          <i className="fa-solid fa-pen" />
+          <Pencil className="w-4 h-4" />
         </button>
         <button
           type="button"
-          className="icon-button delete"
+          className="w-8 h-8 rounded-lg border border-rose-200 dark:border-rose-800 text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-900/30 transition-colors flex items-center justify-center"
           onClick={() => handleDelete(student.id)}
           title="Delete student"
         >
-          <i className="fa-solid fa-trash" />
+          <Trash2 className="w-4 h-4" />
         </button>
       </div>
     );
@@ -165,33 +170,31 @@ export default function AdminStudentArea() {
       {loading && <div className="status-message">Loading students...</div>}
 
       {!loading && (
-        <div className="card">
-          <div className="card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <div>
-              <span className="card-title"><i className="fa-solid fa-user-graduate"></i> Registered Students</span>
-              <span className="card-hint">All student profiles in the system</span>
-            </div>
+        <TableCard
+          title="Registered Students"
+          subtitle="All student profiles in the system"
+          icon={Users}
+          actions={
             <button
               type="button"
-              className="primary-button"
               onClick={() => setAddOpen(true)}
-              style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}
+              className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-primary text-white text-xs font-bold transition-all hover:opacity-90 shadow-xs focus-visible:ring-2 focus-visible:ring-teal-600 focus-visible:outline-none"
             >
-              <i className="fa-solid fa-plus" />
+              <UserPlus className="w-4 h-4" />
               Add Student
             </button>
-          </div>
-
-          <div className="table-responsive">
-            <table className="table">
+          }
+        >
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
               <thead>
-                <tr>
-                  <th>Student</th>
-                  <th>Reg No</th>
-                  <th>Course</th>
-                  <th>Company</th>
-                  <th>Status</th>
-                  <th>Actions</th>
+                <tr className="border-b border-slate-100 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-800/30 text-left text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
+                  <th className="px-4 py-3">Student</th>
+                  <th className="px-4 py-3">Reg No</th>
+                  <th className="px-4 py-3">Course</th>
+                  <th className="px-4 py-3">Company</th>
+                  <th className="px-4 py-3">Status</th>
+                  <th className="px-4 py-3">Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -199,44 +202,54 @@ export default function AdminStudentArea() {
                   filtered.map((student) => {
                     const hasDiary = students.some((s) => s.username === student.username);
                     return (
-                      <tr key={student.id}>
-                        <td>
-                          <div className="cell-user">
-                            <div className="avatar">
-                              {student.pictureUrl ? (
-                                <img src={student.pictureUrl} alt="" />
-                              ) : (
-                                <i className="fa-solid fa-user" />
-                              )}
-                            </div>
+                      <tr
+                        key={student.id}
+                        className="border-b border-slate-100 dark:border-slate-800 last:border-0 hover:bg-slate-50/60 dark:hover:bg-slate-800/30 transition-colors"
+                      >
+                        <td className="px-4 py-3">
+                          <div className="flex items-center gap-3">
+                            <Avatar
+                              src={student.pictureUrl || null}
+                              name={`${student.firstName || ''} ${student.lastName || ''}`.trim() || 'Student'}
+                              size="md"
+                            />
                             <div>
-                              <div className="u-name">
+                              <div className="font-semibold text-slate-800 dark:text-slate-100">
                                 {student.firstName} {student.lastName}
                               </div>
-                              <div className="u-sub">{student.studentNumber}</div>
+                              <div className="text-xs text-slate-500 dark:text-slate-400">
+                                {student.studentNumber}
+                              </div>
                             </div>
-                                                   </div>
+                          </div>
                         </td>
-                        <td>{student.registrationNumber || '—'}</td>
-                        <td>{student.degreeProgram || '—'}</td>
-                        <td>{student.internshipCompany || '—'}</td>
-                        <td>
-                          <span className={`badge${hasDiary ? ' badge-success' : ' badge-warning'}`}>
-                            <span className="dot" />
-                            {hasDiary ? 'Active' : 'No Activity'}
-                          </span>
+                        <td className="px-4 py-3 text-slate-600 dark:text-slate-300">
+                          {student.registrationNumber || '—'}
                         </td>
-                        <td>{renderActions(student)}</td>
+                        <td className="px-4 py-3 text-slate-600 dark:text-slate-300">
+                          {student.degreeProgram || '—'}
+                        </td>
+                        <td className="px-4 py-3 text-slate-600 dark:text-slate-300">
+                          {student.internshipCompany || '—'}
+                        </td>
+                        <td className="px-4 py-3">
+                          <StatusPill status={hasDiary ? 'Active' : 'Inactive'} />
+                        </td>
+                        <td className="px-4 py-3">{renderActions(student)}</td>
                       </tr>
                     );
                   })
                 ) : (
                   <tr>
-                    <td colSpan="6">
-                      <div className="empty-state">
-                        <div className="empty-icon">&#128100;</div>
-                        <h3>{searchQuery ? 'No matching students' : 'No registered students'}</h3>
-                        <p>
+                    <td colSpan="6" className="px-4 py-10">
+                      <div className="flex flex-col items-center justify-center text-center gap-2">
+                        <div className="w-12 h-12 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-2xl">
+                          &#128100;
+                        </div>
+                        <h3 className="text-sm font-semibold text-slate-800 dark:text-slate-100">
+                          {searchQuery ? 'No matching students' : 'No registered students'}
+                        </h3>
+                        <p className="text-xs text-slate-500 dark:text-slate-400">
                           {searchQuery
                             ? 'No students match your search criteria.'
                             : 'No registered students found.'}
@@ -248,7 +261,7 @@ export default function AdminStudentArea() {
               </tbody>
             </table>
           </div>
-        </div>
+        </TableCard>
       )}
 
       {addOpen && (
@@ -276,37 +289,36 @@ export default function AdminStudentArea() {
         />
       )}
 
-      {viewStudent && (
-        <div className="modal-overlay" onClick={() => setViewStudent(null)}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-header">
-              <h2>Student Profile</h2>
-              <button className="close-button" onClick={() => setViewStudent(null)}>
-                ×
-              </button>
+      <Modal
+        isOpen={!!viewStudent}
+        onClose={() => setViewStudent(null)}
+        title="Student Profile"
+        maxWidth="max-w-xl"
+      >
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4">
+          {[
+            ['Full Name', `${viewStudent?.firstName || ''} ${viewStudent?.lastName || ''}`.trim()],
+            ['Email', viewStudent?.email],
+            ['Student Number', viewStudent?.studentNumber],
+            ['Registration Number', viewStudent?.registrationNumber],
+            ['Degree Program', viewStudent?.degreeProgram],
+            ['Year of Study', viewStudent?.yearOfStudy],
+            ['Phone Number', viewStudent?.phoneNumber],
+            ['Internship Company', viewStudent?.internshipCompany],
+            ['University Supervisor', viewStudent?.universitySupervisor],
+            ['Industrial Supervisor ID', viewStudent?.industrialSupervisorId],
+          ].map(([label, value]) => (
+            <div key={label} className="flex flex-col gap-0.5">
+              <span className="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wide">
+                {label}
+              </span>
+              <span className="text-sm text-slate-800 dark:text-slate-100">
+                {value || '—'}
+              </span>
             </div>
-            <div className="detail-grid">
-              {[
-                ['Full Name', `${viewStudent.firstName || ''} ${viewStudent.lastName || ''}`.trim()],
-                ['Email', viewStudent.email],
-                ['Student Number', viewStudent.studentNumber],
-                ['Registration Number', viewStudent.registrationNumber],
-                ['Degree Program', viewStudent.degreeProgram],
-                ['Year of Study', viewStudent.yearOfStudy],
-                ['Phone Number', viewStudent.phoneNumber],
-                ['Internship Company', viewStudent.internshipCompany],
-                ['University Supervisor', viewStudent.universitySupervisor],
-                ['Industrial Supervisor ID', viewStudent.industrialSupervisorId],
-              ].map(([label, value]) => (
-                <div className="detail-item" key={label}>
-                  <span className="detail-label">{label}</span>
-                  <span className="detail-value">{value || '—'}</span>
-                </div>
-              ))}
-            </div>
-          </div>
+          ))}
         </div>
-      )}
+      </Modal>
     </DashboardLayout>
   );
 }

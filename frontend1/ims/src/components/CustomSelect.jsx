@@ -39,12 +39,12 @@ export default function CustomSelect({ id, value, onChange, options, required, p
         aria-haspopup="listbox"
         aria-expanded={isOpen}
         aria-required={required || undefined}
-        className="w-full bg-white text-slate-900 text-sm rounded-xl border border-slate-300 px-3.5 py-2.5 focus:border-teal-600 focus:ring-2 focus:ring-teal-600/20 focus:outline-none transition-all cursor-pointer shadow-xs font-medium text-left flex items-center justify-between gap-2"
+        className="w-full bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 text-sm rounded-xl border border-slate-300 dark:border-slate-700 px-3.5 py-2.5 focus:border-teal-600 focus:ring-2 focus:ring-teal-600/20 focus:outline-none transition-all cursor-pointer shadow-xs font-medium text-left flex items-center justify-between gap-2"
       >
         <span className={`truncate ${!displayLabel ? 'text-slate-400' : ''}`}>
           {displayLabel || placeholder || 'Select...'}
         </span>
-        <div className="pointer-events-none text-slate-500 shrink-0">
+        <div className="pointer-events-none text-slate-500 dark:text-slate-400 shrink-0">
           <svg className="w-4 h-4 fill-current" viewBox="0 0 20 20">
             <path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" />
           </svg>
@@ -55,7 +55,7 @@ export default function CustomSelect({ id, value, onChange, options, required, p
         <ul
           role="listbox"
           aria-labelledby={id}
-          className="absolute inset-x-0 top-full mt-1 bg-white rounded-xl shadow-xl border border-slate-200 overflow-hidden z-50 max-h-60 overflow-y-auto custom-scrollbar animate-in fade-in zoom-in-95 duration-150"
+          className="absolute inset-x-0 top-full mt-1 bg-white dark:bg-slate-900 rounded-xl shadow-xl border border-slate-200 dark:border-slate-800 overflow-hidden z-50 max-h-60 overflow-y-auto custom-scrollbar animate-in fade-in zoom-in-95 duration-150"
         >
           {options.map((opt) => {
             const optValue = typeof opt === 'string' ? opt : opt.value;
@@ -70,7 +70,7 @@ export default function CustomSelect({ id, value, onChange, options, required, p
                 className={`px-3.5 py-2.5 text-sm cursor-pointer transition-colors flex items-center justify-between ${
                   isSelected
                     ? 'bg-teal-50 text-teal-900 font-semibold'
-                    : 'text-slate-700 hover:bg-teal-50 hover:text-teal-900'
+                    : 'text-slate-700 dark:text-slate-300 hover:bg-teal-50 hover:text-teal-900'
                 }`}
               >
                 <span className="truncate">{optLabel}</span>

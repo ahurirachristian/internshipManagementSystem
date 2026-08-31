@@ -126,26 +126,26 @@ export default function StudentEditModal({ student, title, onClose, onSubmit }) 
     { id: 4, label: 'Review' },
   ];
 
-  const inputClass = "w-full bg-white text-slate-900 text-xs rounded-xl border border-slate-300 px-3.5 py-2.5 focus:border-teal-600 focus:ring-2 focus:ring-teal-600/20 focus:outline-none transition-all shadow-xs font-medium";
-  const labelClass = "block text-xs font-bold uppercase tracking-wider text-slate-800 mb-1.5";
+  const inputClass = "w-full bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 text-xs rounded-xl border border-slate-300 dark:border-slate-700 px-3.5 py-2.5 focus:border-teal-600 focus:ring-2 focus:ring-teal-600/20 focus:outline-none transition-all shadow-xs font-medium";
+  const labelClass = "block text-xs font-bold uppercase tracking-wider text-slate-800 dark:text-slate-200 mb-1.5";
 
   return (
     <div role="dialog" aria-modal="true" aria-labelledby="student-edit-modal-title"
       className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 sm:p-6 animate-in fade-in duration-150"
       onClick={onClose}>
       <div onClick={(e) => e.stopPropagation()}
-        className="bg-white w-full max-w-3xl rounded-2xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-150">
-        <div className="p-4 sm:p-5 bg-slate-50 border-b border-slate-200 flex items-center justify-between gap-4">
+        className="bg-white dark:bg-slate-900 w-full max-w-3xl rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-150">
+        <div className="p-4 sm:p-5 bg-slate-50 dark:bg-slate-800/40 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between gap-4">
           <div className="flex items-center gap-3 min-w-0">
             <div className="w-10 h-10 rounded-xl bg-teal-50 border border-teal-200 flex items-center justify-center text-teal-800 shrink-0">
               <UserCog className="w-5 h-5" />
             </div>
             <div className="min-w-0">
-              <h3 id="student-edit-modal-title" className="text-base font-bold text-slate-900 truncate">{title}</h3>
-              <p className="text-xs text-slate-500 truncate">Step {stepState} of 4</p>
+              <h3 id="student-edit-modal-title" className="text-base font-bold text-slate-900 dark:text-slate-100 truncate">{title}</h3>
+              <p className="text-xs text-slate-500 dark:text-slate-400 truncate">Step {stepState} of 4</p>
             </div>
           </div>
-          <button onClick={onClose} className="p-2 text-slate-400 hover:text-slate-700 hover:bg-slate-200 rounded-lg transition-colors" aria-label="Close modal">
+          <button onClick={onClose} className="p-2 text-slate-400 hover:text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:bg-slate-700 rounded-lg transition-colors" aria-label="Close modal">
             <X className="w-5 h-5" />
           </button>
         </div>
@@ -160,15 +160,15 @@ export default function StudentEditModal({ student, title, onClose, onSubmit }) 
           {steps.map((step, idx) => (
             <React.Fragment key={step.id}>
               <div className="flex flex-col items-center relative z-10">
-                <div className={`w-9 h-9 rounded-full flex items-center justify-center text-sm font-semibold border-2 transition-all ${step.id === stepState ? 'bg-teal-700 text-white border-teal-700 shadow-md' : step.id < stepState ? 'bg-teal-700 text-white border-teal-700' : 'bg-white text-slate-500 border-slate-300'}`}>
+                <div className={`w-9 h-9 rounded-full flex items-center justify-center text-sm font-semibold border-2 transition-all ${step.id === stepState ? 'bg-teal-700 text-white border-teal-700 shadow-md' : step.id < stepState ? 'bg-teal-700 text-white border-teal-700' : 'bg-white dark:bg-slate-900 text-slate-500 dark:text-slate-400 border-slate-300 dark:border-slate-700'}`}>
                   {step.id < stepState ? '✓' : step.id}
                 </div>
-                <span className={`mt-2 text-[11px] font-semibold text-center max-w-[70px] leading-tight ${step.id === stepState ? 'text-teal-900' : 'text-slate-500'}`}>
+                <span className={`mt-2 text-[11px] font-semibold text-center max-w-[70px] leading-tight ${step.id === stepState ? 'text-teal-900' : 'text-slate-500 dark:text-slate-400'}`}>
                   {step.label}
                 </span>
               </div>
               {idx < steps.length - 1 && (
-                <div className={`flex-1 h-1 rounded-full mx-2 ${step.id < stepState ? 'bg-teal-700' : 'bg-slate-200'}`} />
+                <div className={`flex-1 h-1 rounded-full mx-2 ${step.id < stepState ? 'bg-teal-700' : 'bg-slate-200 dark:bg-slate-700'}`} />
               )}
             </React.Fragment>
           ))}
@@ -195,7 +195,7 @@ export default function StudentEditModal({ student, title, onClose, onSubmit }) 
               </div>
               <div>
                 <label htmlFor="edit-username" className={labelClass}>Account Username</label>
-                <input id="edit-username" value={form.username} readOnly disabled className={`${inputClass} bg-slate-100 text-slate-500`} />
+                <input id="edit-username" value={form.username} readOnly disabled className={`${inputClass} bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400`} />
               </div>
               <div>
                 <label htmlFor="edit-phoneNumber" className={labelClass}>Phone Number</label>
@@ -255,8 +255,8 @@ export default function StudentEditModal({ student, title, onClose, onSubmit }) 
           )}
 
           {stepState === 4 && (
-            <div className="bg-slate-50 rounded-xl border border-slate-200 p-5">
-              <h4 className="text-sm font-bold text-slate-900 mb-4">Review Information</h4>
+            <div className="bg-slate-50 dark:bg-slate-800/40 rounded-xl border border-slate-200 dark:border-slate-800 p-5">
+              <h4 className="text-sm font-bold text-slate-900 dark:text-slate-100 mb-4">Review Information</h4>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {[
                   ['First Name', form.firstName],
@@ -275,9 +275,9 @@ export default function StudentEditModal({ student, title, onClose, onSubmit }) 
                   ['Start Date', form.startDate],
                   ['End Date', form.endDate],
                 ].map(([label, value]) => (
-                  <div key={label} className="bg-white rounded-lg p-3 border border-slate-200">
-                    <span className="text-[11px] font-bold uppercase tracking-wider text-slate-800">{label}</span>
-                    <p className="text-sm text-slate-700 mt-1">{value || '—'}</p>
+                  <div key={label} className="bg-white dark:bg-slate-900 rounded-lg p-3 border border-slate-200 dark:border-slate-800">
+                    <span className="text-[11px] font-bold uppercase tracking-wider text-slate-800 dark:text-slate-200">{label}</span>
+                    <p className="text-sm text-slate-700 dark:text-slate-300 mt-1">{value || '—'}</p>
                   </div>
                 ))}
               </div>
@@ -285,21 +285,21 @@ export default function StudentEditModal({ student, title, onClose, onSubmit }) 
           )}
         </form>
 
-        <div className="p-4 sm:p-5 bg-slate-50 border-t border-slate-200 flex items-center justify-end gap-3">
+        <div className="p-4 sm:p-5 bg-slate-50 dark:bg-slate-800/40 border-t border-slate-200 dark:border-slate-800 flex items-center justify-end gap-3">
           {stepState > 1 && (
             <button type="button" onClick={prevStep}
-              className="px-3.5 py-2 rounded-xl bg-white hover:bg-slate-100 text-slate-700 text-xs font-bold border border-slate-300 transition-colors shadow-xs">
+              className="px-3.5 py-2 rounded-xl bg-white dark:bg-slate-900 hover:bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-bold border border-slate-300 dark:border-slate-700 transition-colors shadow-xs">
               Back
             </button>
           )}
           {stepState < 4 ? (
             <button type="button" onClick={nextStep}
-              className="px-3.5 py-2 rounded-xl bg-[#063b33] hover:bg-[#042823] text-white text-xs font-bold transition-all flex items-center gap-1.5 shadow-xs focus-visible:ring-2 focus-visible:ring-teal-600 focus-visible:outline-none">
+              className="px-3.5 py-2 rounded-xl bg-primary hover:bg-primary text-white text-xs font-bold transition-all flex items-center gap-1.5 shadow-xs focus-visible:ring-2 focus-visible:ring-teal-600 focus-visible:outline-none">
               Next
             </button>
           ) : (
             <button type="submit" onClick={handleSubmit} disabled={busy}
-              className="px-3.5 py-2 rounded-xl bg-[#063b33] hover:bg-[#042823] text-white text-xs font-bold transition-all flex items-center gap-1.5 shadow-xs focus-visible:ring-2 focus-visible:ring-teal-600 focus-visible:outline-none disabled:opacity-50 disabled:cursor-not-allowed">
+              className="px-3.5 py-2 rounded-xl bg-primary hover:bg-primary text-white text-xs font-bold transition-all flex items-center gap-1.5 shadow-xs focus-visible:ring-2 focus-visible:ring-teal-600 focus-visible:outline-none disabled:opacity-50 disabled:cursor-not-allowed">
               {busy ? 'Saving...' : 'Save Student'}
             </button>
           )}

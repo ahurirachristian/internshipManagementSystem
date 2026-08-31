@@ -54,21 +54,21 @@ export default function DiaryReviewModal({ diary, onClose, onSaved }) {
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        className="bg-white w-full max-w-3xl rounded-2xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-150"
+        className="bg-white dark:bg-slate-900 w-full max-w-3xl rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-150"
       >
-        <div className="p-4 sm:p-5 bg-slate-50 border-b border-slate-200 flex items-center justify-between gap-4">
+        <div className="p-4 sm:p-5 bg-slate-50 dark:bg-slate-800/40 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between gap-4">
           <div className="flex items-center gap-3 min-w-0">
             <div className="w-10 h-10 rounded-xl bg-teal-50 border border-teal-200 flex items-center justify-center text-teal-800 shrink-0">
               <BookOpen className="w-5 h-5" />
             </div>
             <div className="min-w-0">
-              <h3 id="diary-review-modal-title" className="text-base font-bold text-slate-900 truncate">Review Diary Entry</h3>
-              <p className="text-xs text-slate-500 truncate">Review and provide feedback on this entry</p>
+              <h3 id="diary-review-modal-title" className="text-base font-bold text-slate-900 dark:text-slate-100 truncate">Review Diary Entry</h3>
+              <p className="text-xs text-slate-500 dark:text-slate-400 truncate">Review and provide feedback on this entry</p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="p-2 text-slate-400 hover:text-slate-700 hover:bg-slate-200 rounded-lg transition-colors focus-visible:ring-2 focus-visible:ring-teal-600 focus-visible:outline-none"
+            className="p-2 text-slate-400 hover:text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:bg-slate-700 rounded-lg transition-colors focus-visible:ring-2 focus-visible:ring-teal-600 focus-visible:outline-none"
             aria-label="Close modal"
           >
             <X className="w-5 h-5" />
@@ -86,16 +86,16 @@ export default function DiaryReviewModal({ diary, onClose, onSaved }) {
             {detailItems.map((item) => (
               <div
                 key={item.label}
-                className={`bg-slate-50 rounded-xl p-3 border border-slate-200 ${item.full ? 'md:col-span-2' : ''}`}
+                className={`bg-slate-50 dark:bg-slate-800/40 rounded-xl p-3 border border-slate-200 dark:border-slate-800 ${item.full ? 'md:col-span-2' : ''}`}
               >
-                <span className="text-[11px] font-bold uppercase tracking-wider text-slate-800">{item.label}</span>
-                <p className="text-sm text-slate-700 mt-1">{item.value || '—'}</p>
+                <span className="text-[11px] font-bold uppercase tracking-wider text-slate-800 dark:text-slate-200">{item.label}</span>
+                <p className="text-sm text-slate-700 dark:text-slate-300 mt-1">{item.value || '—'}</p>
               </div>
             ))}
           </div>
 
           <div>
-            <label htmlFor="diary-feedback" className="block text-xs font-bold uppercase tracking-wider text-slate-800 mb-1.5">
+            <label htmlFor="diary-feedback" className="block text-xs font-bold uppercase tracking-wider text-slate-800 dark:text-slate-200 mb-1.5">
               Feedback / Remarks
             </label>
             <textarea
@@ -104,12 +104,12 @@ export default function DiaryReviewModal({ diary, onClose, onSaved }) {
               value={feedback}
               onChange={(e) => setFeedback(e.target.value)}
               placeholder="Enter your remarks or feedback here..."
-              className="w-full bg-white text-slate-900 text-xs rounded-xl border border-slate-300 px-3.5 py-2.5 focus:border-teal-600 focus:ring-2 focus:ring-teal-600/20 focus:outline-none transition-all shadow-xs font-medium min-h-[80px] resize-y"
+              className="w-full bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 text-xs rounded-xl border border-slate-300 dark:border-slate-700 px-3.5 py-2.5 focus:border-teal-600 focus:ring-2 focus:ring-teal-600/20 focus:outline-none transition-all shadow-xs font-medium min-h-[80px] resize-y"
             />
           </div>
 
           <div>
-            <label className="block text-xs font-bold uppercase tracking-wider text-slate-800 mb-1.5">
+            <label className="block text-xs font-bold uppercase tracking-wider text-slate-800 dark:text-slate-200 mb-1.5">
               Status
             </label>
             <CustomSelect
@@ -121,12 +121,12 @@ export default function DiaryReviewModal({ diary, onClose, onSaved }) {
           </div>
         </form>
 
-        <div className="p-4 sm:p-5 bg-slate-50 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-end gap-3">
+        <div className="p-4 sm:p-5 bg-slate-50 dark:bg-slate-800/40 border-t border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row items-center justify-end gap-3">
           <button
             type="button"
             onClick={onClose}
             disabled={busy}
-            className="px-3.5 py-2 rounded-xl bg-white hover:bg-slate-100 text-slate-700 text-xs font-semibold border border-slate-300 transition-colors shadow-xs disabled:opacity-50 disabled:cursor-not-allowed"
+            className="px-3.5 py-2 rounded-xl bg-white dark:bg-slate-900 hover:bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-semibold border border-slate-300 dark:border-slate-700 transition-colors shadow-xs disabled:opacity-50 disabled:cursor-not-allowed"
           >
             Cancel
           </button>
@@ -134,7 +134,7 @@ export default function DiaryReviewModal({ diary, onClose, onSaved }) {
             type="submit"
             onClick={handleSubmit}
             disabled={busy}
-            className="px-4 py-2 rounded-xl bg-[#063b33] hover:bg-[#042823] text-white text-xs font-bold transition-all flex items-center gap-1.5 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+            className="px-4 py-2 rounded-xl bg-primary hover:bg-primary text-white text-xs font-bold transition-all flex items-center gap-1.5 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {busy ? 'Saving...' : 'Save Feedback'}
           </button>
