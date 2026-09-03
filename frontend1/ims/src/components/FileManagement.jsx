@@ -1,175 +1,157 @@
-import { useEffect, useRef, useState } from 'react';
+import { useMemo, useState } from 'react';
 import DashboardLayout from './DashboardLayout';
-import { useAuth } from '../context/AuthContext';
 
-const STORAGE_KEY = 'ims.fileManagement.documents';
-const CATEGORIES = ['Logbook Templates', 'Evaluation Forms', 'Internship Guidelines'];
+const STORAGE = { used: 25, total: 100 };
+const PLAN = { name: 'Trial Version', tier: 'FREE', capacity: '100 GB Space' };
 
-function loadDocuments() {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    const parsed = raw ? JSON.parse(raw) : [];
-    return Array.isArray(parsed) ? parsed : [];
-  } catch {
-    return [];
-  }
-}
+const QUICK_ACCESS = [
+  { key: 'videos', label: 'Videos', icon: 'fa-video' },
+  { key: 'apps', label: 'Apps', icon: 'fa-th-large' },
+  { key: 'document', label: 'Document', icon: 'fa-file-lines' },
+  { key: 'music', label: 'Music', icon: 'fa-music' },
+  { key: 'download', label: 'Download', icon: 'fa-download' },
+  { key: 'folder', label: 'Folder', icon: 'fa-folder' },
+  { key: 'zip', label: 'Zip File', icon: 'fa-file-zipper' },
+  { key: 'trash', label: 'Trash', icon: 'fa-trash' },
+];
 
-function formatDate(dateString) {
-  if (!dateString) return '—';
-  const date = new Date(dateString);
-  if (Number.isNaN(date.getTime())) return dateString;
-  return date.toLocaleDateString('en-GB', {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
-  });
+const FOLDERS = [
+  { name: 'Tivo admin', files: 20, when: '2 Hour ago', icon: 'fa-folder', color: '#fbbf24' },
+  { name: 'Viho admin', files: 14, when: '3 Hour ago', icon: 'fa-folder', color: '#6366f1' },
+  { name: 'Unice admin', files: 15, when: '3 Day ago', icon: 'fa-folder', color: '#22c55e' },
+  { name: 'Koho admin', files: 10, when: '1 Day ago', icon: 'fa-folder', color: '#ef4444' },
+];
+
+const FILES = [
+  { name: 'Logo.psd', when: '7 Hour ago', size: '2.0 MB', icon: 'fa-file-image', color: '#a855f7' },
+  { name: 'Backend.xls', when: '2 Day ago', size: '3.0 GB', icon: 'fa-file-excel', color: '#16a34a' },
+  { name: 'Project.zip', when: '1 Day ago', size: '1.9 GB', icon: 'fa-file-zipper', color: '#f59e0b' },
+  { name: 'Report.txt', when: '1 Day ago', size: '0.9 KB', icon: 'fa-file-lines', color: '#64748b' },
+];
+
+function formatRelative(when) {
+  return when;
 }
 
 export default function FileManagement() {
-  const { user } = useAuth();
-  const fileInputRef = useRef(null);
-  const canUpload = user?.role === 'ADMIN' || user?.role === 'SUPERVISOR';
+  const [activeKey, setActiveKey] = useState('folder');
+  const [query, setQuery] = useState('');
 
-  const [documents, setDocuments] = useState(loadDocuments);
-  const [category, setCategory] = useState(CATEGORIES[0]);
-  const [fileData, setFileData] = useState(null);
-  const [notice, setNotice] = useState('');
-  const [error, setError] = useState('');
-  const [uploading, setUploading] = useState(false);
+  const visibleFolders = useMemo(() => {
+    if (!query) return FOLDERS;
+    return FOLDERS.filter((f) => f.name.toLowerCase().includes(query.toLowerCase()));
+  }, [query]);
 
-  useEffect(() => {
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(documents));
-    } catch {
-      setError('Storage is full. Some uploaded documents could not be saved.');
-    }
-  }, [documents]);
+  const visibleFiles = useMemo(() => {
+    if (!query) return FILES;
+    return FILES.filter((f) => f.name.toLowerCase().includes(query.toLowerCase()));
+  }, [query]);
 
-  function handleFileChange(event) {
-    const file = event.target.files?.[0];
-    if (!file) {
-      setFileData(null);
-      return;
-    }
-    const reader = new FileReader();
-    reader.onload = () => {
-      setFileData({ name: file.name, dataUrl: reader.result });
-    };
-    reader.readAsDataURL(file);
-  }
-
-  async function handleUpload(event) {
-    event.preventDefault();
-    setError('');
-    setNotice('');
-    if (!fileData) {
-      setError('Choose a file to upload.');
-      return;
-    }
-    setUploading(true);
-    try {
-      const doc = {
-        id: Date.now().toString(36) + Math.random().toString(36).slice(2, 8),
-        name: fileData.name,
-        category,
-        uploadedBy: user?.username || 'Unknown',
-        date: new Date().toISOString(),
-        dataUrl: fileData.dataUrl,
-      };
-      setDocuments((prev) => [doc, ...prev]);
-      if (fileInputRef.current) fileInputRef.current.value = '';
-      setFileData(null);
-      setNotice('Document uploaded successfully.');
-    } catch (err) {
-      setError(err.message || 'Upload failed.');
-    } finally {
-      setUploading(false);
-    }
-  }
+  const usedPct = Math.min((STORAGE.used / STORAGE.total) * 100, 100);
 
   return (
-    <DashboardLayout title="File Management" subtitle="Shared documents for the internship programme">
-      {notice && <div className="alert alert-success">{notice}</div>}
-      {error && <div className="alert alert-error">{error}</div>}
-
-      {canUpload && (
-        <div className="card-panel">
-          <h2>Upload Document</h2>
-          <p>
-            Share logbook templates, evaluation forms, or internship guidelines with students and
-            staff.
-          </p>
-          <form onSubmit={handleUpload} className="fm-form">
-            <div className="fm-form-grid">
-              <label>
-                Category
-                <select value={category} onChange={(e) => setCategory(e.target.value)}>
-                  {CATEGORIES.map((cat) => (
-                    <option key={cat} value={cat}>
-                      {cat}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <label>
-                File
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt"
-                  onChange={handleFileChange}
-                />
-              </label>
+    <DashboardLayout title="File Management" subtitle="Organize and access your internship files">
+      <div className="file-management">
+        <aside className="file-management-sidebar card-panel">
+          <div className="file-management-plan">
+            <h3>{PLAN.name}</h3>
+            <span className="plan-badge">{PLAN.tier}</span>
+            <p>{PLAN.capacity}</p>
+            <div className="storage-bar" aria-hidden="true">
+              <div className="storage-bar-fill" style={{ width: `${usedPct}%` }}></div>
             </div>
-            <div className="modal-actions">
-              <button type="submit" className="primary-button" disabled={uploading || !fileData}>
-                {uploading ? 'Uploading...' : 'Upload Document'}
-              </button>
-            </div>
-          </form>
-        </div>
-      )}
+            <small>
+              {STORAGE.used} GB of {STORAGE.total} GB used
+            </small>
+          </div>
 
-      <div className="table-wrapper">
-        <table>
-          <thead>
-            <tr>
-              <th>File Name</th>
-              <th>Category</th>
-              <th>Uploaded By</th>
-              <th>Date</th>
-              <th>Download</th>
-            </tr>
-          </thead>
-          <tbody>
-            {documents.length > 0 ? (
-              documents.map((doc) => (
-                <tr key={doc.id}>
-                  <td className="fm-name">
-                    <i className="fa-solid fa-file"></i> {doc.name}
-                  </td>
-                  <td>
-                    <span className="fm-category">{doc.category}</span>
-                  </td>
-                  <td>{doc.uploadedBy}</td>
-                  <td>{formatDate(doc.date)}</td>
-                  <td>
-                    <a className="icon-button fm-download" href={doc.dataUrl} download={doc.name}>
-                      <i className="fa-solid fa-download"></i> Download
-                    </a>
-                  </td>
-                </tr>
-              ))
-            ) : (
-              <tr>
-                <td colSpan="5" className="empty-row">
-                  No documents uploaded yet.
-                </td>
-              </tr>
+          <div className="file-management-search">
+            <i className="fa-solid fa-magnifying-glass"></i>
+            <input
+              type="text"
+              placeholder="Search..."
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              aria-label="Search files"
+            />
+          </div>
+
+          <div className="file-management-section">
+            <h4>Quick Access</h4>
+            <ul className="file-management-quickaccess">
+              {QUICK_ACCESS.map((item) => (
+                <li key={item.key}>
+                  <button
+                    type="button"
+                    className={`quickaccess-link${activeKey === item.key ? ' active' : ''}`}
+                    onClick={() => setActiveKey(item.key)}
+                  >
+                    <i className={`fa-solid ${item.icon}`}></i>
+                    <span>{item.label}</span>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          <div className="file-management-section">
+            <h4>Folders</h4>
+            <ul className="file-management-folders">
+              {visibleFolders.map((folder) => (
+                <li key={folder.name} className="folder-row">
+                  <span className="folder-icon" style={{ background: folder.color }}>
+                    <i className={`fa-solid ${folder.icon}`}></i>
+                  </span>
+                  <div className="folder-info">
+                    <p className="folder-name">{folder.name}</p>
+                    <small>{folder.files} files • {formatRelative(folder.when)}</small>
+                  </div>
+                </li>
+              ))}
+              {visibleFolders.length === 0 && (
+                <li className="folder-empty">No folders match "{query}".</li>
+              )}
+            </ul>
+          </div>
+        </aside>
+
+        <section className="file-management-main card-panel">
+          <div className="file-management-header">
+            <div>
+              <h2>Files</h2>
+              <p>Recently updated files in your internship workspace.</p>
+            </div>
+            <span className="files-count">{visibleFiles.length} items</span>
+          </div>
+
+          <ul className="file-management-files">
+            {visibleFiles.map((file) => (
+              <li key={file.name} className="file-row">
+                <span className="file-icon" style={{ background: file.color }}>
+                  <i className={`fa-solid ${file.icon}`}></i>
+                </span>
+                <div className="file-info">
+                  <p className="file-name">{file.name}</p>
+                  <small>{formatRelative(file.when)} • {file.size}</small>
+                </div>
+                <div className="file-actions">
+                  <button type="button" className="icon-button" title="Preview">
+                    <i className="fa-regular fa-eye"></i>
+                  </button>
+                  <button type="button" className="icon-button" title="Download">
+                    <i className="fa-solid fa-download"></i>
+                  </button>
+                  <button type="button" className="icon-button" title="More">
+                    <i className="fa-solid fa-ellipsis-vertical"></i>
+                  </button>
+                </div>
+              </li>
+            ))}
+            {visibleFiles.length === 0 && (
+              <li className="folder-empty">No files match "{query}".</li>
             )}
-          </tbody>
-        </table>
+          </ul>
+        </section>
       </div>
     </DashboardLayout>
   );

@@ -114,6 +114,11 @@ public class DayDiaryApiController {
         diary.setDailyActivities(updates.getDailyActivities());
         diary.setKnowledgeAndSkillsGained(updates.getKnowledgeAndSkillsGained());
         diary.setAccomplishments(updates.getAccomplishments());
+        diary.setAccountNumber(updates.getAccountNumber());
+        diary.setAction(updates.getAction());
+        diary.setTechnologyTools(updates.getTechnologyTools());
+        diary.setIndustrialSupervisorComment(updates.getIndustrialSupervisorComment());
+        diary.setUniversitySupervisorComment(updates.getUniversitySupervisorComment());
         return ResponseEntity.ok(dayDiaryRepository.save(diary));
     }
 
@@ -126,14 +131,20 @@ public class DayDiaryApiController {
         }
         String feedback = body.getOrDefault("feedback", "");
         String status = body.getOrDefault("status", "PENDING");
+        String industrialComment = body.getOrDefault("industrialSupervisorComment", diary.getIndustrialSupervisorComment());
+        String universityComment = body.getOrDefault("universitySupervisorComment", diary.getUniversitySupervisorComment());
         diary.setAccomplishments(diary.getAccomplishments() != null
                 ? diary.getAccomplishments() + "\n\n[Supervisor Feedback]: " + feedback
                 : "[Supervisor Feedback]: " + feedback);
+        diary.setIndustrialSupervisorComment(industrialComment);
+        diary.setUniversitySupervisorComment(universityComment);
         DayDiary saved = dayDiaryRepository.save(diary);
         return ResponseEntity.ok(Map.of(
                 "id", saved.getId(),
                 "status", status,
                 "feedback", feedback,
+                "industrialSupervisorComment", saved.getIndustrialSupervisorComment(),
+                "universitySupervisorComment", saved.getUniversitySupervisorComment(),
                 "message", "Feedback submitted successfully"
         ));
     }

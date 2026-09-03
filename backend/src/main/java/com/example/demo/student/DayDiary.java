@@ -40,8 +40,27 @@ public class DayDiary {
     @Column(nullable = false)
     private String status = "PENDING";
 
+    @Column(nullable = true)
+    private String accountNumber;
+
+    @Lob
+    @Column(nullable = true)
+    private String action;
+
+    @Lob
+    @Column(nullable = true)
+    private String technologyTools;
+
     @Lob
     private String supervisorFeedback;
+
+    @Lob
+    @Column(nullable = true)
+    private String industrialSupervisorComment;
+
+    @Lob
+    @Column(nullable = true)
+    private String universitySupervisorComment;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "student_profile_id", nullable = false)
@@ -104,6 +123,46 @@ public class DayDiary {
 
     public void setSupervisorFeedback(String supervisorFeedback) {
         this.supervisorFeedback = supervisorFeedback;
+    }
+
+    public String getAccountNumber() {
+        return accountNumber;
+    }
+
+    public void setAccountNumber(String accountNumber) {
+        this.accountNumber = accountNumber;
+    }
+
+    public String getAction() {
+        return action;
+    }
+
+    public void setAction(String action) {
+        this.action = action;
+    }
+
+    public String getTechnologyTools() {
+        return technologyTools;
+    }
+
+    public void setTechnologyTools(String technologyTools) {
+        this.technologyTools = technologyTools;
+    }
+
+    public String getIndustrialSupervisorComment() {
+        return industrialSupervisorComment;
+    }
+
+    public void setIndustrialSupervisorComment(String industrialSupervisorComment) {
+        this.industrialSupervisorComment = industrialSupervisorComment;
+    }
+
+    public String getUniversitySupervisorComment() {
+        return universitySupervisorComment;
+    }
+
+    public void setUniversitySupervisorComment(String universitySupervisorComment) {
+        this.universitySupervisorComment = universitySupervisorComment;
     }
 
     public StudentProfile getStudentProfile() {

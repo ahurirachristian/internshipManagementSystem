@@ -1,364 +1,519 @@
-import { useEffect, useState } from 'react';
+import { useMemo, useState } from 'react';
 import DashboardLayout from '../DashboardLayout';
-import StudentEditModal from '../StudentEditModal';
-import ExportButton from '../ExportButton';
-import InternshipProgress from '../InternshipProgress';
-import DiaryReviewModal from '../DiaryReviewModal';
-import { useAuth } from '../../context/AuthContext';
-import {
-  createDiary,
-  deleteDiary,
-  fetchMyProfile,
-  fetchStudentDiaries,
-  fetchCompanies,
-  fetchSupervisors,
-  saveMyProfile,
-  updateDiary,
-} from '../../services/api';
+import { useStudentData } from '../../context/StudentDataContext';
 
-const emptyDiaryForm = {
-  date: '',
-  dailyActivities: '',
-  knowledgeAndSkillsGained: '',
-  accomplishments: '',
+const STATUS_COLORS = {
+  Completed: '#16a34a',
+  'In Progress': '#f59e0b',
+  Uncompleted: '#ef4444',
 };
 
-export default function StudentDashboard() {
-  const { user } = useAuth();
-  const [activeTab, setActiveTab] = useState('profile');
-  const [profile, setProfile] = useState(null);
-  const [profileLoading, setProfileLoading] = useState(true);
-  const [profileError, setProfileError] = useState('');
-  const [profileNotice, setProfileNotice] = useState('');
-  const [profileModalOpen, setProfileModalOpen] = useState(false);
-  const [diaries, setDiaries] = useState([]);
-  const [diaryLoading, setDiaryLoading] = useState(false);
-  const [diaryError, setDiaryError] = useState('');
-  const [diaryNotice, setDiaryNotice] = useState('');
-  const [diaryForm, setDiaryForm] = useState(emptyDiaryForm);
-  const [editingDiaryId, setEditingDiaryId] = useState(null);
-  const [reviewDiary, setReviewDiary] = useState(null);
-  const [companies, setCompanies] = useState([]);
-  const [supervisors, setSupervisors] = useState([]);
+function Legend() {
+  return (
+    <div className="progress-chart-legend" aria-label="Legend">
+      <span className="progress-chart-legend-item">
+        <span className="progress-chart-swatch swatch-completed"></span> Completed
+      </span>
+      <span className="progress-chart-legend-item">
+        <span className="progress-chart-swatch swatch-inprogress"></span> In Progress
+      </span>
+      <span className="progress-chart-legend-item">
+        <span className="progress-chart-swatch swatch-uncompleted"></span> Uncompleted
+      </span>
+    </div>
+  );
+}
 
-  useEffect(() => {
-    loadProfile();
-    loadCompanies();
-    loadSupervisors();
-    loadDiaries();
-  }, []);
-
-  async function loadProfile() {
-    setProfileLoading(true);
-    setProfileError('');
-    try {
-      const result = await fetchMyProfile();
-      setProfile(result);
-    } catch (err) {
-      if (err.status === 404) {
-        setProfile(null);
-      } else {
-        setProfileError(err.message || 'Unable to load profile.');
-      }
-    } finally {
-      setProfileLoading(false);
-    }
-  }
-
-  async function loadDiaries() {
-    setDiaryLoading(true);
-    setDiaryError('');
-    try {
-      setDiaries(await fetchStudentDiaries(user.username));
-    } catch (err) {
-      setDiaryError(err.message || 'Unable to load diary entries.');
-    } finally {
-      setDiaryLoading(false);
-    }
-  }
-
-  async function loadCompanies() {
-    try {
-      const data = await fetchCompanies();
-      setCompanies(Array.isArray(data) ? data : []);
-    } catch (err) {
-      console.error('Failed to load companies', err);
-      setCompanies([]);
-    }
-  }
-
-  async function loadSupervisors() {
-    try {
-      const data = await fetchSupervisors('UNIVERSITY');
-      setSupervisors(Array.isArray(data) ? data : []);
-    } catch (err) {
-      console.error('Failed to load supervisors', err);
-      setSupervisors([]);
-    }
-  }
-
-  function openProfileModal() {
-    setProfileModalOpen(true);
-  }
-
-  async function handleProfileSave(payload) {
-    const saved = await saveMyProfile(payload);
-    setProfile(saved);
-    setProfileNotice('Profile saved successfully.');
-  }
-
-  async function handleDiarySubmit(event) {
-    event.preventDefault();
-    setDiaryError('');
-    setDiaryNotice('');
-    if (!diaryForm.date || !diaryForm.dailyActivities.trim()) {
-      setDiaryError('Date and daily activities are required.');
-      return;
-    }
-    setDiaryLoading(true);
-    try {
-      if (editingDiaryId) {
-        await updateDiary(editingDiaryId, diaryForm);
-        setDiaryNotice('Diary entry updated successfully.');
-      } else {
-        await createDiary(diaryForm);
-        setDiaryNotice('Diary entry saved successfully.');
-      }
-      setDiaryForm(emptyDiaryForm);
-      setEditingDiaryId(null);
-      await loadDiaries();
-    } catch (err) {
-      setDiaryError(err.message || 'Unable to save diary entry.');
-    } finally {
-      setDiaryLoading(false);
-    }
-  }
-
-  function startEditDiary(entry) {
-    setDiaryForm({
-      date: entry.date,
-      dailyActivities: entry.dailyActivities,
-      knowledgeAndSkillsGained: entry.knowledgeAndSkillsGained,
-      accomplishments: entry.accomplishments,
-    });
-    setEditingDiaryId(entry.id);
-    setDiaryError('');
-    setDiaryNotice('');
-    document.getElementById('diary-form')?.scrollIntoView({ behavior: 'smooth' });
-  }
-
-  function cancelEditDiary() {
-    setDiaryForm(emptyDiaryForm);
-    setEditingDiaryId(null);
-    setDiaryError('');
-  }
-
-  async function handleDeleteDiary(id) {
-    if (!window.confirm('Delete this diary entry?')) return;
-    setDiaryLoading(true);
-    try {
-      await deleteDiary(id);
-      await loadDiaries();
-    } catch (err) {
-      setDiaryError(err.message || 'Unable to delete diary entry.');
-    } finally {
-      setDiaryLoading(false);
-    }
-  }
-
-  function renderProfile() {
-    if (profileLoading) {
-      return <div className="status-message">Loading profile...</div>;
-    }
-    if (profileError && !profile) {
-      return <div className="alert alert-error">{profileError}</div>;
-    }
-    if (!profile) {
-      return (
-        <div className="card-panel">
-          <h2>Complete your profile</h2>
-          <p>You do not have a student profile yet. Create one to get started.</p>
-          <div className="inline-actions">
-            <button className="primary-button" onClick={openProfileModal}>
-              Create Profile
-            </button>
-          </div>
-        </div>
-      );
-    }
-    const details = [
-      ['Full Name', `${profile.firstName || ''} ${profile.lastName || ''}`.trim()],
-      ['Email', profile.email],
-      ['Student Number', profile.studentNumber],
-      ['Registration Number', profile.registrationNumber],
-      ['Degree Program', profile.degreeProgram],
-      ['Year of Study', profile.yearOfStudy],
-      ['Phone Number', profile.phoneNumber],
-      ['Internship Company', profile.internshipCompany],
-      ['University Supervisor', profile.universitySupervisor],
-      ['Industrial Supervisor ID', profile.industrialSupervisorId],
-    ];
-    return (
-      <div className="card-panel">
-        <h2>My Profile</h2>
-        <p>Your student details as recorded in the system.</p>
-        <div className="detail-grid">
-          {details.map(([label, value]) => (
-            <div className="detail-item" key={label}>
-              <span className="detail-label">{label}</span>
-              <span className="detail-value">{value || '—'}</span>
-            </div>
-          ))}
-        </div>
-        <div className="inline-actions">
-          <button className="primary-button" onClick={openProfileModal}>
-            Edit Profile
-          </button>
-        </div>
-      </div>
+function StackedBarChart({ data }) {
+  const maxValue = useMemo(() => {
+    const m = data.reduce(
+      (acc, d) => Math.max(acc, d.completed + d.inProgress + d.uncompleted),
+      0
     );
-  }
+    return Math.max(m, 1);
+  }, [data]);
 
-  function renderDiary() {
-    return (
-      <>
-        <div className="card-panel">
-          <h2>{editingDiaryId ? 'Edit Day Diary Entry' : 'New Day Diary Entry'}</h2>
-          <p>
-            {editingDiaryId
-              ? 'Update the activities and skills gained for this day.'
-              : 'Record the activities and skills gained for a day.'}
-          </p>
-          <form id="diary-form" onSubmit={handleDiarySubmit} className="modal-form">
-            <label>
-              Date
-              <input
-                type="date"
-                value={diaryForm.date}
-                onChange={(e) => setDiaryForm({ ...diaryForm, date: e.target.value })}
-              />
-            </label>
-            <label>
-              Daily Activities
-              <textarea
-                rows="4"
-                value={diaryForm.dailyActivities}
-                onChange={(e) =>
-                  setDiaryForm({ ...diaryForm, dailyActivities: e.target.value })
-                }
-              />
-            </label>
-            <label>
-              Knowledge &amp; Skills Gained
-              <textarea
-                rows="3"
-                value={diaryForm.knowledgeAndSkillsGained}
-                onChange={(e) =>
-                  setDiaryForm({ ...diaryForm, knowledgeAndSkillsGained: e.target.value })
-                }
-              />
-            </label>
-            <label>
-              Accomplishments
-              <textarea
-                rows="3"
-                value={diaryForm.accomplishments}
-                onChange={(e) =>
-                  setDiaryForm({ ...diaryForm, accomplishments: e.target.value })
-                }
-              />
-            </label>
-            <div className="modal-actions">
-              {editingDiaryId && (
-                <button type="button" className="secondary-button" onClick={cancelEditDiary}>
-                  Cancel Edit
-                </button>
-              )}
-              <button type="submit" className="primary-button">
-                {editingDiaryId ? 'Update Entry' : 'Save Entry'}
-              </button>
+  return (
+    <div className="progress-chart">
+      {data.map((item) => {
+        const total = item.completed + item.inProgress + item.uncompleted;
+        const heightPct = (total / maxValue) * 100;
+        const completedShare = total ? (item.completed / total) * 100 : 0;
+        const inProgressShare = total ? (item.inProgress / total) * 100 : 0;
+        const uncompletedShare = total ? (item.uncompleted / total) * 100 : 0;
+        return (
+          <div className="progress-bar-wrapper" key={item.day}>
+            <div className="progress-bar-value">{total}</div>
+            <div className="progress-bar-track">
+              <div
+                className="progress-bar-fill stacked"
+                style={{ height: `${heightPct}%` }}
+              >
+                <div
+                  className="progress-bar-segment segment-completed"
+                  style={{ flexBasis: `${completedShare}%` }}
+                  title={`${item.day}: ${item.completed} completed`}
+                ></div>
+                <div
+                  className="progress-bar-segment segment-inprogress"
+                  style={{ flexBasis: `${inProgressShare}%` }}
+                  title={`${item.day}: ${item.inProgress} in progress`}
+                ></div>
+                <div
+                  className="progress-bar-segment segment-uncompleted"
+                  style={{ flexBasis: `${uncompletedShare}%` }}
+                  title={`${item.day}: ${item.uncompleted} uncompleted`}
+                ></div>
+              </div>
             </div>
-          </form>
-        </div>
+            <div className="progress-bar-label">{item.day}</div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
 
-        <div className="card-panel">
-          <h2>My Diary Entries</h2>
-          {diaryLoading && <div className="status-message">Loading entries...</div>}
-          {diaries.length === 0 && !diaryLoading && (
-            <p>No diary entries yet. Add your first entry above.</p>
-          )}
-          {diaries.map((entry) => (
-            <div className="diary-entry" key={entry.id}>
-              <h3>{entry.date}</h3>
-              <h4>Daily Activities</h4>
-              <p>{entry.dailyActivities || '—'}</p>
-              <h4>Knowledge &amp; Skills Gained</h4>
-              <p>{entry.knowledgeAndSkillsGained || '—'}</p>
-              <h4>Accomplishments</h4>
-              <p>{entry.accomplishments || '—'}</p>
-              <div className="inline-actions">
-                <button className="icon-button edit" onClick={() => startEditDiary(entry)}>
-                  Edit
-                </button>
-                <button
-                  className="icon-button delete"
-                  onClick={() => handleDeleteDiary(entry.id)}
+function GroupedBarChart({ data }) {
+  const maxValue = useMemo(() => {
+    const m = data.reduce(
+      (acc, d) =>
+        Math.max(acc, d.completed, d.inProgress, d.uncompleted),
+      0
+    );
+    return Math.max(m, 1);
+  }, [data]);
+
+  const keys = ['completed', 'inProgress', 'uncompleted'];
+  const labels = ['Completed', 'In Progress', 'Uncompleted'];
+  const classes = ['grouped-completed', 'grouped-inprogress', 'grouped-uncompleted'];
+
+  return (
+    <div className="progress-chart">
+      {data.map((item) => {
+        return (
+          <div className="progress-bar-wrapper" key={item.day}>
+            <div className="progress-bar-value">
+              <span style={{ color: STATUS_COLORS.Completed }}>{item.completed}</span>
+              {' / '}
+              <span style={{ color: STATUS_COLORS['In Progress'] }}>{item.inProgress}</span>
+              {' / '}
+              <span style={{ color: STATUS_COLORS.Uncompleted }}>{item.uncompleted}</span>
+            </div>
+            <div className="progress-bar-grouped">
+              {keys.map((k, i) => {
+                const v = item[k];
+                const h = (v / maxValue) * 100;
+                return (
+                  <div className="grouped-bar-track" key={k}>
+                    <div
+                      className={`grouped-bar-fill ${classes[i]}`}
+                      style={{ height: `${h}%` }}
+                      title={`${item.day} ${labels[i]}: ${v}`}
+                    >
+                      <span className="grouped-bar-num">{v}</span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+            <div className="progress-bar-label">{item.day}</div>
+            <div className="grouped-axis-hint" aria-hidden="true">
+              <span>C</span>
+              <span>I</span>
+              <span>U</span>
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+function DonutChart({ totals }) {
+  const size = 220;
+  const stroke = 28;
+  const radius = (size - stroke) / 2;
+  const circumference = 2 * Math.PI * radius;
+  const total = totals.Completed + totals['In Progress'] + totals.Uncompleted;
+
+  const segments = [
+    { key: 'Completed', value: totals.Completed, color: STATUS_COLORS.Completed },
+    { key: 'In Progress', value: totals['In Progress'], color: STATUS_COLORS['In Progress'] },
+    { key: 'Uncompleted', value: totals.Uncompleted, color: STATUS_COLORS.Uncompleted },
+  ];
+
+  let offset = 0;
+  return (
+    <div className="donut-chart">
+      <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} role="img" aria-label="Status distribution">
+        <circle
+          cx={size / 2}
+          cy={size / 2}
+          r={radius}
+          fill="none"
+          stroke="#e2e8f0"
+          strokeWidth={stroke}
+        />
+        {segments.map((seg) => {
+          const dash = total ? (seg.value / total) * circumference : 0;
+          const segment = (
+            <circle
+              key={seg.key}
+              cx={size / 2}
+              cy={size / 2}
+              r={radius}
+              fill="none"
+              stroke={seg.color}
+              strokeWidth={stroke}
+              strokeDasharray={`${dash} ${circumference - dash}`}
+              strokeDashoffset={-offset}
+              transform={`rotate(-90 ${size / 2} ${size / 2})`}
+              strokeLinecap="butt"
+            />
+          );
+          offset += dash;
+          return segment;
+        })}
+        <text
+          x="50%"
+          y="48%"
+          textAnchor="middle"
+          fontSize="28"
+          fontWeight="700"
+          fill="#0f172a"
+          dominantBaseline="middle"
+        >
+          {total}
+        </text>
+        <text
+          x="50%"
+          y="62%"
+          textAnchor="middle"
+          fontSize="12"
+          fill="#64748b"
+          dominantBaseline="middle"
+        >
+          total tasks
+        </text>
+      </svg>
+      <ul className="donut-legend">
+        {segments.map((seg) => (
+          <li key={seg.key}>
+            <span className="donut-swatch" style={{ background: seg.color }}></span>
+            <span className="donut-label">{seg.key}</span>
+            <span className="donut-value">
+              {seg.value} ({total ? Math.round((seg.value / total) * 100) : 0}%)
+            </span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+function LineChart({ data }) {
+  const width = 560;
+  const height = 280;
+  const padX = 48;
+  const padY = 32;
+
+  const allValues = data.flatMap((d) => [d.completed, d.inProgress, d.uncompleted]);
+  const maxValue = Math.max(...allValues, 1);
+
+  const xFor = (i) => padX + (i * (width - padX * 2)) / (data.length - 1);
+  const yFor = (v) => height - padY - (v / maxValue) * (height - padY * 2);
+
+  const series = [
+    { key: 'completed', label: 'Completed', color: STATUS_COLORS.Completed },
+    { key: 'inProgress', label: 'In Progress', color: STATUS_COLORS['In Progress'] },
+    { key: 'uncompleted', label: 'Uncompleted', color: STATUS_COLORS.Uncompleted },
+  ];
+
+  const ticks = 5;
+  const tickValues = Array.from({ length: ticks + 1 }, (_, i) => Math.round((maxValue / ticks) * i));
+
+  return (
+    <div className="line-chart">
+      <svg viewBox={`0 0 ${width} ${height}`} role="img" aria-label="Daily progress line chart">
+        {tickValues.map((t, i) => {
+          const y = yFor(t);
+          return (
+            <g key={i}>
+              <line
+                x1={padX}
+                x2={width - padX}
+                y1={y}
+                y2={y}
+                stroke="#e2e8f0"
+                strokeDasharray="3 4"
+              />
+              <text x={padX - 8} y={y + 4} fontSize="11" fill="#64748b" textAnchor="end">
+                {t}
+              </text>
+            </g>
+          );
+        })}
+
+        {data.map((d, i) => {
+          const x = xFor(i);
+          return (
+            <text
+              key={d.day}
+              x={x}
+              y={height - padY + 18}
+              fontSize="11"
+              fill="#475569"
+              textAnchor="middle"
+            >
+              {d.day.slice(0, 3)}
+            </text>
+          );
+        })}
+
+        {series.map((s) => {
+          const points = data
+            .map((d, i) => `${xFor(i)},${yFor(d[s.key])}`)
+            .join(' ');
+          return (
+            <g key={s.key}>
+              <polyline
+                fill="none"
+                stroke={s.color}
+                strokeWidth="2.5"
+                strokeLinejoin="round"
+                strokeLinecap="round"
+                points={points}
+              />
+              {data.map((d, i) => (
+                <circle
+                  key={`${s.key}-${i}`}
+                  cx={xFor(i)}
+                  cy={yFor(d[s.key])}
+                  r="4"
+                  fill="#ffffff"
+                  stroke={s.color}
+                  strokeWidth="2"
                 >
-                  Delete
-                </button>
-                <button className="icon-button" onClick={() => setReviewDiary(entry)}>
-                  Review / Comment
-                </button>
+                  <title>
+                    {d.day} {s.label}: {d[s.key]}
+                  </title>
+                </circle>
+              ))}
+            </g>
+          );
+        })}
+      </svg>
+    </div>
+  );
+}
+
+function TodoList({ tasks }) {
+  const [activeTab, setActiveTab] = useState('all');
+
+  const counts = useMemo(() => {
+    return {
+      all: tasks.length,
+      completed: tasks.filter((t) => t.status === 'Completed').length,
+      pending: tasks.filter((t) => t.status === 'Uncompleted').length,
+      inProcess: tasks.filter((t) => t.status === 'In Progress').length,
+    };
+  }, [tasks]);
+
+  const visible = useMemo(() => {
+    if (activeTab === 'all') return tasks;
+    const map = {
+      completed: 'Completed',
+      pending: 'Uncompleted',
+      inProcess: 'In Progress',
+    };
+    return tasks.filter((t) => t.status === map[activeTab]);
+  }, [tasks, activeTab]);
+
+  const formatDue = (iso) => {
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sept', 'Oct', 'Nov', 'Dec'];
+    const d = new Date(iso);
+    return `${String(d.getDate()).padStart(2, '0')} ${months[d.getMonth()]}`;
+  };
+
+  const tabs = [
+    { key: 'all', label: 'All Task' },
+    { key: 'completed', label: 'Completed' },
+    { key: 'pending', label: 'Pending' },
+    { key: 'inProcess', label: 'In Process' },
+  ];
+
+  const statusClass = {
+    Completed: 'pill pill-done',
+    'In Progress': 'pill pill-in-progress',
+    Uncompleted: 'pill pill-pending',
+  };
+
+  const statusLabel = {
+    Completed: 'Done',
+    'In Progress': 'In Progress',
+    Uncompleted: 'Pending',
+  };
+
+  return (
+    <div className="todo-list">
+      <div className="todo-tabs">
+        {tabs.map((tab) => (
+          <button
+            key={tab.key}
+            type="button"
+            className={`todo-tab${activeTab === tab.key ? ' active' : ''}`}
+            onClick={() => setActiveTab(tab.key)}
+          >
+            <span>{tab.label}</span>
+            <span className="todo-tab-count">{counts[tab.key]}</span>
+          </button>
+        ))}
+      </div>
+
+      <ul className="todo-rows">
+        {visible.slice(0, 12).map((t) => (
+          <li className="todo-row" key={t.id}>
+            <div className="todo-row-main">
+              <p className="todo-row-title">{t.title.replace(/ #\d+$/, '')}</p>
+              <span className={statusClass[t.status]}>{statusLabel[t.status]}</span>
+            </div>
+            <div className="todo-row-meta">{formatDue(t.dueDate)}</div>
+          </li>
+        ))}
+        {visible.length === 0 && (
+          <li className="todo-row-empty">No tasks in this view.</li>
+        )}
+      </ul>
+    </div>
+  );
+}
+
+export default function StudentDashboard() {
+  const { tasks, dailyProgress, statusTotals } = useStudentData();
+
+  const totalProjects = tasks.length;
+  const inProgressCount = statusTotals['In Progress'];
+  const completeCount = statusTotals.Completed;
+  const upcomingCount = statusTotals.Uncompleted;
+
+  const kpis = [
+    {
+      label: 'Total Project',
+      value: totalProjects,
+      icon: 'fa-folder-open',
+      tone: 'kpi-indigo',
+    },
+    {
+      label: 'In Progress',
+      value: inProgressCount,
+      icon: 'fa-spinner',
+      tone: 'kpi-amber',
+    },
+    {
+      label: 'Complete',
+      value: completeCount,
+      icon: 'fa-circle-check',
+      tone: 'kpi-green',
+    },
+    {
+      label: 'Upcoming',
+      value: upcomingCount,
+      icon: 'fa-clock',
+      tone: 'kpi-red',
+    },
+  ];
+
+  return (
+    <DashboardLayout title="Dashboard" subtitle="Welcome,">
+      <div className="project-management-hero">
+        <div className="project-management-hero-title">
+          <h2>Project Management</h2>
+          <p>Project-Management</p>
+        </div>
+        <div className="kpi-grid">
+          {kpis.map((kpi) => (
+            <div className={`kpi-card ${kpi.tone}`} key={kpi.label}>
+              <div className="kpi-card-icon">
+                <i className={`fa-solid ${kpi.icon}`}></i>
+              </div>
+              <div className="kpi-card-body">
+                <div className="kpi-card-label">{kpi.label}</div>
+                <div className="kpi-card-value">{kpi.value.toLocaleString()}</div>
               </div>
             </div>
           ))}
         </div>
-      </>
-    );
-  }
+      </div>
 
-  return (
-    <DashboardLayout
-      title="Student Dashboard"
-      subtitle="Welcome,"
-      tabs={[
-        { id: 'profile', label: 'Profile' },
-        { id: 'diary', label: 'Day Diary' },
-      ]}
-      activeTab={activeTab}
-      onTabChange={(tab) => {
-        setActiveTab(tab);
-        if (tab === 'diary') {
-          loadDiaries();
-        }
-      }}
-    >
-      <InternshipProgress />
+      <div className="dashboard-grid">
+        <div className="card-panel progress-chart-card grid-span-2">
+          <div className="progress-chart-header">
+            <h2>Level of Progress</h2>
+            <p>Weekly breakdown by status — Monday to Saturday</p>
+          </div>
+          <Legend />
+          <div className="progress-chart-headings" aria-label="Status totals">
+            <span className="progress-chart-heading heading-completed">
+              Completed <strong>{statusTotals.Completed}</strong>
+            </span>
+            <span className="progress-chart-heading heading-in-progress">
+              In Progress <strong>{statusTotals['In Progress']}</strong>
+            </span>
+            <span className="progress-chart-heading heading-uncompleted">
+              Uncompleted <strong>{statusTotals.Uncompleted}</strong>
+            </span>
+          </div>
+          <h3 className="chart-subtitle">Stacked by status</h3>
+          <StackedBarChart data={dailyProgress} />
+        </div>
 
-      {profileNotice && <div className="alert alert-success">{profileNotice}</div>}
-      {diaryNotice && <div className="alert alert-success">{diaryNotice}</div>}
-      {profileError && <div className="alert alert-error">{profileError}</div>}
-      {diaryError && <div className="alert alert-error">{diaryError}</div>}
-      {activeTab === 'profile' ? renderProfile() : renderDiary()}
+        <div className="card-panel progress-chart-card">
+          <div className="progress-chart-header">
+            <h2>Status by Day</h2>
+            <p>Three side-by-side bars per day</p>
+          </div>
+          <Legend />
+          <div className="progress-chart-headings" aria-label="Status totals">
+            <span className="progress-chart-heading heading-completed">
+              Completed <strong>{statusTotals.Completed}</strong>
+            </span>
+            <span className="progress-chart-heading heading-in-progress">
+              In Progress <strong>{statusTotals['In Progress']}</strong>
+            </span>
+            <span className="progress-chart-heading heading-uncompleted">
+              Uncompleted <strong>{statusTotals.Uncompleted}</strong>
+            </span>
+          </div>
+          <h3 className="chart-subtitle">Grouped (Completed / In Progress / Uncompleted)</h3>
+          <GroupedBarChart data={dailyProgress} />
+        </div>
 
-      {profileModalOpen && (
-        <StudentEditModal
-          student={profile}
-          title={profile ? 'Edit Profile' : 'Create Profile'}
-          onClose={() => setProfileModalOpen(false)}
-          onSubmit={handleProfileSave}
-          companies={companies}
-          supervisors={supervisors}
-        />
-      )}
+        <div className="card-panel progress-chart-card">
+          <div className="progress-chart-header">
+            <h2>Overall Distribution</h2>
+            <p>Total tasks by status</p>
+          </div>
+          <DonutChart totals={statusTotals} />
+        </div>
 
-      {reviewDiary && (
-        <DiaryReviewModal
-          diary={reviewDiary}
-          onClose={() => setReviewDiary(null)}
-          onSaved={loadDiaries}
-        />
-      )}
+        <div className="card-panel progress-chart-card grid-span-2">
+          <div className="progress-chart-header">
+            <h2>Trend Across the Week</h2>
+            <p>Status counts from Monday to Saturday</p>
+          </div>
+          <Legend />
+          <LineChart data={dailyProgress} />
+        </div>
+
+        <div className="card-panel progress-chart-card grid-span-3">
+          <div className="progress-chart-header">
+            <h2>To-Do List</h2>
+            <p>Same source as the Tasks page</p>
+          </div>
+          <TodoList tasks={tasks} />
+        </div>
+      </div>
     </DashboardLayout>
   );
 }

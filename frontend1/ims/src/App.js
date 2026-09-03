@@ -4,6 +4,7 @@ import ProtectedRoute from './components/ProtectedRoute';
 import LoginPage from './components/LoginPage';
 import RegisterPage from './components/RegisterPage';
 import ForgotPasswordPage from './components/ForgotPasswordPage';
+import StudentDataProvider, { useStudentData } from './context/StudentDataContext';
 import StudentDashboard from './components/dashboards/StudentDashboard';
 import UniversityDashboard from './components/dashboards/UniversityDashboard';
 import CompanyDashboard from './components/dashboards/CompanyDashboard';
@@ -17,6 +18,13 @@ import PlacementMatching from './components/PlacementMatching';
 import VacanciesManagement from './components/VacanciesManagement';
 import FileManagement from './components/FileManagement';
 import DashboardLayout from './components/DashboardLayout';
+import DayDiariesPage from './components/dashboards/DayDiariesPage';
+import InternshipProgress from './components/InternshipProgress';
+import LearningInstituteSection from './components/dashboards/LearningInstituteSection';
+import CompaniesSection from './components/dashboards/CompaniesSection';
+import IndustrialSupervisorSection from './components/dashboards/IndustrialSupervisorSection';
+import UniversitySupervisorSection from './components/dashboards/UniversitySupervisorSection';
+import SettingsSection from './components/dashboards/SettingsSection';
 import './App.css';
 
 function CompanyManagement() {
@@ -39,6 +47,97 @@ function UniversitiesPage() {
   return (
     <DashboardLayout title="University Management" subtitle="Manage registered universities">
       <UniversitiesManagement />
+    </DashboardLayout>
+  );
+}
+
+function StudentProgressPage() {
+  return (
+    <DashboardLayout title="Level of Progress" subtitle="Track your internship progress">
+      <InternshipProgress />
+    </DashboardLayout>
+  );
+}
+
+function StudentTasksPage() {
+  const { tasks } = useStudentData();
+
+  return (
+    <DashboardLayout title="Tasks" subtitle="Your assigned tasks">
+      <div className="card-panel">
+        <h2>Tasks</h2>
+        <p>Your assigned tasks will appear here.</p>
+        <div style={{ overflowX: 'auto', marginTop: '12px' }}>
+          <table className="tasks-table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Title</th>
+                <th>Assignee</th>
+                <th>Priority</th>
+                <th>Status</th>
+                <th>Due Date</th>
+              </tr>
+            </thead>
+            <tbody>
+              {tasks.map((task) => {
+                const statusClass = task.status === 'Completed'
+                  ? 'row-completed'
+                  : task.status === 'In Progress'
+                    ? 'row-in-progress'
+                    : 'row-uncompleted';
+                return (
+                  <tr key={task.id} className={statusClass}>
+                    <td>{task.id}</td>
+                    <td>{task.title}</td>
+                    <td>{task.assignee}</td>
+                    <td>{task.priority}</td>
+                    <td>
+                      <span className={`pill pill-${task.status === 'Completed' ? 'done' : task.status === 'In Progress' ? 'in-progress' : 'pending'}`}>
+                        {task.status}
+                      </span>
+                    </td>
+                    <td>{task.dueDate}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </DashboardLayout>
+  );
+}
+
+function StudentLearningInstitutePage() {
+  return (
+    <DashboardLayout title="Learning Institute" subtitle="Learning institute details">
+      <LearningInstituteSection />
+    </DashboardLayout>
+  );
+}
+
+function StudentCompaniesPage() {
+  return (
+    <DashboardLayout title="Companies" subtitle="Company placements">
+      <CompaniesSection />
+    </DashboardLayout>
+  );
+}
+
+function StudentProfileSettingsPage() {
+  return (
+    <DashboardLayout title="Profile Settings" subtitle="Manage your preferences">
+      <SettingsSection />
+    </DashboardLayout>
+  );
+}
+
+function StudentSupervisorPage() {
+  return (
+    <DashboardLayout title="Supervisor" subtitle="Your supervisors">
+      <IndustrialSupervisorSection />
+      <UniversitySupervisorSection />
     </DashboardLayout>
   );
 }
@@ -66,7 +165,67 @@ function AppRoutes() {
         path="/student/dashboard"
         element={
           <ProtectedRoute roles={["ADMIN", "STUDENT"]}>
-            <StudentDashboard />
+            <StudentDataProvider>
+              <StudentDashboard />
+            </StudentDataProvider>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/student/progress"
+        element={
+          <ProtectedRoute roles={["ADMIN", "STUDENT"]}>
+            <StudentProgressPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/student/tasks"
+        element={
+          <ProtectedRoute roles={["ADMIN", "STUDENT"]}>
+            <StudentDataProvider>
+              <StudentTasksPage />
+            </StudentDataProvider>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/student/learning-institute"
+        element={
+          <ProtectedRoute roles={["ADMIN", "STUDENT"]}>
+            <StudentLearningInstitutePage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/student/companies"
+        element={
+          <ProtectedRoute roles={["ADMIN", "STUDENT"]}>
+            <StudentCompaniesPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/student/profile-settings"
+        element={
+          <ProtectedRoute roles={["ADMIN", "STUDENT"]}>
+            <StudentProfileSettingsPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/student/supervisor"
+        element={
+          <ProtectedRoute roles={["ADMIN", "STUDENT"]}>
+            <StudentSupervisorPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/student/day-diaries"
+        element={
+          <ProtectedRoute roles={["ADMIN", "STUDENT"]}>
+            <DayDiariesPage />
           </ProtectedRoute>
         }
       />

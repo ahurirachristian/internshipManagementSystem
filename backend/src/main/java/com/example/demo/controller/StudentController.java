@@ -20,11 +20,28 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
+import com.example.demo.auth.UserEntity;
+import com.example.demo.auth.UserRepository;
+import com.example.demo.company.Company;
+import com.example.demo.company.CompanyRepository;
+import com.example.demo.dto.CompanyDetailsDto;
+import com.example.demo.dto.IndustrialSupervisorDto;
+import com.example.demo.dto.LearningInstituteDto;
 import com.example.demo.dto.StudentProfileDto;
+import com.example.demo.dto.StudentSettingsDto;
+import com.example.demo.dto.UniversitySupervisorDto;
 import com.example.demo.student.DayDiary;
 import com.example.demo.student.DayDiaryRepository;
 import com.example.demo.student.StudentProfile;
 import com.example.demo.student.StudentProfileRepository;
+import com.example.demo.student.StudentSetting;
+import com.example.demo.student.StudentSettingRepository;
+import com.example.demo.supervisor.IndustrialSupervisor;
+import com.example.demo.supervisor.IndustrialSupervisorRepository;
+import com.example.demo.supervisor.UniversitySupervisor;
+import com.example.demo.supervisor.UniversitySupervisorRepository;
+import com.example.demo.university.University;
+import com.example.demo.university.UniversityRepository;
 
 @RestController
 @RequestMapping("/api/students")
@@ -32,10 +49,29 @@ public class StudentController {
 
     private final StudentProfileRepository studentProfileRepository;
     private final DayDiaryRepository dayDiaryRepository;
+    private final UserRepository userRepository;
+    private final UniversityRepository universityRepository;
+    private final CompanyRepository companyRepository;
+    private final UniversitySupervisorRepository universitySupervisorRepository;
+    private final IndustrialSupervisorRepository industrialSupervisorRepository;
+    private final StudentSettingRepository studentSettingRepository;
 
-    public StudentController(StudentProfileRepository studentProfileRepository, DayDiaryRepository dayDiaryRepository) {
+    public StudentController(StudentProfileRepository studentProfileRepository,
+            DayDiaryRepository dayDiaryRepository,
+            UserRepository userRepository,
+            UniversityRepository universityRepository,
+            CompanyRepository companyRepository,
+            UniversitySupervisorRepository universitySupervisorRepository,
+            IndustrialSupervisorRepository industrialSupervisorRepository,
+            StudentSettingRepository studentSettingRepository) {
         this.studentProfileRepository = studentProfileRepository;
         this.dayDiaryRepository = dayDiaryRepository;
+        this.userRepository = userRepository;
+        this.universityRepository = universityRepository;
+        this.companyRepository = companyRepository;
+        this.universitySupervisorRepository = universitySupervisorRepository;
+        this.industrialSupervisorRepository = industrialSupervisorRepository;
+        this.studentSettingRepository = studentSettingRepository;
     }
 
     @GetMapping("/me")
@@ -61,6 +97,153 @@ public class StudentController {
                 "finalReport", diaryCount >= 10
         );
         return ResponseEntity.ok(progress);
+    }
+
+    @GetMapping("/me/learning-institute")
+    @PreAuthorize("hasAnyAuthority('STUDENT', 'ADMIN')")
+    public ResponseEntity<LearningInstituteDto> getMyLearningInstitute(Principal principal) {
+        UserEntity user = userRepository.findByUsername(principal.getName()).orElse(null);
+        if (user == null || user.getUniversityId() == null) {
+            StudentProfile profile = studentProfileRepository.findByUsername(principal.getName()).orElse(null);
+            if (profile != null && profile.getUniversitySupervisor() != null && !profile.getUniversitySupervisor().isBlank()) {
+                UserEntity supervisorUser = userRepository.findByUsername(profile.getUniversitySupervisor()).orElse(null);
+                if (supervisorUser != null && supervisorUser.getUniversityId() != null) {
+                    University university = universityRepository.findById(supervisorUser.getUniversityId()).orElse(null);
+                    if (university != null) {
+                        return ResponseEntity.ok(new LearningInstituteDto(
+                                university.getUniversityId(), university.getName(), university.getCode(),
+                                university.getEmail(), university.getLocation()));
+                    }
+                }
+            }
+            return ResponseEntity.noContent().build();
+        }
+        University university = universityRepository.findById(user.getUniversityId()).orElse(null);
+        if (university == null) {
+            return ResponseEntity.noContent().build();
+        }
+        return ResponseEntity.ok(new LearningInstituteDto(
+                university.getUniversityId(), university.getName(), university.getCode(),
+                university.getEmail(), university.getLocation()));
+    }
+
+    @GetMapping("/me/company")
+    @PreAuthorize("hasAnyAuthority('STUDENT', 'ADMIN')")
+    public ResponseEntity<CompanyDetailsDto> getMyCompany(Principal principal) {
+        StudentProfile profile = studentProfileRepository.findByUsername(principal.getName()).orElse(null);
+        if (profile == null || profile.getCompanyId() == null || profile.getCompanyId().isBlank()) {
+            return ResponseEntity.noContent().build();
+        }
+        try {
+            Long companyId = Long.valueOf(profile.getCompanyId());
+            Company company = companyRepository.findById(companyId).orElse(null);
+            if (company == null) {
+                return ResponseEntity.noContent().build();
+            }
+            return ResponseEntity.ok(new CompanyDetailsDto(
+                    company.getId(), company.getName(), company.getLocation(), company.getEmail(),
+                    company.getPhone(), company.getWebsite(), company.getProfile(),
+                    company.getDepartment(), company.getFieldSupervisor(), company.getRoles()));
+        } catch (NumberFormatException ex) {
+            return ResponseEntity.noContent().build();
+        }
+    }
+
+    @GetMapping("/me/industrial-supervisor")
+    @PreAuthorize("hasAnyAuthority('STUDENT', 'ADMIN')")
+    public ResponseEntity<IndustrialSupervisorDto> getMyIndustrialSupervisor(Principal principal) {
+        StudentProfile profile = studentProfileRepository.findByUsername(principal.getName()).orElse(null);
+        if (profile == null || profile.getIndustrialSupervisorId() == null || profile.getIndustrialSupervisorId().isBlank()) {
+            return ResponseEntity.noContent().build();
+        }
+        List<IndustrialSupervisor> supervisors = industrialSupervisorRepository.findAll();
+        IndustrialSupervisor supervisor = supervisors.stream()
+                .filter(s -> profile.getIndustrialSupervisorId().equals(String.valueOf(s.getUserId())))
+                .findFirst()
+                .orElse(null);
+        if (supervisor == null) {
+            return ResponseEntity.noContent().build();
+        }
+        String companyName = null;
+        if (supervisor.getCompanyId() != null) {
+            Company company = companyRepository.findById(supervisor.getCompanyId()).orElse(null);
+            if (company != null) {
+                companyName = company.getName();
+            }
+        }
+        return ResponseEntity.ok(new IndustrialSupervisorDto(
+                supervisor.getId(), supervisor.getUserId(), supervisor.getCompanyId(),
+                supervisor.getFirstName(), supervisor.getLastName(), supervisor.getJobTitle(),
+                supervisor.getDepartment(), supervisor.getPhoneNumber(), companyName));
+    }
+
+    @GetMapping("/me/university-supervisor")
+    @PreAuthorize("hasAnyAuthority('STUDENT', 'ADMIN')")
+    public ResponseEntity<UniversitySupervisorDto> getMyUniversitySupervisor(Principal principal) {
+        StudentProfile profile = studentProfileRepository.findByUsername(principal.getName()).orElse(null);
+        if (profile == null || profile.getUniversitySupervisor() == null || profile.getUniversitySupervisor().isBlank()) {
+            return ResponseEntity.noContent().build();
+        }
+        UserEntity supervisorUser = userRepository.findByUsername(profile.getUniversitySupervisor()).orElse(null);
+        if (supervisorUser == null) {
+            return ResponseEntity.noContent().build();
+        }
+        UniversitySupervisor supervisor = universitySupervisorRepository.findAll().stream()
+                .filter(s -> s.getUserId().equals(supervisorUser.getId()))
+                .findFirst()
+                .orElse(null);
+        if (supervisor == null) {
+            return ResponseEntity.noContent().build();
+        }
+        String universityName = null;
+        if (supervisor.getUniversityId() != null) {
+            University university = universityRepository.findById(supervisor.getUniversityId()).orElse(null);
+            if (university != null) {
+                universityName = university.getName();
+            }
+        }
+        return ResponseEntity.ok(new UniversitySupervisorDto(
+                supervisor.getId(), supervisor.getUserId(), supervisor.getUniversityId(),
+                supervisor.getFirstName(), supervisor.getLastName(), supervisor.getDepartment(),
+                supervisor.getPhoneNumber(), universityName));
+    }
+
+    @GetMapping("/me/settings")
+    @PreAuthorize("hasAnyAuthority('STUDENT', 'ADMIN')")
+    public ResponseEntity<StudentSettingsDto> getMySettings(Principal principal) {
+        StudentSetting setting = studentSettingRepository.findByUsername(principal.getName()).orElse(null);
+        if (setting == null) {
+            StudentSetting defaults = new StudentSetting();
+            defaults.setUsername(principal.getName());
+            defaults.setEmailNotifications(true);
+            defaults.setSmsNotifications(false);
+            defaults.setDiaryReminders(true);
+            defaults.setTheme("light");
+            return ResponseEntity.ok(new StudentSettingsDto(
+                    defaults.getUsername(), defaults.isEmailNotifications(),
+                    defaults.isSmsNotifications(), defaults.isDiaryReminders(), defaults.getTheme()));
+        }
+        return ResponseEntity.ok(new StudentSettingsDto(
+                setting.getUsername(), setting.isEmailNotifications(),
+                setting.isSmsNotifications(), setting.isDiaryReminders(), setting.getTheme()));
+    }
+
+    @PutMapping("/me/settings")
+    @PreAuthorize("hasAnyAuthority('STUDENT', 'ADMIN')")
+    public ResponseEntity<StudentSettingsDto> updateMySettings(@RequestBody StudentSettingsDto dto, Principal principal) {
+        StudentSetting setting = studentSettingRepository.findByUsername(principal.getName()).orElseGet(() -> {
+            StudentSetting s = new StudentSetting();
+            s.setUsername(principal.getName());
+            return s;
+        });
+        setting.setEmailNotifications(dto.isEmailNotifications());
+        setting.setSmsNotifications(dto.isSmsNotifications());
+        setting.setDiaryReminders(dto.isDiaryReminders());
+        setting.setTheme(dto.getTheme() != null ? dto.getTheme() : "light");
+        StudentSetting saved = studentSettingRepository.save(setting);
+        return ResponseEntity.ok(new StudentSettingsDto(
+                saved.getUsername(), saved.isEmailNotifications(),
+                saved.isSmsNotifications(), saved.isDiaryReminders(), saved.getTheme()));
     }
 
     @PutMapping("/me")

@@ -63,11 +63,21 @@ export default function DashboardLayout({
 
   const isActive = (path) => location.pathname === path || location.pathname.startsWith(path + '/');
 
-  const dashboardLinks = [
+  const areaDashboardLinks = [
     { to: '/admin/dashboard', icon: 'fa-shield-halved', label: 'Admin Dashboard', roles: ['ADMIN'] },
-    { to: '/student/dashboard', icon: 'fa-user-graduate', label: 'Student Area', roles: ['ADMIN', 'STUDENT'] },
     { to: '/company/dashboard', icon: 'fa-building', label: 'Company Area', roles: ['ADMIN', 'COMPANY'] },
     { to: '/university/dashboard', icon: 'fa-user-tie', label: 'University Area', roles: ['ADMIN', 'SUPERVISOR'] },
+  ];
+
+  const studentLinks = [
+    { to: '/student/dashboard', icon: 'fa-user-graduate', label: 'Dashboard', roles: ['ADMIN', 'STUDENT'] },
+    { to: '/student/progress', icon: 'fa-bars-progress', label: 'Level of Progress', roles: ['ADMIN', 'STUDENT'] },
+    { to: '/student/tasks', icon: 'fa-list-check', label: 'Tasks', roles: ['ADMIN', 'STUDENT'] },
+    { to: '/student/day-diaries', icon: 'fa-book-open', label: 'Day Diaries', roles: ['ADMIN', 'STUDENT'] },
+    { to: '/student/learning-institute', icon: 'fa-building-columns', label: 'Learning Institute', roles: ['ADMIN', 'STUDENT'] },
+    { to: '/student/companies', icon: 'fa-briefcase', label: 'Companies', roles: ['ADMIN', 'STUDENT'] },
+    { to: '/student/profile-settings', icon: 'fa-gear', label: 'Profile Settings', roles: ['ADMIN', 'STUDENT'] },
+    { to: '/student/supervisor', icon: 'fa-chalkboard-user', label: 'Supervisor', roles: ['ADMIN', 'STUDENT'] },
   ];
 
   const navLinks = [
@@ -79,10 +89,11 @@ export default function DashboardLayout({
     { to: '/admin/universities', icon: 'fa-university', label: 'Universities', roles: ['ADMIN'] },
   ];
 
-  const visibleDashboardLinks = dashboardLinks.filter((link) => link.roles.includes(role));
+  const visibleAreaDashboardLinks = areaDashboardLinks.filter((link) => link.roles.includes(role));
+  const visibleStudentLinks = studentLinks.filter((link) => link.roles.includes(role));
   const visibleNavLinks = navLinks.filter((link) => link.roles.includes(role));
 
-  const hasActiveChild = visibleDashboardLinks.some((link) => isActive(link.to));
+  const hasActiveChild = visibleAreaDashboardLinks.some((link) => isActive(link.to));
 
   useEffect(() => {
     if (hasActiveChild) setDropdownOpen(true);
@@ -99,9 +110,7 @@ export default function DashboardLayout({
           </div>
         </div>
         <nav className="sidebar-nav">
-          <div className="nav-label">Main</div>
-
-          {visibleDashboardLinks.length > 0 && (
+          {visibleAreaDashboardLinks.length > 0 && (
             <div className={`nav-dropdown${dropdownOpen ? ' open' : ''}`} ref={dropdownRef}>
               <button
                 type="button"
@@ -112,13 +121,27 @@ export default function DashboardLayout({
                 <i className="fa-solid fa-gauge"></i> Dashboards <i className="fa-solid fa-chevron-down nav-caret"></i>
               </button>
               <div className="nav-submenu">
-                {visibleDashboardLinks.map((link) => (
+                {visibleAreaDashboardLinks.map((link) => (
                   <Link key={link.to} to={link.to} className={isActive(link.to) ? 'active' : ''}>
                     <i className={`fa-solid ${link.icon}`}></i> {link.label}
                   </Link>
                 ))}
               </div>
             </div>
+          )}
+
+          {visibleStudentLinks.length > 0 && (
+            <>
+              {visibleStudentLinks.map((link) => (
+                <Link
+                  key={link.to}
+                  to={link.to}
+                  className={`nav-link${isActive(link.to) ? ' active' : ''}`}
+                >
+                  <i className={`fa-solid ${link.icon}`}></i> {link.label}
+                </Link>
+              ))}
+            </>
           )}
 
           {visibleNavLinks.map((link) => (
@@ -228,22 +251,6 @@ export default function DashboardLayout({
               {subtitle && <p className="page-subtitle">{subtitle}</p>}
             </div>
           </div>
-
-          {tabs && tabs.length > 0 && (
-            <div className="tabs">
-              {tabs.map((tab) => (
-                <button
-                  key={tab.id}
-                  className={`tab${activeTab === tab.id ? ' active' : ''}`}
-                  onClick={() => onTabChange(tab.id)}
-                >
-                  {tab.icon && <i className={`fa-solid ${tab.icon}`}></i>}
-                  {tab.label}
-                  {tab.count != null && <span className="tab-count">{tab.count}</span>}
-                </button>
-              ))}
-            </div>
-          )}
 
           {children}
         </div>

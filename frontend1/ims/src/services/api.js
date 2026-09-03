@@ -474,3 +474,50 @@ export async function deleteVacancy(id) {
   });
   return parseResponse(response);
 }
+
+export async function fetchMyLearningInstitute() {
+  const response = await fetch(`${API_ROOT}/api/students/me/learning-institute`, {
+    credentials: 'include',
+  });
+  return parseResponse(response);
+}
+
+export async function fetchMyCompany() {
+  const response = await fetch(`${API_ROOT}/api/students/me/company`, {
+    credentials: 'include',
+  });
+  return parseResponse(response);
+}
+
+export async function fetchMyIndustrialSupervisor() {
+  const response = await fetch(`${API_ROOT}/api/students/me/industrial-supervisor`, {
+    credentials: 'include',
+  });
+  return parseResponse(response);
+}
+
+export async function fetchMyUniversitySupervisor() {
+  const response = await fetch(`${API_ROOT}/api/students/me/university-supervisor`, {
+    credentials: 'include',
+  });
+  return parseResponse(response);
+}
+
+export async function fetchMySettings() {
+  const response = await fetch(`${API_ROOT}/api/students/me/settings`, {
+    credentials: 'include',
+  });
+  return parseResponse(response);
+}
+
+export async function updateMySettings(settings) {
+  const response = await fetch(`${API_ROOT}/api/students/me/settings`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    credentials: 'include',
+    body: JSON.stringify(settings),
+  });
+  return parseResponse(response);
+}

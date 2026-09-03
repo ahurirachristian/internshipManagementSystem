@@ -6,6 +6,8 @@ const STATUS_OPTIONS = ['PENDING', 'APPROVED', 'NEEDS_REVISION', 'REJECTED'];
 export default function DiaryReviewModal({ diary, onClose, onSaved }) {
   const [feedback, setFeedback] = useState(diary.feedback || '');
   const [status, setStatus] = useState(diary.status || 'PENDING');
+  const [industrialComment, setIndustrialComment] = useState(diary.industrialSupervisorComment || '');
+  const [universityComment, setUniversityComment] = useState(diary.universitySupervisorComment || '');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
 
@@ -21,7 +23,12 @@ export default function DiaryReviewModal({ diary, onClose, onSaved }) {
     setError('');
     setBusy(true);
     try {
-      await submitDiaryFeedback(diary.id, { feedback, status });
+      await submitDiaryFeedback(diary.id, {
+        feedback,
+        status,
+        industrialSupervisorComment: industrialComment,
+        universitySupervisorComment: universityComment,
+      });
       onSaved();
       onClose();
     } catch (err) {
@@ -65,6 +72,18 @@ export default function DiaryReviewModal({ diary, onClose, onSaved }) {
                 <span className="detail-label">Accomplishments</span>
                 <span className="detail-value">{diary.accomplishments || '—'}</span>
               </div>
+              <div className="detail-item full">
+                <span className="detail-label">Account Number</span>
+                <span className="detail-value">{diary.accountNumber || '—'}</span>
+              </div>
+              <div className="detail-item full">
+                <span className="detail-label">Action</span>
+                <span className="detail-value">{diary.action || '—'}</span>
+              </div>
+              <div className="detail-item full">
+                <span className="detail-label">Technology / Tools Used</span>
+                <span className="detail-value">{diary.technologyTools || '—'}</span>
+              </div>
             </div>
 
             <label>
@@ -74,6 +93,24 @@ export default function DiaryReviewModal({ diary, onClose, onSaved }) {
                 value={feedback}
                 onChange={(e) => setFeedback(e.target.value)}
                 placeholder="Enter your remarks or feedback here..."
+              />
+            </label>
+            <label>
+              Industrial Supervisor Comment
+              <textarea
+                rows="3"
+                value={industrialComment}
+                onChange={(e) => setIndustrialComment(e.target.value)}
+                placeholder="Enter industrial supervisor comment..."
+              />
+            </label>
+            <label>
+              University Supervisor Comment
+              <textarea
+                rows="3"
+                value={universityComment}
+                onChange={(e) => setUniversityComment(e.target.value)}
+                placeholder="Enter university supervisor comment..."
               />
             </label>
             <label>

@@ -672,6 +672,14 @@ img { max-width: 100%; }
 .table tbody tr { transition: background 0.15s ease; }
 .table tbody tr:hover { background: #f9fbfa; }
 
+.table-grid { border: 1px solid #cbd5d0; border-radius: 10px; overflow: hidden; }
+.table-grid th,
+.table-grid td { border: 1px solid #cbd5d0; }
+.table-grid th:not(:last-child),
+.table-grid td:not(:last-child) { border-right: 1px solid #cbd5d0; }
+.table-grid th { border-bottom: 2px solid #94a3a0; }
+.table-grid tbody tr:last-child td { border-bottom: 1px solid #cbd5d0; }
+
 .cell-user { display: flex; align-items: center; gap: 12px; }
 .cell-user .avatar {
     width: 42px;
