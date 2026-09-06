@@ -21,10 +21,20 @@ import org.springframework.web.bind.annotation.RestController;
 import com.example.demo.audit.AuditLogService;
 import com.example.demo.auth.UserEntity;
 import com.example.demo.auth.UserRepository;
+import com.example.demo.company.InternshipCompany;
+import com.example.demo.company.InternshipCompanyRepository;
+import com.example.demo.department.Department;
+import com.example.demo.department.DepartmentRepository;
 import com.example.demo.dto.StudentDto;
+import com.example.demo.programme.Programme;
+import com.example.demo.programme.ProgrammeRepository;
 import com.example.demo.student.DayDiaryRepository;
 import com.example.demo.student.Student;
 import com.example.demo.student.StudentRepository;
+import com.example.demo.supervisor.IndustrialSupervisor;
+import com.example.demo.supervisor.IndustrialSupervisorRepository;
+import com.example.demo.supervisor.UniversitySupervisor;
+import com.example.demo.supervisor.UniversitySupervisorRepository;
 import com.example.demo.university.University;
 import com.example.demo.university.UniversityRepository;
 
@@ -42,17 +52,32 @@ public class StudentController {
     private final DayDiaryRepository dayDiaryRepository;
     private final AuditLogService auditLogService;
     private final UniversityRepository universityRepository;
+    private final DepartmentRepository departmentRepository;
+    private final ProgrammeRepository programmeRepository;
+    private final InternshipCompanyRepository internshipCompanyRepository;
+    private final UniversitySupervisorRepository universitySupervisorRepository;
+    private final IndustrialSupervisorRepository industrialSupervisorRepository;
 
     public StudentController(StudentRepository studentRepository,
             UserRepository userRepository,
             DayDiaryRepository dayDiaryRepository,
             AuditLogService auditLogService,
-            UniversityRepository universityRepository) {
+            UniversityRepository universityRepository,
+            DepartmentRepository departmentRepository,
+            ProgrammeRepository programmeRepository,
+            InternshipCompanyRepository internshipCompanyRepository,
+            UniversitySupervisorRepository universitySupervisorRepository,
+            IndustrialSupervisorRepository industrialSupervisorRepository) {
         this.studentRepository = studentRepository;
         this.userRepository = userRepository;
         this.dayDiaryRepository = dayDiaryRepository;
         this.auditLogService = auditLogService;
         this.universityRepository = universityRepository;
+        this.departmentRepository = departmentRepository;
+        this.programmeRepository = programmeRepository;
+        this.internshipCompanyRepository = internshipCompanyRepository;
+        this.universitySupervisorRepository = universitySupervisorRepository;
+        this.industrialSupervisorRepository = industrialSupervisorRepository;
     }
 
     @GetMapping("/me")
@@ -356,7 +381,47 @@ public class StudentController {
         dto.setDepartmentId(student.getDepartmentId());
         dto.setProgrammeId(student.getProgrammeId());
         userRepository.findById(student.getUserId())
-                .ifPresent(u -> dto.setUsername(u.getUsername()));
+                .ifPresent(u -> {
+                    dto.setUsername(u.getUsername());
+                    dto.setEmail(u.getEmail());
+                });
+        if (student.getUniversityId() != null) {
+            universityRepository.findById(student.getUniversityId().intValue())
+                    .ifPresent(u -> dto.setUniversityName(u.getShortForm() != null ? u.getShortForm() : u.getFullName()));
+        }
+        if (student.getDepartmentId() != null) {
+            departmentRepository.findById(student.getDepartmentId().intValue())
+                    .ifPresent(d -> dto.setDepartmentName(d.getDepartmentName()));
+        }
+        if (student.getProgrammeId() != null) {
+            programmeRepository.findById(student.getProgrammeId().intValue())
+                    .ifPresent(p -> dto.setProgrammeName(p.getProgrammeName()));
+        }
+        if (student.getInternshipCompanyId() != null) {
+            internshipCompanyRepository.findById(student.getInternshipCompanyId())
+                    .ifPresent(c -> {
+                        dto.setCompanyName(c.getCompanyName());
+                        dto.setCompanyBranch(c.getBranch());
+                        dto.setCompanyAddress(c.getPhysicalAddress());
+                        dto.setCompanyWebsite(c.getWebsite());
+                    });
+        }
+        if (student.getUniSupervisorId() != null) {
+            universitySupervisorRepository.findById(student.getUniSupervisorId())
+                    .ifPresent(s -> {
+                        dto.setUniversitySupervisor((s.getFirstName() != null ? s.getFirstName() + " " : "")
+                                + (s.getLastName() != null ? s.getLastName() : ""));
+                        dto.setUniversitySupervisorPhone(s.getPhoneNumber());
+                    });
+        }
+        if (student.getIndSupervisorId() != null) {
+            industrialSupervisorRepository.findById(student.getIndSupervisorId())
+                    .ifPresent(s -> {
+                        dto.setIndustrialSupervisor((s.getFirstName() != null ? s.getFirstName() + " " : "")
+                                + (s.getLastName() != null ? s.getLastName() : ""));
+                        dto.setIndustrialSupervisorPhone(s.getPhoneNumber());
+                    });
+        }
         return dto;
     }
 
