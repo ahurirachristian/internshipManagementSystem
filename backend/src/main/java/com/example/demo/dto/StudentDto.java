@@ -32,6 +32,20 @@ public class StudentDto {
     private Long programmeId;
     private String username;
 
+    // Joined display fields (populated in StudentController.toDto)
+    private String email;
+    private String departmentName;
+    private String programmeName;
+    private String universityName;
+    private String companyName;
+    private String companyBranch;
+    private String companyAddress;
+    private String companyWebsite;
+    private String universitySupervisor;
+    private String universitySupervisorPhone;
+    private String industrialSupervisor;
+    private String industrialSupervisorPhone;
+
     public Long getId() {
         return id;
     }
@@ -222,5 +236,101 @@ public class StudentDto {
 
     public void setProgrammeId(Long programmeId) {
         this.programmeId = programmeId;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public String getDepartmentName() {
+        return departmentName;
+    }
+
+    public void setDepartmentName(String departmentName) {
+        this.departmentName = departmentName;
+    }
+
+    public String getProgrammeName() {
+        return programmeName;
+    }
+
+    public void setProgrammeName(String programmeName) {
+        this.programmeName = programmeName;
+    }
+
+    public String getUniversityName() {
+        return universityName;
+    }
+
+    public void setUniversityName(String universityName) {
+        this.universityName = universityName;
+    }
+
+    public String getCompanyName() {
+        return companyName;
+    }
+
+    public void setCompanyName(String companyName) {
+        this.companyName = companyName;
+    }
+
+    public String getCompanyBranch() {
+        return companyBranch;
+    }
+
+    public void setCompanyBranch(String companyBranch) {
+        this.companyBranch = companyBranch;
+    }
+
+    public String getCompanyAddress() {
+        return companyAddress;
+    }
+
+    public void setCompanyAddress(String companyAddress) {
+        this.companyAddress = companyAddress;
+    }
+
+    public String getCompanyWebsite() {
+        return companyWebsite;
+    }
+
+    public void setCompanyWebsite(String companyWebsite) {
+        this.companyWebsite = companyWebsite;
+    }
+
+    public String getUniversitySupervisor() {
+        return universitySupervisor;
+    }
+
+    public void setUniversitySupervisor(String universitySupervisor) {
+        this.universitySupervisor = universitySupervisor;
+    }
+
+    public String getUniversitySupervisorPhone() {
+        return universitySupervisorPhone;
+    }
+
+    public void setUniversitySupervisorPhone(String universitySupervisorPhone) {
+        this.universitySupervisorPhone = universitySupervisorPhone;
+    }
+
+    public String getIndustrialSupervisor() {
+        return industrialSupervisor;
+    }
+
+    public void setIndustrialSupervisor(String industrialSupervisor) {
+        this.industrialSupervisor = industrialSupervisor;
+    }
+
+    public String getIndustrialSupervisorPhone() {
+        return industrialSupervisorPhone;
+    }
+
+    public void setIndustrialSupervisorPhone(String industrialSupervisorPhone) {
+        this.industrialSupervisorPhone = industrialSupervisorPhone;
     }
 }

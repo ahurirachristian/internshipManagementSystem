@@ -14,9 +14,12 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import com.example.demo.audit.AuditLogService;
+import com.example.demo.auth.UserRepository;
+import com.example.demo.student.StudentRepository;
 import com.example.demo.supervisor.IndustrialSupervisorRepository;
 import com.example.demo.supervisor.UniversitySupervisorRepository;
 import java.security.Principal;
+import com.example.demo.student.Student;
 
 @RestController
 @RequestMapping("/api/placements")
@@ -27,14 +30,20 @@ public class PlacementController {
     private final AuditLogService auditLogService;
     private final UniversitySupervisorRepository universitySupervisorRepository;
     private final IndustrialSupervisorRepository industrialSupervisorRepository;
+    private final UserRepository userRepository;
+    private final StudentRepository studentRepository;
 
     public PlacementController(PlacementService placementService, AuditLogService auditLogService,
             UniversitySupervisorRepository universitySupervisorRepository,
-            IndustrialSupervisorRepository industrialSupervisorRepository) {
+            IndustrialSupervisorRepository industrialSupervisorRepository,
+            UserRepository userRepository,
+            StudentRepository studentRepository) {
         this.placementService = placementService;
         this.auditLogService = auditLogService;
         this.universitySupervisorRepository = universitySupervisorRepository;
         this.industrialSupervisorRepository = industrialSupervisorRepository;
+        this.userRepository = userRepository;
+        this.studentRepository = studentRepository;
     }
 
     /**
@@ -67,6 +76,25 @@ public class PlacementController {
     @GetMapping
     public List<Placement> getPlacements() {
         return placementService.findAll();
+    }
+
+    @GetMapping("/me")
+    @PreAuthorize("hasAnyAuthority('STUDENT', 'ADMIN', 'SUPERVISOR')")
+    public ResponseEntity<Placement> getMyPlacement(Principal principal) {
+        Student student = currentStudent(principal);
+        if (student == null) {
+            return ResponseEntity.notFound().build();
+        }
+        return placementService.findByStudentId(student.getId()).stream()
+                .findFirst()
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    private Student currentStudent(Principal principal) {
+        return userRepository.findByUsername(principal.getName())
+                .flatMap(user -> studentRepository.findByUserId(user.getId()))
+                .orElse(null);
     }
 
     @GetMapping("/export/csv")

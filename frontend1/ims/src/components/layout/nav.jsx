@@ -9,6 +9,7 @@ import {
   ListChecks,
   BookOpen,
   FolderOpen,
+  IdCard,
 } from 'lucide-react';
 
 export const ROLE_LABELS = {
@@ -24,6 +25,7 @@ export const NAV_GROUPS = [
     links: [
       { to: '/admin/dashboard', icon: Shield, label: 'Admin Dashboard', roles: ['ADMIN'] },
       { to: '/student/dashboard', icon: GraduationCap, label: 'Student Area', roles: ['ADMIN', 'STUDENT'] },
+      { to: '/student/profile', icon: IdCard, label: 'Student Profile', roles: ['STUDENT'] },
       { to: '/company/dashboard', icon: Building2, label: 'Company Area', roles: ['ADMIN', 'COMPANY'] },
       { to: '/university/dashboard', icon: LayoutDashboard, label: 'University Dashboard', roles: ['ADMIN', 'SUPERVISOR'] },
     ],

@@ -25,6 +25,10 @@ public class PlacementService {
         return placementRepository.findById(id).orElse(null);
     }
 
+    public List<Placement> findByStudentId(Long studentId) {
+        return placementRepository.findByStudentId(studentId);
+    }
+
     public Placement create(Placement placement) {
         if (placement.getUniversityId() == null && placement.getStudentId() != null) {
             studentRepository.findById(placement.getStudentId())
