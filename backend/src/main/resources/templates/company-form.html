@@ -95,13 +95,29 @@
                             </div>
 
                             <div class="form-group">
-                                <label>Location *</label>
-                                <input type="text" th:field="*{location}" class="form-input" placeholder="e.g. Kampala, Uganda" required>
+                                <label>Registration Number</label>
+                                <input type="text" th:field="*{registrationNumber}" class="form-input" placeholder="e.g. UBS-2010-12345">
                             </div>
 
                             <div class="form-group">
-                                <label>Email</label>
-                                <input type="email" th:field="*{email}" class="form-input" placeholder="contact@example.com">
+                                <label>Industry</label>
+                                <input type="text" th:field="*{industry}" class="form-input" placeholder="e.g. Telecommunications">
+                            </div>
+
+                            <div class="form-group">
+                                <label>Company Size</label>
+                                <select th:field="*{size}" class="form-input">
+                                    <option value="">Select size</option>
+                                    <option value="Small">Small</option>
+                                    <option value="Medium">Medium</option>
+                                    <option value="Large">Large</option>
+                                    <option value="Enterprise">Enterprise</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label>Email *</label>
+                                <input type="email" th:field="*{email}" class="form-input" placeholder="contact@example.com" required>
                             </div>
 
                             <div class="form-group">
@@ -115,23 +131,28 @@
                             </div>
 
                             <div class="form-group">
-                                <label>Department *</label>
-                                <input type="text" th:field="*{department}" class="form-input" placeholder="e.g. Human Resources" required>
+                                <label>Country</label>
+                                <input type="text" th:field="*{country}" class="form-input" placeholder="e.g. Uganda" value="Uganda">
                             </div>
 
                             <div class="form-group">
-                                <label>Field Supervisor *</label>
-                                <input type="text" th:field="*{fieldSupervisor}" class="form-input" placeholder="e.g. John Mukasa" required>
-                            </div>
-
-                            <div class="form-group">
-                                <label>Partnership Roles</label>
-                                <input type="text" th:field="*{roles}" class="form-input" placeholder="e.g. Hosting Partner, Sponsor">
+                                <label>City</label>
+                                <input type="text" th:field="*{city}" class="form-input" placeholder="e.g. Kampala">
                             </div>
 
                             <div class="form-group full">
-                                <label>Company Profile / Industry *</label>
-                                <textarea th:field="*{profile}" class="form-input" rows="5" placeholder="Describe the company's industry, services, and internship opportunities..." required></textarea>
+                                <label>Physical Address</label>
+                                <input type="text" th:field="*{physicalAddress}" class="form-input" placeholder="e.g. Plot 1, Airtel Road, Nakawa">
+                            </div>
+
+                            <div class="form-group full">
+                                <label>Postal Address</label>
+                                <input type="text" th:field="*{postalAddress}" class="form-input" placeholder="e.g. P.O. Box 12345, Kampala">
+                            </div>
+
+                            <div class="form-group full">
+                                <label>Description</label>
+                                <textarea th:field="*{description}" class="form-input" rows="5" placeholder="Describe the company's industry, services, and internship opportunities..."></textarea>
                             </div>
                         </div>
 

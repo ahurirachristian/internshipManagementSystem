@@ -36,7 +36,8 @@ public class UserService {
     }
 
     public UserDto toDto(UserEntity user) {
-        return new UserDto(user.getId(), user.getUsername(), user.getRole().name());
+        return new UserDto(user.getId(), user.getUsername(), user.getRole().name(),
+                user.getEmail(), user.getCompanyId(), user.getUniversityId());
     }
 
     public List<UserDto> getAllUsersDto() {

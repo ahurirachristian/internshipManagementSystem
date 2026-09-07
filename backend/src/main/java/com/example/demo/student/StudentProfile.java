@@ -1,10 +1,12 @@
 package com.example.demo.student;
 
+import java.time.LocalDate;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.Lob;
 import jakarta.persistence.Table;
 
 @Entity
@@ -15,188 +17,153 @@ public class StudentProfile {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, unique = true)
-    private String username;
+    @Column(name = "student_name", nullable = false)
+    private String studentName;
+
+    @Column(name = "student_no", nullable = false, unique = true, length = 100)
+    private String studentNo;
+
+    @Column(name = "reg_no", nullable = false, unique = true, length = 100)
+    private String regNo;
+
+    @Column(nullable = false, length = 50)
+    private String intake;
+
+    @Column(nullable = false, length = 100)
+    private String program;
+
+    @Column(name = "course_name", nullable = false, length = 100)
+    private String courseName;
+
+    @Column(name = "mobile_no", length = 20)
+    private String mobileNo;
 
     @Column(nullable = false)
-    private String firstName;
-
-    @Column(nullable = false)
-    private String lastName;
-
-    @Column(nullable = false, unique = true)
     private String email;
 
-    @Column(nullable = false, unique = true)
-    private String studentNumber;
+    @Column(name = "year_of_study", nullable = false, length = 20)
+    private String yearOfStudy;
 
-    @Column(nullable = false, unique = true)
-    private String registrationNumber;
+    @Column(name = "academic_year", nullable = false, length = 20)
+    private String academicYear;
 
-    @Column(nullable = false)
-    private String degreeProgram;
-
-    @Column(nullable = false)
-    private Integer yearOfStudy;
+    @Column(nullable = false, length = 20)
+    private String semester;
 
     @Column(nullable = false)
-    private String phoneNumber;
+    private String organisation;
 
     @Column(nullable = false)
-    private String internshipCompany;
+    private String location;
 
-    @Column(nullable = false)
-    private String universitySupervisor;
+    @Column(name = "academic_supervisor", nullable = false)
+    private String academicSupervisor;
 
-    @Column(nullable = false)
-    private String industrialSupervisorId;
+    @Column(name = "academic_supervisor_contact", length = 20)
+    private String academicSupervisorContact;
 
-    @Column(nullable = false)
-    private String companyId;
+    @Column(name = "field_supervisor", nullable = false)
+    private String fieldSupervisor;
 
-    @Column(nullable = false)
-    private String pictureUrl;
+    @Column(name = "field_supervisor_contact", length = 20)
+    private String fieldSupervisorContact;
+
+    @Column(name = "start_date")
+    private LocalDate startDate;
+
+    @Column(name = "end_date")
+    private LocalDate endDate;
+
+    @Lob
+    private byte[] picture;
+
+    @Column(name = "unit_id")
+    private Integer unitId;
+
+    @Column(name = "course_id")
+    private Integer courseId;
+
+    @Column(name = "academic_supervisor_id")
+    private Integer academicSupervisorId;
+
+    @Column(name = "field_supervisor_id")
+    private Integer fieldSupervisorId;
 
     public StudentProfile() {
     }
 
-    public StudentProfile(String username, String firstName, String lastName, String email,
-            String studentNumber, String registrationNumber, String degreeProgram, Integer yearOfStudy,
-            String phoneNumber, String internshipCompany, String universitySupervisor,
-            String industrialSupervisorId, String companyId, String pictureUrl) {
-        this.username = username;
-        this.firstName = firstName;
-        this.lastName = lastName;
-        this.email = email;
-        this.studentNumber = studentNumber;
-        this.registrationNumber = registrationNumber;
-        this.degreeProgram = degreeProgram;
-        this.yearOfStudy = yearOfStudy;
-        this.phoneNumber = phoneNumber;
-        this.internshipCompany = internshipCompany;
-        this.universitySupervisor = universitySupervisor;
-        this.industrialSupervisorId = industrialSupervisorId;
-        this.companyId = companyId;
-        this.pictureUrl = pictureUrl;
-    }
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
 
-    public Long getId() {
-        return id;
-    }
+    public String getStudentName() { return studentName; }
+    public void setStudentName(String studentName) { this.studentName = studentName; }
 
-    public void setId(Long id) {
-        this.id = id;
-    }
+    public String getStudentNo() { return studentNo; }
+    public void setStudentNo(String studentNo) { this.studentNo = studentNo; }
 
-    public String getUsername() {
-        return username;
-    }
+    public String getRegNo() { return regNo; }
+    public void setRegNo(String regNo) { this.regNo = regNo; }
 
-    public void setUsername(String username) {
-        this.username = username;
-    }
+    public String getIntake() { return intake; }
+    public void setIntake(String intake) { this.intake = intake; }
 
-    public String getFirstName() {
-        return firstName;
-    }
+    public String getProgram() { return program; }
+    public void setProgram(String program) { this.program = program; }
 
-    public void setFirstName(String firstName) {
-        this.firstName = firstName;
-    }
+    public String getCourseName() { return courseName; }
+    public void setCourseName(String courseName) { this.courseName = courseName; }
 
-    public String getLastName() {
-        return lastName;
-    }
+    public String getMobileNo() { return mobileNo; }
+    public void setMobileNo(String mobileNo) { this.mobileNo = mobileNo; }
 
-    public void setLastName(String lastName) {
-        this.lastName = lastName;
-    }
+    public String getEmail() { return email; }
+    public void setEmail(String email) { this.email = email; }
 
-    public String getEmail() {
-        return email;
-    }
+    public String getYearOfStudy() { return yearOfStudy; }
+    public void setYearOfStudy(String yearOfStudy) { this.yearOfStudy = yearOfStudy; }
 
-    public void setEmail(String email) {
-        this.email = email;
-    }
+    public String getAcademicYear() { return academicYear; }
+    public void setAcademicYear(String academicYear) { this.academicYear = academicYear; }
 
-    public String getStudentNumber() {
-        return studentNumber;
-    }
+    public String getSemester() { return semester; }
+    public void setSemester(String semester) { this.semester = semester; }
 
-    public void setStudentNumber(String studentNumber) {
-        this.studentNumber = studentNumber;
-    }
+    public String getOrganisation() { return organisation; }
+    public void setOrganisation(String organisation) { this.organisation = organisation; }
 
-    public String getRegistrationNumber() {
-        return registrationNumber;
-    }
+    public String getLocation() { return location; }
+    public void setLocation(String location) { this.location = location; }
 
-    public void setRegistrationNumber(String registrationNumber) {
-        this.registrationNumber = registrationNumber;
-    }
+    public String getAcademicSupervisor() { return academicSupervisor; }
+    public void setAcademicSupervisor(String academicSupervisor) { this.academicSupervisor = academicSupervisor; }
 
-    public String getDegreeProgram() {
-        return degreeProgram;
-    }
+    public String getAcademicSupervisorContact() { return academicSupervisorContact; }
+    public void setAcademicSupervisorContact(String academicSupervisorContact) { this.academicSupervisorContact = academicSupervisorContact; }
 
-    public void setDegreeProgram(String degreeProgram) {
-        this.degreeProgram = degreeProgram;
-    }
+    public String getFieldSupervisor() { return fieldSupervisor; }
+    public void setFieldSupervisor(String fieldSupervisor) { this.fieldSupervisor = fieldSupervisor; }
 
-    public Integer getYearOfStudy() {
-        return yearOfStudy;
-    }
+    public String getFieldSupervisorContact() { return fieldSupervisorContact; }
+    public void setFieldSupervisorContact(String fieldSupervisorContact) { this.fieldSupervisorContact = fieldSupervisorContact; }
 
-    public void setYearOfStudy(Integer yearOfStudy) {
-        this.yearOfStudy = yearOfStudy;
-    }
+    public LocalDate getStartDate() { return startDate; }
+    public void setStartDate(LocalDate startDate) { this.startDate = startDate; }
 
-    public String getPhoneNumber() {
-        return phoneNumber;
-    }
+    public LocalDate getEndDate() { return endDate; }
+    public void setEndDate(LocalDate endDate) { this.endDate = endDate; }
 
-    public void setPhoneNumber(String phoneNumber) {
-        this.phoneNumber = phoneNumber;
-    }
+    public byte[] getPicture() { return picture; }
+    public void setPicture(byte[] picture) { this.picture = picture; }
 
-    public String getInternshipCompany() {
-        return internshipCompany;
-    }
+    public Integer getUnitId() { return unitId; }
+    public void setUnitId(Integer unitId) { this.unitId = unitId; }
 
-    public void setInternshipCompany(String internshipCompany) {
-        this.internshipCompany = internshipCompany;
-    }
+    public Integer getCourseId() { return courseId; }
+    public void setCourseId(Integer courseId) { this.courseId = courseId; }
 
-    public String getUniversitySupervisor() {
-        return universitySupervisor;
-    }
+    public Integer getAcademicSupervisorId() { return academicSupervisorId; }
+    public void setAcademicSupervisorId(Integer academicSupervisorId) { this.academicSupervisorId = academicSupervisorId; }
 
-    public void setUniversitySupervisor(String universitySupervisor) {
-        this.universitySupervisor = universitySupervisor;
-    }
-
-    public String getIndustrialSupervisorId() {
-        return industrialSupervisorId;
-    }
-
-    public void setIndustrialSupervisorId(String industrialSupervisorId) {
-        this.industrialSupervisorId = industrialSupervisorId;
-    }
-
-    public String getCompanyId() {
-        return companyId;
-    }
-
-    public void setCompanyId(String companyId) {
-        this.companyId = companyId;
-    }
-
-    public String getPictureUrl() {
-        return pictureUrl;
-    }
-
-    public void setPictureUrl(String pictureUrl) {
-        this.pictureUrl = pictureUrl;
-    }
+    public Integer getFieldSupervisorId() { return fieldSupervisorId; }
+    public void setFieldSupervisorId(Integer fieldSupervisorId) { this.fieldSupervisorId = fieldSupervisorId; }
 }

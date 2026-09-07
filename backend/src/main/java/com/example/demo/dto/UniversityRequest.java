@@ -1,56 +1,35 @@
 package com.example.demo.dto;
 
-import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
 public class UniversityRequest {
 
-    @NotBlank(message = "University name is required")
-    @Size(min = 2, max = 150, message = "University name must be between 2 and 150 characters")
-    private String name;
+    @NotBlank(message = "Short form is required")
+    @Size(min = 1, max = 15, message = "Short form must be between 1 and 15 characters")
+    private String shortForm;
 
-    @Size(max = 20, message = "Code must be at most 20 characters")
-    private String code;
+    @NotBlank(message = "Full name is required")
+    @Size(min = 2, max = 200, message = "Full name must be between 2 and 200 characters")
+    private String fullName;
 
-    @Size(max = 200, message = "Location must be at most 200 characters")
-    private String location;
+    @Size(max = 100, message = "Country must be at most 100 characters")
+    private String country;
 
-    @Email(message = "Email should be valid")
-    private String email;
+    private Integer establishedYear;
 
     public UniversityRequest() {
     }
 
-    public String getName() {
-        return name;
-    }
+    public String getShortForm() { return shortForm; }
+    public void setShortForm(String shortForm) { this.shortForm = shortForm; }
 
-    public void setName(String name) {
-        this.name = name;
-    }
+    public String getFullName() { return fullName; }
+    public void setFullName(String fullName) { this.fullName = fullName; }
 
-    public String getCode() {
-        return code;
-    }
+    public String getCountry() { return country; }
+    public void setCountry(String country) { this.country = country; }
 
-    public void setCode(String code) {
-        this.code = code;
-    }
-
-    public String getLocation() {
-        return location;
-    }
-
-    public void setLocation(String location) {
-        this.location = location;
-    }
-
-    public String getEmail() {
-        return email;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
-    }
+    public Integer getEstablishedYear() { return establishedYear; }
+    public void setEstablishedYear(Integer establishedYear) { this.establishedYear = establishedYear; }
 }

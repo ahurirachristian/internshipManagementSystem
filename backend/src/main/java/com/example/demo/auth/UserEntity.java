@@ -39,6 +39,15 @@ public class UserEntity {
     @Column(name = "university_id", nullable = true)
     private Long universityId;
 
+    @Column(nullable = true)
+    private String email;
+
+    @Column(name = "must_change_password", nullable = false)
+    private Boolean mustChangePassword = true;
+
+    @Column(name = "password_reset_token", nullable = true)
+    private String passwordResetToken;
+
     public UserEntity() {
     }
 
@@ -46,6 +55,7 @@ public class UserEntity {
         this.username = username;
         this.password = password;
         this.role = role;
+        this.mustChangePassword = true;
     }
 
     public UserEntity(String username, String password, Role role, String provider, String providerId) {
@@ -54,6 +64,7 @@ public class UserEntity {
         this.role = role;
         this.provider = provider;
         this.providerId = providerId;
+        this.mustChangePassword = true;
     }
 
     public UserEntity(String username, String password, Role role, Long companyId, Long universityId) {
@@ -62,6 +73,7 @@ public class UserEntity {
         this.role = role;
         this.companyId = companyId;
         this.universityId = universityId;
+        this.mustChangePassword = true;
     }
 
     public Long getId() {
@@ -127,4 +139,13 @@ public class UserEntity {
     public void setUniversityId(Long universityId) {
         this.universityId = universityId;
     }
+
+    public String getEmail() { return email; }
+    public void setEmail(String email) { this.email = email; }
+
+    public Boolean getMustChangePassword() { return mustChangePassword; }
+    public void setMustChangePassword(Boolean mustChangePassword) { this.mustChangePassword = mustChangePassword; }
+
+    public String getPasswordResetToken() { return passwordResetToken; }
+    public void setPasswordResetToken(String passwordResetToken) { this.passwordResetToken = passwordResetToken; }
 }

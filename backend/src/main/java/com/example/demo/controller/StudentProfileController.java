@@ -1,7 +1,6 @@
 package com.example.demo.controller;
 
 import java.security.Principal;
-import java.util.List;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -34,7 +33,7 @@ public class StudentProfileController {
     @GetMapping("/profile/edit")
     @PreAuthorize("hasAnyAuthority('STUDENT', 'ADMIN')")
     public String editProfile(Principal principal, Model model) {
-        StudentProfileDto profile = studentService.findOrCreateByUsername(principal.getName())
+        StudentProfileDto profile = studentService.findOrCreateByStudentNo(principal.getName())
                 .map(studentService::toDto)
                 .orElse(new StudentProfileDto());
         model.addAttribute("student", profile);
@@ -60,7 +59,7 @@ public class StudentProfileController {
     @GetMapping("/details")
     @PreAuthorize("hasAnyAuthority('STUDENT', 'ADMIN')")
     public String details(Principal principal, Model model) {
-        StudentProfileDto profile = studentService.findOrCreateByUsername(principal.getName())
+        StudentProfileDto profile = studentService.findOrCreateByStudentNo(principal.getName())
                 .map(studentService::toDto)
                 .orElse(new StudentProfileDto());
         model.addAttribute("student", profile);
@@ -72,8 +71,8 @@ public class StudentProfileController {
     @PreAuthorize("hasAnyAuthority('STUDENT', 'ADMIN')")
     public String diary(Principal principal, Model model) {
         model.addAttribute("diaryEntry", new com.example.demo.student.DayDiary());
-        model.addAttribute("diaryEntries", studentService.findDiaryEntriesByUsername(principal.getName()));
-        model.addAttribute("student", studentService.findByUsername(principal.getName()).map(studentService::toDto).orElse(new StudentProfileDto()));
+        model.addAttribute("diaryEntries", studentService.findDiaryEntriesByStudentNo(principal.getName()));
+        model.addAttribute("student", studentService.findByStudentNo(principal.getName()).map(studentService::toDto).orElse(new StudentProfileDto()));
         model.addAttribute("userRole", userRepository.findByUsername(principal.getName()).map(u -> u.getRole().name()).orElse("STUDENT"));
         return "student-diary";
     }

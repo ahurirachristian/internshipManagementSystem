@@ -9,6 +9,7 @@ export default function AuthShell({ children }) {
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
+    if (!ctx) return;
     let width, height;
     let particles = [];
     const particleCount = 220;

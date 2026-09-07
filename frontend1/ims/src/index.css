@@ -1,3 +1,60 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+:root {
+  --primary-color: #0a4d4c;
+  --sidebar-bg: #0a4d4c;
+  --sidebar-active: #0e746b;
+  --sidebar-hover: #075951;
+  --sidebar-border: #085a52;
+  --sidebar-treeline: #227970;
+  --sidebar-text-muted: #9fcbc4;
+  --sidebar-badge-bg: #09554e;
+  --accent-color: #10b981;
+  --bg-app: #f4f7f6;
+  --cardBg: #ffffff;
+  --cardBorder: #e2e8f0;
+}
+
+/* Custom scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.15);
+  border-radius: 9999px;
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.25);
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  height: 5px;
+  width: 5px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(100, 116, 139, 0.25);
+  border-radius: 4px;
+}
+
+/* Animations */
+@keyframes pulseSubtle {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.7; transform: scale(1.05); }
+}
+
+.animate-subtle-pulse {
+  animation: pulseSubtle 2.5s infinite ease-in-out;
+}

@@ -146,22 +146,22 @@
                                 <td>
                                     <div class="cell-user">
                                         <div class="avatar">
-                                            <img th:src="${student.pictureUrl}" src="/images/student-placeholder.svg" alt="Student photo" />
+                                            <img src="/images/student-placeholder.svg" alt="Student photo" />
                                         </div>
                                         <div>
-                                            <div class="u-name" th:text="${student.firstName} + ' ' + ${student.lastName}">John Doe</div>
-                                            <div class="u-sub" th:text="${student.studentNumber}">STU-2026-001</div>
+                                            <div class="u-name" th:text="${student.studentName}">John Doe</div>
+                                            <div class="u-sub" th:text="${student.studentNo}">STU-2026-001</div>
                                         </div>
                                     </div>
                                 </td>
-                                <td th:text="${student.studentNumber}">STU-2026-001</td>
+                                <td th:text="${student.studentNo}">STU-2026-001</td>
                                 <td th:text="${student.email}">student@example.com</td>
-                                <td th:text="${student.degreeProgram}">Computer Science</td>
-                                <td th:text="${student.internshipCompany}">TechCorp Solutions</td>
+                                <td th:text="${student.program}">Computer Science</td>
+                                <td th:text="${student.organisation}">TechCorp Solutions</td>
                                 <td>
-                                    <span class="count-chip" th:text="${diaryCounts[student.username] ?: 0}">0</span>
+                                    <span class="count-chip" th:text="${diaryCounts[student.studentNo] ?: 0}">0</span>
                                 </td>
-                                <td th:with="count=${diaryCounts[student.username] ?: 0}">
+                                <td th:with="count=${diaryCounts[student.studentNo] ?: 0}">
                                     <span class="badge" th:classappend="${count > 0 ? 'badge-success' : 'badge-warning'}">
                                         <span class="dot"></span>
                                         <span th:text="${count > 0 ? 'Active' : 'No Activity'}">Active</span>
@@ -206,8 +206,8 @@
                                     <div class="cell-user">
                                         <div class="avatar"><i class="fa-solid fa-user"></i></div>
                                         <div>
-                                            <div class="u-name" th:text="${entry.studentProfile.firstName} + ' ' + ${entry.studentProfile.lastName}">John Doe</div>
-                                            <div class="u-sub" th:text="${entry.studentProfile.studentNumber}">STU-2026-001</div>
+                                            <div class="u-name" th:text="${entry.studentName}">John Doe</div>
+                                            <div class="u-sub" th:text="${entry.studentNo}">STU-2026-001</div>
                                         </div>
                                     </div>
                                 </td>

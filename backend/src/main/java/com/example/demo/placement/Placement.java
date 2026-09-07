@@ -31,11 +31,24 @@ public class Placement {
     @Column(nullable = false)
     private Long companyId;
 
+    @Column(name = "university_id", nullable = true)
+    private Long universityId;
+
     @Column(nullable = false)
     private String universitySupervisor;
 
     @Column(nullable = false)
     private String companySupervisor;
+
+    /**
+     * M5: typed supervisor references alongside the legacy display strings.
+     * The strings are dropped at M6c (MIGRATION_PLAN.md R1).
+     */
+    @Column(nullable = true)
+    private Long universitySupervisorId;
+
+    @Column(nullable = true)
+    private Long companySupervisorId;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
@@ -76,6 +89,14 @@ public class Placement {
         this.companyId = companyId;
     }
 
+    public Long getUniversityId() {
+        return universityId;
+    }
+
+    public void setUniversityId(Long universityId) {
+        this.universityId = universityId;
+    }
+
     public String getUniversitySupervisor() {
         return universitySupervisor;
     }
@@ -90,6 +111,22 @@ public class Placement {
 
     public void setCompanySupervisor(String companySupervisor) {
         this.companySupervisor = companySupervisor;
+    }
+
+    public Long getUniversitySupervisorId() {
+        return universitySupervisorId;
+    }
+
+    public void setUniversitySupervisorId(Long universitySupervisorId) {
+        this.universitySupervisorId = universitySupervisorId;
+    }
+
+    public Long getCompanySupervisorId() {
+        return companySupervisorId;
+    }
+
+    public void setCompanySupervisorId(Long companySupervisorId) {
+        this.companySupervisorId = companySupervisorId;
     }
 
     public Status getStatus() {

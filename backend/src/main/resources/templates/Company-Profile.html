@@ -105,7 +105,7 @@
                     </div>
                     <div class="identity-block">
                         <div class="identity-name" th:text="${company.name}">Company Name</div>
-                        <div class="identity-tagline">Airtel Uganda &middot; Partner Company</div>
+                        <div class="identity-tagline" th:text="${company.industry != null ? company.industry + ' &middot; Partner Company' : 'Partner Company'}">Industry &middot; Partner Company</div>
                     </div>
                 </div>
 
@@ -117,11 +117,21 @@
                         <span class="info-value" th:text="${company.name}">Company Name</span>
                     </div>
                     <div class="info-group">
-                        <span class="info-label"><span class="label-icon"><i class="fa-solid fa-location-dot"></i></span> Location</span>
-                        <span class="info-value" th:text="${company.location}">Location</span>
+                        <span class="info-label"><span class="label-icon"><i class="fa-solid fa-id-card"></i></span> Registration No.</span>
+                        <span class="info-value" th:text="${company.registrationNumber}">Registration Number</span>
                     </div>
 
                     <!-- Row 2 -->
+                    <div class="info-group">
+                        <span class="info-label"><span class="label-icon"><i class="fa-solid fa-industry"></i></span> Industry</span>
+                        <span class="info-value" th:text="${company.industry}">Industry</span>
+                    </div>
+                    <div class="info-group">
+                        <span class="info-label"><span class="label-icon"><i class="fa-solid fa-users"></i></span> Company Size</span>
+                        <span class="info-value" th:text="${company.size}">Size</span>
+                    </div>
+
+                    <!-- Row 3 -->
                     <div class="info-group">
                         <span class="info-label"><span class="label-icon"><i class="fa-solid fa-envelope"></i></span> Email</span>
                         <span class="info-value" th:text="${company.email}">email@example.com</span>
@@ -131,30 +141,30 @@
                         <span class="info-value" th:text="${company.phone}">0700000000</span>
                     </div>
 
-                    <!-- Row 3 -->
+                    <!-- Row 4 -->
                     <div class="info-group">
                         <span class="info-label"><span class="label-icon"><i class="fa-solid fa-globe"></i></span> Website</span>
                         <span class="info-value" th:text="${company.website}">www.example.com</span>
                     </div>
                     <div class="info-group">
-                        <span class="info-label"><span class="label-icon"><i class="fa-solid fa-briefcase"></i></span> Department</span>
-                        <span class="info-value" th:text="${company.department}">Department</span>
+                        <span class="info-label"><span class="label-icon"><i class="fa-solid fa-location-dot"></i></span> City / Country</span>
+                        <span class="info-value" th:text="${company.city != null ? company.city + ', ' + company.country : company.country}">City, Country</span>
                     </div>
 
-                    <!-- Row 4 -->
+                    <!-- Row 5 -->
                     <div class="info-group">
-                        <span class="info-label"><span class="label-icon"><i class="fa-solid fa-user-tie"></i></span> Field Supervisor</span>
-                        <span class="info-value" th:text="${company.fieldSupervisor}">Supervisor Name</span>
+                        <span class="info-label"><span class="label-icon"><i class="fa-solid fa-map-marker-alt"></i></span> Physical Address</span>
+                        <span class="info-value" th:text="${company.physicalAddress}">Physical Address</span>
                     </div>
                     <div class="info-group">
-                        <span class="info-label"><span class="label-icon"><i class="fa-solid fa-handshake"></i></span> Partnership Roles</span>
-                        <span class="info-value" th:text="${company.roles}">Roles</span>
+                        <span class="info-label"><span class="label-icon"><i class="fa-solid fa-mail-bulk"></i></span> Postal Address</span>
+                        <span class="info-value" th:text="${company.postalAddress}">Postal Address</span>
                     </div>
 
                     <!-- Full-width row -->
                     <div class="info-group full-width">
-                        <span class="info-label"><span class="label-icon"><i class="fa-solid fa-file-lines"></i></span> Company Profile / Industry</span>
-                        <p class="info-value long-text" th:text="${company.profile}">Description</p>
+                        <span class="info-label"><span class="label-icon"><i class="fa-solid fa-file-lines"></i></span> Description</span>
+                        <p class="info-value long-text" th:text="${company.description}">Description</p>
                     </div>
                 </div>
             </div>

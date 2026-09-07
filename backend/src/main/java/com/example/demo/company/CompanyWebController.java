@@ -81,14 +81,18 @@ public class CompanyWebController {
         return companyRepository.findById(formData.getId())
                 .map(existing -> {
                     existing.setName(formData.getName());
-                    existing.setLocation(formData.getLocation());
+                    existing.setRegistrationNumber(formData.getRegistrationNumber());
+                    existing.setIndustry(formData.getIndustry());
+                    existing.setSize(formData.getSize());
                     existing.setEmail(formData.getEmail());
                     existing.setPhone(formData.getPhone());
                     existing.setWebsite(formData.getWebsite());
-                    existing.setProfile(formData.getProfile());
-                    existing.setDepartment(formData.getDepartment());
-                    existing.setFieldSupervisor(formData.getFieldSupervisor());
-                    existing.setRoles(formData.getRoles());
+                    existing.setCountry(formData.getCountry());
+                    existing.setCity(formData.getCity());
+                    existing.setPhysicalAddress(formData.getPhysicalAddress());
+                    existing.setPostalAddress(formData.getPostalAddress());
+                    existing.setDescription(formData.getDescription());
+                    existing.setLogoUrl(formData.getLogoUrl());
                     companyService.save(existing);
                     redirectAttributes.addFlashAttribute("successMessage", "Company \"" + existing.getName() + "\" updated successfully.");
                     return "redirect:/company";

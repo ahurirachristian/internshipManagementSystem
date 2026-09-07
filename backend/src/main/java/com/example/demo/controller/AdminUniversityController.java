@@ -17,7 +17,8 @@ import org.springframework.web.bind.annotation.RestController;
 import com.example.demo.dto.UniversityDto;
 import com.example.demo.dto.UniversityRequest;
 import com.example.demo.service.UniversityService;
-import jakarta.validation.Valid;
+import com.example.demo.audit.AuditLogService;
+import java.security.Principal;
 
 @RestController
 @RequestMapping("/api/universities")
@@ -25,9 +26,11 @@ import jakarta.validation.Valid;
 public class AdminUniversityController {
 
     private final UniversityService universityService;
+    private final AuditLogService auditLogService;
 
-    public AdminUniversityController(UniversityService universityService) {
+    public AdminUniversityController(UniversityService universityService, AuditLogService auditLogService) {
         this.universityService = universityService;
+        this.auditLogService = auditLogService;
     }
 
     @GetMapping
@@ -37,6 +40,14 @@ public class AdminUniversityController {
                 .toList();
     }
 
+    @GetMapping("/{id}")
+    public ResponseEntity<UniversityDto> getUniversity(@PathVariable Integer id) {
+        return universityService.findById(id)
+                .map(universityService::toDto)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+
     @GetMapping("/export/csv")
     public ResponseEntity<String> exportUniversitiesCsv() {
         List<UniversityDto> universities = universityService.getAllUniversities().stream()
@@ -44,34 +55,39 @@ public class AdminUniversityController {
                 .toList();
         String csv = universities.stream()
                 .map(u -> String.join(",",
-                        escape(u.getId()),
-                        escape(u.getName()),
-                        escape(u.getCode()),
-                        escape(u.getLocation()),
-                        escape(u.getEmail())))
+                        escape(u.getUniversityId()),
+                        escape(u.getShortForm()),
+                        escape(u.getFullName()),
+                        escape(u.getCountry()),
+                        escape(u.getEstablishedYear())))
                 .reduce((a, b) -> a + "\n" + b)
                 .orElse("");
-        String body = "ID,University Name,Code,Location,Email\n" + csv;
+        String body = "ID,ShortForm,FullName,Country,EstablishedYear\n" + csv;
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"universities.csv\"")
                 .body(body);
     }
 
     @PostMapping
-    public ResponseEntity<?> createUniversity(@RequestBody UniversityRequest request) {
+    public ResponseEntity<?> createUniversity(@RequestBody UniversityRequest request, Principal principal) {
         try {
+            var saved = universityService.create(request);
+            auditLogService.log(principal != null ? principal.getName() : "system", "ADMIN", "CREATE", "University", "Created university: " + saved.getFullName(), null);
             return ResponseEntity.status(HttpStatus.CREATED)
-                    .body(universityService.toDto(universityService.create(request)));
+                    .body(universityService.toDto(saved));
         } catch (IllegalArgumentException ex) {
             return ResponseEntity.badRequest().body(Map.of("error", ex.getMessage()));
         }
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<?> updateUniversity(@PathVariable Long id, @RequestBody UniversityRequest request) {
+    public ResponseEntity<?> updateUniversity(@PathVariable Integer id, @RequestBody UniversityRequest request, Principal principal) {
         try {
             return universityService.update(id, request)
-                    .map(universityService::toDto)
+                    .map(saved -> {
+                        auditLogService.log(principal != null ? principal.getName() : "system", "ADMIN", "UPDATE", "University", "Updated university: " + saved.getFullName(), null);
+                        return universityService.toDto(saved);
+                    })
                     .map(ResponseEntity::ok)
                     .orElseGet(() -> ResponseEntity.notFound().build());
         } catch (IllegalArgumentException ex) {
@@ -80,8 +96,10 @@ public class AdminUniversityController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteUniversity(@PathVariable Long id) {
+    public ResponseEntity<Void> deleteUniversity(@PathVariable Integer id, Principal principal) {
+        var uni = universityService.findById(id);
         universityService.deleteById(id);
+        auditLogService.log(principal != null ? principal.getName() : "system", "ADMIN", "DELETE", "University", "Deleted university ID: " + id + (uni.isPresent() ? " (" + uni.get().getFullName() + ")" : ""), null);
         return ResponseEntity.noContent().build();
     }
 
