@@ -2,6 +2,7 @@ package com.example.demo.evaluation;
 
 import java.util.List;
 import java.util.Map;
+import java.security.Principal;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -13,6 +14,9 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import com.example.demo.auth.UserRepository;
+import com.example.demo.student.Student;
+import com.example.demo.student.StudentRepository;
 
 @RestController
 @RequestMapping("/api/evaluations")
@@ -20,12 +24,15 @@ import org.springframework.web.bind.annotation.RestController;
 public class EvaluationController {
 
     private final EvaluationService evaluationService;
-    private final com.example.demo.auth.UserRepository userRepository;
+    private final UserRepository userRepository;
+    private final StudentRepository studentRepository;
 
     public EvaluationController(EvaluationService evaluationService,
-            com.example.demo.auth.UserRepository userRepository) {
+            UserRepository userRepository,
+            StudentRepository studentRepository) {
         this.evaluationService = evaluationService;
         this.userRepository = userRepository;
+        this.studentRepository = studentRepository;
     }
 
     @GetMapping
@@ -36,6 +43,22 @@ public class EvaluationController {
     @GetMapping("/student/{studentId}")
     public List<Evaluation> getEvaluationsByStudent(@PathVariable Long studentId) {
         return evaluationService.findByStudentId(studentId);
+    }
+
+    @GetMapping("/me")
+    @PreAuthorize("hasAnyAuthority('STUDENT', 'ADMIN', 'SUPERVISOR', 'COMPANY')")
+    public ResponseEntity<List<Evaluation>> getMyEvaluations(Principal principal) {
+        Student student = currentStudent(principal);
+        if (student == null) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok(evaluationService.findByStudentId(student.getId()));
+    }
+
+    private Student currentStudent(Principal principal) {
+        return userRepository.findByUsername(principal.getName())
+                .flatMap(user -> studentRepository.findByUserId(user.getId()))
+                .orElse(null);
     }
 
     @PostMapping

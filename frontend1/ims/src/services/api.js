@@ -146,6 +146,18 @@ export async function saveMyProfile(profile) {
   return parseResponse(response);
 }
 
+export async function updateMyAccount(fields) {
+  const response = await fetch(`${API_ROOT}/api/me`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    credentials: 'include',
+    body: JSON.stringify(fields),
+  });
+  return parseResponse(response);
+}
+
 export async function fetchStudents() {
   const response = await fetch(`${API_ROOT}/api/students`, {
     credentials: 'include',
@@ -334,6 +346,13 @@ export async function fetchPlacements() {
   return parseResponse(response);
 }
 
+export async function fetchMyPlacement() {
+  const response = await fetch(`${API_ROOT}/api/placements/me`, {
+    credentials: 'include',
+  });
+  return parseResponse(response);
+}
+
 export async function createPlacement(placement) {
   const response = await fetch(`${API_ROOT}/api/placements`, {
     method: 'POST',
@@ -368,6 +387,13 @@ export async function deletePlacement(id) {
 
 export async function fetchEvaluationsByStudent(studentId) {
   const response = await fetch(`${API_ROOT}/api/evaluations/student/${studentId}`, {
+    credentials: 'include',
+  });
+  return parseResponse(response);
+}
+
+export async function fetchMyEvaluations() {
+  const response = await fetch(`${API_ROOT}/api/evaluations/me`, {
     credentials: 'include',
   });
   return parseResponse(response);

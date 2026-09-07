@@ -22,6 +22,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -71,9 +72,31 @@ public class AuthApiController {
                     result.put("role", user.getRole().name());
                     result.put("companyId", user.getCompanyId());
                     result.put("universityId", user.getUniversityId());
+                    result.put("email", user.getEmail());
                     return result;
                 })
                 .orElseGet(() -> Map.<String, Object>of("username", principal.getName()));
+    }
+
+    @PutMapping("/me")
+    public ResponseEntity<?> updateMe(@RequestBody Map<String, String> body, Principal principal) {
+        return userRepository.findByUsername(principal.getName())
+                .map(user -> {
+                    String email = body.getOrDefault("email", "").trim();
+                    if (!email.isBlank()) {
+                        user.setEmail(email);
+                        userRepository.save(user);
+                        auditLogService.log(principal.getName(), user.getRole().name(), "UPDATE", "User",
+                                "Account email updated", null);
+                    }
+                    Map<String, Object> result = new HashMap<>();
+                    result.put("username", user.getUsername());
+                    result.put("email", user.getEmail());
+                    result.put("role", user.getRole().name());
+                    return ResponseEntity.ok(result);
+                })
+                .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body(Map.of("error", "User not found.")));
     }
 
     @GetMapping("/roles")
