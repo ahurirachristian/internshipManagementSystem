@@ -7,74 +7,95 @@ import jakarta.validation.constraints.Size;
 public class CompanyRequest {
 
     @NotBlank(message = "Company name is required")
-    @Size(min = 2, max = 200, message = "Company name must be between 2 and 200 characters")
+    @Size(min = 2, max = 100, message = "Company name must be between 2 and 100 characters")
     private String name;
 
-    private String registrationNumber;
+    @NotBlank(message = "Country is required")
+    private String country;
 
-    private String industry;
-
-    private String size;
-
-    private String website;
+    @NotBlank(message = "Branch is required")
+    private String branch;
 
     @NotBlank(message = "Email is required")
     @Email(message = "Email should be valid")
     private String email;
 
+    @NotBlank(message = "Website is required")
+    private String website;
+
+    @NotBlank(message = "Phone is required")
     private String phone;
 
-    private String country;
-
-    private String city;
-
-    private String physicalAddress;
-
+    @NotBlank(message = "Postal address is required")
     private String postalAddress;
 
-    private String description;
-
-    private String logoUrl;
+    @NotBlank(message = "Physical address is required")
+    private String physicalAddress;
 
     public CompanyRequest() {
     }
 
-    public String getName() { return name; }
-    public void setName(String name) { this.name = name; }
+    public String getName() {
+        return name;
+    }
 
-    public String getRegistrationNumber() { return registrationNumber; }
-    public void setRegistrationNumber(String registrationNumber) { this.registrationNumber = registrationNumber; }
+    public void setName(String name) {
+        this.name = name;
+    }
 
-    public String getIndustry() { return industry; }
-    public void setIndustry(String industry) { this.industry = industry; }
+    public String getCountry() {
+        return country;
+    }
 
-    public String getSize() { return size; }
-    public void setSize(String size) { this.size = size; }
+    public void setCountry(String country) {
+        this.country = country;
+    }
 
-    public String getWebsite() { return website; }
-    public void setWebsite(String website) { this.website = website; }
+    public String getBranch() {
+        return branch;
+    }
 
-    public String getEmail() { return email; }
-    public void setEmail(String email) { this.email = email; }
+    public void setBranch(String branch) {
+        this.branch = branch;
+    }
 
-    public String getPhone() { return phone; }
-    public void setPhone(String phone) { this.phone = phone; }
+    public String getEmail() {
+        return email;
+    }
 
-    public String getCountry() { return country; }
-    public void setCountry(String country) { this.country = country; }
+    public void setEmail(String email) {
+        this.email = email;
+    }
 
-    public String getCity() { return city; }
-    public void setCity(String city) { this.city = city; }
+    public String getWebsite() {
+        return website;
+    }
 
-    public String getPhysicalAddress() { return physicalAddress; }
-    public void setPhysicalAddress(String physicalAddress) { this.physicalAddress = physicalAddress; }
+    public void setWebsite(String website) {
+        this.website = website;
+    }
 
-    public String getPostalAddress() { return postalAddress; }
-    public void setPostalAddress(String postalAddress) { this.postalAddress = postalAddress; }
+    public String getPhone() {
+        return phone;
+    }
 
-    public String getDescription() { return description; }
-    public void setDescription(String description) { this.description = description; }
+    public void setPhone(String phone) {
+        this.phone = phone;
+    }
 
-    public String getLogoUrl() { return logoUrl; }
-    public void setLogoUrl(String logoUrl) { this.logoUrl = logoUrl; }
+    public String getPostalAddress() {
+        return postalAddress;
+    }
+
+    public void setPostalAddress(String postalAddress) {
+        this.postalAddress = postalAddress;
+    }
+
+    public String getPhysicalAddress() {
+        return physicalAddress;
+    }
+
+    public void setPhysicalAddress(String physicalAddress) {
+        this.physicalAddress = physicalAddress;
+    }
 }

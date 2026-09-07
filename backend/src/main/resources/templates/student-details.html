@@ -8,6 +8,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
     <link rel="stylesheet" th:href="@{/css/riho.css}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 </head>
 <body>
     <!-- reuse the same sidebar/topbar as other student pages -->
@@ -118,6 +119,17 @@
                     </div>
                 </div>
             </div>
+
+            <!-- Weekly Tasks Stacked Bar Chart -->
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title"><i class="fa-solid fa-chart-column"></i> Weekly Tasks Overview</span>
+                    <span class="card-hint">Number of tasks per day (Mon - Sat)</span>
+                </div>
+                <div style="position:relative; height:340px;">
+                    <canvas id="weeklyTasksChart"></canvas>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -162,6 +174,66 @@
     <script>
         function openModal() { document.getElementById('profile-modal').style.display = 'block'; }
         function closeModal() { document.getElementById('profile-modal').style.display = 'none'; }
+
+        (function () {
+            const labels = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+            const completed = [3, 4, 2, 5, 4, 2];
+            const pending   = [1, 2, 3, 1, 2, 1];
+
+            const ctx = document.getElementById('weeklyTasksChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'Completed',
+                            data: completed,
+                            backgroundColor: '#10b981',
+                            borderRadius: 6,
+                            stack: 'tasks'
+                        },
+                        {
+                            label: 'Pending',
+                            data: pending,
+                            backgroundColor: '#f59e0b',
+                            borderRadius: 6,
+                            stack: 'tasks'
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: { mode: 'index', intersect: false },
+                    plugins: {
+                        legend: { position: 'top', labels: { font: { family: 'Inter', size: 12 } } },
+                        tooltip: {
+                            callbacks: {
+                                footer: (items) => {
+                                    const total = items.reduce((s, i) => s + i.parsed.y, 0);
+                                    return 'Total: ' + total + ' task(s)';
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            stacked: true,
+                            grid: { display: false },
+                            ticks: { font: { family: 'Inter', size: 12 } }
+                        },
+                        y: {
+                            stacked: true,
+                            beginAtZero: true,
+                            ticks: { stepSize: 1, font: { family: 'Inter', size: 12 } },
+                            grid: { color: 'rgba(0,0,0,0.06)' },
+                            title: { display: true, text: 'Number of Tasks', font: { family: 'Inter', size: 12, weight: '500' } }
+                        }
+                    }
+                }
+            });
+        })();
     </script>
 </body>
 </html>

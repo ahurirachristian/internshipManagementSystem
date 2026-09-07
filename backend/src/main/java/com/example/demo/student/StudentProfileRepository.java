@@ -2,26 +2,22 @@ package com.example.demo.student;
 
 import java.util.List;
 import java.util.Optional;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface StudentProfileRepository extends JpaRepository<StudentProfile, Long> {
-    Optional<StudentProfile> findByStudentNo(String studentNo);
+    Optional<StudentProfile> findByUsername(String username);
 
-    Optional<StudentProfile> findByRegNo(String regNo);
+    List<StudentProfile> findByCompanyId(String companyId);
 
-    Optional<StudentProfile> findByEmail(String email);
+    List<StudentProfile> findByCompanyIdIgnoreCase(String companyId);
 
-    List<StudentProfile> findByOrganisationContainingIgnoreCase(String organisation);
+    List<StudentProfile> findByUniversitySupervisor(String universitySupervisor);
 
-    List<StudentProfile> findByAcademicSupervisorId(Integer academicSupervisorId);
+    List<StudentProfile> findByUniversitySupervisorIgnoreCase(String universitySupervisor);
 
-    List<StudentProfile> findByFieldSupervisorId(Integer fieldSupervisorId);
+    List<StudentProfile> findByFirstNameContainingIgnoreCaseOrLastNameContainingIgnoreCase(String firstName, String lastName);
 
-    List<StudentProfile> findByUnitId(Integer unitId);
-
-    List<StudentProfile> findByCourseId(Integer courseId);
-
-    List<StudentProfile> findByStudentNameContainingIgnoreCase(String name);
-
-    List<StudentProfile> findByAcademicSupervisor(String academicSupervisor);
+    Page<StudentProfile> findByFirstNameContainingIgnoreCaseOrLastNameContainingIgnoreCase(String firstName, String lastName, Pageable pageable);
 }

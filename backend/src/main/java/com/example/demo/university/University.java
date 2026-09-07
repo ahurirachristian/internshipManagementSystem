@@ -2,59 +2,81 @@ package com.example.demo.university;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
 
 @Entity
 @Table(name = "universities")
 public class University {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "university_id")
-    private Integer universityId;
+    @Column(name = "university_id", nullable = false)
+    private Long universityId;
 
-    @Column(name = "short_form", nullable = false, unique = true, length = 15)
-    private String shortForm;
+    @Column(nullable = false, unique = true)
+    private String name;
 
-    @Column(name = "full_name", nullable = false, unique = true, length = 200)
-    private String fullName;
+    @Column(nullable = true)
+    private String code;
 
-    @Column(length = 100)
-    private String country = "Uganda";
+    @Column(nullable = true)
+    private String email;
 
-    @Column(name = "established_year")
-    private Integer establishedYear;
+    @Transient
+    private String location;
 
     public University() {
     }
 
-    public University(String shortForm, String fullName) {
-        this.shortForm = shortForm;
-        this.fullName = fullName;
+    public University(String name) {
+        this.name = name;
     }
 
-    public University(String shortForm, String fullName, String country, Integer establishedYear) {
-        this.shortForm = shortForm;
-        this.fullName = fullName;
-        this.country = country;
-        this.establishedYear = establishedYear;
+    public University(String name, String code, String location, String email) {
+        this.name = name;
+        this.code = code;
+        this.location = location;
+        this.email = email;
     }
 
-    public Integer getUniversityId() { return universityId; }
-    public void setUniversityId(Integer universityId) { this.universityId = universityId; }
+    public Long getUniversityId() {
+        return universityId;
+    }
 
-    public String getShortForm() { return shortForm; }
-    public void setShortForm(String shortForm) { this.shortForm = shortForm; }
+    public void setUniversityId(Long universityId) {
+        this.universityId = universityId;
+    }
 
-    public String getFullName() { return fullName; }
-    public void setFullName(String fullName) { this.fullName = fullName; }
+    public String getName() {
+        return name;
+    }
 
-    public String getCountry() { return country; }
-    public void setCountry(String country) { this.country = country; }
+    public void setName(String name) {
+        this.name = name;
+    }
 
-    public Integer getEstablishedYear() { return establishedYear; }
-    public void setEstablishedYear(Integer establishedYear) { this.establishedYear = establishedYear; }
+    public String getCode() {
+        return code;
+    }
+
+    public void setCode(String code) {
+        this.code = code;
+    }
+
+    public String getLocation() {
+        return location;
+    }
+
+    public void setLocation(String location) {
+        this.location = location;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
 }

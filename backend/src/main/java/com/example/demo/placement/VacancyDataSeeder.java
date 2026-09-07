@@ -1,42 +1,47 @@
 package com.example.demo.placement;
 
-import java.time.LocalDate;
+import com.example.demo.placement.Vacancy;
+import com.example.demo.placement.VacancyRepository;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
 @Component
-@Order(39)
+@Order(4)
 public class VacancyDataSeeder implements CommandLineRunner {
 
-    private final VacancyRepository vacancyRepository;
+    private final VacancyRepository repository;
 
-    public VacancyDataSeeder(VacancyRepository vacancyRepository) {
-        this.vacancyRepository = vacancyRepository;
+    public VacancyDataSeeder(VacancyRepository repository) {
+        this.repository = repository;
     }
 
     @Override
     public void run(String... args) {
-        if (vacancyRepository.count() == 0) {
-            // Airtel vacancies (company_id=1)
-            vacancyRepository.save(new Vacancy(
-                "Software Development Intern",
-                "Join Airtel Uganda's IT team for a 3-month internship in software development.",
-                1L, "Kampala", "Currently enrolled in a Computer Science or IT program",
-                "OPEN", LocalDate.of(2026, 9, 30), LocalDate.of(2026, 8, 1)));
-
-            vacancyRepository.save(new Vacancy(
-                "Network Operations Intern",
-                "Assist the Network Operations team with monitoring and maintaining telecom infrastructure.",
-                1L, "Kampala", "Enrolled in Telecommunications or Electronics Engineering",
-                "OPEN", LocalDate.of(2026, 9, 30), LocalDate.of(2026, 8, 1)));
-
-            // MTN vacancy (company_id=2)
-            vacancyRepository.save(new Vacancy(
-                "Mobile Money Operations Intern",
-                "Support the Mobile Money team with customer support and operations.",
-                2L, "Kampala", "Enrolled in Business, IT, or related program",
-                "OPEN", LocalDate.of(2026, 9, 30), LocalDate.of(2026, 8, 1)));
+        if (repository.count() == 0) {
+            java.util.List<Vacancy> list = new java.util.ArrayList<>();
+            Vacancy e;
+            e = new Vacancy();
+            e.setTitle("Software Development Intern");
+            e.setDescription("Assist in developing and maintaining web applications using modern frameworks.");
+            e.setCompanyId(1L);
+            e.setLocation("Kampala");
+            e.setRequirements("Knowledge of Java, Spring Boot, and React.");
+            e.setStatus("OPEN");
+            e.setDeadline(java.time.LocalDate.parse("2024-12-31"));
+            e.setCreatedAt(java.time.LocalDate.parse("2024-09-01"));
+            list.add(e);
+            e = new Vacancy();
+            e.setTitle("Network Engineering Intern");
+            e.setDescription("Support network operations and troubleshoot connectivity issues.");
+            e.setCompanyId(2L);
+            e.setLocation("Kampala");
+            e.setRequirements("Basic understanding of networking protocols and Cisco systems.");
+            e.setStatus("OPEN");
+            e.setDeadline(java.time.LocalDate.parse("2024-11-30"));
+            e.setCreatedAt(java.time.LocalDate.parse("2024-09-01"));
+            list.add(e);
+            repository.saveAll(list);
         }
     }
 }

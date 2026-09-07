@@ -1,7 +1,6 @@
 package com.example.demo.controller;
 
 import java.security.Principal;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.springframework.http.HttpHeaders;
@@ -17,137 +16,110 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import com.example.demo.auth.UserRepository;
 import com.example.demo.student.DayDiary;
 import com.example.demo.student.DayDiaryRepository;
-import com.example.demo.student.Student;
-import com.example.demo.student.StudentRepository;
-import com.example.demo.audit.AuditLogService;
+import com.example.demo.student.StudentProfile;
+import com.example.demo.student.StudentProfileRepository;
 
-/**
- * M4: diaries are keyed to Model-B students.id; student identity is resolved
- * per entry instead of via the dropped StudentProfile join.
- */
 @RestController
 @RequestMapping("/api/diaries")
 public class DayDiaryApiController {
 
     private final DayDiaryRepository dayDiaryRepository;
-    private final StudentRepository studentRepository;
-    private final UserRepository userRepository;
-    private final AuditLogService auditLogService;
+    private final StudentProfileRepository studentProfileRepository;
 
-    public DayDiaryApiController(DayDiaryRepository dayDiaryRepository, StudentRepository studentRepository,
-            UserRepository userRepository, AuditLogService auditLogService) {
+    public DayDiaryApiController(DayDiaryRepository dayDiaryRepository, StudentProfileRepository studentProfileRepository) {
         this.dayDiaryRepository = dayDiaryRepository;
-        this.studentRepository = studentRepository;
-        this.userRepository = userRepository;
-        this.auditLogService = auditLogService;
-    }
-
-    @GetMapping("/me")
-    @PreAuthorize("hasAnyAuthority('STUDENT', 'ADMIN', 'SUPERVISOR')")
-    public List<Map<String, Object>> getMyDiaries(Principal principal) {
-        Student student = currentStudent(principal.getName());
-        if (student == null) {
-            return List.of();
-        }
-        return dayDiaryRepository.findByStudentIdOrderByDateDesc(student.getId()).stream()
-                .map(this::toView)
-                .collect(java.util.stream.Collectors.toList());
+        this.studentProfileRepository = studentProfileRepository;
     }
 
     @GetMapping
     @PreAuthorize("hasAnyAuthority('ADMIN', 'SUPERVISOR')")
-    public List<Map<String, Object>> getAllDiaries() {
-        return dayDiaryRepository.findAll().stream()
-                .map(this::toView)
-                .collect(java.util.stream.Collectors.toList());
+    public List<DayDiary> getAllDiaries() {
+        return dayDiaryRepository.findAll();
     }
 
     @GetMapping("/export/csv")
     @PreAuthorize("hasAnyAuthority('ADMIN', 'SUPERVISOR')")
     public ResponseEntity<String> exportDiariesCsv() {
-        List<Map<String, Object>> diaries = dayDiaryRepository.findAll().stream()
-                .map(this::toView)
-                .collect(java.util.stream.Collectors.toList());
+        List<DayDiary> diaries = dayDiaryRepository.findAllWithStudent();
         String csv = diaries.stream()
-                .map(d -> String.join(",",
-                        escape(d.get("id")),
-                        escape(d.get("date")),
-                        escape(d.get("studentName")),
-                        escape(d.get("studentNumber")),
-                        escape(d.get("dailyActivities")),
-                        escape(d.get("knowledgeAndSkillsGained")),
-                        escape(d.get("accomplishments"))))
+                .map(d -> {
+                    String studentName = d.getStudentProfile() != null
+                            ? escape(d.getStudentProfile().getFirstName() + " " + d.getStudentProfile().getLastName())
+                            : "";
+                    String username = d.getStudentProfile() != null ? escape(d.getStudentProfile().getUsername()) : "";
+                    return String.join(",",
+                            escape(d.getId()),
+                            escape(d.getDate() != null ? d.getDate().toString() : ""),
+                            studentName,
+                            username,
+                            escape(d.getDailyActivities()),
+                            escape(d.getKnowledgeAndSkillsGained()),
+                            escape(d.getAccomplishments()));
+                })
                 .reduce((a, b) -> a + "\n" + b)
                 .orElse("");
-        String body = "ID,Date,Student,StudentNo,DailyActivities,KnowledgeAndSkillsGained,Accomplishments\n" + csv;
+        String body = "ID,Date,Student,Username,DailyActivities,KnowledgeAndSkillsGained,Accomplishments\n" + csv;
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"diaries.csv\"")
                 .body(body);
     }
 
-    @GetMapping("/student/{studentId}")
+    @GetMapping("/student/{username}")
     @PreAuthorize("hasAnyAuthority('ADMIN', 'SUPERVISOR', 'STUDENT')")
-    public ResponseEntity<List<Map<String, Object>>> getDiariesByStudent(@PathVariable Long studentId,
-            Principal principal) {
-        if (isStudent(principal)) {
-            Student mine = currentStudent(principal.getName());
-            if (mine == null || !mine.getId().equals(studentId)) {
-                return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-            }
-        }
-        return ResponseEntity.ok(dayDiaryRepository.findByStudentIdOrderByDateDesc(studentId).stream()
-                .map(this::toView)
-                .collect(java.util.stream.Collectors.toList()));
+    public List<DayDiary> getDiariesByStudent(@PathVariable String username) {
+        return dayDiaryRepository.findByStudentProfileUsernameOrderByDateDesc(username);
     }
 
     @GetMapping("/{id}")
     @PreAuthorize("hasAnyAuthority('ADMIN', 'SUPERVISOR', 'STUDENT')")
-    public ResponseEntity<Map<String, Object>> getDiaryById(@PathVariable Long id) {
+    public ResponseEntity<DayDiary> getDiaryById(@PathVariable Long id) {
         return dayDiaryRepository.findById(id)
-                .map(this::toView)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
 
     @PostMapping
     @PreAuthorize("hasAnyAuthority('STUDENT', 'ADMIN')")
-    public ResponseEntity<?> createDiary(@RequestBody DayDiary diary, Principal principal) {
-        Student student = currentStudent(principal.getName());
-        if (student == null) {
+    public ResponseEntity<DayDiary> createDiary(@RequestBody DayDiary diary, Principal principal) {
+        StudentProfile studentProfile = studentProfileRepository.findByUsername(principal.getName()).orElse(null);
+        if (studentProfile == null) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         }
-        diary.setId(null);
-        diary.setStudentId(student.getId());
-        diary.setUniversityId(student.getUniversityId());
+        diary.setStudentProfile(studentProfile);
         DayDiary saved = dayDiaryRepository.save(diary);
-        auditLogService.log(principal.getName(), "STUDENT", "CREATE", "DayDiary",
-                "Created diary entry for " + fullName(student), null);
-        return ResponseEntity.status(HttpStatus.CREATED).body(toView(saved));
+        return ResponseEntity.status(HttpStatus.CREATED).body(saved);
     }
 
     @PutMapping("/{id}")
     @PreAuthorize("hasAnyAuthority('STUDENT', 'ADMIN', 'SUPERVISOR')")
-    public ResponseEntity<?> updateDiary(@PathVariable Long id, @RequestBody DayDiary updates, Principal principal) {
+    public ResponseEntity<DayDiary> updateDiary(@PathVariable Long id, @RequestBody DayDiary updates, Principal principal) {
         DayDiary diary = dayDiaryRepository.findById(id).orElse(null);
         if (diary == null) {
             return ResponseEntity.notFound().build();
         }
-        boolean isOwner = isOwner(diary, principal.getName());
-        boolean isAdminOrSupervisor = hasAuthority(principal, "ADMIN") || hasAuthority(principal, "SUPERVISOR");
-        if (!isOwner && !isAdminOrSupervisor) {
+        boolean isOwner = diary.getStudentProfile() != null
+                && diary.getStudentProfile().getUsername().equals(principal.getName());
+        boolean isAdmin = principal instanceof Authentication
+                && ((Authentication) principal).getAuthorities().stream()
+                        .anyMatch(auth -> auth.getAuthority().equals("ADMIN"));
+        boolean isSupervisor = principal instanceof Authentication
+                && ((Authentication) principal).getAuthorities().stream()
+                        .anyMatch(auth -> auth.getAuthority().equals("SUPERVISOR"));
+        if (!isOwner && !isAdmin && !isSupervisor) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
         diary.setDate(updates.getDate());
         diary.setDailyActivities(updates.getDailyActivities());
         diary.setKnowledgeAndSkillsGained(updates.getKnowledgeAndSkillsGained());
         diary.setAccomplishments(updates.getAccomplishments());
-        DayDiary updated = dayDiaryRepository.save(diary);
-        auditLogService.log(principal.getName(), "STUDENT", "UPDATE", "DayDiary",
-                "Updated diary entry for " + diaryOwnerName(diary), null);
-        return ResponseEntity.ok(toView(updated));
+        diary.setAccountNumber(updates.getAccountNumber());
+        diary.setAction(updates.getAction());
+        diary.setTechnologyTools(updates.getTechnologyTools());
+        diary.setIndustrialSupervisorComment(updates.getIndustrialSupervisorComment());
+        diary.setUniversitySupervisorComment(updates.getUniversitySupervisorComment());
+        return ResponseEntity.ok(dayDiaryRepository.save(diary));
     }
 
     @PostMapping("/{id}/feedback")
@@ -159,77 +131,32 @@ public class DayDiaryApiController {
         }
         String feedback = body.getOrDefault("feedback", "");
         String status = body.getOrDefault("status", "PENDING");
-        diary.setSupervisorFeedback(feedback);
-        diary.setStatus(status);
+        String industrialComment = body.getOrDefault("industrialSupervisorComment", diary.getIndustrialSupervisorComment());
+        String universityComment = body.getOrDefault("universitySupervisorComment", diary.getUniversitySupervisorComment());
+        diary.setAccomplishments(diary.getAccomplishments() != null
+                ? diary.getAccomplishments() + "\n\n[Supervisor Feedback]: " + feedback
+                : "[Supervisor Feedback]: " + feedback);
+        diary.setIndustrialSupervisorComment(industrialComment);
+        diary.setUniversitySupervisorComment(universityComment);
         DayDiary saved = dayDiaryRepository.save(diary);
-        auditLogService.log("supervisor", "SUPERVISOR", "FEEDBACK", "DayDiary",
-                "Submitted feedback on diary for " + diaryOwnerName(saved) + " (status: " + status + ")", null);
         return ResponseEntity.ok(Map.of(
                 "id", saved.getId(),
                 "status", status,
                 "feedback", feedback,
+                "industrialSupervisorComment", saved.getIndustrialSupervisorComment(),
+                "universitySupervisorComment", saved.getUniversitySupervisorComment(),
                 "message", "Feedback submitted successfully"
         ));
     }
 
     @DeleteMapping("/{id}")
     @PreAuthorize("hasAnyAuthority('ADMIN', 'SUPERVISOR', 'STUDENT')")
-    public ResponseEntity<Void> deleteDiary(@PathVariable Long id, Principal principal) {
-        DayDiary diary = dayDiaryRepository.findById(id).orElse(null);
-        if (diary == null) {
+    public ResponseEntity<Void> deleteDiary(@PathVariable Long id) {
+        if (dayDiaryRepository.findById(id).isEmpty()) {
             return ResponseEntity.notFound().build();
         }
-        // M4 ownership fix: previously any STUDENT could delete any diary.
-        if (isStudent(principal) && !isOwner(diary, principal.getName())) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-        }
-        dayDiaryRepository.delete(diary);
+        dayDiaryRepository.deleteById(id);
         return ResponseEntity.noContent().build();
-    }
-
-    private Map<String, Object> toView(DayDiary d) {
-        Map<String, Object> view = new HashMap<>();
-        view.put("id", d.getId());
-        view.put("date", d.getDate());
-        view.put("dailyActivities", d.getDailyActivities());
-        view.put("knowledgeAndSkillsGained", d.getKnowledgeAndSkillsGained());
-        view.put("accomplishments", d.getAccomplishments());
-        view.put("status", d.getStatus());
-        view.put("supervisorFeedback", d.getSupervisorFeedback());
-        view.put("studentId", d.getStudentId());
-        Student owner = d.getStudentId() != null ? studentRepository.findById(d.getStudentId()).orElse(null) : null;
-        view.put("studentName", owner != null ? fullName(owner) : "");
-        view.put("studentNumber", owner != null ? owner.getStudentNumber() : "");
-        return view;
-    }
-
-    private Student currentStudent(String username) {
-        return userRepository.findByUsername(username)
-                .flatMap(user -> studentRepository.findByUserId(user.getId()))
-                .orElse(null);
-    }
-
-    private boolean isOwner(DayDiary diary, String username) {
-        Student mine = currentStudent(username);
-        return mine != null && diary.getStudentId() != null && diary.getStudentId().equals(mine.getId());
-    }
-
-    private String diaryOwnerName(DayDiary diary) {
-        Student owner = diary.getStudentId() != null ? studentRepository.findById(diary.getStudentId()).orElse(null) : null;
-        return owner != null ? fullName(owner) : "Unknown";
-    }
-
-    private String fullName(Student s) {
-        return (s.getFirstName() + " " + s.getLastName()).trim();
-    }
-
-    private boolean isStudent(Principal principal) {
-        return hasAuthority(principal, "STUDENT");
-    }
-
-    private boolean hasAuthority(Principal principal, String authority) {
-        return principal instanceof Authentication auth
-                && auth.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals(authority));
     }
 
     private String escape(Object value) {

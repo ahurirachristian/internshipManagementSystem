@@ -1,32 +1,31 @@
-import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
+import { BrowserRouter, Navigate, Route, Routes, useNavigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
-import { ThemeProvider } from './context/ThemeContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import LoginPage from './components/LoginPage';
 import RegisterPage from './components/RegisterPage';
 import ForgotPasswordPage from './components/ForgotPasswordPage';
+import StudentDataProvider, { useStudentData } from './context/StudentDataContext';
 import StudentDashboard from './components/dashboards/StudentDashboard';
 import StudentProfile from './components/StudentProfile';
 import UniversityDashboard from './components/dashboards/UniversityDashboard';
 import CompanyDashboard from './components/dashboards/CompanyDashboard';
 import AdminDashboard from './components/dashboards/AdminDashboard';
 import AdminUsersPage from './components/dashboards/AdminUsersPage';
-import AdminStudentArea from './components/dashboards/AdminStudentArea';
 import AuditLogs from './components/dashboards/AuditLogs';
 import CompanyProfilePage from './components/dashboards/CompanyProfilePage';
 import CompanyPage from './components/CompanyPage';
 import UniversitiesManagement from './components/UniversitiesManagement';
 import PlacementMatching from './components/PlacementMatching';
+import VacanciesManagement from './components/VacanciesManagement';
 import FileManagement from './components/FileManagement';
-import UniversityStudents from './components/UniversityStudents';
-import SchoolsManagement from './components/dashboards/SchoolsManagement';
-import DepartmentsManagement from './components/dashboards/DepartmentsManagement';
-import ProgrammesManagement from './components/dashboards/ProgrammesManagement';
-import AcademicUnitsManagement from './components/dashboards/AcademicUnitsManagement';
-import CourseManagement from './components/dashboards/CourseManagement';
-import StaffManagement from './components/dashboards/StaffManagement';
-import UnitCoursesManagement from './components/dashboards/UnitCoursesManagement';
 import DashboardLayout from './components/DashboardLayout';
+import DayDiariesPage from './components/dashboards/DayDiariesPage';
+import InternshipProgress from './components/InternshipProgress';
+import LearningInstituteSection from './components/dashboards/LearningInstituteSection';
+import CompaniesSection from './components/dashboards/CompaniesSection';
+import IndustrialSupervisorSection from './components/dashboards/IndustrialSupervisorSection';
+import UniversitySupervisorSection from './components/dashboards/UniversitySupervisorSection';
+import SettingsSection from './components/dashboards/SettingsSection';
 import './App.css';
 
 function CompanyManagement() {
@@ -45,14 +44,6 @@ function PlacementsPage() {
   );
 }
 
-function UniversityStudentsPage() {
-  return (
-    <DashboardLayout title="Students" subtitle="Manage students by school/department">
-      <UniversityStudents />
-    </DashboardLayout>
-  );
-}
-
 function UniversitiesPage() {
   return (
     <DashboardLayout title="University Management" subtitle="Manage registered universities">
@@ -61,58 +52,93 @@ function UniversitiesPage() {
   );
 }
 
-function SchoolsPage() {
+function StudentProgressPage() {
   return (
-    <DashboardLayout title="Schools Management" subtitle="Manage colleges, schools and directorates">
-      <SchoolsManagement />
+    <DashboardLayout title="Level of Progress" subtitle="Track your internship progress">
+      <InternshipProgress />
     </DashboardLayout>
   );
 }
 
-function DepartmentsPage() {
+function StudentTasksPage() {
+  const { tasks } = useStudentData();
+
   return (
-    <DashboardLayout title="Departments Management" subtitle="Manage departments within schools">
-      <DepartmentsManagement />
+    <DashboardLayout title="Tasks" subtitle="Your assigned tasks">
+      <div className="card-panel">
+        <h2>Tasks</h2>
+        <p>Your assigned tasks will appear here.</p>
+        <div style={{ overflowX: 'auto', marginTop: '12px' }}>
+          <table className="tasks-table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Title</th>
+                <th>Assignee</th>
+                <th>Priority</th>
+                <th>Status</th>
+                <th>Due Date</th>
+              </tr>
+            </thead>
+            <tbody>
+              {tasks.map((task) => {
+                const statusClass = task.status === 'Completed'
+                  ? 'row-completed'
+                  : task.status === 'In Progress'
+                    ? 'row-in-progress'
+                    : 'row-uncompleted';
+                return (
+                  <tr key={task.id} className={statusClass}>
+                    <td>{task.id}</td>
+                    <td>{task.title}</td>
+                    <td>{task.assignee}</td>
+                    <td>{task.priority}</td>
+                    <td>
+                      <span className={`pill pill-${task.status === 'Completed' ? 'done' : task.status === 'In Progress' ? 'in-progress' : 'pending'}`}>
+                        {task.status}
+                      </span>
+                    </td>
+                    <td>{task.dueDate}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      </div>
     </DashboardLayout>
   );
 }
 
-function ProgrammesPage() {
+function StudentLearningInstitutePage() {
   return (
-    <DashboardLayout title="Programmes Management" subtitle="Manage academic programmes">
-      <ProgrammesManagement />
+    <DashboardLayout title="Learning Institute" subtitle="Learning institute details">
+      <LearningInstituteSection />
     </DashboardLayout>
   );
 }
 
-function AcademicUnitsPage() {
+function StudentCompaniesPage() {
   return (
-    <DashboardLayout title="Academic Units Management" subtitle="Manage colleges, schools and directorates as academic units">
-      <AcademicUnitsManagement />
+    <DashboardLayout title="Companies" subtitle="Company placements">
+      <CompaniesSection />
     </DashboardLayout>
   );
 }
 
-function CoursesPage() {
+function StudentProfileSettingsPage() {
   return (
-    <DashboardLayout title="Course Management" subtitle="Manage academic courses offered by the university">
-      <CourseManagement />
+    <DashboardLayout title="Profile Settings" subtitle="Manage your preferences">
+      <SettingsSection />
     </DashboardLayout>
   );
 }
 
-function StaffPage() {
+function StudentSupervisorPage() {
   return (
-    <DashboardLayout title="Staff Management" subtitle="Manage university supervisors and staff">
-      <StaffManagement />
-    </DashboardLayout>
-  );
-}
-
-function UnitCoursesPage() {
-  return (
-    <DashboardLayout title="Unit Courses" subtitle="Courses offered under each academic unit">
-      <UnitCoursesManagement />
+    <DashboardLayout title="Supervisor" subtitle="Your supervisors">
+      <IndustrialSupervisorSection />
+      <UniversitySupervisorSection />
     </DashboardLayout>
   );
 }
@@ -139,8 +165,68 @@ function AppRoutes() {
       <Route
         path="/student/dashboard"
         element={
-          <ProtectedRoute roles={["STUDENT"]}>
-            <StudentDashboard />
+          <ProtectedRoute roles={["ADMIN", "STUDENT"]}>
+            <StudentDataProvider>
+              <StudentDashboard />
+            </StudentDataProvider>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/student/progress"
+        element={
+          <ProtectedRoute roles={["ADMIN", "STUDENT"]}>
+            <StudentProgressPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/student/tasks"
+        element={
+          <ProtectedRoute roles={["ADMIN", "STUDENT"]}>
+            <StudentDataProvider>
+              <StudentTasksPage />
+            </StudentDataProvider>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/student/learning-institute"
+        element={
+          <ProtectedRoute roles={["ADMIN", "STUDENT"]}>
+            <StudentLearningInstitutePage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/student/companies"
+        element={
+          <ProtectedRoute roles={["ADMIN", "STUDENT"]}>
+            <StudentCompaniesPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/student/profile-settings"
+        element={
+          <ProtectedRoute roles={["ADMIN", "STUDENT"]}>
+            <StudentProfileSettingsPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/student/supervisor"
+        element={
+          <ProtectedRoute roles={["ADMIN", "STUDENT"]}>
+            <StudentSupervisorPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/student/day-diaries"
+        element={
+          <ProtectedRoute roles={["ADMIN", "STUDENT"]}>
+            <DayDiariesPage />
           </ProtectedRoute>
         }
       />
@@ -165,14 +251,6 @@ function AppRoutes() {
         element={
           <ProtectedRoute roles={["ADMIN", "SUPERVISOR"]}>
             <UniversityDashboard />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/university/students"
-        element={
-          <ProtectedRoute roles={["ADMIN", "SUPERVISOR"]}>
-            <UniversityStudentsPage />
           </ProtectedRoute>
         }
       />
@@ -209,14 +287,6 @@ function AppRoutes() {
         }
       />
       <Route
-        path="/admin/students"
-        element={
-          <ProtectedRoute role="ADMIN">
-            <AdminStudentArea />
-          </ProtectedRoute>
-        }
-      />
-      <Route
         path="/admin/users"
         element={
           <ProtectedRoute role="ADMIN">
@@ -241,66 +311,18 @@ function AppRoutes() {
         }
       />
       <Route
-        path="/university/schools"
-        element={
-          <ProtectedRoute role="SUPERVISOR">
-            <SchoolsPage />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/university/departments"
-        element={
-          <ProtectedRoute role="SUPERVISOR">
-            <DepartmentsPage />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/university/programmes"
-        element={
-          <ProtectedRoute role="SUPERVISOR">
-            <ProgrammesPage />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/university/academic-units"
-        element={
-          <ProtectedRoute role="SUPERVISOR">
-            <AcademicUnitsPage />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/university/courses"
-        element={
-          <ProtectedRoute role="SUPERVISOR">
-            <CoursesPage />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/university/staff"
-        element={
-          <ProtectedRoute role="SUPERVISOR">
-            <StaffPage />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/university/unit-courses"
-        element={
-          <ProtectedRoute role="SUPERVISOR">
-            <UnitCoursesPage />
-          </ProtectedRoute>
-        }
-      />
-      <Route
         path="/admin/placements"
         element={
+          <ProtectedRoute roles={['ADMIN', 'SUPERVISOR']}>
+            <PlacementMatching />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/vacancies"
+        element={
           <ProtectedRoute role="ADMIN">
-            <PlacementsPage />
+            <VacanciesManagement />
           </ProtectedRoute>
         }
       />
@@ -328,9 +350,7 @@ function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
-        <ThemeProvider>
-          <AppRoutes />
-        </ThemeProvider>
+        <AppRoutes />
       </AuthProvider>
     </BrowserRouter>
   );

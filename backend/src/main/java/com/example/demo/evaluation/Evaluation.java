@@ -18,9 +18,6 @@ public class Evaluation {
     @Column(nullable = false)
     private Long studentId;
 
-    @Column(name = "university_id", nullable = true)
-    private Long universityId;
-
     @Column(nullable = true)
     private Long placementId;
 
@@ -30,23 +27,16 @@ public class Evaluation {
     @Column(nullable = false)
     private String supervisorUsername;
 
-    /**
-     * M5: typed reference to the users.id of the evaluating supervisor,
-     * alongside the legacy username/email string (dropped at M6c).
-     */
     @Column(nullable = true)
-    private Long supervisorUserId;
-
-    @Column(nullable = false)
     private Integer punctuality;
 
-    @Column(nullable = false)
+    @Column(nullable = true)
     private Integer practicalWorkEthics;
 
-    @Column(nullable = false)
+    @Column(nullable = true)
     private Integer attendance;
 
-    @Column(nullable = false)
+    @Column(nullable = true)
     private Integer workplacePerformance;
 
     @Column(nullable = true)
@@ -97,28 +87,12 @@ public class Evaluation {
         this.studentId = studentId;
     }
 
-    public Long getUniversityId() {
-        return universityId;
-    }
-
-    public void setUniversityId(Long universityId) {
-        this.universityId = universityId;
-    }
-
     public Long getPlacementId() {
         return placementId;
     }
 
     public void setPlacementId(Long placementId) {
         this.placementId = placementId;
-    }
-
-    public Long getSupervisorUserId() {
-        return supervisorUserId;
-    }
-
-    public void setSupervisorUserId(Long supervisorUserId) {
-        this.supervisorUserId = supervisorUserId;
     }
 
     public String getSupervisorType() {

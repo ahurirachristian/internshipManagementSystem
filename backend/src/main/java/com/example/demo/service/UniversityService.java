@@ -2,12 +2,14 @@ package com.example.demo.service;
 
 import java.util.List;
 import java.util.Optional;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import com.example.demo.auth.Role;
 import com.example.demo.auth.UserEntity;
 import com.example.demo.auth.UserRepository;
+import com.example.demo.dto.StudentCredentialRequest;
 import com.example.demo.dto.UniversityDto;
 import com.example.demo.dto.UniversityRequest;
 import com.example.demo.student.StudentProfile;
@@ -18,6 +20,8 @@ import com.example.demo.university.UniversityRepository;
 @Service
 @Transactional
 public class UniversityService {
+
+    private static final String DEFAULT_PASSWORD = "Student@123";
 
     private final UserRepository userRepository;
     private final StudentProfileRepository studentProfileRepository;
@@ -35,75 +39,105 @@ public class UniversityService {
     }
 
     public List<University> searchByName(String query) {
-        return universityRepository.findByFullNameContainingIgnoreCase(query);
+        return universityRepository.findByNameStartingWithIgnoreCase(query);
     }
 
     public List<University> getAllUniversities() {
         return universityRepository.findAll();
     }
 
-    public Optional<University> findById(Integer id) {
+    public Optional<University> findById(Long id) {
         return universityRepository.findById(id);
     }
 
+    @CacheEvict(value = "universities", allEntries = true)
     public University create(UniversityRequest request) {
-        if (request.getFullName() == null || request.getFullName().isBlank()) {
-            throw new IllegalArgumentException("University full name is required.");
+        if (request.getName() == null || request.getName().isBlank()) {
+            throw new IllegalArgumentException("University name is required.");
         }
-        if (request.getShortForm() == null || request.getShortForm().isBlank()) {
-            throw new IllegalArgumentException("University short form is required.");
-        }
-        if (universityRepository.findByFullNameIgnoreCase(request.getFullName().trim()).isPresent()) {
-            throw new IllegalArgumentException("A university with this full name already exists.");
-        }
-        if (universityRepository.findByShortFormIgnoreCase(request.getShortForm().trim()).isPresent()) {
-            throw new IllegalArgumentException("A university with this short form already exists.");
+        if (universityRepository.findByNameIgnoreCase(request.getName().trim()).isPresent()) {
+            throw new IllegalArgumentException("A university with this name already exists.");
         }
         University university = new University();
-        university.setShortForm(request.getShortForm().trim());
-        university.setFullName(request.getFullName().trim());
-        university.setCountry(request.getCountry() != null ? request.getCountry().trim() : "Uganda");
-        university.setEstablishedYear(request.getEstablishedYear());
+        university.setName(request.getName().trim());
+        university.setCode(request.getCode() != null ? request.getCode().trim() : null);
+        university.setLocation(request.getLocation() != null ? request.getLocation().trim() : null);
+        university.setEmail(request.getEmail() != null ? request.getEmail().trim() : null);
         return universityRepository.save(university);
     }
 
-    public Optional<University> update(Integer id, UniversityRequest request) {
+    @CacheEvict(value = "universities", allEntries = true)
+    public Optional<University> update(Long id, UniversityRequest request) {
         return universityRepository.findById(id)
                 .map(existing -> {
-                    if (request.getShortForm() != null && !request.getShortForm().isBlank()) {
-                        existing.setShortForm(request.getShortForm().trim());
+                    if (request.getName() != null && !request.getName().isBlank()) {
+                        existing.setName(request.getName().trim());
                     }
-                    if (request.getFullName() != null && !request.getFullName().isBlank()) {
-                        existing.setFullName(request.getFullName().trim());
-                    }
-                    if (request.getCountry() != null) {
-                        existing.setCountry(request.getCountry().trim());
-                    }
-                    if (request.getEstablishedYear() != null) {
-                        existing.setEstablishedYear(request.getEstablishedYear());
-                    }
+                    existing.setCode(request.getCode() != null ? request.getCode().trim() : null);
+                    existing.setLocation(request.getLocation() != null ? request.getLocation().trim() : null);
+                    existing.setEmail(request.getEmail() != null ? request.getEmail().trim() : null);
                     return universityRepository.save(existing);
                 });
     }
 
-    public void deleteById(Integer id) {
+    @CacheEvict(value = "universities", allEntries = true)
+    public void deleteById(Long id) {
         universityRepository.deleteById(id);
     }
 
     public UniversityDto toDto(University university) {
-        return new UniversityDto(university.getUniversityId(), university.getShortForm(),
-                university.getFullName(), university.getCountry(), university.getEstablishedYear());
+        return new UniversityDto(university.getUniversityId(), university.getName(),
+                university.getCode(), university.getLocation(), university.getEmail());
     }
 
     public List<StudentProfile> getRegisteredStudents() {
         return studentProfileRepository.findAll();
     }
 
-    public List<StudentProfile> getStudentsBySupervisor(String supervisorName) {
-        return studentProfileRepository.findByAcademicSupervisor(supervisorName);
+    public List<StudentProfile> getStudentsBySupervisor(String supervisorUsername) {
+        return studentProfileRepository.findByUniversitySupervisor(supervisorUsername);
     }
 
-    public Optional<StudentProfile> findStudentProfile(String studentNo) {
-        return studentProfileRepository.findByStudentNo(studentNo);
+    public UserEntity createStudentCredential(StudentCredentialRequest request, String supervisorUsername) {
+        if (request == null || request.getEmail() == null || request.getEmail().isBlank()) {
+            throw new IllegalArgumentException("Student email is required.");
+        }
+
+        if (userRepository.findByUsername(request.getEmail()).isPresent()) {
+            throw new IllegalArgumentException("A student account already exists for this email.");
+        }
+
+        String[] parts = request.getFullName().trim().split("\\s+");
+        String firstName = parts.length > 0 ? parts[0] : "Student";
+        String lastName = parts.length > 1 ? parts[1] : "User";
+
+        UserEntity user = new UserEntity();
+        user.setUsername(request.getEmail());
+        user.setPassword(passwordEncoder.encode(DEFAULT_PASSWORD));
+        user.setRole(Role.STUDENT);
+        UserEntity savedUser = userRepository.save(user);
+
+        StudentProfile profile = new StudentProfile();
+        profile.setUsername(request.getEmail());
+        profile.setFirstName(firstName);
+        profile.setLastName(lastName);
+        profile.setEmail(request.getEmail());
+        profile.setStudentNumber(request.getStudentId());
+        profile.setRegistrationNumber(request.getStudentId());
+        profile.setDegreeProgram(request.getDepartment());
+        profile.setYearOfStudy(3);
+        profile.setPhoneNumber("Pending");
+        profile.setInternshipCompany("Pending");
+        profile.setUniversitySupervisor(supervisorUsername);
+        profile.setIndustrialSupervisorId("Pending");
+        profile.setCompanyId(null);
+        profile.setPictureUrl("/images/default-profile.png");
+        studentProfileRepository.save(profile);
+
+        return savedUser;
+    }
+
+    public Optional<StudentProfile> findStudentProfile(String email) {
+        return studentProfileRepository.findByUsername(email);
     }
 }

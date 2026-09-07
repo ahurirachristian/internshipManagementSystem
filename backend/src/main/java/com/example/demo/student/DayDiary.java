@@ -7,7 +7,9 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
 import jakarta.persistence.Lob;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.FetchType;
 
@@ -38,18 +40,31 @@ public class DayDiary {
     @Column(nullable = false)
     private String status = "PENDING";
 
+    @Column(nullable = true)
+    private String accountNumber;
+
+    @Lob
+    @Column(nullable = true)
+    private String action;
+
+    @Lob
+    @Column(nullable = true)
+    private String technologyTools;
+
     @Lob
     private String supervisorFeedback;
 
-    /**
-     * M4: rekeyed from the Model-A student_profile_id join to the Model-B
-     * students.id reference (MIGRATION_PLAN.md R1/R2).
-     */
-    @Column(name = "student_id", nullable = false)
-    private Long studentId;
+    @Lob
+    @Column(nullable = true)
+    private String industrialSupervisorComment;
 
-    @Column(name = "university_id", nullable = true)
-    private Long universityId;
+    @Lob
+    @Column(nullable = true)
+    private String universitySupervisorComment;
+
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "student_profile_id", nullable = false)
+    private StudentProfile studentProfile;
 
     public DayDiary() {
     }
@@ -110,19 +125,51 @@ public class DayDiary {
         this.supervisorFeedback = supervisorFeedback;
     }
 
-    public Long getStudentId() {
-        return studentId;
+    public String getAccountNumber() {
+        return accountNumber;
     }
 
-    public void setStudentId(Long studentId) {
-        this.studentId = studentId;
+    public void setAccountNumber(String accountNumber) {
+        this.accountNumber = accountNumber;
     }
 
-    public Long getUniversityId() {
-        return universityId;
+    public String getAction() {
+        return action;
     }
 
-    public void setUniversityId(Long universityId) {
-        this.universityId = universityId;
+    public void setAction(String action) {
+        this.action = action;
+    }
+
+    public String getTechnologyTools() {
+        return technologyTools;
+    }
+
+    public void setTechnologyTools(String technologyTools) {
+        this.technologyTools = technologyTools;
+    }
+
+    public String getIndustrialSupervisorComment() {
+        return industrialSupervisorComment;
+    }
+
+    public void setIndustrialSupervisorComment(String industrialSupervisorComment) {
+        this.industrialSupervisorComment = industrialSupervisorComment;
+    }
+
+    public String getUniversitySupervisorComment() {
+        return universitySupervisorComment;
+    }
+
+    public void setUniversitySupervisorComment(String universitySupervisorComment) {
+        this.universitySupervisorComment = universitySupervisorComment;
+    }
+
+    public StudentProfile getStudentProfile() {
+        return studentProfile;
+    }
+
+    public void setStudentProfile(StudentProfile studentProfile) {
+        this.studentProfile = studentProfile;
     }
 }
