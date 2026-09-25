@@ -5,7 +5,7 @@ import ExportButton from './ExportButton';
 const initialForm = {
   name: '',
   country: '',
-  branch: '',
+  city: '',
   email: '',
   website: '',
   phone: '',
@@ -41,13 +41,13 @@ export default function CompanyPage() {
     setEditingId(existingCompany?.id ?? null);
     setForm(existingCompany ? {
       name: existingCompany.name || '',
-      country: existingCompany.location || '',
-      branch: existingCompany.department || '',
+      country: existingCompany.country || '',
+      city: existingCompany.city || '',
       email: existingCompany.email || '',
       website: existingCompany.website || '',
       phone: existingCompany.phone || '',
-      postalAddress: existingCompany.profile?.split(' | ')[0] || '',
-      physicalAddress: existingCompany.profile?.split(' | ')[1] || '',
+      postalAddress: existingCompany.postalAddress || '',
+      physicalAddress: existingCompany.physicalAddress || '',
     } : initialForm);
     setModalOpen(true);
   }
@@ -72,7 +72,7 @@ export default function CompanyPage() {
       const payload = {
         name: form.name.trim(),
         country: form.country.trim(),
-        branch: form.branch.trim(),
+        city: form.city.trim(),
         email: form.email.trim(),
         website: form.website.trim(),
         phone: form.phone.trim(),
@@ -109,12 +109,11 @@ export default function CompanyPage() {
   }
 
       const tableRows = companies.map((company) => {
-          const [postalAddress, physicalAddress] = company.profile?.split(' | ') || ['', ''];
           return (
             <tr key={company.id} style={{ borderBottom: '1px solid #f3f4f6' }}>
               <td style={{ padding: '16px 24px', fontSize: '0.875rem', color: '#111827' }}>{company.name}</td>
-              <td style={{ padding: '16px 24px', fontSize: '0.875rem', color: '#374151' }}>{company.location}</td>
-              <td style={{ padding: '16px 24px', fontSize: '0.875rem', color: '#374151' }}>{company.department}</td>
+              <td style={{ padding: '16px 24px', fontSize: '0.875rem', color: '#374151' }}>{company.country}</td>
+              <td style={{ padding: '16px 24px', fontSize: '0.875rem', color: '#374151' }}>{company.city}</td>
               <td style={{ padding: '16px 24px', fontSize: '0.875rem', color: '#374151' }}>{company.email}</td>
               <td style={{ padding: '16px 24px', fontSize: '0.875rem', color: '#374151' }}>
                 <a href={company.website} target="_blank" rel="noreferrer" style={{ color: '#065f46', textDecoration: 'none' }}>
@@ -122,7 +121,7 @@ export default function CompanyPage() {
                 </a>
               </td>
               <td style={{ padding: '16px 24px', fontSize: '0.875rem', color: '#374151' }}>{company.phone}</td>
-              <td style={{ padding: '16px 24px', fontSize: '0.875rem', color: '#374151' }}>{postalAddress}</td>
+              <td style={{ padding: '16px 24px', fontSize: '0.875rem', color: '#374151' }}>{company.postalAddress}</td>
               <td style={{ padding: '16px 24px', fontSize: '0.875rem' }}>
                 <div style={{ display: 'flex', gap: '8px' }}>
                   <button className="icon-button edit" onClick={() => openModal(company)}>
@@ -166,7 +165,7 @@ export default function CompanyPage() {
               <tr style={{ borderBottom: '1px solid #e5e7eb' }}>
                 <th style={{ padding: '16px 24px', fontSize: '0.875rem', fontWeight: 600, color: '#374151' }}>Company Name</th>
                 <th style={{ padding: '16px 24px', fontSize: '0.875rem', fontWeight: 600, color: '#374151' }}>Country</th>
-                <th style={{ padding: '16px 24px', fontSize: '0.875rem', fontWeight: 600, color: '#374151' }}>Branch</th>
+                <th style={{ padding: '16px 24px', fontSize: '0.875rem', fontWeight: 600, color: '#374151' }}>City</th>
                 <th style={{ padding: '16px 24px', fontSize: '0.875rem', fontWeight: 600, color: '#374151' }}>Email</th>
                 <th style={{ padding: '16px 24px', fontSize: '0.875rem', fontWeight: 600, color: '#374151' }}>Website</th>
                 <th style={{ padding: '16px 24px', fontSize: '0.875rem', fontWeight: 600, color: '#374151' }}>Phone</th>
@@ -196,64 +195,71 @@ export default function CompanyPage() {
                 ×
               </button>
             </div>
+            {/* Inside the dialog: save failures (e.g. a duplicate name) were
+                previously rendered behind the overlay and never seen. */}
+            {error && <div role="alert" className="alert alert-error">{error}</div>}
             <form onSubmit={handleSubmit} className="modal-form">
-              <label>
-                Company Name
-                <input
-                  value={form.name}
-                  onChange={(e) => setForm({ ...form, name: e.target.value })}
-                />
-              </label>
-              <label>
-                Country
-                <input
-                  value={form.country}
-                  onChange={(e) => setForm({ ...form, country: e.target.value })}
-                />
-              </label>
-              <label>
-                Branch
-                <input
-                  value={form.branch}
-                  onChange={(e) => setForm({ ...form, branch: e.target.value })}
-                />
-              </label>
-              <label>
-                Company Email
-                <input
-                  type="email"
-                  value={form.email}
-                  onChange={(e) => setForm({ ...form, email: e.target.value })}
-                />
-              </label>
-              <label>
-                Website
-                <input
-                  value={form.website}
-                  onChange={(e) => setForm({ ...form, website: e.target.value })}
-                />
-              </label>
-              <label>
-                Phone
-                <input
-                  value={form.phone}
-                  onChange={(e) => setForm({ ...form, phone: e.target.value })}
-                />
-              </label>
-              <label>
-                Postal Address
-                <input
-                  value={form.postalAddress}
-                  onChange={(e) => setForm({ ...form, postalAddress: e.target.value })}
-                />
-              </label>
-              <label>
-                Physical Address
-                <input
-                  value={form.physicalAddress}
-                  onChange={(e) => setForm({ ...form, physicalAddress: e.target.value })}
-                />
-              </label>
+              {/* Scrollable body: eight fields cannot fit 90vh in one column,
+                  and without this wrapper the excess paints outside the box. */}
+              <div className="modal-body">
+                <label>
+                  Company Name
+                  <input
+                    value={form.name}
+                    onChange={(e) => setForm({ ...form, name: e.target.value })}
+                  />
+                </label>
+                <label>
+                  Country
+                  <input
+                    value={form.country}
+                    onChange={(e) => setForm({ ...form, country: e.target.value })}
+                  />
+                </label>
+                <label>
+                  City
+                  <input
+                    value={form.city}
+                    onChange={(e) => setForm({ ...form, city: e.target.value })}
+                  />
+                </label>
+                <label>
+                  Company Email
+                  <input
+                    type="email"
+                    value={form.email}
+                    onChange={(e) => setForm({ ...form, email: e.target.value })}
+                  />
+                </label>
+                <label>
+                  Website
+                  <input
+                    value={form.website}
+                    onChange={(e) => setForm({ ...form, website: e.target.value })}
+                  />
+                </label>
+                <label>
+                  Phone
+                  <input
+                    value={form.phone}
+                    onChange={(e) => setForm({ ...form, phone: e.target.value })}
+                  />
+                </label>
+                <label>
+                  Postal Address
+                  <input
+                    value={form.postalAddress}
+                    onChange={(e) => setForm({ ...form, postalAddress: e.target.value })}
+                  />
+                </label>
+                <label>
+                  Physical Address
+                  <input
+                    value={form.physicalAddress}
+                    onChange={(e) => setForm({ ...form, physicalAddress: e.target.value })}
+                  />
+                </label>
+              </div>
               <div className="modal-actions">
                 <button type="button" className="secondary-button" onClick={closeModal}>
                   Cancel

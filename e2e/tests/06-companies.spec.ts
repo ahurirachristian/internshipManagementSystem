@@ -29,7 +29,10 @@ test.describe('06 companies', () => {
     // NOTE: the page shows two "Company Management" h1s — the shell's plus
     // CompanyPage's own header (which carries the Add/Export buttons).
     await expect(page.locator('h1.page-title')).toHaveText('Company Management');
+    // the rename test renames E2E Test Company -> E2E Renamed Company; clean
+    // both, otherwise the next run hits the unique name constraint on save
     await apiDeleteByName(page, 'E2E Test Company');
+    await apiDeleteByName(page, 'E2E Renamed Company');
     await page.reload();
     await expect(page.locator('table')).toBeVisible();
     await expect(page.locator('table tbody tr').first()).toBeVisible({ timeout: 15_000 });
@@ -45,7 +48,8 @@ test.describe('06 companies', () => {
     await expect(page.locator(MODAL_TITLE)).toHaveText('Add Company');
 
     await page.getByRole('button', { name: 'Create Company' }).click({ force: true });
-    await expect(page.getByText('Name, email and website are required.')).toBeVisible();
+    // the alert renders inside the dialog (it used to sit behind the overlay)
+    await expect(page.locator('.modal-content').getByText('Name, email and website are required.')).toBeVisible();
     await expect(page.locator(MODAL_TITLE)).toBeVisible(); // modal stays open
 
     await page.getByRole('button', { name: 'Cancel' }).click();
@@ -63,7 +67,7 @@ test.describe('06 companies', () => {
     await page.getByRole('button', { name: '+ Add Company' }).click();
     await page.locator('.modal-content label', { hasText: 'Company Name' }).locator('input').fill('E2E Test Company');
     await page.locator('.modal-content label', { hasText: 'Country' }).locator('input').fill('Uganda');
-    await page.locator('.modal-content label', { hasText: 'Branch' }).locator('input').fill('Kampala');
+    await page.locator('.modal-content label', { hasText: 'City' }).locator('input').fill('Kampala');
     await page.locator('.modal-content label', { hasText: 'Company Email' }).locator('input').fill('e2e@testco.ug');
     await page.locator('.modal-content label', { hasText: 'Website' }).locator('input').fill('https://testco.ug');
     await page.getByRole('button', { name: 'Create Company' }).click({ force: true });
@@ -78,6 +82,7 @@ test.describe('06 companies', () => {
     // create the target
     await page.getByRole('button', { name: '+ Add Company' }).click();
     await page.locator('.modal-content label', { hasText: 'Company Name' }).locator('input').fill('E2E Test Company');
+    await page.locator('.modal-content label', { hasText: 'City' }).locator('input').fill('Kampala');
     await page.locator('.modal-content label', { hasText: 'Company Email' }).locator('input').fill('e2e@testco.ug');
     await page.locator('.modal-content label', { hasText: 'Website' }).locator('input').fill('https://testco.ug');
     await page.getByRole('button', { name: 'Create Company' }).click({ force: true });
@@ -89,6 +94,10 @@ test.describe('06 companies', () => {
     await expect(
       page.locator('.modal-content label', { hasText: 'Company Name' }).locator('input')
     ).toHaveValue('E2E Test Company');
+    // the edit dialog pre-fills from the real DB columns
+    await expect(
+      page.locator('.modal-content label', { hasText: 'City' }).locator('input')
+    ).toHaveValue('Kampala');
 
     await page.locator('.modal-content label', { hasText: 'Company Name' }).locator('input').fill('E2E Renamed Company');
     await page.getByRole('button', { name: 'Save Changes' }).click({ force: true });

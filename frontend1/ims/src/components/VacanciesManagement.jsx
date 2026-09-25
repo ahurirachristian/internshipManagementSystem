@@ -182,64 +182,71 @@ export default function VacanciesManagement() {
                 ×
               </button>
             </div>
+            {/* Inside the dialog: save failures were previously rendered behind
+                the overlay and never seen. */}
+            {error && <div role="alert" className="alert alert-error">{error}</div>}
             <form onSubmit={handleSubmit} className="modal-form">
-              <label>
-                Title
-                <input
-                  value={form.title}
-                  onChange={(e) => setForm({ ...form, title: e.target.value })}
-                />
-              </label>
-              <label>
-                Description
-                <textarea
-                  rows="3"
-                  value={form.description}
-                  onChange={(e) => setForm({ ...form, description: e.target.value })}
-                />
-              </label>
-              <label>
-                Company ID
-                <input
-                  type="number"
-                  value={form.companyId}
-                  onChange={(e) => setForm({ ...form, companyId: e.target.value })}
-                />
-              </label>
-              <label>
-                Location
-                <input
-                  value={form.location}
-                  onChange={(e) => setForm({ ...form, location: e.target.value })}
-                />
-              </label>
-              <label>
-                Requirements
-                <textarea
-                  rows="3"
-                  value={form.requirements}
-                  onChange={(e) => setForm({ ...form, requirements: e.target.value })}
-                />
-              </label>
-              <label>
-                Deadline
-                <input
-                  type="date"
-                  value={form.deadline}
-                  onChange={(e) => setForm({ ...form, deadline: e.target.value })}
-                />
-              </label>
-              <label>
-                Status
-                <select
-                  value={form.status}
-                  onChange={(e) => setForm({ ...form, status: e.target.value })}
-                >
-                  <option value="OPEN">Open</option>
-                  <option value="CLOSED">Closed</option>
-                  <option value="FILLED">Filled</option>
-                </select>
-              </label>
+              {/* Scrollable body: seven fields cannot fit 90vh in one column,
+                  and without this wrapper the excess paints outside the box. */}
+              <div className="modal-body">
+                <label>
+                  Title
+                  <input
+                    value={form.title}
+                    onChange={(e) => setForm({ ...form, title: e.target.value })}
+                  />
+                </label>
+                <label>
+                  Description
+                  <textarea
+                    rows="3"
+                    value={form.description}
+                    onChange={(e) => setForm({ ...form, description: e.target.value })}
+                  />
+                </label>
+                <label>
+                  Company ID
+                  <input
+                    type="number"
+                    value={form.companyId}
+                    onChange={(e) => setForm({ ...form, companyId: e.target.value })}
+                  />
+                </label>
+                <label>
+                  Location
+                  <input
+                    value={form.location}
+                    onChange={(e) => setForm({ ...form, location: e.target.value })}
+                  />
+                </label>
+                <label>
+                  Requirements
+                  <textarea
+                    rows="3"
+                    value={form.requirements}
+                    onChange={(e) => setForm({ ...form, requirements: e.target.value })}
+                  />
+                </label>
+                <label>
+                  Deadline
+                  <input
+                    type="date"
+                    value={form.deadline}
+                    onChange={(e) => setForm({ ...form, deadline: e.target.value })}
+                  />
+                </label>
+                <label>
+                  Status
+                  <select
+                    value={form.status}
+                    onChange={(e) => setForm({ ...form, status: e.target.value })}
+                  >
+                    <option value="OPEN">Open</option>
+                    <option value="CLOSED">Closed</option>
+                    <option value="FILLED">Filled</option>
+                  </select>
+                </label>
+              </div>
               <div className="modal-actions">
                 <button type="button" className="secondary-button" onClick={closeModal}>
                   Cancel

@@ -168,7 +168,10 @@ test.describe('07 vacancies', () => {
     await expect(page.locator('.modal-content h2')).toHaveText('Add Vacancy');
 
     await page.getByRole('button', { name: 'Create Vacancy' }).click({ force: true });
-    await expect(page.getByText('Title, company, description and deadline are required.')).toBeVisible();
+    // the alert renders inside the dialog (it used to sit behind the overlay)
+    await expect(
+      page.locator('.modal-content').getByText('Title, company, description and deadline are required.')
+    ).toBeVisible();
     await expect(page.locator('.modal-content h2')).toBeVisible();
 
     await page.getByRole('button', { name: 'Cancel' }).click({ force: true });
