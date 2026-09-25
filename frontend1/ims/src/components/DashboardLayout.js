@@ -258,6 +258,26 @@ export default function DashboardLayout({
             </div>
           </div>
 
+          {tabs && tabs.length > 0 && (
+            <div className="tabs" role="tablist">
+              {tabs.map((tab) => (
+                <button
+                  key={tab.id}
+                  type="button"
+                  role="tab"
+                  aria-selected={activeTab === tab.id}
+                  className={`tab ${activeTab === tab.id ? 'active' : ''}`}
+                  onClick={() => onTabChange && onTabChange(tab.id)}
+                >
+                  {tab.label}
+                  {typeof tab.count === 'number' && (
+                    <span className="tab-count">{tab.count}</span>
+                  )}
+                </button>
+              ))}
+            </div>
+          )}
+
           {children}
         </div>
       </div>
