@@ -66,21 +66,20 @@ const ADMIN_REACHABLE: RouteCase[] = [
 /**
  * Routes that must load without any console error or failed request for an ADMIN.
  *
- * Deliberately excludes two ADMIN-reachable pages that currently call APIs scoped
- * to another role, so they cannot succeed for an ADMIN:
- *   /university/dashboard -> 400 /api/students/university[/profile],
- *                            400 /api/university/stats,
- *                            403 /api/university/departments,
- *                            403 /api/university/programmes
- *   /student/day-diaries  -> 500 /api/diaries/student/admin
- * Those are tracked as defect H10 and fixed in the cross-area block, which moves them
- * into this list once they are clean.
+ * Previously excluded two ADMIN-reachable pages that called APIs scoped to
+ * another role; the cross-area block fixed both, so they now join this list:
+ *   /university/dashboard -> loads are gated on the viewer's linked university
+ *   /student/day-diaries  -> now uses /api/diaries/me (mock fallback if empty)
+ * /student/progress keeps a documented 404 probe (no student profile for an
+ * ADMIN) and is asserted with that allowlist in the cross-area spec.
  */
 const CLEAN_FOR_ADMIN: RouteCase[] = [
   ...ADMIN_ONLY,
   ['/admin/placements', 'Placement & Supervisor Management'],
   ['/company', 'Company Management'],
   ['/company/dashboard', 'Company Dashboard'],
+  ['/university/dashboard', 'University Dashboard'],
+  ['/student/day-diaries', 'Day Diaries'],
   ...ALL_ROLES,
 ];
 

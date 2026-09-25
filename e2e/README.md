@@ -41,7 +41,16 @@ cd frontend1/ims && BROWSER=none npm start
 
 The dev backend uses H2 in memory with `create-drop`, so **restarting the backend restores
 pristine seed data** (Nkumba `universityId=19`, Airtel `companyId=1`, `admin/admin123`, …).
-Restart it between full runs if a spec left data behind.
+Restart it between full runs if a spec left data behind:
+
+```bash
+pkill -f "spring-boot:run"; pkill -f DemoApplication   # wait for port 8082 to die
+cd backend && ./start.sh spring-boot:run               # fresh H2 re-seeds on boot
+```
+
+Playwright's `webServer` boots it automatically if the port is down (`reuseExistingServer: true`).
+Every spec also cleans its own throwaway records inside `beforeAll`/`afterAll` (exact-name
+matches), so a healthy run needs no manual reset.
 
 Tests must never mutate or delete seed records that later specs depend on (`admin`,
 university 19, company 1, the three seeded students). Create a uniquely named throwaway
@@ -63,16 +72,33 @@ record, assert against it, then delete it inside the same spec.
 |---|---|
 | `00-smoke.spec.ts` | stack reachability, login page renders |
 | `01-auth.spec.ts` | login, redirects, app shell on every protected route, sidebar toggle, notifications, logout |
-| `02-admin-dashboard-students.spec.ts` | KPIs, students tab, search, view/edit/delete |
-| `03-admin-dashboard-diaries.spec.ts` | diary logs, review modal, feedback persistence |
-| `04-admin-dashboard-exports.spec.ts` | CSV download contract (filename, contents, source) |
-| `05-admin-dashboard-system.spec.ts` | System tab tiles and navigation |
-| `06-admin-users.spec.ts` | user CRUD, role tabs, default password |
-| `07-admin-audit-logs.spec.ts` | audit log list and filters |
-| `08-admin-universities.spec.ts` | university CRUD, pagination, export |
-| `09-admin-placements.spec.ts` | placements, supervisors, evaluations |
-| `10-admin-vacancies.spec.ts` | vacancy CRUD and export |
-| `11-admin-companies.spec.ts` | company CRUD, export, profile drill-down |
-| `12-file-management.spec.ts` | file management placeholder behaviour |
-| `13-admin-cross-area.spec.ts` | student/university/company areas an admin can open |
-| `99-sweep.spec.ts` | console-error and failed-request sweep |
+| `02-admin-dashboard.spec.ts` | KPIs, tab switching, header search, view/edit/delete, empty states |
+| `03-admin-users.spec.ts` | user CRUD, role tabs, default password sign-in |
+| `04-audit-logs.spec.ts` | audit log list, action filters, ISO date-time filters |
+| `05-universities.spec.ts` | university CRUD, pagination, native validation, export |
+| `06-companies.spec.ts` | company CRUD (legacy modal, force clicks) |
+| `07-placements-vacancies.spec.ts` | placement tabs/search/modals, vacancy CRUD, deadline field |
+| `08-file-management.spec.ts` | file management placeholder behaviour, disabled dead controls |
+| `09-diary-review.spec.ts` | admin diary review, feedback persistence, student view (H6/H14/H15) |
+| `10-admin-student-crud.spec.ts` | 4-step student edit, validation gates, H5/H8, confirmed delete |
+| `11-csv-downloads.spec.ts` | CSV contract: filenames, headers, row counts, server vs client export (H1/H2/H3) |
+| `12-admin-cross-area.spec.ts` | cross-area routes as ADMIN, university-dashboard degradation, sidebar Vacancies entry |
+| `99-sweep.spec.ts` | final gate: routes silent, modal gauntlet, logout |
+
+## Recorded dead code (H12) — not deleted during this phase
+
+These files are unreachable from the live tree (zero importers) and are kept until a
+dedicated cleanup commit re-runs `routes.test.js` after the phase:
+
+- `frontend1/ims/src/components/layout/*` — `nav.jsx`, `Sidebar.jsx`, `Header.jsx`,
+  `Breadcrumb.jsx`, `FloatingToolbar.jsx` (the live sidebar is `DashboardLayout.js`)
+- `frontend1/ims/src/components/dashboards/AdminStudentArea.jsx`
+- `frontend1/ims/src/components/dashboards/AcademicUnitsManagement.jsx`
+- `frontend1/ims/src/components/dashboards/CourseManagement.jsx`
+- `frontend1/ims/src/components/dashboards/StaffManagement.jsx`
+- `frontend1/ims/src/components/dashboards/UnitCoursesManagement.jsx`
+- `frontend1/ims/src/components/dashboards/SchoolsManagement.jsx` /
+  `DepartmentsManagement.jsx` / `ProgrammesManagement.jsx` are routed (supervisor
+  area) but each passes an `onExport` prop the shared `ExportButton` does not
+  implement, and supplies no `data` — so their export buttons render permanently
+  disabled (plan defect H17).
