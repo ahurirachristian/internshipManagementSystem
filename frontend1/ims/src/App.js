@@ -49,6 +49,14 @@ function PlacementsPage() {
   );
 }
 
+function VacanciesPage() {
+  return (
+    <DashboardLayout title="Vacancies Management" subtitle="Manage internship vacancies">
+      <VacanciesManagement />
+    </DashboardLayout>
+  );
+}
+
 function UniversitiesPage() {
   return (
     <DashboardLayout title="University Management" subtitle="Manage registered universities">
@@ -383,7 +391,7 @@ function AppRoutes() {
         path="/admin/placements"
         element={
           <ProtectedRoute roles={['ADMIN', 'SUPERVISOR']}>
-            <PlacementMatching />
+            <PlacementsPage />
           </ProtectedRoute>
         }
       />
@@ -391,7 +399,7 @@ function AppRoutes() {
         path="/admin/vacancies"
         element={
           <ProtectedRoute role="ADMIN">
-            <VacanciesManagement />
+            <VacanciesPage />
           </ProtectedRoute>
         }
       />
