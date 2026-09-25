@@ -5,7 +5,7 @@ import ExportButton from '../ExportButton';
 import DiaryReviewModal from '../DiaryReviewModal';
 import StudentEditModal from '../StudentEditModal';
 import { Modal } from '../ui/Modal';
-import { fetchDiaries, fetchStudents, updateStudent, deleteStudent } from '../../services/api';
+import { fetchDiaries, fetchStudents, updateStudent, deleteStudent, fetchIndustrialSupervisors } from '../../services/api';
 import {
   GraduationCap,
   BookOpen,
@@ -45,6 +45,7 @@ export default function AdminDashboard() {
   const [reviewDiary, setReviewDiary] = useState(null);
   const [editStudent, setEditStudent] = useState(null);
   const [viewStudent, setViewStudent] = useState(null);
+  const [industrialSupervisors, setIndustrialSupervisors] = useState([]);
 
   useEffect(() => {
     let cancelled = false;
@@ -59,6 +60,22 @@ export default function AdminDashboard() {
       })
       .finally(() => {
         if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  // Real supervisor rows so the edit modal renders the Field Supervisor picker
+  // instead of falling back to a raw numeric id input.
+  useEffect(() => {
+    let cancelled = false;
+    fetchIndustrialSupervisors()
+      .then((data) => {
+        if (!cancelled) setIndustrialSupervisors(Array.isArray(data) ? data : []);
+      })
+      .catch(() => {
+        if (!cancelled) setIndustrialSupervisors([]);
       });
     return () => {
       cancelled = true;
@@ -208,6 +225,7 @@ export default function AdminDashboard() {
                 <th scope="col" className="py-3.5 px-3">Organisation</th>
                 <th scope="col" className="py-3.5 px-3">Diary Entries</th>
                 <th scope="col" className="py-3.5 px-3 pr-5">Status</th>
+                <th scope="col" className="py-3.5 px-3 pr-5">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 dark:divide-slate-800 text-sm">
@@ -247,7 +265,7 @@ export default function AdminDashboard() {
                 })
               ) : (
                 <tr>
-                  <td colSpan={7} className="py-12 px-4 text-center">
+                  <td colSpan={8} className="py-12 px-4 text-center">
                     <div className="max-w-sm mx-auto flex flex-col items-center">
                       <div className="w-12 h-12 rounded-full bg-slate-100 dark:bg-slate-700 border border-slate-200 dark:border-slate-800 flex items-center justify-center text-slate-400 mb-3">
                         {searchQuery ? <Search className="w-6 h-6" /> : <GraduationCap className="w-6 h-6" />}
@@ -523,6 +541,7 @@ export default function AdminDashboard() {
           }}
           companies={[]}
           supervisors={[]}
+          industrialSupervisors={industrialSupervisors}
         />
       )}
 
