@@ -37,10 +37,16 @@ export default function DashboardLayout({
 
   useEffect(() => {
     function handleClickOutside(event) {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+      const target = event.target;
+      // React may have detached the clicked node before this document-level
+      // listener runs (e.g. the "Clear all" button disappears as soon as the
+      // notifications are cleared). A detached node is not contained by either
+      // ref, so without this guard the click would wrongly close the popover.
+      if (!(target instanceof Node) || !target.isConnected) return;
+      if (dropdownRef.current && !dropdownRef.current.contains(target)) {
         setDropdownOpen(false);
       }
-      if (notifRef.current && !notifRef.current.contains(event.target)) {
+      if (notifRef.current && !notifRef.current.contains(target)) {
         setNotifOpen(false);
       }
     }
