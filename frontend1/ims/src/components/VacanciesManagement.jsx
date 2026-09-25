@@ -136,7 +136,9 @@ export default function VacanciesManagement() {
               Manage internship vacancies from the backend.
             </p>
           </div>
-          <ExportButton data={vacancies} fileName="vacancies" exportUrl="/api/vacancies" />
+          {/* No server CSV endpoint for vacancies: export the loaded rows client-side
+              instead of downloading the JSON collection as a ".csv" file. */}
+          <ExportButton data={vacancies} fileName="vacancies" />
           <button className="secondary-button" onClick={() => openModal(null)}>
             Add Vacancy
           </button>

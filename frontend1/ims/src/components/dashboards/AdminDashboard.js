@@ -302,7 +302,9 @@ export default function AdminDashboard() {
               <p className="text-[11px] text-slate-500 dark:text-slate-400">All submitted day diary entries across every student</p>
             </div>
           </div>
-          <ExportButton data={filteredDiaries} fileName="diaries" exportUrl="/api/diaries/export/csv" />
+          {/* Server export always returns every diary entry, so pass the full list
+              (also keeps the button enabled while a search filter is active). */}
+          <ExportButton data={diaries} fileName="diaries" exportUrl="/api/diaries/export/csv" />
         </div>
         <div className="overflow-x-auto custom-scrollbar">
           <table className="w-full text-left border-collapse" style={{ minWidth: '900px' }} aria-label="Day diary logs">

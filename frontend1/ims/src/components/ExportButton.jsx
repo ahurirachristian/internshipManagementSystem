@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Download, Loader2 } from 'lucide-react';
 import { exportToCSVWithFallback } from '../utils/csvExport';
+import { API_ROOT } from '../services/api';
 
 export default function ExportButton({
   data,
@@ -15,7 +16,11 @@ export default function ExportButton({
     if (loading || disabled || !data || data.length === 0) return;
     setLoading(true);
     try {
-      await exportToCSVWithFallback(data, fileName, exportUrl);
+      // Relative URLs previously hit the CRA dev server (which answers with
+      // index.html), so the backend CSV was never fetched. Address the API host.
+      const url =
+        exportUrl && !/^https?:\/\//i.test(exportUrl) ? `${API_ROOT}${exportUrl}` : exportUrl;
+      await exportToCSVWithFallback(data, fileName, url);
     } catch (error) {
       console.error('Export failed:', error);
     } finally {
