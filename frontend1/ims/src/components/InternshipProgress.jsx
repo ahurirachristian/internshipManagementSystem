@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { API_ROOT } from '../services/api';
 
 const MILESTONES = [
   { key: 'startDate', label: 'Orientation / Start Date' },
@@ -35,14 +36,21 @@ export default function InternshipProgress() {
       setLoading(true);
       setError('');
       try {
-        const response = await fetch('/api/students/me/progress', {
+        // Absolute API URL: a relative path was answered by the dev server with
+        // index.html, so the JSON parse always failed and real progress never
+        // reached the page.
+        const response = await fetch(`${API_ROOT}/api/students/me/progress`, {
           credentials: 'include',
         });
-        if (!response.ok) {
+        if (response.status === 404) {
+          // viewer has no student profile (e.g. an admin) — show the not-started state
+          setProgress(null);
+        } else if (!response.ok) {
           throw new Error('Failed to load progress');
+        } else {
+          const data = await response.json();
+          setProgress(data);
         }
-        const data = await response.json();
-        setProgress(data);
       } catch (err) {
         setError(err.message || 'Unable to load progress.');
       } finally {
@@ -70,6 +78,7 @@ export default function InternshipProgress() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+      {error && <div role="alert" className="alert alert-error">{error}</div>}
       <div className="card-panel">
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '8px' }}>
           <div>

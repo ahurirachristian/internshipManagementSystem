@@ -9,6 +9,7 @@ import {
   FileText,
 } from 'lucide-react';
 import CustomSelect from '../CustomSelect';
+import { API_ROOT } from '../../services/api';
 
 function formatDate(dateString) {
   if (!dateString) return '—';
@@ -44,7 +45,6 @@ const ACTION_BADGE_STYLES = {
   EXPORT: 'bg-blue-50 text-blue-700 border border-blue-200',
 };
 
-const API_ROOT = process.env.REACT_APP_API_ROOT || 'http://localhost:8082';
 
 export default function AuditLogs() {
   const [logs, setLogs] = useState([]);

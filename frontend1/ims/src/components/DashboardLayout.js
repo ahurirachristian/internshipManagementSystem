@@ -91,6 +91,7 @@ export default function DashboardLayout({
     { to: '/admin/users', icon: 'fa-users', label: 'User Management', roles: ['ADMIN'] },
     { to: '/company', icon: 'fa-building', label: 'Companies', roles: ['ADMIN', 'SUPERVISOR'] },
     { to: '/admin/placements', icon: 'fa-users-rectangle', label: 'Placement & Supervisors', roles: ['ADMIN'] },
+    { to: '/admin/vacancies', icon: 'fa-briefcase', label: 'Vacancies', roles: ['ADMIN'] },
     { to: '/admin/audit-logs', icon: 'fa-list-check', label: 'Audit Logs', roles: ['ADMIN'] },
     { to: '/admin/universities', icon: 'fa-university', label: 'Universities', roles: ['ADMIN'] },
   ];

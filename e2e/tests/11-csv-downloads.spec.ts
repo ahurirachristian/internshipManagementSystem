@@ -60,6 +60,16 @@ test.describe('11 csv downloads', () => {
     });
     expect(admin.ok()).toBeTruthy();
 
+    // sweep vacancy throwaways (the vacancies export asserts an exact row count)
+    const vacancies = await request.get(`${API}/api/vacancies`);
+    if (vacancies.ok()) {
+      for (const v of (await vacancies.json()) as Array<{ id: number; title: string }>) {
+        if (v.title === 'E2E Vacancy' || v.title === 'E2E Renamed Vacancy') {
+          await request.delete(`${API}/api/vacancies/${v.id}`);
+        }
+      }
+    }
+
     // sweep leftovers from earlier runs
     const existing = await request.get(`${API}/api/diaries`);
     if (existing.ok()) {

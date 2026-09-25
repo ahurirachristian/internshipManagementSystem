@@ -95,19 +95,30 @@ export default function UniversityDashboard() {
   const [reviewForm, setReviewForm] = useState({ status: 'APPROVED', feedback: '' });
 
   useEffect(() => {
-    loadStudents();
     loadCompanies();
     loadSupervisors();
-    loadUniversity();
-    loadAcademicUnits();
-    loadDepartments();
-    loadProgrammes();
     loadUniSupervisorRows();
     loadIndSupervisorRows();
-    loadStats();
+
+    // University-scoped endpoints resolve the viewer's own university. An
+    // account without one (e.g. ADMIN) would get 400/403 from all of them, so
+    // skip those loads and surface the reason instead of spamming requests.
+    if (user?.universityId) {
+      loadStudents();
+      loadUniversity();
+      loadAcademicUnits();
+      loadDepartments();
+      loadProgrammes();
+      loadStats();
+    } else {
+      setLoading(false);
+      setError('Your account is not linked to a university.');
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   async function loadStats() {
+    if (!user?.universityId) return;
     try {
       setStats(await fetchUniversityStats());
     } catch (err) {
@@ -116,6 +127,7 @@ export default function UniversityDashboard() {
   }
 
   async function loadStudents() {
+    if (!user?.universityId) return;
     setLoading(true);
     setError('');
     try {
@@ -168,6 +180,7 @@ export default function UniversityDashboard() {
   }
 
   async function loadUniversity() {
+    if (!user?.universityId) return;
     try {
       const data = await fetchUniversityProfile();
       setUniversity(data);
@@ -188,6 +201,7 @@ export default function UniversityDashboard() {
   }
 
   async function loadDepartments() {
+    if (!user?.universityId) return;
     try {
       const data = await fetchDepartments();
       setDepartments(Array.isArray(data) ? data : []);
@@ -197,6 +211,7 @@ export default function UniversityDashboard() {
   }
 
   async function loadProgrammes() {
+    if (!user?.universityId) return;
     try {
       const data = await fetchProgrammes();
       setProgrammes(Array.isArray(data) ? data : []);

@@ -147,7 +147,10 @@ test.describe('07 placements', () => {
 test.describe('07 vacancies', () => {
   test.beforeEach(async ({ page }) => {
     await login(page, 'admin', 'admin123');
+    // the rename test renames E2E Vacancy -> E2E Renamed Vacancy; clean both,
+    // otherwise every run leaves a renamed row behind and later counts drift
     await apiDeleteVacanciesByTitle(page, 'E2E Vacancy');
+    await apiDeleteVacanciesByTitle(page, 'E2E Renamed Vacancy');
     await page.goto(VACANCIES_URL);
     await expect(page.locator('h1.page-title')).toHaveText('Vacancies Management');
     await expect(page.getByRole('heading', { name: 'Vacancies Management' }).nth(1)).toBeVisible();
