@@ -262,6 +262,7 @@ fix. Blocks 1–13 must confirm each relevant one and act.
 | **H8** | `AdminDashboard.js` edit | `<StudentEditModal … companies={[]} supervisors={[]} />` → Field Supervisor falls back to a raw numeric input instead of the existing picker. | Pass the real lists (`fetchCompanies`, `fetchIndustrialSupervisors`) and assert the picker renders. Block 3. |
 | **H9** | sidebar | `/admin/vacancies` exists but is not in `navLinks`; users can only reach it by URL. | Confirm; if unintended, add the nav entry **using the existing nav item markup** (functionality, not redesign) or delete the route. Block 9. |
 | **H10** | `DashboardLayout` + student pages | ADMIN sees all 8 `/student/*` links; the pages fetch student-scoped data (`/api/students/me`, `/api/diaries/me`) which an ADMIN account does not own. | Observe which pages error/empty for ADMIN; record and fix only if it's a broken promise of the nav. Block 12. |
+| **H11** | `App.js` routes (**already fixed in `11eaf16`**) | `/admin/placements` and `/admin/vacancies` rendered their child component directly, so the whole shell (sidebar + topbar) disappeared. `PlacementsPage` already wrapped placements but was dead code; vacancies never had a wrapper. | Fixed before the harness. Block 1 must now lock it with a route-shell audit so the class cannot regress. |
 
 ---
 
@@ -294,6 +295,27 @@ is found, fix it in `App.js`/`ProtectedRoute.js` (no design change).
    `/admin/users`, `/admin/audit-logs`, `/admin/universities`, `/admin/placements`,
    `/admin/vacancies`, `/company`, `/file-management` → HTTP-rendered page,
    correct `h1.page-title`, no console errors, no failed API responses.
+4b. `every protected route renders the app shell (H11 regression lock)`: capture the
+   app's session once (one browser context), then loop over EVERY guarded route and
+   assert, for each: `page.locator('.dashboard-shell .sidebar')` is visible,
+   `page.locator('.topbar')` is visible, and `page.locator('h1.page-title')` has
+   non-empty text. The full route list to cover:
+   `/student/dashboard`, `/student/progress`, `/student/tasks`,
+   `/student/learning-institute`, `/student/companies`, `/student/profile-settings`,
+   `/student/supervisor`, `/student/day-diaries`, `/university/dashboard`,
+   `/university/students`,
+   `/university/schools`, `/university/departments`, `/university/programmes`,
+   `/company/dashboard`, `/company`, `/company/1`, `/admin/dashboard`,
+   `/admin/users`, `/admin/audit-logs`, `/admin/universities`,
+   `/admin/placements`, `/admin/vacancies`, `/file-management`.
+   Run each route as a role that is actually allowed in: as `admin` for everything
+   listed above; as `university` (SUPERVISOR) for the SUPERVISOR-only
+   `/university/schools`, `/university/departments`, `/university/programmes`; and as a
+   STUDENT for the STUDENT-only `/student/profile` and `/student/profile/edit` (an ADMIN
+   is redirected away from those two, which is correct and should itself be asserted).
+   Also assert the negative case: an ADMIN visiting `/university/schools` is redirected,
+   and a STUDENT visiting `/admin/dashboard` is redirected. This is the assertion that
+   would have caught H11; keep it permanently.
 5. `sidebar toggle collapses and expands the shell`: click `[aria-label="Hide sidebar"]`,
    assert `.dashboard-shell` gets `sidebar-collapsed`; toggle back.
 6. `notifications panel opens, lists items, and Clear all empties it`: click the bell
@@ -313,7 +335,9 @@ Add E2E coverage for admin access control and dashboard shell
 
 Verifies admin login and landing route, unauthenticated and non-admin
 redirects for every admin route, the sidebar collapse toggle, the
-notifications panel and clear-all, and logout ending the session.
+notifications panel and clear-all, and logout ending the session. Also
+locks the app shell onto every protected route, the regression that had
+left /admin/placements and /admin/vacancies rendering without a sidebar.
 
 No acknowledgements.
 ```
@@ -490,7 +514,10 @@ click-through:
 - `User Management` → `/admin/users`
 Assert each destination's `h1.page-title` matches the wrapper in `App.js`
 (Company Management / University Management / Placement & Supervisor Management /
-Audit Logs / User Management).
+Audit Logs / User Management). For every destination also assert the shell survived the
+navigation: `.sidebar` and `.topbar` visible and the sidebar shows the current page as
+`.nav-link.active`. `/admin/placements` in particular is the H11 regression case, so assert
+its title is exactly `Placement & Supervisor Management`.
 
 **Test:** `cd e2e && npx playwright test tests/05-admin-dashboard-system.spec.ts`
 
@@ -629,6 +656,9 @@ No acknowledgements.
 **Files:** `e2e/tests/09-admin-placements.spec.ts` (new).
 
 **Implement (spec):**
+0. `the page renders inside the app shell (H11 regression lock)` — `goto('/admin/placements')`
+   → assert `.sidebar`, `.topbar` and `h1.page-title` = `Placement & Supervisor Management`
+   are visible. Before commit `11eaf16` this route rendered bare and lost the shell.
 1. `KPIs` — Active / Pending / Total match the loaded placement statuses.
 2. `status tabs` — All/PENDING/ASSIGNED/ACTIVE/COMPLETED/CANCELLED counts match; selecting a
    tab filters rows; empty status shows `EmptyState` with `Clear Filter`.
@@ -667,7 +697,10 @@ No acknowledgements.
 App fix if H9 confirmed: sidebar entry, and H3 for the vacancies export.
 
 **Implement — vacancies**
-1. `the page is reachable` — `goto('/admin/vacancies')` renders the Vacancies card + table;
+0. `the page renders inside the app shell (H11 regression lock)` — `goto('/admin/vacancies')`
+   → assert `.sidebar`, `.topbar` and `h1.page-title` = `Vacancies Management` are visible.
+   Before commit `11eaf16` this route rendered bare and lost the shell.
+1. `the page is reachable` — renders the Vacancies card + table;
    assert the UI uses only existing components/styles (H9 note: it currently uses legacy
    `.card`/`.modal-overlay` classes — **do not redesign**; only report).
 2. `create/edit/delete` a vacancy with a unique title (company id 1 = Airtel); assert each
