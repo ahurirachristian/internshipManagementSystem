@@ -45,7 +45,8 @@ public class Vacancy {
     @NotNull(message = "Deadline is required")
     private LocalDate deadline;
 
-    @NotNull(message = "Created at is required")
+    /** Set by VacancyService.save() when absent — not a client-required field. */
+    @Column(nullable = false)
     private LocalDate createdAt;
 
     public Vacancy() {

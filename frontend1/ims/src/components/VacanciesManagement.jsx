@@ -9,6 +9,7 @@ const initialForm = {
   location: '',
   requirements: '',
   status: 'OPEN',
+  deadline: '',
 };
 
 export default function VacanciesManagement() {
@@ -44,6 +45,7 @@ export default function VacanciesManagement() {
       location: existingVacancy.location || '',
       requirements: existingVacancy.requirements || '',
       status: existingVacancy.status || 'OPEN',
+      deadline: existingVacancy.deadline || '',
     } : initialForm);
     setModalOpen(true);
   }
@@ -58,8 +60,10 @@ export default function VacanciesManagement() {
     event.preventDefault();
     setError('');
 
-    if (!form.title.trim() || !form.companyId) {
-      setError('Title and company are required.');
+    // Vacancy.description and Vacancy.deadline are @NotBlank/@NotNull server-side,
+    // so require them here too — otherwise the submit fails with an opaque 400.
+    if (!form.title.trim() || !form.companyId || !form.description.trim() || !form.deadline) {
+      setError('Title, company, description and deadline are required.');
       return;
     }
 
@@ -72,6 +76,7 @@ export default function VacanciesManagement() {
         location: form.location.trim(),
         requirements: form.requirements.trim(),
         status: form.status,
+        deadline: form.deadline,
       };
 
       if (editingId) {
@@ -212,6 +217,14 @@ export default function VacanciesManagement() {
                   rows="3"
                   value={form.requirements}
                   onChange={(e) => setForm({ ...form, requirements: e.target.value })}
+                />
+              </label>
+              <label>
+                Deadline
+                <input
+                  type="date"
+                  value={form.deadline}
+                  onChange={(e) => setForm({ ...form, deadline: e.target.value })}
                 />
               </label>
               <label>
