@@ -135,13 +135,15 @@ export default function FileManagement() {
                   <small>{formatRelative(file.when)} • {file.size}</small>
                 </div>
                 <div className="file-actions">
-                  <button type="button" className="icon-button" title="Preview">
+                  {/* Mock data only: no storage exists behind these rows, so the
+                      controls stay disabled rather than silently doing nothing. */}
+                  <button type="button" className="icon-button" title="Preview" disabled>
                     <i className="fa-regular fa-eye"></i>
                   </button>
-                  <button type="button" className="icon-button" title="Download">
+                  <button type="button" className="icon-button" title="Download" disabled>
                     <i className="fa-solid fa-download"></i>
                   </button>
-                  <button type="button" className="icon-button" title="More">
+                  <button type="button" className="icon-button" title="More" disabled>
                     <i className="fa-solid fa-ellipsis-vertical"></i>
                   </button>
                 </div>
