@@ -147,6 +147,16 @@ export default function AdminDashboard() {
     }
   }
 
+  // Keep the diaries list in sync after the review modal saves feedback,
+  // otherwise the row keeps showing the stale status/comments until reload.
+  async function refreshDiaries() {
+    try {
+      setDiaries(await fetchDiaries());
+    } catch {
+      // keep the current list if the refresh fails
+    }
+  }
+
   function renderActions(student) {
     return (
       <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
@@ -496,6 +506,7 @@ export default function AdminDashboard() {
           onClose={() => setReviewDiary(null)}
           onSaved={() => {
             setReviewDiary(null);
+            refreshDiaries();
           }}
         />
       )}

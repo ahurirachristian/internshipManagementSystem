@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import DashboardLayout from '../DashboardLayout';
 import { useAuth } from '../../context/AuthContext';
-import { fetchStudentDiaries, submitDiaryFeedback } from '../../services/api';
+import { fetchMyDiaries } from '../../services/api';
 
 const ACTIVITY_POOL = [
   'Reviewed pull requests and merged feature branches into staging.',
@@ -82,10 +82,6 @@ export default function DayDiariesPage() {
   const [diaryLoading, setDiaryLoading] = useState(false);
   const [diaryError, setDiaryError] = useState('');
   const [viewDiary, setViewDiary] = useState(null);
-  const [commentForId, setCommentForId] = useState('');
-  const [commentText, setCommentText] = useState('');
-  const [commentSubmitting, setCommentSubmitting] = useState(false);
-  const [commentMessage, setCommentMessage] = useState('');
 
   useEffect(() => {
     if (user?.username) {
@@ -98,7 +94,7 @@ export default function DayDiariesPage() {
     setDiaryLoading(true);
     setDiaryError('');
     try {
-      const data = await fetchStudentDiaries(user.username);
+      const data = await fetchMyDiaries();
       const list = Array.isArray(data) ? data : [];
       if (list.length === 0) {
         setDiaries(buildMockDiaries(user.username));
@@ -219,67 +215,10 @@ export default function DayDiariesPage() {
         </div>
 
         <div className="supervisor-comment-form">
-          <h3>Add a Comment</h3>
-          {commentMessage && <div className="alert alert-success">{commentMessage}</div>}
-          {diaries.length === 0 ? (
-            <p>No diary entries available to comment on.</p>
-          ) : (
-            <form
-              className="modal-form"
-              onSubmit={async (e) => {
-                e.preventDefault();
-                if (!commentForId || !commentText.trim()) {
-                  setCommentMessage('');
-                  return;
-                }
-                setCommentSubmitting(true);
-                try {
-                  await submitDiaryFeedback(commentForId, {
-                    feedback: commentText,
-                    status: 'REVIEWED',
-                  });
-                  setCommentMessage('Comment submitted successfully.');
-                  setCommentText('');
-                  await loadDiaries();
-                } catch (err) {
-                  setCommentMessage(err.message || 'Unable to submit comment.');
-                } finally {
-                  setCommentSubmitting(false);
-                }
-              }}
-            >
-              <div className="form-row">
-                <label className="form-label">Diary Entry</label>
-                <select
-                  className="form-input"
-                  value={commentForId}
-                  onChange={(e) => setCommentForId(e.target.value)}
-                >
-                  <option value="">Select an entry...</option>
-                  {diaries.map((entry) => (
-                    <option key={entry.id} value={entry.id}>
-                      {entry.date || 'No date'} — {entry.accountNumber || accountNumber}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div className="form-row">
-                <label className="form-label">Comment</label>
-                <textarea
-                  className="form-input"
-                  rows="4"
-                  value={commentText}
-                  onChange={(e) => setCommentText(e.target.value)}
-                  placeholder="Write a comment for this diary entry..."
-                />
-              </div>
-              <div className="modal-actions">
-                <button type="submit" className="primary-button" disabled={commentSubmitting}>
-                  {commentSubmitting ? 'Submitting...' : 'Submit Comment'}
-                </button>
-              </div>
-            </form>
-          )}
+          <p className="status-message">
+            Comments on diary entries are provided by your industrial and
+            university supervisors after review.
+          </p>
         </div>
       </div>
 
