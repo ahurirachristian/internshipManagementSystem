@@ -62,8 +62,9 @@ export default function AuditLogs() {
     async function fetchLogs() {
       const params = new URLSearchParams();
       if (actionFilter) params.set('action', actionFilter);
-      if (startDate) params.set('startDate', startDate);
-      if (endDate) params.set('endDate', endDate);
+      // The API expects ISO DATE_TIME params named start/end (AuditLogController).
+      if (startDate) params.set('start', `${startDate}T00:00:00`);
+      if (endDate) params.set('end', `${endDate}T23:59:59`);
 
       const url = `${API_ROOT}/api/audit-logs${params.toString() ? `?${params.toString()}` : ''}`;
       const response = await fetch(url, {
