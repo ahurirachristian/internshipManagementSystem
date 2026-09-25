@@ -34,7 +34,7 @@ public class StudentDataSeeder implements CommandLineRunner {
         if (studentRepository.count() > 0) {
             return;
         }
-        Programme it = programmeRepository.findByUniversityId(19).stream()
+        Programme it = programmeRepository.findByUniversityId(19L).stream()
                 .filter(p -> {
                     if (p.getProgrammeName() == null) {
                         return false;

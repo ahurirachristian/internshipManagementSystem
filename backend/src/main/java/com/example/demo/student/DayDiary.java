@@ -7,9 +7,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
 import jakarta.persistence.Lob;
-import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.FetchType;
 
@@ -40,7 +38,15 @@ public class DayDiary {
     @Column(nullable = false)
     private String status = "PENDING";
 
-    @Column(nullable = true)
+    @Lob
+    private String supervisorFeedback;
+
+    /**
+     * Fields carried over from the newer diary review UI (DiaryReviewModal /
+     * DayDiariesPage). Model B keeps the flat student_id key; these enrich the
+     * entry without reintroducing the Model-A student_profile join.
+     */
+    @Column(name = "account_number", nullable = true)
     private String accountNumber;
 
     @Lob
@@ -48,23 +54,26 @@ public class DayDiary {
     private String action;
 
     @Lob
-    @Column(nullable = true)
+    @Column(name = "technology_tools", nullable = true)
     private String technologyTools;
 
     @Lob
-    private String supervisorFeedback;
-
-    @Lob
-    @Column(nullable = true)
+    @Column(name = "industrial_supervisor_comment", nullable = true)
     private String industrialSupervisorComment;
 
     @Lob
-    @Column(nullable = true)
+    @Column(name = "university_supervisor_comment", nullable = true)
     private String universitySupervisorComment;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "student_profile_id", nullable = false)
-    private StudentProfile studentProfile;
+    /**
+     * M4: rekeyed from the Model-A student_profile_id join to the Model-B
+     * students.id reference (MIGRATION_PLAN.md R1/R2).
+     */
+    @Column(name = "student_id", nullable = false)
+    private Long studentId;
+
+    @Column(name = "university_id", nullable = true)
+    private Long universityId;
 
     public DayDiary() {
     }
@@ -125,6 +134,22 @@ public class DayDiary {
         this.supervisorFeedback = supervisorFeedback;
     }
 
+    public Long getStudentId() {
+        return studentId;
+    }
+
+    public void setStudentId(Long studentId) {
+        this.studentId = studentId;
+    }
+
+    public Long getUniversityId() {
+        return universityId;
+    }
+
+    public void setUniversityId(Long universityId) {
+        this.universityId = universityId;
+    }
+
     public String getAccountNumber() {
         return accountNumber;
     }
@@ -163,13 +188,5 @@ public class DayDiary {
 
     public void setUniversitySupervisorComment(String universitySupervisorComment) {
         this.universitySupervisorComment = universitySupervisorComment;
-    }
-
-    public StudentProfile getStudentProfile() {
-        return studentProfile;
-    }
-
-    public void setStudentProfile(StudentProfile studentProfile) {
-        this.studentProfile = studentProfile;
     }
 }

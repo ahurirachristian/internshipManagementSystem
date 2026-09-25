@@ -285,7 +285,7 @@ public class Country {
 ```java
 @Entity @Table(name = "universities")
 public class University {
-    Integer universityId;  // @Id, IDENTITY — NOT Long
+    Long universityId;     // @Id, IDENTITY — BIGINT
     String shortForm;      // NOT NULL, UNIQUE (e.g. "MAK", "NU")
     String fullName;       // NOT NULL, UNIQUE (e.g. "Makerere University")
     String country;        // default "Uganda"
@@ -369,7 +369,7 @@ public class UserEntity {
 @Entity @Table(name = "schools")
 public class School {
     Integer schoolId;           // @Id, noGeneratedValue (seeders assign IDs)
-    Integer universityId;       // NOT NULL
+    Long universityId;          // NOT NULL, BIGINT
     String schoolName;          // NOT NULL
     String schoolCode;          // e.g. "NU-SCI", "COCIS"
     Integer parentSchoolId;     // self-FK, nullable
@@ -383,7 +383,7 @@ public class School {
 public class Department {
     Integer departmentId;       // @Id, noGeneratedValue
     Integer schoolId;           // NOT NULL
-    Integer universityId;       // NOT NULL
+    Long universityId;          // NOT NULL, BIGINT
     String departmentName;      // NOT NULL
 }
 ```
@@ -394,7 +394,7 @@ public class Department {
 public class Programme {
     Integer programmeId;        // @Id, noGeneratedValue
     Integer schoolId;           // NOT NULL
-    Integer universityId;       // NOT NULL
+    Long universityId;          // NOT NULL, BIGINT
     Integer departmentId;       // nullable (Nkumba is flat — no departments)
     String programmeName;       // NOT NULL
     String programmeCode;       // NOT NULL, e.g. "NK-P001", "MBCHB_MAK"

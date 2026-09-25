@@ -52,8 +52,8 @@ public class SchoolController {
     }
 
     @GetMapping
-    public List<School> getSchools(@RequestParam(required = false) Integer universityId, Principal principal) {
-        Integer uid = requireOwnUniversity(principal);
+    public List<School> getSchools(@RequestParam(required = false) Long universityId, Principal principal) {
+        Long uid = requireOwnUniversity(principal);
         if (universityId != null) {
             return schoolRepository.findByUniversityId(universityId);
         }
@@ -62,7 +62,7 @@ public class SchoolController {
 
     @PostMapping
     public ResponseEntity<?> createSchool(@RequestBody School request, Principal principal) {
-        Integer universityId = requireOwnUniversity(principal);
+        Long universityId = requireOwnUniversity(principal);
         try {
             School school = new School();
             applyFields(school, request, universityId);
@@ -77,7 +77,7 @@ public class SchoolController {
     @PutMapping("/{id}")
     public ResponseEntity<?> updateSchool(@PathVariable Integer id, @RequestBody School request,
             Principal principal) {
-        Integer universityId = requireOwnUniversity(principal);
+        Long universityId = requireOwnUniversity(principal);
         var existing = schoolRepository.findById(id)
                 .filter(s -> s.getUniversityId().equals(universityId));
         if (existing.isEmpty()) {
@@ -96,7 +96,7 @@ public class SchoolController {
 
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteSchool(@PathVariable Integer id, Principal principal) {
-        Integer universityId = requireOwnUniversity(principal);
+        Long universityId = requireOwnUniversity(principal);
         var existing = schoolRepository.findById(id)
                 .filter(s -> s.getUniversityId().equals(universityId));
         if (existing.isEmpty()) {
@@ -129,7 +129,7 @@ public class SchoolController {
         return csvResponse(body, "schools.csv");
     }
 
-    private void applyFields(School school, School request, Integer universityId) {
+    private void applyFields(School school, School request, Long universityId) {
         if (request.getSchoolId() == null) {
             throw new IllegalArgumentException("School ID is required.");
         }
@@ -159,13 +159,13 @@ public class SchoolController {
         school.setType(request.getType() != null ? request.getType().toUpperCase() : null);
     }
 
-    private Integer requireOwnUniversity(Principal principal) {
+    private Long requireOwnUniversity(Principal principal) {
         UserEntity user = userRepository.findByUsername(principal.getName()).orElseThrow(
                 () -> new IllegalArgumentException("Authenticated user not found."));
         if (user.getUniversityId() == null) {
             throw new IllegalArgumentException("Your account is not linked to a university.");
         }
-        return user.getUniversityId().intValue();
+        return user.getUniversityId();
     }
 
     private String trimToNull(String value) {

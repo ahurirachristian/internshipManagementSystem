@@ -41,7 +41,7 @@ public class AdminUniversityController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<UniversityDto> getUniversity(@PathVariable Integer id) {
+    public ResponseEntity<UniversityDto> getUniversity(@PathVariable Long id) {
         return universityService.findById(id)
                 .map(universityService::toDto)
                 .map(ResponseEntity::ok)
@@ -81,7 +81,7 @@ public class AdminUniversityController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<?> updateUniversity(@PathVariable Integer id, @RequestBody UniversityRequest request, Principal principal) {
+    public ResponseEntity<?> updateUniversity(@PathVariable Long id, @RequestBody UniversityRequest request, Principal principal) {
         try {
             return universityService.update(id, request)
                     .map(saved -> {
@@ -96,7 +96,7 @@ public class AdminUniversityController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteUniversity(@PathVariable Integer id, Principal principal) {
+    public ResponseEntity<Void> deleteUniversity(@PathVariable Long id, Principal principal) {
         var uni = universityService.findById(id);
         universityService.deleteById(id);
         auditLogService.log(principal != null ? principal.getName() : "system", "ADMIN", "DELETE", "University", "Deleted university ID: " + id + (uni.isPresent() ? " (" + uni.get().getFullName() + ")" : ""), null);

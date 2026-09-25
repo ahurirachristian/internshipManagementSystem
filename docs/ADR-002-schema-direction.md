@@ -13,7 +13,8 @@ demo data for two universities with no clean multi-tenant story.
 
 The `developer` branch (Chris) introduced a cleaner three-tier model —
 `schools` / `departments` / `programmes`, each carrying a soft `universityId`
-FK — plus first-class supervisor entities and a Long-keyed `students` table.
+association (a plain indexed column, not a declared FK) — plus first-class
+supervisor entities and a Long-keyed `students` table.
 Both models coexisted after merge e91ae5a, which is untenable long-term.
 
 ## Decision
@@ -56,6 +57,15 @@ the load-bearing ones:
 
 ## Consequences
 
+- **`university_id` is BIGINT everywhere** (amended 2026-09-25). The entity
+  model maps `universityId` to `java.lang.Long` on `University`, `School`,
+  `Department`, `Programme` and the transaction tables, so every
+  `university_id` column in `schema.sql` is `BIGINT`. Because the `mysql`
+  profile runs `ddl-auto=none`, Hibernate never applies this widening itself;
+  it ships as `backend/migration/widen_university_id_bigint.sql`. The change is
+  a pure widening (INT → BIGINT, values and `AUTO_INCREMENT` preserved) and the
+  schema declares no FK on any `university_id` column, so it is safe on the
+  production database.
 - Seeder `@Order` collisions (3/4/6/8 doubled across models) must be resolved
   before any shared-DB boot (M1).
 - Until M3 lands, registration still writes Model-A `StudentProfile`; the two

@@ -29,7 +29,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(2001);
         e.setSchoolId(901);
-        e.setUniversityId(19);
+        e.setUniversityId(19L);
         e.setDepartmentId(null);
         e.setProgrammeCode("NK-P001");
         e.setProgrammeName("Master Of Education Management And Planning");
@@ -40,7 +40,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(2002);
         e.setSchoolId(901);
-        e.setUniversityId(19);
+        e.setUniversityId(19L);
         e.setDepartmentId(null);
         e.setProgrammeCode("NK-P002");
         e.setProgrammeName("Ordinary Certificate in Early Childhood Care & Development Education");
@@ -51,7 +51,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(2003);
         e.setSchoolId(901);
-        e.setUniversityId(19);
+        e.setUniversityId(19L);
         e.setDepartmentId(null);
         e.setProgrammeCode("NK-P003");
         e.setProgrammeName("Diploma In Education In Early Childhood Care And Development");
@@ -62,7 +62,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(2004);
         e.setSchoolId(901);
-        e.setUniversityId(19);
+        e.setUniversityId(19L);
         e.setDepartmentId(null);
         e.setProgrammeCode("NK-P004");
         e.setProgrammeName("Diploma In Education (Secondary) - Science");
@@ -73,7 +73,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(2005);
         e.setSchoolId(901);
-        e.setUniversityId(19);
+        e.setUniversityId(19L);
         e.setDepartmentId(null);
         e.setProgrammeCode("NK-P005");
         e.setProgrammeName("Diploma In Education (Secondary) - Arts");
@@ -84,7 +84,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(2006);
         e.setSchoolId(901);
-        e.setUniversityId(19);
+        e.setUniversityId(19L);
         e.setDepartmentId(null);
         e.setProgrammeCode("NK-P006");
         e.setProgrammeName("Bachelor Of Education (Primary)");
@@ -95,7 +95,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(2007);
         e.setSchoolId(901);
-        e.setUniversityId(19);
+        e.setUniversityId(19L);
         e.setDepartmentId(null);
         e.setProgrammeCode("NK-P007");
         e.setProgrammeName("Bachelor Of Science With Education (Secondary)");
@@ -106,7 +106,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(2008);
         e.setSchoolId(901);
-        e.setUniversityId(19);
+        e.setUniversityId(19L);
         e.setDepartmentId(null);
         e.setProgrammeCode("NK-P008");
         e.setProgrammeName("Bachelor Of Arts With Education (Secondary)");
@@ -117,7 +117,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(2009);
         e.setSchoolId(901);
-        e.setUniversityId(19);
+        e.setUniversityId(19L);
         e.setDepartmentId(null);
         e.setProgrammeCode("NK-P009");
         e.setProgrammeName("Postgraduate Diploma In Education");
@@ -128,7 +128,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(2010);
         e.setSchoolId(901);
-        e.setUniversityId(19);
+        e.setUniversityId(19L);
         e.setDepartmentId(null);
         e.setProgrammeCode("NK-P010");
         e.setProgrammeName("Post Graduate Diploma In Educational Management And Planning");
@@ -139,7 +139,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(2011);
         e.setSchoolId(901);
-        e.setUniversityId(19);
+        e.setUniversityId(19L);
         e.setDepartmentId(null);
         e.setProgrammeCode("NK-P011");
         e.setProgrammeName("PhD in Education Management");
@@ -150,7 +150,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(2012);
         e.setSchoolId(902);
-        e.setUniversityId(19);
+        e.setUniversityId(19L);
         e.setDepartmentId(null);
         e.setProgrammeCode("NK-P012");
         e.setProgrammeName("Masters Of Science In Information Systems");
@@ -161,7 +161,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(2013);
         e.setSchoolId(902);
-        e.setUniversityId(19);
+        e.setUniversityId(19L);
         e.setDepartmentId(null);
         e.setProgrammeCode("NK-P013");
         e.setProgrammeName("Certificate in Computerised Accounting");
@@ -172,7 +172,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(2014);
         e.setSchoolId(902);
-        e.setUniversityId(19);
+        e.setUniversityId(19L);
         e.setDepartmentId(null);
         e.setProgrammeCode("NK-P014");
         e.setProgrammeName("Data Management and Analysis");
@@ -183,7 +183,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(2015);
         e.setSchoolId(902);
-        e.setUniversityId(19);
+        e.setUniversityId(19L);
         e.setDepartmentId(null);
         e.setProgrammeCode("NK-P015");
         e.setProgrammeName("Certificate in Computer Networking");
@@ -194,7 +194,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(2016);
         e.setSchoolId(902);
-        e.setUniversityId(19);
+        e.setUniversityId(19L);
         e.setDepartmentId(null);
         e.setProgrammeCode("NK-P016");
         e.setProgrammeName("National Certificate in Information Communication Technology");
@@ -205,7 +205,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(2017);
         e.setSchoolId(902);
-        e.setUniversityId(19);
+        e.setUniversityId(19L);
         e.setDepartmentId(null);
         e.setProgrammeCode("NK-P017");
         e.setProgrammeName("Diploma in Information Systems and Technology");
@@ -216,7 +216,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(2018);
         e.setSchoolId(902);
-        e.setUniversityId(19);
+        e.setUniversityId(19L);
         e.setDepartmentId(null);
         e.setProgrammeCode("NK-P018");
         e.setProgrammeName("Bachelors of Science in Cybersecurity and Digital Forensics");
@@ -227,7 +227,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(2019);
         e.setSchoolId(902);
-        e.setUniversityId(19);
+        e.setUniversityId(19L);
         e.setDepartmentId(null);
         e.setProgrammeCode("NK-P019");
         e.setProgrammeName("Bachelors in Information Systems and Technology");
@@ -238,7 +238,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(2020);
         e.setSchoolId(902);
-        e.setUniversityId(19);
+        e.setUniversityId(19L);
         e.setDepartmentId(null);
         e.setProgrammeCode("NK-P020");
         e.setProgrammeName("Masters in Information Systems and Technology");
@@ -249,7 +249,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(2021);
         e.setSchoolId(902);
-        e.setUniversityId(19);
+        e.setUniversityId(19L);
         e.setDepartmentId(null);
         e.setProgrammeCode("NK-P021");
         e.setProgrammeName("Certificate In Python Programming");
@@ -260,7 +260,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(2022);
         e.setSchoolId(902);
-        e.setUniversityId(19);
+        e.setUniversityId(19L);
         e.setDepartmentId(null);
         e.setProgrammeCode("NK-P022");
         e.setProgrammeName("Certificate in Graphics and Image Editing");
@@ -271,7 +271,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(2023);
         e.setSchoolId(902);
-        e.setUniversityId(19);
+        e.setUniversityId(19L);
         e.setDepartmentId(null);
         e.setProgrammeCode("NK-P023");
         e.setProgrammeName("Diploma In Records And Information Management");
@@ -282,7 +282,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(2024);
         e.setSchoolId(902);
-        e.setUniversityId(19);
+        e.setUniversityId(19L);
         e.setDepartmentId(null);
         e.setProgrammeCode("NK-P024");
         e.setProgrammeName("Diploma In Computer Science");
@@ -293,7 +293,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(2025);
         e.setSchoolId(902);
-        e.setUniversityId(19);
+        e.setUniversityId(19L);
         e.setDepartmentId(null);
         e.setProgrammeCode("NK-P025");
         e.setProgrammeName("Bachelors Of Records And Information Management");
@@ -304,7 +304,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(2026);
         e.setSchoolId(902);
-        e.setUniversityId(19);
+        e.setUniversityId(19L);
         e.setDepartmentId(null);
         e.setProgrammeCode("NK-P026");
         e.setProgrammeName("Bachelor Of Office Management And Secretarial Studies");
@@ -315,7 +315,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(2027);
         e.setSchoolId(902);
-        e.setUniversityId(19);
+        e.setUniversityId(19L);
         e.setDepartmentId(null);
         e.setProgrammeCode("NK-P027");
         e.setProgrammeName("Bachelor Of Science In Computer Science (BSC)");
@@ -326,7 +326,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(2028);
         e.setSchoolId(902);
-        e.setUniversityId(19);
+        e.setUniversityId(19L);
         e.setDepartmentId(null);
         e.setProgrammeCode("NK-P028");
         e.setProgrammeName("Microsoft Office & Online Collaboration");
@@ -337,7 +337,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(2029);
         e.setSchoolId(903);
-        e.setUniversityId(19);
+        e.setUniversityId(19L);
         e.setDepartmentId(null);
         e.setProgrammeCode("NK-P029");
         e.setProgrammeName("Bachelor of Criminal Justice (BCJ)");
@@ -348,7 +348,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(2030);
         e.setSchoolId(903);
-        e.setUniversityId(19);
+        e.setUniversityId(19L);
         e.setDepartmentId(null);
         e.setProgrammeCode("NK-P030");
         e.setProgrammeName("Diploma in Criminal Justice");
@@ -359,7 +359,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(2031);
         e.setSchoolId(903);
-        e.setUniversityId(19);
+        e.setUniversityId(19L);
         e.setDepartmentId(null);
         e.setProgrammeCode("NK-P031");
         e.setProgrammeName("Bachelor of Laws");
@@ -370,7 +370,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(2032);
         e.setSchoolId(904);
-        e.setUniversityId(19);
+        e.setUniversityId(19L);
         e.setDepartmentId(null);
         e.setProgrammeCode("NK-P032");
         e.setProgrammeName("Bachelor Of Arts In Community Based Development");
@@ -381,7 +381,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(2033);
         e.setSchoolId(904);
-        e.setUniversityId(19);
+        e.setUniversityId(19L);
         e.setDepartmentId(null);
         e.setProgrammeCode("NK-P033");
         e.setProgrammeName("Bachelor Of Arts In Social Work And Social Administration");
@@ -392,7 +392,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(2034);
         e.setSchoolId(904);
-        e.setUniversityId(19);
+        e.setUniversityId(19L);
         e.setDepartmentId(null);
         e.setProgrammeCode("NK-P034");
         e.setProgrammeName("Bachelor Of Science in Journalism & Public Relations");
@@ -403,7 +403,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(2035);
         e.setSchoolId(904);
-        e.setUniversityId(19);
+        e.setUniversityId(19L);
         e.setDepartmentId(null);
         e.setProgrammeCode("NK-P035");
         e.setProgrammeName("PhD in Counselling Psychology");
@@ -414,7 +414,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(2036);
         e.setSchoolId(904);
-        e.setUniversityId(19);
+        e.setUniversityId(19L);
         e.setDepartmentId(null);
         e.setProgrammeCode("NK-P036");
         e.setProgrammeName("PhD in Public Administration and Management");
@@ -425,7 +425,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(2037);
         e.setSchoolId(905);
-        e.setUniversityId(19);
+        e.setUniversityId(19L);
         e.setDepartmentId(null);
         e.setProgrammeCode("NK-P037");
         e.setProgrammeName("Bachelor Of Science In Environment Management");
@@ -436,7 +436,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(2038);
         e.setSchoolId(905);
-        e.setUniversityId(19);
+        e.setUniversityId(19L);
         e.setDepartmentId(null);
         e.setProgrammeCode("NK-P038");
         e.setProgrammeName("PhD in Natural Resources Management");
@@ -447,7 +447,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(2039);
         e.setSchoolId(905);
-        e.setUniversityId(19);
+        e.setUniversityId(19L);
         e.setDepartmentId(null);
         e.setProgrammeCode("NK-P039");
         e.setProgrammeName("Bachelor of Science in Public Health");
@@ -458,7 +458,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(2040);
         e.setSchoolId(905);
-        e.setUniversityId(19);
+        e.setUniversityId(19L);
         e.setDepartmentId(null);
         e.setProgrammeCode("NK-P040");
         e.setProgrammeName("Diploma In Hotel Management And Institutional Catering");
@@ -469,7 +469,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(2041);
         e.setSchoolId(905);
-        e.setUniversityId(19);
+        e.setUniversityId(19L);
         e.setDepartmentId(null);
         e.setProgrammeCode("NK-P041");
         e.setProgrammeName("Diploma In Tourism Operations Management");
@@ -480,7 +480,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(2042);
         e.setSchoolId(905);
-        e.setUniversityId(19);
+        e.setUniversityId(19L);
         e.setDepartmentId(null);
         e.setProgrammeCode("NK-P042");
         e.setProgrammeName("Bachelor Of Science In Hotel Management And Institutional Catering");
@@ -491,7 +491,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(2043);
         e.setSchoolId(905);
-        e.setUniversityId(19);
+        e.setUniversityId(19L);
         e.setDepartmentId(null);
         e.setProgrammeCode("NK-P043");
         e.setProgrammeName("Bachelor Of Science In Tourism Operations Management");
@@ -502,7 +502,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(2044);
         e.setSchoolId(905);
-        e.setUniversityId(19);
+        e.setUniversityId(19L);
         e.setDepartmentId(null);
         e.setProgrammeCode("NK-P044");
         e.setProgrammeName("Diploma In Agribusiness");
@@ -513,7 +513,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(2045);
         e.setSchoolId(905);
-        e.setUniversityId(19);
+        e.setUniversityId(19L);
         e.setDepartmentId(null);
         e.setProgrammeCode("NK-P045");
         e.setProgrammeName("Bachelor Of Science In Wildlife And Forestry Management");
@@ -524,7 +524,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(2046);
         e.setSchoolId(905);
-        e.setUniversityId(19);
+        e.setUniversityId(19L);
         e.setDepartmentId(null);
         e.setProgrammeCode("NK-P046");
         e.setProgrammeName("PhD in Public Health");
@@ -535,7 +535,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(2047);
         e.setSchoolId(906);
-        e.setUniversityId(19);
+        e.setUniversityId(19L);
         e.setDepartmentId(null);
         e.setProgrammeCode("NK-P047");
         e.setProgrammeName("Bachelor of Business Administration");
@@ -546,7 +546,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(2048);
         e.setSchoolId(906);
-        e.setUniversityId(19);
+        e.setUniversityId(19L);
         e.setDepartmentId(null);
         e.setProgrammeCode("NK-P048");
         e.setProgrammeName("Bachelor Of Procurement And Logistics Management");
@@ -557,7 +557,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(2049);
         e.setSchoolId(906);
-        e.setUniversityId(19);
+        e.setUniversityId(19L);
         e.setDepartmentId(null);
         e.setProgrammeCode("NK-P049");
         e.setProgrammeName("Bachelor Of Clearing And Forwarding Management");
@@ -568,7 +568,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(2050);
         e.setSchoolId(906);
-        e.setUniversityId(19);
+        e.setUniversityId(19L);
         e.setDepartmentId(null);
         e.setProgrammeCode("NK-P050");
         e.setProgrammeName("Bachelor Of Human Resource Management");
@@ -579,7 +579,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(2051);
         e.setSchoolId(906);
-        e.setUniversityId(19);
+        e.setUniversityId(19L);
         e.setDepartmentId(null);
         e.setProgrammeCode("NK-P051");
         e.setProgrammeName("Master Of Procurement And Logistics Management");
@@ -590,7 +590,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(2052);
         e.setSchoolId(906);
-        e.setUniversityId(19);
+        e.setUniversityId(19L);
         e.setDepartmentId(null);
         e.setProgrammeCode("NK-P052");
         e.setProgrammeName("Master Of Science In Human Resource Management");
@@ -601,7 +601,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(2053);
         e.setSchoolId(906);
-        e.setUniversityId(19);
+        e.setUniversityId(19L);
         e.setDepartmentId(null);
         e.setProgrammeCode("NK-P053");
         e.setProgrammeName("Master Of Business Administration");
@@ -612,7 +612,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(2054);
         e.setSchoolId(906);
-        e.setUniversityId(19);
+        e.setUniversityId(19L);
         e.setDepartmentId(null);
         e.setProgrammeCode("NK-P054");
         e.setProgrammeName("PhD in Business Administration");
@@ -623,7 +623,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(2055);
         e.setSchoolId(907);
-        e.setUniversityId(19);
+        e.setUniversityId(19L);
         e.setDepartmentId(null);
         e.setProgrammeCode("NK-P055");
         e.setProgrammeName("Bachelor of Fashion and Textiles Design");
@@ -634,7 +634,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(2056);
         e.setSchoolId(907);
-        e.setUniversityId(19);
+        e.setUniversityId(19L);
         e.setDepartmentId(null);
         e.setProgrammeCode("NK-P056");
         e.setProgrammeName("Bachelor Of Commercial Art");
@@ -645,7 +645,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(2057);
         e.setSchoolId(907);
-        e.setUniversityId(19);
+        e.setUniversityId(19L);
         e.setDepartmentId(null);
         e.setProgrammeCode("NK-P057");
         e.setProgrammeName("Diploma In Graphic Digital Design");
@@ -656,7 +656,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(2058);
         e.setSchoolId(907);
-        e.setUniversityId(19);
+        e.setUniversityId(19L);
         e.setDepartmentId(null);
         e.setProgrammeCode("NK-P058");
         e.setProgrammeName("Diploma In Vocational Arts/Crafts And Design Studies");
@@ -667,7 +667,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(2059);
         e.setSchoolId(907);
-        e.setUniversityId(19);
+        e.setUniversityId(19L);
         e.setDepartmentId(null);
         e.setProgrammeCode("NK-P059");
         e.setProgrammeName("PhD in Art and Design");
@@ -678,7 +678,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(2060);
         e.setSchoolId(908);
-        e.setUniversityId(19);
+        e.setUniversityId(19L);
         e.setDepartmentId(null);
         e.setProgrammeCode("NK-P060");
         e.setProgrammeName("Ph.D In Computing");
@@ -689,7 +689,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(2061);
         e.setSchoolId(908);
-        e.setUniversityId(19);
+        e.setUniversityId(19L);
         e.setDepartmentId(null);
         e.setProgrammeCode("NK-P061");
         e.setProgrammeName("PhD in Development Studies");
@@ -700,7 +700,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(2062);
         e.setSchoolId(908);
-        e.setUniversityId(19);
+        e.setUniversityId(19L);
         e.setDepartmentId(null);
         e.setProgrammeCode("NK-P062");
         e.setProgrammeName("Masters in Taxation Management");
@@ -711,7 +711,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(1);
         e.setSchoolId(1);
-        e.setUniversityId(2);
+        e.setUniversityId(2L);
         e.setDepartmentId(1);
         e.setProgrammeCode("\"CIV_KYU\"");
         e.setProgrammeName("\"Bachelor of Science in Civil Engineering\"");
@@ -722,7 +722,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(2);
         e.setSchoolId(1);
-        e.setUniversityId(2);
+        e.setUniversityId(2L);
         e.setDepartmentId(1);
         e.setProgrammeCode("\"ENV_KYU\"");
         e.setProgrammeName("\"Bachelor of Science in Environmental Engineering\"");
@@ -733,7 +733,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(3);
         e.setSchoolId(1);
-        e.setUniversityId(2);
+        e.setUniversityId(2L);
         e.setDepartmentId(1);
         e.setProgrammeCode("\"DCIV_KYU\"");
         e.setProgrammeName("\"Diploma in Civil Engineering\"");
@@ -744,7 +744,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(4);
         e.setSchoolId(1);
-        e.setUniversityId(2);
+        e.setUniversityId(2L);
         e.setDepartmentId(2);
         e.setProgrammeCode("\"MEC_KYU\"");
         e.setProgrammeName("\"Bachelor of Science in Mechanical Engineering\"");
@@ -755,7 +755,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(5);
         e.setSchoolId(1);
-        e.setUniversityId(2);
+        e.setUniversityId(2L);
         e.setDepartmentId(2);
         e.setProgrammeCode("\"AUT_KYU\"");
         e.setProgrammeName("\"Bachelor of Science in Automotive Engineering\"");
@@ -766,7 +766,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(6);
         e.setSchoolId(1);
-        e.setUniversityId(2);
+        e.setUniversityId(2L);
         e.setDepartmentId(2);
         e.setProgrammeCode("\"DMEC_KYU\"");
         e.setProgrammeName("\"Diploma in Mechanical Engineering\"");
@@ -777,7 +777,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(7);
         e.setSchoolId(1);
-        e.setUniversityId(2);
+        e.setUniversityId(2L);
         e.setDepartmentId(3);
         e.setProgrammeCode("\"ELE_KYU\"");
         e.setProgrammeName("\"Bachelor of Science in Electrical Engineering\"");
@@ -788,7 +788,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(8);
         e.setSchoolId(1);
-        e.setUniversityId(2);
+        e.setUniversityId(2L);
         e.setDepartmentId(3);
         e.setProgrammeCode("\"TEL_KYU\"");
         e.setProgrammeName("\"Bachelor of Science in Telecommunications Engineering\"");
@@ -799,7 +799,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(9);
         e.setSchoolId(1);
-        e.setUniversityId(2);
+        e.setUniversityId(2L);
         e.setDepartmentId(3);
         e.setProgrammeCode("\"DELE_KYU\"");
         e.setProgrammeName("\"Diploma in Electrical Engineering\"");
@@ -810,7 +810,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(10);
         e.setSchoolId(1);
-        e.setUniversityId(2);
+        e.setUniversityId(2L);
         e.setDepartmentId(4);
         e.setProgrammeCode("\"BIO_KYU\"");
         e.setProgrammeName("\"Bachelor of Science in Biomedical Engineering\"");
@@ -821,7 +821,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(11);
         e.setSchoolId(1);
-        e.setUniversityId(2);
+        e.setUniversityId(2L);
         e.setDepartmentId(4);
         e.setProgrammeCode("\"MCH_KYU\"");
         e.setProgrammeName("\"Bachelor of Science in Mechatronics Engineering\"");
@@ -832,7 +832,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(12);
         e.setSchoolId(1);
-        e.setUniversityId(2);
+        e.setUniversityId(2L);
         e.setDepartmentId(5);
         e.setProgrammeCode("\"PET_KYU\"");
         e.setProgrammeName("\"Bachelor of Science in Petroleum Engineering\"");
@@ -843,7 +843,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(13);
         e.setSchoolId(1);
-        e.setUniversityId(2);
+        e.setUniversityId(2L);
         e.setDepartmentId(5);
         e.setProgrammeCode("\"CHE_KYU\"");
         e.setProgrammeName("\"Bachelor of Science in Chemical Engineering\"");
@@ -854,7 +854,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(14);
         e.setSchoolId(2);
-        e.setUniversityId(2);
+        e.setUniversityId(2L);
         e.setDepartmentId(6);
         e.setProgrammeCode("\"BIO_SCI\"");
         e.setProgrammeName("\"Bachelor of Science in Biological Sciences\"");
@@ -865,7 +865,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(15);
         e.setSchoolId(2);
-        e.setUniversityId(2);
+        e.setUniversityId(2L);
         e.setDepartmentId(6);
         e.setProgrammeCode("\"BOT_ZOO\"");
         e.setProgrammeName("\"Bachelor of Science in Botany and Zoology\"");
@@ -876,7 +876,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(16);
         e.setSchoolId(2);
-        e.setUniversityId(2);
+        e.setUniversityId(2L);
         e.setDepartmentId(7);
         e.setProgrammeCode("\"PHY_KYU\"");
         e.setProgrammeName("\"Bachelor of Science in Physics\"");
@@ -887,7 +887,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(17);
         e.setSchoolId(2);
-        e.setUniversityId(2);
+        e.setUniversityId(2L);
         e.setDepartmentId(8);
         e.setProgrammeCode("\"IND_CHEM\"");
         e.setProgrammeName("\"Bachelor of Science in Industrial Chemistry\"");
@@ -898,7 +898,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(18);
         e.setSchoolId(2);
-        e.setUniversityId(2);
+        e.setUniversityId(2L);
         e.setDepartmentId(8);
         e.setProgrammeCode("\"CHEM_KYU\"");
         e.setProgrammeName("\"Bachelor of Science in Chemistry\"");
@@ -909,7 +909,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(19);
         e.setSchoolId(2);
-        e.setUniversityId(2);
+        e.setUniversityId(2L);
         e.setDepartmentId(9);
         e.setProgrammeCode("\"STAT_KYU\"");
         e.setProgrammeName("\"Bachelor of Science in Statistics\"");
@@ -920,7 +920,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(20);
         e.setSchoolId(2);
-        e.setUniversityId(2);
+        e.setUniversityId(2L);
         e.setDepartmentId(9);
         e.setProgrammeCode("\"MATH_KYU\"");
         e.setProgrammeName("\"Bachelor of Science in Mathematics\"");
@@ -931,7 +931,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(21);
         e.setSchoolId(2);
-        e.setUniversityId(2);
+        e.setUniversityId(2L);
         e.setDepartmentId(10);
         e.setProgrammeCode("\"FST_KYU\"");
         e.setProgrammeName("\"Bachelor of Science in Food Science and Technology\"");
@@ -942,7 +942,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(22);
         e.setSchoolId(2);
-        e.setUniversityId(2);
+        e.setUniversityId(2L);
         e.setDepartmentId(11);
         e.setProgrammeCode("\"SPO_KYU\"");
         e.setProgrammeName("\"Bachelor of Sports Science\"");
@@ -953,7 +953,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(23);
         e.setSchoolId(3);
-        e.setUniversityId(2);
+        e.setUniversityId(2L);
         e.setDepartmentId(12);
         e.setProgrammeCode("\"AGR_KYU\"");
         e.setProgrammeName("\"Bachelor of Science in Agriculture\"");
@@ -964,7 +964,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(24);
         e.setSchoolId(3);
-        e.setUniversityId(2);
+        e.setUniversityId(2L);
         e.setDepartmentId(13);
         e.setProgrammeCode("\"SOI_KYU\"");
         e.setProgrammeName("\"Bachelor of Science in Soil and Water Conservation\"");
@@ -975,7 +975,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(25);
         e.setSchoolId(3);
-        e.setUniversityId(2);
+        e.setUniversityId(2L);
         e.setDepartmentId(14);
         e.setProgrammeCode("\"AGEC_KYU\"");
         e.setProgrammeName("\"Bachelor of Agricultural Economics and Agribusiness\"");
@@ -986,7 +986,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(26);
         e.setSchoolId(3);
-        e.setUniversityId(2);
+        e.setUniversityId(2L);
         e.setDepartmentId(14);
         e.setProgrammeCode("\"AGED_KYU\"");
         e.setProgrammeName("\"Bachelor of Science in Agricultural Education\"");
@@ -997,7 +997,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(27);
         e.setSchoolId(4);
-        e.setUniversityId(2);
+        e.setUniversityId(2L);
         e.setDepartmentId(16);
         e.setProgrammeCode("\"BSL_KYU\"");
         e.setProgrammeName("\"Bachelor of Sign Language Interpreting\"");
@@ -1008,7 +1008,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(28);
         e.setSchoolId(4);
-        e.setUniversityId(2);
+        e.setUniversityId(2L);
         e.setDepartmentId(18);
         e.setProgrammeCode("\"CBR_KYU\"");
         e.setProgrammeName("\"Bachelor of Community Based Rehabilitation\"");
@@ -1019,7 +1019,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(29);
         e.setSchoolId(5);
-        e.setUniversityId(2);
+        e.setUniversityId(2L);
         e.setDepartmentId(21);
         e.setProgrammeCode("\"BAA_KYU\"");
         e.setProgrammeName("\"Bachelor of Arts in Arts\"");
@@ -1030,7 +1030,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(30);
         e.setSchoolId(5);
-        e.setUniversityId(2);
+        e.setUniversityId(2L);
         e.setDepartmentId(24);
         e.setProgrammeCode("\"PER_KYU\"");
         e.setProgrammeName("\"Bachelor of Performing Arts\"");
@@ -1041,7 +1041,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(31);
         e.setSchoolId(6);
-        e.setUniversityId(2);
+        e.setUniversityId(2L);
         e.setDepartmentId(27);
         e.setProgrammeCode("\"ECO_KYU\"");
         e.setProgrammeName("\"Bachelor of Arts in Economics\"");
@@ -1052,7 +1052,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(32);
         e.setSchoolId(6);
-        e.setUniversityId(2);
+        e.setUniversityId(2L);
         e.setDepartmentId(28);
         e.setProgrammeCode("\"DEV_KYU\"");
         e.setProgrammeName("\"Bachelor of Development Studies\"");
@@ -1063,7 +1063,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(33);
         e.setSchoolId(6);
-        e.setUniversityId(2);
+        e.setUniversityId(2L);
         e.setDepartmentId(30);
         e.setProgrammeCode("\"SWSA_KYU\"");
         e.setProgrammeName("\"Bachelor of Social Work and Social Administration\"");
@@ -1074,7 +1074,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(34);
         e.setSchoolId(7);
-        e.setUniversityId(2);
+        e.setUniversityId(2L);
         e.setDepartmentId(35);
         e.setProgrammeCode("\"BED_KYU\"");
         e.setProgrammeName("\"Bachelor of Education\"");
@@ -1085,7 +1085,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(35);
         e.setSchoolId(7);
-        e.setUniversityId(2);
+        e.setUniversityId(2L);
         e.setDepartmentId(35);
         e.setProgrammeCode("\"DES_KYU\"");
         e.setProgrammeName("\"Diploma in Education Secondary\"");
@@ -1096,7 +1096,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(36);
         e.setSchoolId(8);
-        e.setUniversityId(2);
+        e.setUniversityId(2L);
         e.setDepartmentId(39);
         e.setProgrammeCode("\"BID_KYU\"");
         e.setProgrammeName("\"Bachelor of Industrial and Fine Arts\"");
@@ -1107,7 +1107,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(37);
         e.setSchoolId(9);
-        e.setUniversityId(2);
+        e.setUniversityId(2L);
         e.setDepartmentId(42);
         e.setProgrammeCode("\"AF_KYU\"");
         e.setProgrammeName("\"Bachelor of Science in Accounting and Finance\"");
@@ -1118,7 +1118,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(38);
         e.setSchoolId(9);
-        e.setUniversityId(2);
+        e.setUniversityId(2L);
         e.setDepartmentId(44);
         e.setProgrammeCode("\"BBA_KYU\"");
         e.setProgrammeName("\"Bachelor of Business Administration\"");
@@ -1129,7 +1129,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(39);
         e.setSchoolId(9);
-        e.setUniversityId(2);
+        e.setUniversityId(2L);
         e.setDepartmentId(44);
         e.setProgrammeCode("\"ENT_KYU\"");
         e.setProgrammeName("\"Bachelor of Entrepreneurship and Small Business Management\"");
@@ -1140,7 +1140,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(40);
         e.setSchoolId(9);
-        e.setUniversityId(2);
+        e.setUniversityId(2L);
         e.setDepartmentId(45);
         e.setProgrammeCode("\"PSM_KYU\"");
         e.setProgrammeName("\"Bachelor of Procurement and Supply Chain Management\"");
@@ -1151,7 +1151,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(41);
         e.setSchoolId(10);
-        e.setUniversityId(2);
+        e.setUniversityId(2L);
         e.setDepartmentId(47);
         e.setProgrammeCode("\"ARCH_KYU\"");
         e.setProgrammeName("\"Bachelor of Architecture\"");
@@ -1162,7 +1162,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(42);
         e.setSchoolId(10);
-        e.setUniversityId(2);
+        e.setUniversityId(2L);
         e.setDepartmentId(46);
         e.setProgrammeCode("\"QS_KYU\"");
         e.setProgrammeName("\"Bachelor of Science in Quantity Surveying\"");
@@ -1173,7 +1173,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(43);
         e.setSchoolId(10);
-        e.setUniversityId(2);
+        e.setUniversityId(2L);
         e.setDepartmentId(46);
         e.setProgrammeCode("\"LEM_KYU\"");
         e.setProgrammeName("\"Bachelor of Science in Land Economics\"");
@@ -1184,7 +1184,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(44);
         e.setSchoolId(11);
-        e.setUniversityId(2);
+        e.setUniversityId(2L);
         e.setDepartmentId(49);
         e.setProgrammeCode("\"BIT_KYU\"");
         e.setProgrammeName("\"Bachelor of Information Technology\"");
@@ -1195,7 +1195,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(45);
         e.setSchoolId(11);
-        e.setUniversityId(2);
+        e.setUniversityId(2L);
         e.setDepartmentId(49);
         e.setProgrammeCode("\"CSC_KYU\"");
         e.setProgrammeName("\"Bachelor of Science in Computer Science\"");
@@ -1206,7 +1206,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(46);
         e.setSchoolId(11);
-        e.setUniversityId(2);
+        e.setUniversityId(2L);
         e.setDepartmentId(50);
         e.setProgrammeCode("\"BIS_KYU\"");
         e.setProgrammeName("\"Bachelor of Information Systems\"");
@@ -1217,7 +1217,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(47);
         e.setSchoolId(11);
-        e.setUniversityId(2);
+        e.setUniversityId(2L);
         e.setDepartmentId(50);
         e.setProgrammeCode("\"DSE_KYU\"");
         e.setProgrammeName("\"Bachelor of Data Science and Analytics\"");
@@ -1228,7 +1228,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(48);
         e.setSchoolId(11);
-        e.setUniversityId(2);
+        e.setUniversityId(2L);
         e.setDepartmentId(51);
         e.setProgrammeCode("\"BLIS_KYU\"");
         e.setProgrammeName("\"Bachelor of Library and Information Science\"");
@@ -1239,7 +1239,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(49);
         e.setSchoolId(11);
-        e.setUniversityId(2);
+        e.setUniversityId(2L);
         e.setDepartmentId(51);
         e.setProgrammeCode("\"RAM_KYU\"");
         e.setProgrammeName("\"Bachelor of Records and Archives Management\"");
@@ -1250,7 +1250,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(50);
         e.setSchoolId(12);
-        e.setUniversityId(2);
+        e.setUniversityId(2L);
         e.setDepartmentId(53);
         e.setProgrammeCode("\"HIC_KYU\"");
         e.setProgrammeName("\"Bachelor of Hotel and Institutional Catering\"");
@@ -1261,7 +1261,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(51);
         e.setSchoolId(12);
-        e.setUniversityId(2);
+        e.setUniversityId(2L);
         e.setDepartmentId(54);
         e.setProgrammeCode("\"FAD_KYU\"");
         e.setProgrammeName("\"Bachelor of Fashion and Design\"");
@@ -1272,7 +1272,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(52);
         e.setSchoolId(1);
-        e.setUniversityId(2);
+        e.setUniversityId(2L);
         e.setDepartmentId(1);
         e.setProgrammeCode("\"CCIV_KYU\"");
         e.setProgrammeName("\"Certificate in Civil Engineering\"");
@@ -1283,7 +1283,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(53);
         e.setSchoolId(1);
-        e.setUniversityId(2);
+        e.setUniversityId(2L);
         e.setDepartmentId(2);
         e.setProgrammeCode("\"CMEC_KYU\"");
         e.setProgrammeName("\"Certificate in Mechanical Engineering\"");
@@ -1294,7 +1294,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(54);
         e.setSchoolId(1);
-        e.setUniversityId(2);
+        e.setUniversityId(2L);
         e.setDepartmentId(2);
         e.setProgrammeCode("\"CAUT_KYU\"");
         e.setProgrammeName("\"Certificate in Automotive Mechanics\"");
@@ -1305,7 +1305,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(55);
         e.setSchoolId(1);
-        e.setUniversityId(2);
+        e.setUniversityId(2L);
         e.setDepartmentId(3);
         e.setProgrammeCode("\"CELE_KYU\"");
         e.setProgrammeName("\"Certificate in Electrical Installation and Maintenance\"");
@@ -1316,7 +1316,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(56);
         e.setSchoolId(1);
-        e.setUniversityId(2);
+        e.setUniversityId(2L);
         e.setDepartmentId(4);
         e.setProgrammeCode("\"DBME_KYU\"");
         e.setProgrammeName("\"Diploma in Biomedical Engineering\"");
@@ -1327,7 +1327,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(57);
         e.setSchoolId(2);
-        e.setUniversityId(2);
+        e.setUniversityId(2L);
         e.setDepartmentId(6);
         e.setProgrammeCode("\"DBIO_KYU\"");
         e.setProgrammeName("\"Diploma in Biological Sciences\"");
@@ -1338,7 +1338,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(58);
         e.setSchoolId(2);
-        e.setUniversityId(2);
+        e.setUniversityId(2L);
         e.setDepartmentId(8);
         e.setProgrammeCode("\"DIC_KYU\"");
         e.setProgrammeName("\"Diploma in Industrial Chemistry\"");
@@ -1349,7 +1349,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(59);
         e.setSchoolId(2);
-        e.setUniversityId(2);
+        e.setUniversityId(2L);
         e.setDepartmentId(8);
         e.setProgrammeCode("\"SLT_KYU\"");
         e.setProgrammeName("\"Diploma in Science Laboratory Technology\"");
@@ -1360,7 +1360,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(60);
         e.setSchoolId(2);
-        e.setUniversityId(2);
+        e.setUniversityId(2L);
         e.setDepartmentId(8);
         e.setProgrammeCode("\"CSLT_KYU\"");
         e.setProgrammeName("\"Certificate in Science Laboratory Technology\"");
@@ -1371,7 +1371,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(61);
         e.setSchoolId(2);
-        e.setUniversityId(2);
+        e.setUniversityId(2L);
         e.setDepartmentId(9);
         e.setProgrammeCode("\"DSTA_KYU\"");
         e.setProgrammeName("\"Diploma in Statistics\"");
@@ -1382,7 +1382,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(62);
         e.setSchoolId(2);
-        e.setUniversityId(2);
+        e.setUniversityId(2L);
         e.setDepartmentId(10);
         e.setProgrammeCode("\"DFST_KYU\"");
         e.setProgrammeName("\"Diploma in Food Processing Technology\"");
@@ -1393,7 +1393,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(63);
         e.setSchoolId(2);
-        e.setUniversityId(2);
+        e.setUniversityId(2L);
         e.setDepartmentId(11);
         e.setProgrammeCode("\"DSP_KYU\"");
         e.setProgrammeName("\"Diploma in Sports Science\"");
@@ -1404,7 +1404,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(64);
         e.setSchoolId(2);
-        e.setUniversityId(2);
+        e.setUniversityId(2L);
         e.setDepartmentId(11);
         e.setProgrammeCode("\"CSP_KYU\"");
         e.setProgrammeName("\"Certificate in Sports Coaching\"");
@@ -1415,7 +1415,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(65);
         e.setSchoolId(3);
-        e.setUniversityId(2);
+        e.setUniversityId(2L);
         e.setDepartmentId(12);
         e.setProgrammeCode("\"DAGR_KYU\"");
         e.setProgrammeName("\"Diploma in Agriculture\"");
@@ -1426,7 +1426,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(66);
         e.setSchoolId(3);
-        e.setUniversityId(2);
+        e.setUniversityId(2L);
         e.setDepartmentId(12);
         e.setProgrammeCode("\"CAGR_KYU\"");
         e.setProgrammeName("\"Certificate in Agriculture\"");
@@ -1437,7 +1437,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(67);
         e.setSchoolId(3);
-        e.setUniversityId(2);
+        e.setUniversityId(2L);
         e.setDepartmentId(14);
         e.setProgrammeCode("\"DAGB_KYU\"");
         e.setProgrammeName("\"Diploma in Agribusiness Enterprise Management\"");
@@ -1448,7 +1448,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(68);
         e.setSchoolId(4);
-        e.setUniversityId(2);
+        e.setUniversityId(2L);
         e.setDepartmentId(16);
         e.setProgrammeCode("\"DSLI_KYU\"");
         e.setProgrammeName("\"Diploma in Sign Language Interpreting\"");
@@ -1459,7 +1459,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(69);
         e.setSchoolId(4);
-        e.setUniversityId(2);
+        e.setUniversityId(2L);
         e.setDepartmentId(16);
         e.setProgrammeCode("\"CSLI_KYU\"");
         e.setProgrammeName("\"Certificate in Basic Sign Language\"");
@@ -1470,7 +1470,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(70);
         e.setSchoolId(4);
-        e.setUniversityId(2);
+        e.setUniversityId(2L);
         e.setDepartmentId(17);
         e.setProgrammeCode("\"DVI_KYU\"");
         e.setProgrammeName("\"Diploma in Visual Impairment Studies\"");
@@ -1481,7 +1481,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(71);
         e.setSchoolId(4);
-        e.setUniversityId(2);
+        e.setUniversityId(2L);
         e.setDepartmentId(18);
         e.setProgrammeCode("\"DCBR_KYU\"");
         e.setProgrammeName("\"Diploma in Community Based Rehabilitation\"");
@@ -1492,7 +1492,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(72);
         e.setSchoolId(5);
-        e.setUniversityId(2);
+        e.setUniversityId(2L);
         e.setDepartmentId(21);
         e.setProgrammeCode("\"DFRE_KYU\"");
         e.setProgrammeName("\"Diploma in French Language Studies\"");
@@ -1503,7 +1503,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(73);
         e.setSchoolId(5);
-        e.setUniversityId(2);
+        e.setUniversityId(2L);
         e.setDepartmentId(21);
         e.setProgrammeCode("\"CFRE_KYU\"");
         e.setProgrammeName("\"Certificate in French Language Studies\"");
@@ -1514,7 +1514,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(74);
         e.setSchoolId(5);
-        e.setUniversityId(2);
+        e.setUniversityId(2L);
         e.setDepartmentId(24);
         e.setProgrammeCode("\"DPA_KYU\"");
         e.setProgrammeName("\"Diploma in Music, Dance and Drama\"");
@@ -1525,7 +1525,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(75);
         e.setSchoolId(6);
-        e.setUniversityId(2);
+        e.setUniversityId(2L);
         e.setDepartmentId(30);
         e.setProgrammeCode("\"DSWSA_KYU\"");
         e.setProgrammeName("\"Diploma in Social Work and Social Administration\"");
@@ -1536,7 +1536,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(76);
         e.setSchoolId(6);
-        e.setUniversityId(2);
+        e.setUniversityId(2L);
         e.setDepartmentId(28);
         e.setProgrammeCode("\"DDS_KYU\"");
         e.setProgrammeName("\"Diploma in Development Studies\"");
@@ -1547,7 +1547,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(77);
         e.setSchoolId(7);
-        e.setUniversityId(2);
+        e.setUniversityId(2L);
         e.setDepartmentId(37);
         e.setProgrammeCode("\"DECE_KYU\"");
         e.setProgrammeName("\"Diploma in Early Childhood Education\"");
@@ -1558,7 +1558,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(78);
         e.setSchoolId(7);
-        e.setUniversityId(2);
+        e.setUniversityId(2L);
         e.setDepartmentId(37);
         e.setProgrammeCode("\"CECE_KYU\"");
         e.setProgrammeName("\"Certificate in Early Childhood Development\"");
@@ -1569,7 +1569,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(79);
         e.setSchoolId(7);
-        e.setUniversityId(2);
+        e.setUniversityId(2L);
         e.setDepartmentId(34);
         e.setProgrammeCode("\"DTE_KYU\"");
         e.setProgrammeName("\"Diploma in Technical Teacher Education\"");
@@ -1580,7 +1580,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(80);
         e.setSchoolId(8);
-        e.setUniversityId(2);
+        e.setUniversityId(2L);
         e.setDepartmentId(39);
         e.setProgrammeCode("\"DFA_KYU\"");
         e.setProgrammeName("\"Diploma in Industrial Art and Design\"");
@@ -1591,7 +1591,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(81);
         e.setSchoolId(8);
-        e.setUniversityId(2);
+        e.setUniversityId(2L);
         e.setDepartmentId(39);
         e.setProgrammeCode("\"CFA_KYU\"");
         e.setProgrammeName("\"Certificate in Fine Art\"");
@@ -1602,7 +1602,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(82);
         e.setSchoolId(9);
-        e.setUniversityId(2);
+        e.setUniversityId(2L);
         e.setDepartmentId(42);
         e.setProgrammeCode("\"DAF_KYU\"");
         e.setProgrammeName("\"Diploma in Accounting and Finance\"");
@@ -1613,7 +1613,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(83);
         e.setSchoolId(9);
-        e.setUniversityId(2);
+        e.setUniversityId(2L);
         e.setDepartmentId(44);
         e.setProgrammeCode("\"DBA_KYU\"");
         e.setProgrammeName("\"Diploma in Business Administration\"");
@@ -1624,7 +1624,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(84);
         e.setSchoolId(9);
-        e.setUniversityId(2);
+        e.setUniversityId(2L);
         e.setDepartmentId(45);
         e.setProgrammeCode("\"DPSM_KYU\"");
         e.setProgrammeName("\"Diploma in Procurement and Supply Chain Management\"");
@@ -1635,7 +1635,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(85);
         e.setSchoolId(10);
-        e.setUniversityId(2);
+        e.setUniversityId(2L);
         e.setDepartmentId(48);
         e.setProgrammeCode("\"DGIS_KYU\"");
         e.setProgrammeName("\"Diploma in Geoinformatics\"");
@@ -1646,7 +1646,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(86);
         e.setSchoolId(11);
-        e.setUniversityId(2);
+        e.setUniversityId(2L);
         e.setDepartmentId(49);
         e.setProgrammeCode("\"DIT_KYU\"");
         e.setProgrammeName("\"Diploma in Information Technology\"");
@@ -1657,7 +1657,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(87);
         e.setSchoolId(11);
-        e.setUniversityId(2);
+        e.setUniversityId(2L);
         e.setDepartmentId(49);
         e.setProgrammeCode("\"CIT_KYU\"");
         e.setProgrammeName("\"Certificate in Information Technology\"");
@@ -1668,7 +1668,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(88);
         e.setSchoolId(11);
-        e.setUniversityId(2);
+        e.setUniversityId(2L);
         e.setDepartmentId(50);
         e.setProgrammeCode("\"DIS_KYU\"");
         e.setProgrammeName("\"Diploma in Information Systems\"");
@@ -1679,7 +1679,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(89);
         e.setSchoolId(11);
-        e.setUniversityId(2);
+        e.setUniversityId(2L);
         e.setDepartmentId(51);
         e.setProgrammeCode("\"DLIS_KYU\"");
         e.setProgrammeName("\"Diploma in Library and Information Science\"");
@@ -1690,7 +1690,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(90);
         e.setSchoolId(11);
-        e.setUniversityId(2);
+        e.setUniversityId(2L);
         e.setDepartmentId(51);
         e.setProgrammeCode("\"DRAM_KYU\"");
         e.setProgrammeName("\"Diploma in Records and Archives Management\"");
@@ -1701,7 +1701,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(91);
         e.setSchoolId(11);
-        e.setUniversityId(2);
+        e.setUniversityId(2L);
         e.setDepartmentId(51);
         e.setProgrammeCode("\"CRAM_KYU\"");
         e.setProgrammeName("\"Certificate in Records and Archives Management\"");
@@ -1712,7 +1712,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(92);
         e.setSchoolId(12);
-        e.setUniversityId(2);
+        e.setUniversityId(2L);
         e.setDepartmentId(53);
         e.setProgrammeCode("\"DHIC_KYU\"");
         e.setProgrammeName("\"Diploma in Hotel and Institutional Catering\"");
@@ -1723,7 +1723,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(93);
         e.setSchoolId(12);
-        e.setUniversityId(2);
+        e.setUniversityId(2L);
         e.setDepartmentId(54);
         e.setProgrammeCode("\"DFAD_KYU\"");
         e.setProgrammeName("\"Diploma in Fashion Design and Garment Making\"");
@@ -1734,7 +1734,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(94);
         e.setSchoolId(12);
-        e.setUniversityId(2);
+        e.setUniversityId(2L);
         e.setDepartmentId(54);
         e.setProgrammeCode("\"CFAD_KYU\"");
         e.setProgrammeName("\"Certificate in Garment Making and Fashion\"");
@@ -1745,7 +1745,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(95);
         e.setSchoolId(12);
-        e.setUniversityId(2);
+        e.setUniversityId(2L);
         e.setDepartmentId(52);
         e.setProgrammeCode("\"DFCS_KYU\"");
         e.setProgrammeName("\"Diploma in Home Economics and Consumer Studies\"");
@@ -1756,7 +1756,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(96);
         e.setSchoolId(1);
-        e.setUniversityId(2);
+        e.setUniversityId(2L);
         e.setDepartmentId(1);
         e.setProgrammeCode("\"MSC_CIV\"");
         e.setProgrammeName("\"Master of Science in Civil Engineering\"");
@@ -1767,7 +1767,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(97);
         e.setSchoolId(1);
-        e.setUniversityId(2);
+        e.setUniversityId(2L);
         e.setDepartmentId(1);
         e.setProgrammeCode("\"PHD_CIV\"");
         e.setProgrammeName("\"Doctor of Philosophy in Civil Engineering\"");
@@ -1778,7 +1778,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(98);
         e.setSchoolId(1);
-        e.setUniversityId(2);
+        e.setUniversityId(2L);
         e.setDepartmentId(3);
         e.setProgrammeCode("\"MSC_ELE\"");
         e.setProgrammeName("\"Master of Science in Electrical Engineering\"");
@@ -1789,7 +1789,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(99);
         e.setSchoolId(1);
-        e.setUniversityId(2);
+        e.setUniversityId(2L);
         e.setDepartmentId(2);
         e.setProgrammeCode("\"MSC_MEC\"");
         e.setProgrammeName("\"Master of Science in Advanced Manufacturing Engineering\"");
@@ -1800,7 +1800,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(100);
         e.setSchoolId(2);
-        e.setUniversityId(2);
+        e.setUniversityId(2L);
         e.setDepartmentId(6);
         e.setProgrammeCode("\"MSC_BIO\"");
         e.setProgrammeName("\"Master of Science in Conservation Biology\"");
@@ -1811,7 +1811,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(101);
         e.setSchoolId(2);
-        e.setUniversityId(2);
+        e.setUniversityId(2L);
         e.setDepartmentId(6);
         e.setProgrammeCode("\"PHD_BIO\"");
         e.setProgrammeName("\"Doctor of Philosophy in Biological Sciences\"");
@@ -1822,7 +1822,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(102);
         e.setSchoolId(2);
-        e.setUniversityId(2);
+        e.setUniversityId(2L);
         e.setDepartmentId(8);
         e.setProgrammeCode("\"MSC_CHE\"");
         e.setProgrammeName("\"Master of Science in Chemistry\"");
@@ -1833,7 +1833,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(103);
         e.setSchoolId(2);
-        e.setUniversityId(2);
+        e.setUniversityId(2L);
         e.setDepartmentId(7);
         e.setProgrammeCode("\"MSC_PHY\"");
         e.setProgrammeName("\"Master of Science in Physics\"");
@@ -1844,7 +1844,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(104);
         e.setSchoolId(2);
-        e.setUniversityId(2);
+        e.setUniversityId(2L);
         e.setDepartmentId(9);
         e.setProgrammeCode("\"MSC_MATH\"");
         e.setProgrammeName("\"Master of Science in Mathematics\"");
@@ -1855,7 +1855,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(105);
         e.setSchoolId(2);
-        e.setUniversityId(2);
+        e.setUniversityId(2L);
         e.setDepartmentId(9);
         e.setProgrammeCode("\"MSC_STAT\"");
         e.setProgrammeName("\"Master of Science in Statistics\"");
@@ -1866,7 +1866,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(106);
         e.setSchoolId(3);
-        e.setUniversityId(2);
+        e.setUniversityId(2L);
         e.setDepartmentId(12);
         e.setProgrammeCode("\"MSC_AGR\"");
         e.setProgrammeName("\"Master of Science in Crop Science\"");
@@ -1877,7 +1877,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(107);
         e.setSchoolId(3);
-        e.setUniversityId(2);
+        e.setUniversityId(2L);
         e.setDepartmentId(12);
         e.setProgrammeCode("\"PHD_AGR\"");
         e.setProgrammeName("\"Doctor of Philosophy in Agriculture\"");
@@ -1888,7 +1888,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(108);
         e.setSchoolId(4);
-        e.setUniversityId(2);
+        e.setUniversityId(2L);
         e.setDepartmentId(18);
         e.setProgrammeCode("\"MA_SNE\"");
         e.setProgrammeName("\"Master of Arts in Special Needs Education\"");
@@ -1899,7 +1899,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(109);
         e.setSchoolId(4);
-        e.setUniversityId(2);
+        e.setUniversityId(2L);
         e.setDepartmentId(18);
         e.setProgrammeCode("\"MSC_CBR\"");
         e.setProgrammeName("\"Master of Science in Community Based Rehabilitation\"");
@@ -1910,7 +1910,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(110);
         e.setSchoolId(4);
-        e.setUniversityId(2);
+        e.setUniversityId(2L);
         e.setDepartmentId(18);
         e.setProgrammeCode("\"PHD_SNE\"");
         e.setProgrammeName("\"Doctor of Philosophy in Special Needs Education\"");
@@ -1921,7 +1921,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(111);
         e.setSchoolId(5);
-        e.setUniversityId(2);
+        e.setUniversityId(2L);
         e.setDepartmentId(25);
         e.setProgrammeCode("\"MA_HIS\"");
         e.setProgrammeName("\"Master of Arts in History\"");
@@ -1932,7 +1932,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(112);
         e.setSchoolId(5);
-        e.setUniversityId(2);
+        e.setUniversityId(2L);
         e.setDepartmentId(21);
         e.setProgrammeCode("\"MA_LING\"");
         e.setProgrammeName("\"Master of Arts in Linguistics\"");
@@ -1943,7 +1943,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(113);
         e.setSchoolId(5);
-        e.setUniversityId(2);
+        e.setUniversityId(2L);
         e.setDepartmentId(21);
         e.setProgrammeCode("\"MA_LIT\"");
         e.setProgrammeName("\"Master of Arts in Literature\"");
@@ -1954,7 +1954,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(114);
         e.setSchoolId(6);
-        e.setUniversityId(2);
+        e.setUniversityId(2L);
         e.setDepartmentId(27);
         e.setProgrammeCode("\"MA_ECO\"");
         e.setProgrammeName("\"Master of Arts in Economics\"");
@@ -1965,7 +1965,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(115);
         e.setSchoolId(6);
-        e.setUniversityId(2);
+        e.setUniversityId(2L);
         e.setDepartmentId(28);
         e.setProgrammeCode("\"MA_DEV\"");
         e.setProgrammeName("\"Master of Development Studies\"");
@@ -1976,7 +1976,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(116);
         e.setSchoolId(6);
-        e.setUniversityId(2);
+        e.setUniversityId(2L);
         e.setDepartmentId(29);
         e.setProgrammeCode("\"MPA_KYU\"");
         e.setProgrammeName("\"Master of Public Administration\"");
@@ -1987,7 +1987,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(117);
         e.setSchoolId(7);
-        e.setUniversityId(2);
+        e.setUniversityId(2L);
         e.setDepartmentId(36);
         e.setProgrammeCode("\"MED_EPM\"");
         e.setProgrammeName("\"Master of Education in Educational Policy and Planning\"");
@@ -1998,7 +1998,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(118);
         e.setSchoolId(7);
-        e.setUniversityId(2);
+        e.setUniversityId(2L);
         e.setDepartmentId(36);
         e.setProgrammeCode("\"PHD_EDU\"");
         e.setProgrammeName("\"Doctor of Philosophy in Education\"");
@@ -2009,7 +2009,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(119);
         e.setSchoolId(7);
-        e.setUniversityId(2);
+        e.setUniversityId(2L);
         e.setDepartmentId(33);
         e.setProgrammeCode("\"MED_PSY\"");
         e.setProgrammeName("\"Master of Educational Psychology\"");
@@ -2020,7 +2020,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(120);
         e.setSchoolId(8);
-        e.setUniversityId(2);
+        e.setUniversityId(2L);
         e.setDepartmentId(39);
         e.setProgrammeCode("\"MA_FA\"");
         e.setProgrammeName("\"Master of Art and Industrial Design\"");
@@ -2031,7 +2031,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(121);
         e.setSchoolId(9);
-        e.setUniversityId(2);
+        e.setUniversityId(2L);
         e.setDepartmentId(44);
         e.setProgrammeCode("\"MBA_KYU\"");
         e.setProgrammeName("\"Master of Business Administration\"");
@@ -2042,7 +2042,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(122);
         e.setSchoolId(9);
-        e.setUniversityId(2);
+        e.setUniversityId(2L);
         e.setDepartmentId(44);
         e.setProgrammeCode("\"PHD_BA\"");
         e.setProgrammeName("\"Doctor of Philosophy in Business Administration\"");
@@ -2053,7 +2053,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(123);
         e.setSchoolId(9);
-        e.setUniversityId(2);
+        e.setUniversityId(2L);
         e.setDepartmentId(42);
         e.setProgrammeCode("\"MSC_AF\"");
         e.setProgrammeName("\"Master of Science in Accounting and Finance\"");
@@ -2064,7 +2064,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(124);
         e.setSchoolId(9);
-        e.setUniversityId(2);
+        e.setUniversityId(2L);
         e.setDepartmentId(45);
         e.setProgrammeCode("\"MSC_SCM\"");
         e.setProgrammeName("\"Master of Science in Procurement and Supply Chain Management\"");
@@ -2075,7 +2075,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(125);
         e.setSchoolId(10);
-        e.setUniversityId(2);
+        e.setUniversityId(2L);
         e.setDepartmentId(47);
         e.setProgrammeCode("\"MARCH\"");
         e.setProgrammeName("\"Master of Architecture\"");
@@ -2086,7 +2086,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(126);
         e.setSchoolId(11);
-        e.setUniversityId(2);
+        e.setUniversityId(2L);
         e.setDepartmentId(49);
         e.setProgrammeCode("\"MSC_CS\"");
         e.setProgrammeName("\"Master of Science in Computer Science\"");
@@ -2097,7 +2097,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(127);
         e.setSchoolId(11);
-        e.setUniversityId(2);
+        e.setUniversityId(2L);
         e.setDepartmentId(50);
         e.setProgrammeCode("\"MSC_IS\"");
         e.setProgrammeName("\"Master of Science in Information Systems\"");
@@ -2108,7 +2108,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(128);
         e.setSchoolId(11);
-        e.setUniversityId(2);
+        e.setUniversityId(2L);
         e.setDepartmentId(50);
         e.setProgrammeCode("\"PHD_CIS\"");
         e.setProgrammeName("\"Doctor of Philosophy in Computing\"");
@@ -2119,7 +2119,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(129);
         e.setSchoolId(11);
-        e.setUniversityId(2);
+        e.setUniversityId(2L);
         e.setDepartmentId(51);
         e.setProgrammeCode("\"MLIS_KYU\"");
         e.setProgrammeName("\"Master of Library and Information Science\"");
@@ -2130,7 +2130,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(130);
         e.setSchoolId(12);
-        e.setUniversityId(2);
+        e.setUniversityId(2L);
         e.setDepartmentId(55);
         e.setProgrammeCode("\"MSC_HUN\"");
         e.setProgrammeName("\"Master of Science in Human Nutrition\"");
@@ -2141,7 +2141,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(131);
         e.setSchoolId(12);
-        e.setUniversityId(2);
+        e.setUniversityId(2L);
         e.setDepartmentId(53);
         e.setProgrammeCode("\"MSC_HTM\"");
         e.setProgrammeName("\"Master of Science in Hospitality and Tourism Management\"");
@@ -2152,7 +2152,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(132);
         e.setSchoolId(15);
-        e.setUniversityId(1);
+        e.setUniversityId(1L);
         e.setDepartmentId(59);
         e.setProgrammeCode("\"MBCHB_MAK\"");
         e.setProgrammeName("\"Bachelor of Medicine and Bachelor of Surgery\"");
@@ -2163,7 +2163,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(133);
         e.setSchoolId(15);
-        e.setUniversityId(1);
+        e.setUniversityId(1L);
         e.setDepartmentId(59);
         e.setProgrammeCode("\"MMED_INT\"");
         e.setProgrammeName("\"Master of Medicine in Internal Medicine\"");
@@ -2174,7 +2174,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(134);
         e.setSchoolId(15);
-        e.setUniversityId(1);
+        e.setUniversityId(1L);
         e.setDepartmentId(59);
         e.setProgrammeCode("\"PHD_MED_MAK\"");
         e.setProgrammeName("\"Doctor of Philosophy in Medicine\"");
@@ -2185,7 +2185,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(135);
         e.setSchoolId(15);
-        e.setUniversityId(1);
+        e.setUniversityId(1L);
         e.setDepartmentId(60);
         e.setProgrammeCode("\"MMED_SURG\"");
         e.setProgrammeName("\"Master of Medicine in General Surgery\"");
@@ -2196,7 +2196,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(136);
         e.setSchoolId(15);
-        e.setUniversityId(1);
+        e.setUniversityId(1L);
         e.setDepartmentId(60);
         e.setProgrammeCode("\"MMED_ORTH\"");
         e.setProgrammeName("\"Master of Medicine in Orthopaedic Surgery\"");
@@ -2207,7 +2207,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(137);
         e.setSchoolId(15);
-        e.setUniversityId(1);
+        e.setUniversityId(1L);
         e.setDepartmentId(61);
         e.setProgrammeCode("\"MMED_OBS\"");
         e.setProgrammeName("\"Master of Medicine in Obstetrics and Gynaecology\"");
@@ -2218,7 +2218,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(138);
         e.setSchoolId(15);
-        e.setUniversityId(1);
+        e.setUniversityId(1L);
         e.setDepartmentId(62);
         e.setProgrammeCode("\"MMED_PAED\"");
         e.setProgrammeName("\"Master of Medicine in Paediatrics and Child Health\"");
@@ -2229,7 +2229,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(139);
         e.setSchoolId(16);
-        e.setUniversityId(1);
+        e.setUniversityId(1L);
         e.setDepartmentId(63);
         e.setProgrammeCode("\"BPH_MAK\"");
         e.setProgrammeName("\"Bachelor of Environmental Health Science\"");
@@ -2240,7 +2240,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(140);
         e.setSchoolId(16);
-        e.setUniversityId(1);
+        e.setUniversityId(1L);
         e.setDepartmentId(63);
         e.setProgrammeCode("\"MPH_MAK\"");
         e.setProgrammeName("\"Master of Public Health\"");
@@ -2251,7 +2251,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(141);
         e.setSchoolId(16);
-        e.setUniversityId(1);
+        e.setUniversityId(1L);
         e.setDepartmentId(63);
         e.setProgrammeCode("\"MSC_EPI\"");
         e.setProgrammeName("\"Master of Science in Epidemiology and Biostatistics\"");
@@ -2262,7 +2262,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(142);
         e.setSchoolId(16);
-        e.setUniversityId(1);
+        e.setUniversityId(1L);
         e.setDepartmentId(63);
         e.setProgrammeCode("\"PHD_PUB_MAK\"");
         e.setProgrammeName("\"Doctor of Philosophy in Public Health\"");
@@ -2273,7 +2273,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(143);
         e.setSchoolId(17);
-        e.setUniversityId(1);
+        e.setUniversityId(1L);
         e.setDepartmentId(66);
         e.setProgrammeCode("\"BSB_MAK\"");
         e.setProgrammeName("\"Bachelor of Science in Biomedical Sciences\"");
@@ -2284,7 +2284,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(144);
         e.setSchoolId(17);
-        e.setUniversityId(1);
+        e.setUniversityId(1L);
         e.setDepartmentId(66);
         e.setProgrammeCode("\"MSC_ANAT\"");
         e.setProgrammeName("\"Master of Science in Human Anatomy\"");
@@ -2295,7 +2295,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(145);
         e.setSchoolId(18);
-        e.setUniversityId(1);
+        e.setUniversityId(1L);
         e.setDepartmentId(68);
         e.setProgrammeCode("\"BSN_MAK\"");
         e.setProgrammeName("\"Bachelor of Science in Nursing\"");
@@ -2306,7 +2306,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(146);
         e.setSchoolId(18);
-        e.setUniversityId(1);
+        e.setUniversityId(1L);
         e.setDepartmentId(68);
         e.setProgrammeCode("\"MSN_MAK\"");
         e.setProgrammeName("\"Master of Nursing Science\"");
@@ -2317,7 +2317,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(147);
         e.setSchoolId(18);
-        e.setUniversityId(1);
+        e.setUniversityId(1L);
         e.setDepartmentId(69);
         e.setProgrammeCode("\"PHA_MAK\"");
         e.setProgrammeName("\"Bachelor of Pharmacy\"");
@@ -2328,7 +2328,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(148);
         e.setSchoolId(18);
-        e.setUniversityId(1);
+        e.setUniversityId(1L);
         e.setDepartmentId(69);
         e.setProgrammeCode("\"MPHARM_MAK\"");
         e.setProgrammeName("\"Master of Pharmacy\"");
@@ -2339,7 +2339,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(149);
         e.setSchoolId(18);
-        e.setUniversityId(1);
+        e.setUniversityId(1L);
         e.setDepartmentId(69);
         e.setProgrammeCode("\"BDS_MAK\"");
         e.setProgrammeName("\"Bachelor of Dental Surgery\"");
@@ -2350,7 +2350,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(150);
         e.setSchoolId(19);
-        e.setUniversityId(1);
+        e.setUniversityId(1L);
         e.setDepartmentId(70);
         e.setProgrammeCode("\"AGR_MAK\"");
         e.setProgrammeName("\"Bachelor of Science in Agriculture\"");
@@ -2361,7 +2361,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(151);
         e.setSchoolId(19);
-        e.setUniversityId(1);
+        e.setUniversityId(1L);
         e.setDepartmentId(70);
         e.setProgrammeCode("\"AGB_MAK\"");
         e.setProgrammeName("\"Bachelor of Agribusiness Management\"");
@@ -2372,7 +2372,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(152);
         e.setSchoolId(19);
-        e.setUniversityId(1);
+        e.setUniversityId(1L);
         e.setDepartmentId(70);
         e.setProgrammeCode("\"DAGR_MAK\"");
         e.setProgrammeName("\"Diploma in Agriculture\"");
@@ -2383,7 +2383,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(153);
         e.setSchoolId(19);
-        e.setUniversityId(1);
+        e.setUniversityId(1L);
         e.setDepartmentId(70);
         e.setProgrammeCode("\"MSC_AGR_MAK\"");
         e.setProgrammeName("\"Master of Science in Crop Science\"");
@@ -2394,7 +2394,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(154);
         e.setSchoolId(19);
-        e.setUniversityId(1);
+        e.setUniversityId(1L);
         e.setDepartmentId(70);
         e.setProgrammeCode("\"PHD_AGR_MAK\"");
         e.setProgrammeName("\"Doctor of Philosophy in Agricultural Sciences\"");
@@ -2405,7 +2405,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(155);
         e.setSchoolId(20);
-        e.setUniversityId(1);
+        e.setUniversityId(1L);
         e.setDepartmentId(71);
         e.setProgrammeCode("\"FOR_MAK\"");
         e.setProgrammeName("\"Bachelor of Science in Forestry\"");
@@ -2416,7 +2416,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(156);
         e.setSchoolId(20);
-        e.setUniversityId(1);
+        e.setUniversityId(1L);
         e.setDepartmentId(71);
         e.setProgrammeCode("\"BTM_MAK\"");
         e.setProgrammeName("\"Bachelor of Tourism and Hospitality Management\"");
@@ -2427,7 +2427,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(157);
         e.setSchoolId(20);
-        e.setUniversityId(1);
+        e.setUniversityId(1L);
         e.setDepartmentId(71);
         e.setProgrammeCode("\"MSC_FOR\"");
         e.setProgrammeName("\"Master of Science in Forestry\"");
@@ -2438,7 +2438,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(158);
         e.setSchoolId(20);
-        e.setUniversityId(1);
+        e.setUniversityId(1L);
         e.setDepartmentId(72);
         e.setProgrammeCode("\"ENV_MAK\"");
         e.setProgrammeName("\"Bachelor of Environmental Science\"");
@@ -2449,7 +2449,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(159);
         e.setSchoolId(20);
-        e.setUniversityId(1);
+        e.setUniversityId(1L);
         e.setDepartmentId(72);
         e.setProgrammeCode("\"MENV_MAK\"");
         e.setProgrammeName("\"Master of Environment and Natural Resources\"");
@@ -2460,7 +2460,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(160);
         e.setSchoolId(21);
-        e.setUniversityId(1);
+        e.setUniversityId(1L);
         e.setDepartmentId(73);
         e.setProgrammeCode("\"FST_MAK\"");
         e.setProgrammeName("\"Bachelor of Science in Food Science and Technology\"");
@@ -2471,7 +2471,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(161);
         e.setSchoolId(21);
-        e.setUniversityId(1);
+        e.setUniversityId(1L);
         e.setDepartmentId(73);
         e.setProgrammeCode("\"HUN_MAK\"");
         e.setProgrammeName("\"Bachelor of Science in Human Nutrition\"");
@@ -2482,7 +2482,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(162);
         e.setSchoolId(21);
-        e.setUniversityId(1);
+        e.setUniversityId(1L);
         e.setDepartmentId(73);
         e.setProgrammeCode("\"MSC_FST_MAK\"");
         e.setProgrammeName("\"Master of Science in Food Science and Technology\"");
@@ -2493,7 +2493,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(163);
         e.setSchoolId(22);
-        e.setUniversityId(1);
+        e.setUniversityId(1L);
         e.setDepartmentId(74);
         e.setProgrammeCode("\"CIV_MAK\"");
         e.setProgrammeName("\"Bachelor of Science in Civil Engineering\"");
@@ -2504,7 +2504,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(164);
         e.setSchoolId(22);
-        e.setUniversityId(1);
+        e.setUniversityId(1L);
         e.setDepartmentId(74);
         e.setProgrammeCode("\"MSC_CIV_MAK\"");
         e.setProgrammeName("\"Master of Science in Civil Engineering\"");
@@ -2515,7 +2515,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(165);
         e.setSchoolId(22);
-        e.setUniversityId(1);
+        e.setUniversityId(1L);
         e.setDepartmentId(74);
         e.setProgrammeCode("\"PHD_ENG_MAK\"");
         e.setProgrammeName("\"Doctor of Philosophy in Engineering\"");
@@ -2526,7 +2526,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(166);
         e.setSchoolId(22);
-        e.setUniversityId(1);
+        e.setUniversityId(1L);
         e.setDepartmentId(75);
         e.setProgrammeCode("\"ELE_MAK\"");
         e.setProgrammeName("\"Bachelor of Science in Electrical Engineering\"");
@@ -2537,7 +2537,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(167);
         e.setSchoolId(22);
-        e.setUniversityId(1);
+        e.setUniversityId(1L);
         e.setDepartmentId(75);
         e.setProgrammeCode("\"STE_MAK\"");
         e.setProgrammeName("\"Bachelor of Science in Telecommunication Engineering\"");
@@ -2548,7 +2548,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(168);
         e.setSchoolId(22);
-        e.setUniversityId(1);
+        e.setUniversityId(1L);
         e.setDepartmentId(75);
         e.setProgrammeCode("\"MSC_ELE_MAK\"");
         e.setProgrammeName("\"Master of Science in Electrical Engineering\"");
@@ -2559,7 +2559,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(169);
         e.setSchoolId(22);
-        e.setUniversityId(1);
+        e.setUniversityId(1L);
         e.setDepartmentId(76);
         e.setProgrammeCode("\"MEC_MAK\"");
         e.setProgrammeName("\"Bachelor of Science in Mechanical Engineering\"");
@@ -2570,7 +2570,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(170);
         e.setSchoolId(22);
-        e.setUniversityId(1);
+        e.setUniversityId(1L);
         e.setDepartmentId(76);
         e.setProgrammeCode("\"MSC_MEC_MAK\"");
         e.setProgrammeName("\"Master of Science in Mechanical Engineering\"");
@@ -2581,7 +2581,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(171);
         e.setSchoolId(23);
-        e.setUniversityId(1);
+        e.setUniversityId(1L);
         e.setDepartmentId(77);
         e.setProgrammeCode("\"ARC_MAK\"");
         e.setProgrammeName("\"Bachelor of Architecture\"");
@@ -2592,7 +2592,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(172);
         e.setSchoolId(23);
-        e.setUniversityId(1);
+        e.setUniversityId(1L);
         e.setDepartmentId(77);
         e.setProgrammeCode("\"BUP_MAK\"");
         e.setProgrammeName("\"Bachelor of Urban and Regional Planning\"");
@@ -2603,7 +2603,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(173);
         e.setSchoolId(23);
-        e.setUniversityId(1);
+        e.setUniversityId(1L);
         e.setDepartmentId(78);
         e.setProgrammeCode("\"SQS_MAK\"");
         e.setProgrammeName("\"Bachelor of Science in Quantity Surveying\"");
@@ -2614,7 +2614,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(174);
         e.setSchoolId(23);
-        e.setUniversityId(1);
+        e.setUniversityId(1L);
         e.setDepartmentId(78);
         e.setProgrammeCode("\"SLE_MAK\"");
         e.setProgrammeName("\"Bachelor of Science in Land Economics\"");
@@ -2625,7 +2625,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(175);
         e.setSchoolId(23);
-        e.setUniversityId(1);
+        e.setUniversityId(1L);
         e.setDepartmentId(78);
         e.setProgrammeCode("\"SCM_MAK\"");
         e.setProgrammeName("\"Bachelor of Science in Construction Management\"");
@@ -2636,7 +2636,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(176);
         e.setSchoolId(24);
-        e.setUniversityId(1);
+        e.setUniversityId(1L);
         e.setDepartmentId(79);
         e.setProgrammeCode("\"BFA_MAK\"");
         e.setProgrammeName("\"Bachelor of Industrial and Fine Arts\"");
@@ -2647,7 +2647,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(177);
         e.setSchoolId(24);
-        e.setUniversityId(1);
+        e.setUniversityId(1L);
         e.setDepartmentId(79);
         e.setProgrammeCode("\"DFA_MAK\"");
         e.setProgrammeName("\"Diploma in Fine Art\"");
@@ -2658,7 +2658,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(178);
         e.setSchoolId(24);
-        e.setUniversityId(1);
+        e.setUniversityId(1L);
         e.setDepartmentId(79);
         e.setProgrammeCode("\"MIFA_MAK\"");
         e.setProgrammeName("\"Master of Industrial and Fine Arts\"");
@@ -2669,7 +2669,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(179);
         e.setSchoolId(25);
-        e.setUniversityId(1);
+        e.setUniversityId(1L);
         e.setDepartmentId(81);
         e.setProgrammeCode("\"BPA_MAK\"");
         e.setProgrammeName("\"Bachelor of Performing Arts\"");
@@ -2680,7 +2680,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(180);
         e.setSchoolId(25);
-        e.setUniversityId(1);
+        e.setUniversityId(1L);
         e.setDepartmentId(81);
         e.setProgrammeCode("\"DMDD_MAK\"");
         e.setProgrammeName("\"Diploma in Music, Dance and Drama\"");
@@ -2691,7 +2691,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(181);
         e.setSchoolId(26);
-        e.setUniversityId(1);
+        e.setUniversityId(1L);
         e.setDepartmentId(84);
         e.setProgrammeCode("\"BJC_MAK\"");
         e.setProgrammeName("\"Bachelor of Journalism and Communication\"");
@@ -2702,7 +2702,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(182);
         e.setSchoolId(26);
-        e.setUniversityId(1);
+        e.setUniversityId(1L);
         e.setDepartmentId(84);
         e.setProgrammeCode("\"MJC_MAK\"");
         e.setProgrammeName("\"Master of Arts in Journalism and Communication\"");
@@ -2713,7 +2713,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(183);
         e.setSchoolId(26);
-        e.setUniversityId(1);
+        e.setUniversityId(1L);
         e.setDepartmentId(83);
         e.setProgrammeCode("\"BAA_MAK\"");
         e.setProgrammeName("\"Bachelor of Arts in Arts\"");
@@ -2724,7 +2724,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(184);
         e.setSchoolId(26);
-        e.setUniversityId(1);
+        e.setUniversityId(1L);
         e.setDepartmentId(83);
         e.setProgrammeCode("\"CFRE_MAK\"");
         e.setProgrammeName("\"Certificate in French\"");
@@ -2735,7 +2735,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(185);
         e.setSchoolId(27);
-        e.setUniversityId(1);
+        e.setUniversityId(1L);
         e.setDepartmentId(87);
         e.setProgrammeCode("\"SOC_MAK\"");
         e.setProgrammeName("\"Bachelor of Social Work and Social Administration\"");
@@ -2746,7 +2746,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(186);
         e.setSchoolId(27);
-        e.setUniversityId(1);
+        e.setUniversityId(1L);
         e.setDepartmentId(87);
         e.setProgrammeCode("\"MSW_MAK\"");
         e.setProgrammeName("\"Master of Social Work\"");
@@ -2757,7 +2757,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(187);
         e.setSchoolId(27);
-        e.setUniversityId(1);
+        e.setUniversityId(1L);
         e.setDepartmentId(86);
         e.setProgrammeCode("\"BAP_MAK\"");
         e.setProgrammeName("\"Bachelor of Governance and International Relations\"");
@@ -2768,7 +2768,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(188);
         e.setSchoolId(27);
-        e.setUniversityId(1);
+        e.setUniversityId(1L);
         e.setDepartmentId(86);
         e.setProgrammeCode("\"MAPA_MAK\"");
         e.setProgrammeName("\"Master of Public Administration\"");
@@ -2779,7 +2779,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(189);
         e.setSchoolId(28);
-        e.setUniversityId(1);
+        e.setUniversityId(1L);
         e.setDepartmentId(88);
         e.setProgrammeCode("\"BCO_MAK\"");
         e.setProgrammeName("\"Bachelor of Community Psychology\"");
@@ -2790,7 +2790,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(190);
         e.setSchoolId(28);
-        e.setUniversityId(1);
+        e.setUniversityId(1L);
         e.setDepartmentId(88);
         e.setProgrammeCode("\"BIP_MAK\"");
         e.setProgrammeName("\"Bachelor of Industrial and Organisational Psychology\"");
@@ -2801,7 +2801,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(191);
         e.setSchoolId(28);
-        e.setUniversityId(1);
+        e.setUniversityId(1L);
         e.setDepartmentId(88);
         e.setProgrammeCode("\"MIP_MAK\"");
         e.setProgrammeName("\"Master of Organizational Psychology\"");
@@ -2812,7 +2812,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(192);
         e.setSchoolId(28);
-        e.setUniversityId(1);
+        e.setUniversityId(1L);
         e.setDepartmentId(88);
         e.setProgrammeCode("\"PHD_PSY_MAK\"");
         e.setProgrammeName("\"Doctor of Philosophy in Psychology\"");
@@ -2823,7 +2823,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(193);
         e.setSchoolId(30);
-        e.setUniversityId(1);
+        e.setUniversityId(1L);
         e.setDepartmentId(89);
         e.setProgrammeCode("\"ECO_MAK\"");
         e.setProgrammeName("\"Bachelor of Arts in Economics\"");
@@ -2834,7 +2834,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(194);
         e.setSchoolId(30);
-        e.setUniversityId(1);
+        e.setUniversityId(1L);
         e.setDepartmentId(89);
         e.setProgrammeCode("\"BSE_MAK\"");
         e.setProgrammeName("\"Bachelor of Science in Economics\"");
@@ -2845,7 +2845,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(195);
         e.setSchoolId(30);
-        e.setUniversityId(1);
+        e.setUniversityId(1L);
         e.setDepartmentId(89);
         e.setProgrammeCode("\"MA_ECO_MAK\"");
         e.setProgrammeName("\"Master of Arts in Economics\"");
@@ -2856,7 +2856,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(196);
         e.setSchoolId(30);
-        e.setUniversityId(1);
+        e.setUniversityId(1L);
         e.setDepartmentId(89);
         e.setProgrammeCode("\"PHD_ECO_MAK\"");
         e.setProgrammeName("\"Doctor of Philosophy in Economics\"");
@@ -2867,7 +2867,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(197);
         e.setSchoolId(31);
-        e.setUniversityId(1);
+        e.setUniversityId(1L);
         e.setDepartmentId(90);
         e.setProgrammeCode("\"BBA_MAK\"");
         e.setProgrammeName("\"Bachelor of Business Administration\"");
@@ -2878,7 +2878,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(198);
         e.setSchoolId(31);
-        e.setUniversityId(1);
+        e.setUniversityId(1L);
         e.setDepartmentId(90);
         e.setProgrammeCode("\"DBA_MAK\"");
         e.setProgrammeName("\"Diploma in Business Administration\"");
@@ -2889,7 +2889,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(199);
         e.setSchoolId(31);
-        e.setUniversityId(1);
+        e.setUniversityId(1L);
         e.setDepartmentId(90);
         e.setProgrammeCode("\"MBA_MAK\"");
         e.setProgrammeName("\"Master of Business Administration\"");
@@ -2900,7 +2900,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(200);
         e.setSchoolId(31);
-        e.setUniversityId(1);
+        e.setUniversityId(1L);
         e.setDepartmentId(91);
         e.setProgrammeCode("\"BIB_MAK\"");
         e.setProgrammeName("\"Bachelor of International Business\"");
@@ -2911,7 +2911,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(201);
         e.setSchoolId(31);
-        e.setUniversityId(1);
+        e.setUniversityId(1L);
         e.setDepartmentId(91);
         e.setProgrammeCode("\"MKT_MAK\"");
         e.setProgrammeName("\"Bachelor of Commerce\"");
@@ -2922,7 +2922,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(202);
         e.setSchoolId(32);
-        e.setUniversityId(1);
+        e.setUniversityId(1L);
         e.setDepartmentId(92);
         e.setProgrammeCode("\"STA_MAK\"");
         e.setProgrammeName("\"Bachelor of Statistics\"");
@@ -2933,7 +2933,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(203);
         e.setSchoolId(32);
-        e.setUniversityId(1);
+        e.setUniversityId(1L);
         e.setDepartmentId(92);
         e.setProgrammeCode("\"BQE_MAK\"");
         e.setProgrammeName("\"Bachelor of Science in Quantitative Economics\"");
@@ -2944,7 +2944,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(204);
         e.setSchoolId(32);
-        e.setUniversityId(1);
+        e.setUniversityId(1L);
         e.setDepartmentId(92);
         e.setProgrammeCode("\"DSTA_MAK\"");
         e.setProgrammeName("\"Diploma in Statistics\"");
@@ -2955,7 +2955,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(205);
         e.setSchoolId(32);
-        e.setUniversityId(1);
+        e.setUniversityId(1L);
         e.setDepartmentId(92);
         e.setProgrammeCode("\"MSTA_MAK\"");
         e.setProgrammeName("\"Master of Science in Statistics\"");
@@ -2966,7 +2966,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(206);
         e.setSchoolId(33);
-        e.setUniversityId(1);
+        e.setUniversityId(1L);
         e.setDepartmentId(93);
         e.setProgrammeCode("\"CSC_MAK\"");
         e.setProgrammeName("\"Bachelor of Science in Computer Science\"");
@@ -2977,7 +2977,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(207);
         e.setSchoolId(33);
-        e.setUniversityId(1);
+        e.setUniversityId(1L);
         e.setDepartmentId(93);
         e.setProgrammeCode("\"BIT_MAK\"");
         e.setProgrammeName("\"Bachelor of Information Technology\"");
@@ -2988,7 +2988,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(208);
         e.setSchoolId(33);
-        e.setUniversityId(1);
+        e.setUniversityId(1L);
         e.setDepartmentId(93);
         e.setProgrammeCode("\"CIT_MAK\"");
         e.setProgrammeName("\"Certificate in Information Technology\"");
@@ -2999,7 +2999,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(209);
         e.setSchoolId(33);
-        e.setUniversityId(1);
+        e.setUniversityId(1L);
         e.setDepartmentId(93);
         e.setProgrammeCode("\"MSC_CS_MAK\"");
         e.setProgrammeName("\"Master of Science in Computer Science\"");
@@ -3010,7 +3010,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(210);
         e.setSchoolId(33);
-        e.setUniversityId(1);
+        e.setUniversityId(1L);
         e.setDepartmentId(93);
         e.setProgrammeCode("\"PHD_COMP_MAK\"");
         e.setProgrammeName("\"Doctor of Philosophy in Computer Science\"");
@@ -3021,7 +3021,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(211);
         e.setSchoolId(33);
-        e.setUniversityId(1);
+        e.setUniversityId(1L);
         e.setDepartmentId(95);
         e.setProgrammeCode("\"BIS_MAK\"");
         e.setProgrammeName("\"Bachelor of Science in Information Systems\"");
@@ -3032,7 +3032,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(212);
         e.setSchoolId(33);
-        e.setUniversityId(1);
+        e.setUniversityId(1L);
         e.setDepartmentId(95);
         e.setProgrammeCode("\"DIS_MAK\"");
         e.setProgrammeName("\"Diploma in Information Systems\"");
@@ -3043,7 +3043,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(213);
         e.setSchoolId(33);
-        e.setUniversityId(1);
+        e.setUniversityId(1L);
         e.setDepartmentId(95);
         e.setProgrammeCode("\"MSC_IS_MAK\"");
         e.setProgrammeName("\"Master of Science in Information Systems\"");
@@ -3054,7 +3054,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(214);
         e.setSchoolId(34);
-        e.setUniversityId(1);
+        e.setUniversityId(1L);
         e.setDepartmentId(96);
         e.setProgrammeCode("\"LIS_MAK\"");
         e.setProgrammeName("\"Bachelor of Library and Information Science\"");
@@ -3065,7 +3065,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(215);
         e.setSchoolId(34);
-        e.setUniversityId(1);
+        e.setUniversityId(1L);
         e.setDepartmentId(96);
         e.setProgrammeCode("\"DLIS_MAK\"");
         e.setProgrammeName("\"Diploma in Library and Information Studies\"");
@@ -3076,7 +3076,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(216);
         e.setSchoolId(34);
-        e.setUniversityId(1);
+        e.setUniversityId(1L);
         e.setDepartmentId(96);
         e.setProgrammeCode("\"MLIS_MAK\"");
         e.setProgrammeName("\"Master of Library and Information Science\"");
@@ -3087,7 +3087,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(217);
         e.setSchoolId(34);
-        e.setUniversityId(1);
+        e.setUniversityId(1L);
         e.setDepartmentId(97);
         e.setProgrammeCode("\"RAM_MAK\"");
         e.setProgrammeName("\"Bachelor of Records and Archives Management\"");
@@ -3098,7 +3098,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(218);
         e.setSchoolId(34);
-        e.setUniversityId(1);
+        e.setUniversityId(1L);
         e.setDepartmentId(97);
         e.setProgrammeCode("\"DRAM_MAK\"");
         e.setProgrammeName("\"Diploma in Records and Archives Management\"");
@@ -3109,7 +3109,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(219);
         e.setSchoolId(35);
-        e.setUniversityId(1);
+        e.setUniversityId(1L);
         e.setDepartmentId(98);
         e.setProgrammeCode("\"EDA_MAK\"");
         e.setProgrammeName("\"Bachelor of Arts with Education\"");
@@ -3120,7 +3120,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(220);
         e.setSchoolId(35);
-        e.setUniversityId(1);
+        e.setUniversityId(1L);
         e.setDepartmentId(98);
         e.setProgrammeCode("\"EDSC_MAK\"");
         e.setProgrammeName("\"Bachelor of Science with Education\"");
@@ -3131,7 +3131,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(221);
         e.setSchoolId(35);
-        e.setUniversityId(1);
+        e.setUniversityId(1L);
         e.setDepartmentId(98);
         e.setProgrammeCode("\"MED_MAK\"");
         e.setProgrammeName("\"Master of Education\"");
@@ -3142,7 +3142,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(222);
         e.setSchoolId(35);
-        e.setUniversityId(1);
+        e.setUniversityId(1L);
         e.setDepartmentId(98);
         e.setProgrammeCode("\"PHD_EDU_MAK\"");
         e.setProgrammeName("\"Doctor of Philosophy in Education\"");
@@ -3153,7 +3153,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(223);
         e.setSchoolId(36);
-        e.setUniversityId(1);
+        e.setUniversityId(1L);
         e.setDepartmentId(100);
         e.setProgrammeCode("\"BAC_MAK\"");
         e.setProgrammeName("\"Bachelor of Adult and Community Education\"");
@@ -3164,7 +3164,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(224);
         e.setSchoolId(36);
-        e.setUniversityId(1);
+        e.setUniversityId(1L);
         e.setDepartmentId(100);
         e.setProgrammeCode("\"DACE_MAK\"");
         e.setProgrammeName("\"Diploma in Adult Education\"");
@@ -3175,7 +3175,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(225);
         e.setSchoolId(36);
-        e.setUniversityId(1);
+        e.setUniversityId(1L);
         e.setDepartmentId(100);
         e.setProgrammeCode("\"CACE_MAK\"");
         e.setProgrammeName("\"Certificate in Adult Education\"");
@@ -3186,7 +3186,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(226);
         e.setSchoolId(38);
-        e.setUniversityId(1);
+        e.setUniversityId(1L);
         e.setDepartmentId(101);
         e.setProgrammeCode("\"SCP_MAK\"");
         e.setProgrammeName("\"Bachelor of Science in Physics\"");
@@ -3197,7 +3197,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(227);
         e.setSchoolId(38);
-        e.setUniversityId(1);
+        e.setUniversityId(1L);
         e.setDepartmentId(101);
         e.setProgrammeCode("\"MSC_PHY_MAK\"");
         e.setProgrammeName("\"Master of Science in Physics\"");
@@ -3208,7 +3208,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(228);
         e.setSchoolId(38);
-        e.setUniversityId(1);
+        e.setUniversityId(1L);
         e.setDepartmentId(102);
         e.setProgrammeCode("\"BIC_MAK\"");
         e.setProgrammeName("\"Bachelor of Science in Industrial Chemistry\"");
@@ -3219,7 +3219,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(229);
         e.setSchoolId(38);
-        e.setUniversityId(1);
+        e.setUniversityId(1L);
         e.setDepartmentId(102);
         e.setProgrammeCode("\"MSC_CHE_MAK\"");
         e.setProgrammeName("\"Master of Science in Chemistry\"");
@@ -3230,7 +3230,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(230);
         e.setSchoolId(38);
-        e.setUniversityId(1);
+        e.setUniversityId(1L);
         e.setDepartmentId(103);
         e.setProgrammeCode("\"MAP_MAK\"");
         e.setProgrammeName("\"Bachelor of Science in Mathematics\"");
@@ -3241,7 +3241,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(231);
         e.setSchoolId(38);
-        e.setUniversityId(1);
+        e.setUniversityId(1L);
         e.setDepartmentId(103);
         e.setProgrammeCode("\"MSC_MATH_MAK\"");
         e.setProgrammeName("\"Master of Science in Mathematics\"");
@@ -3252,7 +3252,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(232);
         e.setSchoolId(38);
-        e.setUniversityId(1);
+        e.setUniversityId(1L);
         e.setDepartmentId(103);
         e.setProgrammeCode("\"PHD_SCI_MAK\"");
         e.setProgrammeName("\"Doctor of Philosophy in Science\"");
@@ -3263,7 +3263,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(233);
         e.setSchoolId(39);
-        e.setUniversityId(1);
+        e.setUniversityId(1L);
         e.setDepartmentId(104);
         e.setProgrammeCode("\"SCB_MAK\"");
         e.setProgrammeName("\"Bachelor of Science in Biological Sciences\"");
@@ -3274,7 +3274,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(234);
         e.setSchoolId(39);
-        e.setUniversityId(1);
+        e.setUniversityId(1L);
         e.setDepartmentId(104);
         e.setProgrammeCode("\"MSC_ZOO_MAK\"");
         e.setProgrammeName("\"Master of Science in Zoology\"");
@@ -3285,7 +3285,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(235);
         e.setSchoolId(40);
-        e.setUniversityId(1);
+        e.setUniversityId(1L);
         e.setDepartmentId(106);
         e.setProgrammeCode("\"VET_MAK\"");
         e.setProgrammeName("\"Bachelor of Veterinary Medicine\"");
@@ -3296,7 +3296,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(236);
         e.setSchoolId(40);
-        e.setUniversityId(1);
+        e.setUniversityId(1L);
         e.setDepartmentId(106);
         e.setProgrammeCode("\"MVAM_MAK\"");
         e.setProgrammeName("\"Master of Veterinary Medicine\"");
@@ -3307,7 +3307,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(237);
         e.setSchoolId(40);
-        e.setUniversityId(1);
+        e.setUniversityId(1L);
         e.setDepartmentId(106);
         e.setProgrammeCode("\"PHD_VET_MAK\"");
         e.setProgrammeName("\"Doctor of Philosophy in Veterinary Medicine\"");
@@ -3318,7 +3318,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(238);
         e.setSchoolId(41);
-        e.setUniversityId(1);
+        e.setUniversityId(1L);
         e.setDepartmentId(107);
         e.setProgrammeCode("\"BLT_MAK\"");
         e.setProgrammeName("\"Bachelor of Industrial Livestock and Business\"");
@@ -3329,7 +3329,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(239);
         e.setSchoolId(41);
-        e.setUniversityId(1);
+        e.setUniversityId(1L);
         e.setDepartmentId(107);
         e.setProgrammeCode("\"DLT_MAK\"");
         e.setProgrammeName("\"Diploma in Livestock Technology\"");
@@ -3340,7 +3340,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(240);
         e.setSchoolId(42);
-        e.setUniversityId(1);
+        e.setUniversityId(1L);
         e.setDepartmentId(108);
         e.setProgrammeCode("\"LAW_MAK\"");
         e.setProgrammeName("\"Bachelor of Laws\"");
@@ -3351,7 +3351,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(241);
         e.setSchoolId(42);
-        e.setUniversityId(1);
+        e.setUniversityId(1L);
         e.setDepartmentId(108);
         e.setProgrammeCode("\"LLM_MAK\"");
         e.setProgrammeName("\"Master of Laws\"");
@@ -3362,7 +3362,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(242);
         e.setSchoolId(42);
-        e.setUniversityId(1);
+        e.setUniversityId(1L);
         e.setDepartmentId(108);
         e.setProgrammeCode("\"PHD_LAW_MAK\"");
         e.setProgrammeName("\"Doctor of Philosophy in Law\"");
@@ -3373,7 +3373,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(243);
         e.setSchoolId(43);
-        e.setUniversityId(1);
+        e.setUniversityId(1L);
         e.setDepartmentId(109);
         e.setProgrammeCode("\"BGD_MAK\"");
         e.setProgrammeName("\"Bachelor of Gender and Development Studies\"");
@@ -3384,7 +3384,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(244);
         e.setSchoolId(43);
-        e.setUniversityId(1);
+        e.setUniversityId(1L);
         e.setDepartmentId(109);
         e.setProgrammeCode("\"MGD_MAK\"");
         e.setProgrammeName("\"Master of Arts in Gender Studies\"");
@@ -3395,7 +3395,7 @@ public class ProgrammeDataSeeder implements CommandLineRunner {
         e = new Programme();
         e.setProgrammeId(245);
         e.setSchoolId(43);
-        e.setUniversityId(1);
+        e.setUniversityId(1L);
         e.setDepartmentId(109);
         e.setProgrammeCode("\"PHD_GND_MAK\"");
         e.setProgrammeName("\"Doctor of Philosophy in Gender Studies\"");

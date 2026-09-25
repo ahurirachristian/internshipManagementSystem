@@ -360,3 +360,27 @@ Table count: 24 → 20. 13 constraints preserved.
 - `ONBOARDING.md` §1 — Model B marked as target-of-record; Model A marked as purged
 - `ONBOARDING.md` role table — SUPERVISOR description updated (no more "Issue student credentials")
 - `MIGRATION-MODELB-LOG.md` — M6a/M6b/M6c/M7 sections appended
+
+---
+
+## M8 - university_id widened to BIGINT (2026-09-25, branch fred)
+
+The Model-B reconciliation standardised `universityId` on `java.lang.Long`.
+`School` / `Department` / `Programme` still declared `Integer universityId`, so
+the key type was finalised as follows:
+
+- `School` / `Department` / `Programme`: `Integer universityId` -> `Long universityId`;
+  `findByUniversityId(...)` on the three repositories, the `@RequestParam` /
+  `requireOwnUniversity` signatures in `SchoolController` / `DepartmentController` /
+  `ProgrammeController`, and the `.intValue()` calls in `UniversityDashboardService`
+  all moved to `Long`.
+- Seeders `SchoolDataSeeder` / `DepartmentDataSeeder` / `ProgrammeDataSeeder` now assign
+  `19L` / `2L` / `1L`; `StudentDataSeeder` queries `findByUniversityId(19L)`.
+- `schema.sql` and `migration/catalog_seed.sql`: every `university_id` column is `BIGINT`.
+- New `migration/widen_university_id_bigint.sql`: idempotent, information_schema-driven
+  ALTER that widens every `university_id` column on the mysql profile. That profile runs
+  `ddl-auto=none`, so Hibernate never applies this itself. Safe: pure widening (values and
+  `AUTO_INCREMENT` preserved) and no FOREIGN KEY is declared on any `university_id` column.
+
+### Tests
+41/41 green.

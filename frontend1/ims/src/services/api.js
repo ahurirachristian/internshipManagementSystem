@@ -428,6 +428,144 @@ export async function deletePlacement(id) {
   return parseResponse(response);
 }
 
+// ---------------------------------------------------------------------------
+// Student self-service portal (Model B). Restored after the PR #25 merge dropped
+// these wrappers even though the React student pages still import them.
+// ---------------------------------------------------------------------------
+
+export async function fetchMyPlacement() {
+  const response = await fetch(`${API_ROOT}/api/placements/me`, {
+    credentials: 'include',
+  });
+  return parseResponse(response);
+}
+
+export async function fetchMyEvaluations() {
+  const response = await fetch(`${API_ROOT}/api/evaluations/me`, {
+    credentials: 'include',
+  });
+  return parseResponse(response);
+}
+
+export async function updateMyAccount(fields) {
+  const response = await fetch(`${API_ROOT}/api/me`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    credentials: 'include',
+    body: JSON.stringify(fields),
+  });
+  return parseResponse(response);
+}
+
+export async function fetchMyCompany() {
+  const response = await fetch(`${API_ROOT}/api/students/me/company`, {
+    credentials: 'include',
+  });
+  return parseResponse(response);
+}
+
+export async function fetchMyIndustrialSupervisor() {
+  const response = await fetch(`${API_ROOT}/api/students/me/industrial-supervisor`, {
+    credentials: 'include',
+  });
+  return parseResponse(response);
+}
+
+export async function fetchMyUniversitySupervisor() {
+  const response = await fetch(`${API_ROOT}/api/students/me/university-supervisor`, {
+    credentials: 'include',
+  });
+  return parseResponse(response);
+}
+
+export async function fetchMyLearningInstitute() {
+  const response = await fetch(`${API_ROOT}/api/students/me/learning-institute`, {
+    credentials: 'include',
+  });
+  return parseResponse(response);
+}
+
+export async function fetchMySettings() {
+  const response = await fetch(`${API_ROOT}/api/students/me/settings`, {
+    credentials: 'include',
+  });
+  return parseResponse(response);
+}
+
+export async function updateMySettings(settings) {
+  const response = await fetch(`${API_ROOT}/api/students/me/settings`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    credentials: 'include',
+    body: JSON.stringify(settings),
+  });
+  return parseResponse(response);
+}
+
+export async function fetchVacancies() {
+  const response = await fetch(`${API_ROOT}/api/vacancies`, {
+    credentials: 'include',
+  });
+  return parseResponse(response);
+}
+
+export async function fetchVacancy(id) {
+  const response = await fetch(`${API_ROOT}/api/vacancies/${id}`, {
+    credentials: 'include',
+  });
+  return parseResponse(response);
+}
+
+export async function fetchVacanciesByCompany(companyId) {
+  const response = await fetch(`${API_ROOT}/api/vacancies/company/${companyId}`, {
+    credentials: 'include',
+  });
+  return parseResponse(response);
+}
+
+export async function fetchVacanciesByStatus(status) {
+  const response = await fetch(`${API_ROOT}/api/vacancies/status?status=${encodeURIComponent(status)}`, {
+    credentials: 'include',
+  });
+  return parseResponse(response);
+}
+
+export async function createVacancy(vacancy) {
+  const response = await fetch(`${API_ROOT}/api/vacancies`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    credentials: 'include',
+    body: JSON.stringify(vacancy),
+  });
+  return parseResponse(response);
+}
+
+export async function updateVacancy(id, vacancy) {
+  const response = await fetch(`${API_ROOT}/api/vacancies/${id}`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    credentials: 'include',
+    body: JSON.stringify(vacancy),
+  });
+  return parseResponse(response);
+}
+
+export async function deleteVacancy(id) {
+  const response = await fetch(`${API_ROOT}/api/vacancies/${id}`, {
+    method: 'DELETE',
+    credentials: 'include',
+  });
+  return parseResponse(response);
+}
+
 export async function fetchAllEvaluations() {
   const response = await fetch(`${API_ROOT}/api/evaluations`, {
     credentials: 'include',

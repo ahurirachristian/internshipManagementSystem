@@ -98,9 +98,9 @@ public class UniversityDashboardService {
         rosters.put("pending", students.size() - assigned);
         rosters.put("placementRatePct", students.isEmpty() ? 0
                 : Math.round(100.0 * assigned / students.size()));
-        rosters.put("schoolsCount", (long) schoolRepository.findByUniversityId(universityId.intValue()).size());
-        rosters.put("departmentsCount", (long) departmentRepository.findByUniversityId(universityId.intValue()).size());
-        rosters.put("programmesCount", (long) programmeRepository.findByUniversityId(universityId.intValue()).size());
+        rosters.put("schoolsCount", (long) schoolRepository.findByUniversityId(universityId).size());
+        rosters.put("departmentsCount", (long) departmentRepository.findByUniversityId(universityId).size());
+        rosters.put("programmesCount", (long) programmeRepository.findByUniversityId(universityId).size());
         rosters.put("uniSupervisorCount", (long) universitySupervisorRepository.findByUniversityId(universityId).size());
         rosters.put("studentsBySchool", studentsBySchool(students, universityId));
         stats.put("rosters", rosters);
@@ -251,7 +251,7 @@ public class UniversityDashboardService {
 
     private Map<String, Object> universityInfo(Long universityId) {
         Map<String, Object> u = new LinkedHashMap<>();
-        universityRepository.findById(universityId.intValue()).ifPresent(uni -> {
+        universityRepository.findById(universityId).ifPresent(uni -> {
             u.put("fullName", uni.getFullName());
             u.put("shortForm", uni.getShortForm());
             u.put("country", uni.getCountry());
@@ -262,7 +262,7 @@ public class UniversityDashboardService {
 
     private List<Map<String, Object>> studentsBySchool(List<Student> students, Long universityId) {
         List<Map<String, Object>> rows = new ArrayList<>();
-        for (com.example.demo.school.School s : schoolRepository.findByUniversityId(universityId.intValue())) {
+        for (com.example.demo.school.School s : schoolRepository.findByUniversityId(universityId)) {
             long count = students.stream().filter(st -> st.getSchoolId() != null
                     && st.getSchoolId().intValue() == s.getSchoolId()).count();
             long placed = students.stream().filter(st -> st.getSchoolId() != null

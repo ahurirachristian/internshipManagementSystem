@@ -8,7 +8,7 @@ START TRANSACTION;
 CREATE TABLE IF NOT EXISTS schools (
     parent_school_id integer,
     school_id integer not null,
-    university_id integer not null,
+    university_id bigint not null,
     school_code varchar(255),
     school_name varchar(255) not null,
     type varchar(255),
@@ -18,7 +18,7 @@ CREATE TABLE IF NOT EXISTS schools (
 CREATE TABLE IF NOT EXISTS departments (
     department_id integer not null,
     school_id integer not null,
-    university_id integer not null,
+    university_id bigint not null,
     department_name varchar(255) not null,
     primary key (department_id)
 ) engine=InnoDB;
@@ -28,7 +28,7 @@ CREATE TABLE IF NOT EXISTS programmes (
     duration_years integer not null,
     programme_id integer not null,
     school_id integer not null,
-    university_id integer not null,
+    university_id bigint not null,
     programme_code varchar(255) not null,
     programme_level varchar(255) not null,
     programme_name varchar(255) not null,

@@ -50,8 +50,8 @@ public class ProgrammeController {
     @GetMapping
     public List<Programme> getProgrammes(@RequestParam(required = false) Integer schoolId,
             @RequestParam(required = false) Integer departmentId,
-            @RequestParam(required = false) Integer universityId, Principal principal) {
-        Integer uid = requireOwnUniversity(principal);
+            @RequestParam(required = false) Long universityId, Principal principal) {
+        Long uid = requireOwnUniversity(principal);
         if (departmentId != null) {
             return programmeRepository.findByDepartmentId(departmentId);
         }
@@ -66,7 +66,7 @@ public class ProgrammeController {
 
     @PostMapping
     public ResponseEntity<?> createProgramme(@RequestBody Programme request, Principal principal) {
-        Integer universityId = requireOwnUniversity(principal);
+        Long universityId = requireOwnUniversity(principal);
         try {
             Programme prog = new Programme();
             applyFields(prog, request, universityId);
@@ -81,7 +81,7 @@ public class ProgrammeController {
     @PutMapping("/{id}")
     public ResponseEntity<?> updateProgramme(@PathVariable Integer id, @RequestBody Programme request,
             Principal principal) {
-        Integer universityId = requireOwnUniversity(principal);
+        Long universityId = requireOwnUniversity(principal);
         var existing = programmeRepository.findById(id)
                 .filter(p -> p.getUniversityId().equals(universityId));
         if (existing.isEmpty()) {
@@ -100,7 +100,7 @@ public class ProgrammeController {
 
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteProgramme(@PathVariable Integer id, Principal principal) {
-        Integer universityId = requireOwnUniversity(principal);
+        Long universityId = requireOwnUniversity(principal);
         var existing = programmeRepository.findById(id)
                 .filter(p -> p.getUniversityId().equals(universityId));
         if (existing.isEmpty()) {
@@ -131,7 +131,7 @@ public class ProgrammeController {
         return csvResponse(body, "programmes.csv");
     }
 
-    private void applyFields(Programme prog, Programme request, Integer universityId) {
+    private void applyFields(Programme prog, Programme request, Long universityId) {
         if (request.getProgrammeId() == null) {
             throw new IllegalArgumentException("Programme ID is required.");
         }
@@ -168,13 +168,13 @@ public class ProgrammeController {
         prog.setDurationYears(request.getDurationYears());
     }
 
-    private Integer requireOwnUniversity(Principal principal) {
+    private Long requireOwnUniversity(Principal principal) {
         UserEntity user = userRepository.findByUsername(principal.getName()).orElseThrow(
                 () -> new IllegalArgumentException("Authenticated user not found."));
         if (user.getUniversityId() == null) {
             throw new IllegalArgumentException("Your account is not linked to a university.");
         }
-        return user.getUniversityId().intValue();
+        return user.getUniversityId();
     }
 
     private void audit(Principal principal, String action, String targetEntity, String details) {

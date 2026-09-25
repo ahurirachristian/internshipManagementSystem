@@ -17,7 +17,7 @@ public class Department {
     private Integer schoolId;
 
     @Column(name = "university_id", nullable = false)
-    private Integer universityId;
+    private Long universityId;
 
     @Column(name = "department_name", nullable = false)
     private String departmentName;
@@ -41,11 +41,11 @@ public class Department {
         this.schoolId = schoolId;
     }
 
-    public Integer getUniversityId() {
+    public Long getUniversityId() {
         return universityId;
     }
 
-    public void setUniversityId(Integer universityId) {
+    public void setUniversityId(Long universityId) {
         this.universityId = universityId;
     }
 

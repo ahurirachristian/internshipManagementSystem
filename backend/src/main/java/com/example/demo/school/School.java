@@ -17,7 +17,7 @@ public class School {
     private String schoolCode;
 
     @Column(name = "university_id", nullable = false)
-    private Integer universityId;
+    private Long universityId;
 
     @Column(name = "school_name", nullable = false)
     private String schoolName;
@@ -47,11 +47,11 @@ public class School {
         this.schoolCode = schoolCode;
     }
 
-    public Integer getUniversityId() {
+    public Long getUniversityId() {
         return universityId;
     }
 
-    public void setUniversityId(Integer universityId) {
+    public void setUniversityId(Long universityId) {
         this.universityId = universityId;
     }
 

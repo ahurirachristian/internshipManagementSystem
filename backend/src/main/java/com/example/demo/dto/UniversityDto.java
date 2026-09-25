@@ -2,7 +2,7 @@ package com.example.demo.dto;
 
 public class UniversityDto {
 
-    private Integer universityId;
+    private Long universityId;
     private String shortForm;
     private String fullName;
     private String country;
@@ -11,7 +11,7 @@ public class UniversityDto {
     public UniversityDto() {
     }
 
-    public UniversityDto(Integer universityId, String shortForm, String fullName, String country, Integer establishedYear) {
+    public UniversityDto(Long universityId, String shortForm, String fullName, String country, Integer establishedYear) {
         this.universityId = universityId;
         this.shortForm = shortForm;
         this.fullName = fullName;
@@ -19,8 +19,8 @@ public class UniversityDto {
         this.establishedYear = establishedYear;
     }
 
-    public Integer getUniversityId() { return universityId; }
-    public void setUniversityId(Integer universityId) { this.universityId = universityId; }
+    public Long getUniversityId() { return universityId; }
+    public void setUniversityId(Long universityId) { this.universityId = universityId; }
 
     public String getShortForm() { return shortForm; }
     public void setShortForm(String shortForm) { this.shortForm = shortForm; }

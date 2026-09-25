@@ -51,8 +51,8 @@ public class DepartmentController {
 
     @GetMapping
     public List<Department> getDepartments(@RequestParam(required = false) Integer schoolId,
-            @RequestParam(required = false) Integer universityId, Principal principal) {
-        Integer uid = requireOwnUniversity(principal);
+            @RequestParam(required = false) Long universityId, Principal principal) {
+        Long uid = requireOwnUniversity(principal);
         if (schoolId != null) {
             return departmentRepository.findBySchoolId(schoolId);
         }
@@ -64,7 +64,7 @@ public class DepartmentController {
 
     @PostMapping
     public ResponseEntity<?> createDepartment(@RequestBody Department request, Principal principal) {
-        Integer universityId = requireOwnUniversity(principal);
+        Long universityId = requireOwnUniversity(principal);
         try {
             Department dept = new Department();
             applyFields(dept, request, universityId);
@@ -79,7 +79,7 @@ public class DepartmentController {
     @PutMapping("/{id}")
     public ResponseEntity<?> updateDepartment(@PathVariable Integer id, @RequestBody Department request,
             Principal principal) {
-        Integer universityId = requireOwnUniversity(principal);
+        Long universityId = requireOwnUniversity(principal);
         var existing = departmentRepository.findById(id)
                 .filter(d -> d.getUniversityId().equals(universityId));
         if (existing.isEmpty()) {
@@ -98,7 +98,7 @@ public class DepartmentController {
 
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteDepartment(@PathVariable Integer id, Principal principal) {
-        Integer universityId = requireOwnUniversity(principal);
+        Long universityId = requireOwnUniversity(principal);
         var existing = departmentRepository.findById(id)
                 .filter(d -> d.getUniversityId().equals(universityId));
         if (existing.isEmpty()) {
@@ -127,7 +127,7 @@ public class DepartmentController {
         return csvResponse(body, "departments.csv");
     }
 
-    private void applyFields(Department dept, Department request, Integer universityId) {
+    private void applyFields(Department dept, Department request, Long universityId) {
         if (request.getDepartmentId() == null) {
             throw new IllegalArgumentException("Department ID is required.");
         }
@@ -146,13 +146,13 @@ public class DepartmentController {
         dept.setDepartmentName(request.getDepartmentName().trim());
     }
 
-    private Integer requireOwnUniversity(Principal principal) {
+    private Long requireOwnUniversity(Principal principal) {
         UserEntity user = userRepository.findByUsername(principal.getName()).orElseThrow(
                 () -> new IllegalArgumentException("Authenticated user not found."));
         if (user.getUniversityId() == null) {
             throw new IllegalArgumentException("Your account is not linked to a university.");
         }
-        return user.getUniversityId().intValue();
+        return user.getUniversityId();
     }
 
     private void audit(Principal principal, String action, String targetEntity, String details) {

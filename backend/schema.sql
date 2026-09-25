@@ -1,5 +1,8 @@
 -- AUTO-GENERATED MySQL DDL for Model B (regenerated M7, 2026-08-25).
 -- Do not edit by hand; regenerate per docs/MIGRATION-MODELB-LOG.md.
+-- Hand-amended 2026-09-25: every `university_id` column is BIGINT so it matches
+-- the JPA `Long` mapping on University/School/Department/Programme (see
+-- migration/widen_university_id_bigint.sql).
 
 
     create table audit_logs (
@@ -78,7 +81,7 @@
     create table departments (
         department_id integer not null,
         school_id integer not null,
-        university_id integer not null,
+        university_id bigint not null,
         department_name varchar(255) not null,
         primary key (department_id)
     ) engine=InnoDB;
@@ -144,7 +147,7 @@
         duration_years integer not null,
         programme_id integer not null,
         school_id integer not null,
-        university_id integer not null,
+        university_id bigint not null,
         programme_code varchar(255) not null,
         programme_level varchar(255) not null,
         programme_name varchar(255) not null,
@@ -161,7 +164,7 @@
     create table schools (
         parent_school_id integer,
         school_id integer not null,
-        university_id integer not null,
+        university_id bigint not null,
         school_code varchar(255),
         school_name varchar(255) not null,
         type varchar(255),
@@ -224,7 +227,7 @@
 
     create table universities (
         established_year integer,
-        university_id integer not null auto_increment,
+        university_id bigint not null auto_increment,
         short_form varchar(15) not null,
         country varchar(100),
         full_name varchar(200) not null,

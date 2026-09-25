@@ -4,6 +4,13 @@
 > **Branch**: `fred`
 > **Migrated by**: Buffy (AI agent)
 > **Purpose**: Migrate the entire project from the old 7-table schema to the new 16-table `mega_backcopy.sql` foundation database design.
+>
+> **Historical document (superseded).** This records the M-series migration as
+> it landed on 2026-08-20. The schema has since moved to Model B
+> (`docs/ADR-002-schema-direction.md`, `MIGRATION_PLAN.md`), and where this file
+> says `Integer universityId` the key is now `Long universityId` / `BIGINT`
+> (see `backend/migration/widen_university_id_bigint.sql`). Read it as history,
+> not as current state — `ONBOARDING.md` and `CODEBASE_ANALYSIS.md` are current.
 
 ---
 
@@ -338,7 +345,7 @@ cd frontend1/ims && CI=false npx react-scripts build
 
 - **Students login with `student_no`** — the `users.username` column stores the student number
 - **Use `organisation` (text)** to link students to companies — there is no `companyId` FK on `student_profiles`
-- **University PK is `Integer universityId`** — not `Long id`
+- **University PK is `Long universityId` (`BIGINT`)** — originally `Integer`, widened 2026-09-25; still not a `Long id` surrogate
 - **Course level is a `String`** — not an enum (SQL ENUM has "Short Course" with a space)
 - **Run seeders in order** — they have FK dependencies (countries → universities → academic_units → courses → staff → companies → users → student_profiles)
 - **Test with the dev profile** — `create-drop` ensures clean schema every boot

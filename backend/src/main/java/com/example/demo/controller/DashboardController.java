@@ -158,7 +158,7 @@ public class DashboardController {
     @PreAuthorize("hasAnyAuthority('SUPERVISOR', 'ADMIN')")
     public String universityCredentials(Model model, Principal principal, Authentication authentication) {
         UserEntity user = userRepository.findByUsername(principal.getName()).orElse(null);
-        Integer universityId = (user != null) ? user.getUniversityId() != null ? user.getUniversityId().intValue() : null : null;
+        Long universityId = (user != null) ? user.getUniversityId() : null;
 
         University university = null;
         if (universityId != null) {
@@ -184,7 +184,7 @@ public class DashboardController {
     @PreAuthorize("hasAnyAuthority('SUPERVISOR', 'ADMIN')")
     public String universityStudents(Model model, Principal principal, Authentication authentication) {
         UserEntity user = userRepository.findByUsername(principal.getName()).orElse(null);
-        Integer universityId = (user != null) ? user.getUniversityId() != null ? user.getUniversityId().intValue() : null : null;
+        Long universityId = (user != null) ? user.getUniversityId() : null;
 
         University university = null;
         if (universityId != null) {

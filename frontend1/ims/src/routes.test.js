@@ -7,6 +7,7 @@ function jsonResponse(payload) {
     status: 200,
     headers: { get: (key) => (key === 'content-type' ? 'application/json' : 'text/plain') },
     json: () => Promise.resolve(payload),
+    text: () => Promise.resolve(''),
   };
 }
 
@@ -28,7 +29,7 @@ beforeEach(() => {
     if (String(url).includes('/api/diaries')) {
       return Promise.resolve(jsonResponse([]));
     }
-    return Promise.resolve(jsonResponse({}));
+    return Promise.resolve(jsonResponse([]));
   });
 });
 
@@ -44,37 +45,29 @@ test('renders the admin dashboard for admin users', async () => {
   expect(await screen.findByRole('heading', { name: 'Admin Dashboard' })).toBeInTheDocument();
 });
 
-test('redirects admin users away from the student dashboard', async () => {
+test('admin users can open the student dashboard', async () => {
   window.history.pushState({}, '', '/student/dashboard');
   render(<App />);
-  expect(await screen.findByRole('heading', { name: 'Admin Dashboard' })).toBeInTheDocument();
+  expect(await screen.findByRole('heading', { name: 'Dashboard' })).toBeInTheDocument();
 });
 
-test('renders the academic units management page for university users', async () => {
+test('renders the schools management page for university users', async () => {
   sessionUser = { username: 'nkumba', role: 'SUPERVISOR', companyId: null, universityId: 2 };
-  window.history.pushState({}, '', '/university/academic-units');
+  window.history.pushState({}, '', '/university/schools');
   render(<App />);
-  expect(await screen.findByRole('heading', { name: 'Academic Units Management' })).toBeInTheDocument();
+  expect(await screen.findByRole('heading', { name: 'Schools Management' })).toBeInTheDocument();
 });
 
-test('renders the course management page for university users', async () => {
+test('renders the departments management page for university users', async () => {
   sessionUser = { username: 'nkumba', role: 'SUPERVISOR', companyId: null, universityId: 2 };
-  window.history.pushState({}, '', '/university/courses');
+  window.history.pushState({}, '', '/university/departments');
   render(<App />);
-  expect(await screen.findByRole('heading', { name: 'Course Management' })).toBeInTheDocument();
+  expect(await screen.findByRole('heading', { name: 'Departments Management' })).toBeInTheDocument();
 });
 
-test('renders the staff management page for university users', async () => {
+test('renders the programmes management page for university users', async () => {
   sessionUser = { username: 'nkumba', role: 'SUPERVISOR', companyId: null, universityId: 2 };
-  window.history.pushState({}, '', '/university/staff');
+  window.history.pushState({}, '', '/university/programmes');
   render(<App />);
-  expect(await screen.findByRole('heading', { name: 'Staff Management' })).toBeInTheDocument();
+  expect(await screen.findByRole('heading', { name: 'Programmes Management' })).toBeInTheDocument();
 });
-
-test('renders the unit courses page for university users', async () => {
-  sessionUser = { username: 'nkumba', role: 'SUPERVISOR', companyId: null, universityId: 2 };
-  window.history.pushState({}, '', '/university/unit-courses');
-  render(<App />);
-  expect(await screen.findByRole('heading', { name: 'Unit Courses' })).toBeInTheDocument();
-});
-

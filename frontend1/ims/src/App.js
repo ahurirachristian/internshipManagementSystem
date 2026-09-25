@@ -1,5 +1,6 @@
 import { BrowserRouter, Navigate, Route, Routes, useNavigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import { ThemeProvider } from './context/ThemeContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import LoginPage from './components/LoginPage';
 import RegisterPage from './components/RegisterPage';
@@ -26,6 +27,10 @@ import CompaniesSection from './components/dashboards/CompaniesSection';
 import IndustrialSupervisorSection from './components/dashboards/IndustrialSupervisorSection';
 import UniversitySupervisorSection from './components/dashboards/UniversitySupervisorSection';
 import SettingsSection from './components/dashboards/SettingsSection';
+import UniversityStudents from './components/UniversityStudents';
+import SchoolsManagement from './components/dashboards/SchoolsManagement';
+import DepartmentsManagement from './components/dashboards/DepartmentsManagement';
+import ProgrammesManagement from './components/dashboards/ProgrammesManagement';
 import './App.css';
 
 function CompanyManagement() {
@@ -48,6 +53,38 @@ function UniversitiesPage() {
   return (
     <DashboardLayout title="University Management" subtitle="Manage registered universities">
       <UniversitiesManagement />
+    </DashboardLayout>
+  );
+}
+
+function UniversityStudentsPage() {
+  return (
+    <DashboardLayout title="Students" subtitle="Manage students by school/department">
+      <UniversityStudents />
+    </DashboardLayout>
+  );
+}
+
+function SchoolsPage() {
+  return (
+    <DashboardLayout title="Schools Management" subtitle="Manage colleges, schools and directorates">
+      <SchoolsManagement />
+    </DashboardLayout>
+  );
+}
+
+function DepartmentsPage() {
+  return (
+    <DashboardLayout title="Departments Management" subtitle="Manage departments within schools">
+      <DepartmentsManagement />
+    </DashboardLayout>
+  );
+}
+
+function ProgrammesPage() {
+  return (
+    <DashboardLayout title="Programmes Management" subtitle="Manage academic programmes">
+      <ProgrammesManagement />
     </DashboardLayout>
   );
 }
@@ -255,6 +292,38 @@ function AppRoutes() {
         }
       />
       <Route
+        path="/university/students"
+        element={
+          <ProtectedRoute roles={["ADMIN", "SUPERVISOR"]}>
+            <UniversityStudentsPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/university/schools"
+        element={
+          <ProtectedRoute role="SUPERVISOR">
+            <SchoolsPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/university/departments"
+        element={
+          <ProtectedRoute role="SUPERVISOR">
+            <DepartmentsPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/university/programmes"
+        element={
+          <ProtectedRoute role="SUPERVISOR">
+            <ProgrammesPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
         path="/company/dashboard"
         element={
           <ProtectedRoute roles={["ADMIN", "COMPANY"]}>
@@ -349,9 +418,11 @@ function AppRoutes() {
 function App() {
   return (
     <BrowserRouter>
-      <AuthProvider>
-        <AppRoutes />
-      </AuthProvider>
+      <ThemeProvider>
+        <AuthProvider>
+          <AppRoutes />
+        </AuthProvider>
+      </ThemeProvider>
     </BrowserRouter>
   );
 }

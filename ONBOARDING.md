@@ -197,7 +197,9 @@ CORS is `allowedOriginPatterns("*")` **with** `allowCredentials(true)` and CSRF 
 
 ## 5. Database layer
 
-Schema is Hibernate-managed (`ddl-auto`: `create-drop` on dev, `update` on mysql). `schema.sql` exists as MySQL DDL reference (20 tables, regenerated M7).
+Schema is Hibernate-managed (`ddl-auto`: `create-drop` on dev, **`none` on mysql** — the production profile never auto-alters; its truth is the committed `schema.sql` plus the scripts in `backend/migration/`). `schema.sql` exists as MySQL DDL reference (20 tables, regenerated M7).
+
+**Key types:** every `university_id` column is `BIGINT` and maps to `java.lang.Long` in JPA (`University.universityId` is the `AUTO_INCREMENT` primary key; `School` / `Department` / `Programme` also carry `Long universityId`). On the mysql profile the widening is applied by `backend/migration/widen_university_id_bigint.sql` — keep it in step if you change this key again.
 
 ### 20 tables
 
