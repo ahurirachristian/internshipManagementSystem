@@ -273,6 +273,9 @@ tbody tr:hover {
   justify-content: center;
   padding: 24px;
   z-index: 1000;
+  /* match riho's .modal: allow scrolling so tall dialogs stay usable on
+     short viewports instead of clipping their action buttons */
+  overflow-y: auto;
 }
 
 .modal-content {
