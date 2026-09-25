@@ -260,9 +260,11 @@ fix. Blocks 1–13 must confirm each relevant one and act.
 | **H6** | `AdminDashboard.js` + `DiaryReviewModal` | `onSaved` only closes the modal; the diaries list is not refreshed, so status/feedback changes don't show until reload. | Refresh the affected row on save. Block 4. |
 | **H7** | `FileManagement.jsx` | Entirely static mock: hardcoded folders/files, storage 25/100; **Preview / Download / More do nothing**, Quick Access only toggles a highlight, nothing is stored anywhere. | Decide scope with the design owner's pattern: at minimum make dead controls non-deceptive (disabled with tooltip) or implement real upload/download following the existing panel design. Block 11. |
 | **H8** | `AdminDashboard.js` edit | `<StudentEditModal … companies={[]} supervisors={[]} />` → Field Supervisor falls back to a raw numeric input instead of the existing picker. | Pass the real lists (`fetchCompanies`, `fetchIndustrialSupervisors`) and assert the picker renders. Block 3. |
-| **H9** | sidebar | `/admin/vacancies` exists but is not in `navLinks`; users can only reach it by URL. | Confirm; if unintended, add the nav entry **using the existing nav item markup** (functionality, not redesign) or delete the route. Block 9. |
+| **H9** | sidebar | `/admin/vacancies` exists but is not in `navLinks`; users can only reach it by URL. | Confirm; if unintended, add the nav entry **using the existing nav item markup** (functionality, not redesign) or delete the route. Block 10. Related asymmetry to record: the `/admin/placements` route allows `ADMIN` **and** `SUPERVISOR`, but its `navLinks` entry is `roles: ['ADMIN']` only, so a SUPERVISOR can reach the page by URL but never sees the link. |
 | **H10** | `DashboardLayout` + student pages | ADMIN sees all 8 `/student/*` links; the pages fetch student-scoped data (`/api/students/me`, `/api/diaries/me`) which an ADMIN account does not own. | Observe which pages error/empty for ADMIN; record and fix only if it's a broken promise of the nav. Block 12. |
 | **H11** | `App.js` routes (**already fixed in `11eaf16`**) | `/admin/placements` and `/admin/vacancies` rendered their child component directly, so the whole shell (sidebar + topbar) disappeared. `PlacementsPage` already wrapped placements but was dead code; vacancies never had a wrapper. | Fixed before the harness. Block 1 must now lock it with a route-shell audit so the class cannot regress. |
+| **H12** | `frontend1/ims/src/components/layout/*` (`nav.jsx`, `Sidebar.jsx`, `Header.jsx`, `Breadcrumb.jsx`, `FloatingToolbar.jsx`), `dashboards/AdminStudentArea.jsx`, `dashboards/AcademicUnitsManagement.jsx`, `dashboards/CourseManagement.jsx`, `dashboards/StaffManagement.jsx`, `dashboards/UnitCoursesManagement.jsx` | **All unreachable** — nothing imports them (`grep -rn` finds zero importers). The visible sidebar is `DashboardLayout.js`, which holds its own inline `navLinks`/`studentLinks`/`areaDashboardLinks` arrays. So edits to `layout/nav.jsx` have no runtime effect. | Dead code, not a functional bug. Do **not** delete inside Blocks 1–13; record it and delete in one dedicated cleanup commit after the phase, with the `routes.test.js` suite re-run. |
+| **H13** | `AuditLogs.jsx` | Re-declares `const API_ROOT = process.env.REACT_APP_API_ROOT || 'http://localhost:8082'` instead of importing `API_ROOT` from `services/api.js`, so the audit page bypasses the shared fetch/parse path. | Low risk today (same value) but a desync hazard. Fold into Block 7: import the shared constant; verify no behaviour change. |
 
 ---
 
@@ -598,6 +600,8 @@ genuinely mismatched, `AuditLogController` (`@DateTimeFormat`).
 5. `search box filters client-side` — type a username seen in the table; assert only matching
    rows; nonsense → `No audit logs match your search criteria.`
 6. `no console errors / no 4xx` during the whole block (the H4 failure surfaces as a 400).
+7. `shared API constant (H13)` — import `API_ROOT` from `services/api.js` instead of
+   re-declaring it locally; assert the audit page still loads and filters identically.
 
 **Test:** `cd e2e && npx playwright test tests/07-admin-audit-logs.spec.ts`
 
@@ -826,6 +830,11 @@ No acknowledgements.
    assert deterministic results. Document the restart command in `e2e/README.md`.
 4. Update `e2e/README.md` with: prerequisites, run commands, data-reset note, and a table of
    the 13 blocks and their spec files.
+5. `dead code recorded, not deleted (H12)` — assert in the sweep that the pages/blocks under
+   test are reached through the live tree, and append an explicit list of the unreachable
+   files (`components/layout/*`, `dashboards/AdminStudentArea.jsx`, the four orphan
+   management dashboards) to `e2e/README.md` as a post-phase cleanup candidate. Deleting
+   them is a separate commit outside Blocks 1–13.
 
 **Test:**
 ```bash
