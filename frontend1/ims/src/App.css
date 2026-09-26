@@ -762,6 +762,8 @@ tbody tr:hover {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  flex-wrap: wrap;
+  min-width: 0;
   gap: 8px;
   padding: 10px 14px;
   border-radius: 12px;
@@ -801,7 +803,9 @@ tbody tr:hover {
 
 .progress-chart {
   display: grid;
-  grid-template-columns: repeat(6, 1fr);
+  /* minmax(0, 1fr) not 1fr: the bar contents would otherwise raise the
+     column min-content and overflow narrow cards (reported on the dashboard). */
+  grid-template-columns: repeat(6, minmax(0, 1fr));
   gap: 18px;
   align-items: end;
   height: 320px;
@@ -817,12 +821,15 @@ tbody tr:hover {
   justify-content: flex-end;
   height: 100%;
   gap: 8px;
+  min-width: 0;
 }
 
 .progress-bar-value {
   font-size: 0.9rem;
   font-weight: 700;
   color: #1e293b;
+  max-width: 100%;
+  text-align: center;
 }
 
 .progress-bar-track {
@@ -876,7 +883,7 @@ tbody tr:hover {
 
 @media (max-width: 720px) {
   .progress-chart {
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     height: 420px;
   }
 }
