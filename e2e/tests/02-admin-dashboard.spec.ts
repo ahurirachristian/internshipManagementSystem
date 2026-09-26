@@ -32,6 +32,26 @@ test.describe('02 admin dashboard', () => {
     expect(pillCount).toBe(rows);
   });
 
+  test('the Actions column is icon-only, matching the User Management reference', async ({ page }) => {
+    const row = page.locator(`${STUDENTS_TABLE} tbody tr`).first();
+    const buttons = row.getByRole('button');
+    await expect(buttons).toHaveCount(3);
+
+    // no visible labels: the eye / pencil / trash icons carry the actions
+    for (const text of await buttons.allInnerTexts()) expect(text.trim()).toBe('');
+    for (let i = 0; i < 3; i += 1) {
+      await expect(buttons.nth(i).locator('svg')).toHaveCount(1);
+    }
+
+    // meaning is kept for accessibility and for the existing click tests
+    await expect(buttons.nth(0)).toHaveAttribute('title', 'View');
+    await expect(buttons.nth(1)).toHaveAttribute('title', 'Edit');
+    await expect(buttons.nth(2)).toHaveAttribute('title', 'Delete');
+    await expect(buttons.nth(0)).toHaveAttribute('aria-label', /^View /);
+    await expect(buttons.nth(1)).toHaveAttribute('aria-label', /^Edit /);
+    await expect(buttons.nth(2)).toHaveAttribute('aria-label', /^Delete /);
+  });
+
   test('tab switching: Students -> Day Diary Logs -> System -> back to Students', async ({ page }) => {
     // Students is the default tab
     await expect(page.getByRole('tab', { name: /Students/ })).toHaveAttribute('aria-selected', 'true');
