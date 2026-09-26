@@ -253,16 +253,6 @@ tbody tr:hover {
   border-radius: 12px;
 }
 
-.icon-button.view {
-  background: #0f766e;
-  color: #fff;
-  font-weight: 600;
-}
-.icon-button.view:hover {
-  background: #115e59;
-  opacity: 1;
-}
-
 .modal-overlay {
   position: fixed;
   inset: 0;

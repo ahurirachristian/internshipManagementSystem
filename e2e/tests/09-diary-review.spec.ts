@@ -199,8 +199,16 @@ test.describe('09 diary review', () => {
       page.getByText('Comments on diary entries are provided by your industrial and university supervisors after review.')
     ).toBeVisible();
 
+    // the View column is an icon-only button (no "View" label), like the
+    // Placement & Supervisors / User Management reference
+    const viewButton = page
+      .locator('table tbody tr', { hasText: MARKER })
+      .getByRole('button', { name: /^View/ });
+    expect((await viewButton.innerText()).trim()).toBe('');
+    await expect(viewButton.locator('svg')).toHaveCount(1);
+
     // the details modal shows the remark
-    await page.locator('table tbody tr', { hasText: MARKER }).getByRole('button', { name: 'View' }).click();
+    await viewButton.click();
     await expect(page.locator('.modal-content h2')).toHaveText('Diary Entry Details');
     await expect(
       page.locator('.modal-content .detail-item', { hasText: 'Remark' }).locator('.detail-value')

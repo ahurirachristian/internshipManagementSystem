@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { Eye } from 'lucide-react';
 import DashboardLayout from '../DashboardLayout';
 import { useAuth } from '../../context/AuthContext';
 import { fetchMyDiaries } from '../../services/api';
@@ -155,12 +156,16 @@ export default function DayDiariesPage() {
                       <td>{entry.knowledgeAndSkillsGained || '—'}</td>
                       <td>{entry.technologyTools || '—'}</td>
                       <td>
+                        {/* Icon-only, matching the Placement & Supervisors /
+                            User Management reference — no "View" text. */}
                         <button
                           type="button"
-                          className="icon-button view"
+                          className="p-1.5 rounded-lg bg-gray-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-teal-50 hover:text-teal-700 dark:hover:bg-teal-950/60 transition-colors border border-gray-200/60 dark:border-slate-700"
                           onClick={() => setViewDiary(entry)}
+                          title="View"
+                          aria-label={`View diary entry ${entry.date || entry.id}`}
                         >
-                          <i className="fa-regular fa-eye"></i> View
+                          <Eye className="w-3.5 h-3.5" />
                         </button>
                       </td>
                     </tr>
