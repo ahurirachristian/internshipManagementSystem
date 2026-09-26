@@ -8,6 +8,7 @@ import {
   fetchSchools,
 } from '../../services/api';
 import ExportButton from '../ExportButton';
+import CustomSelect from '../CustomSelect';
 import Pagination from '../Pagination';
 
 const ITEMS_PER_PAGE = 10;
@@ -34,6 +35,16 @@ export default function DepartmentsManagement() {
     schools.forEach((s) => { map[s.schoolId] = s; });
     return map;
   }, [schools]);
+
+  // design-system dropdown options (CustomSelect compares values strictly, so
+  // every value is a string — including the ones read back from the API).
+  const schoolOptions = useMemo(
+    () => [
+      { value: '', label: 'Select school...' },
+      ...schools.map((s) => ({ value: String(s.schoolId), label: s.schoolName })),
+    ],
+    [schools]
+  );
 
   const filteredDepartments = useMemo(() => {
     const q = searchQuery.toLowerCase().trim();
@@ -76,7 +87,7 @@ export default function DepartmentsManagement() {
     setForm({
       departmentId: dept.departmentId,
       departmentName: dept.departmentName || '',
-      schoolId: dept.schoolId || '',
+      schoolId: dept.schoolId != null && dept.schoolId !== '' ? String(dept.schoolId) : '',
     });
     setEditingId(dept.departmentId);
     setModalOpen(true);
@@ -85,6 +96,12 @@ export default function DepartmentsManagement() {
   async function handleSubmit(e) {
     e.preventDefault();
     setError('');
+    // CustomSelect is a button, so the browser no longer enforces the old native
+    // `required`; keep the same guarantee explicitly.
+    if (!form.departmentName.trim() || !form.schoolId) {
+      setError('Department name and school are required.');
+      return;
+    }
     try {
       const payload = {
         ...form,
@@ -129,7 +146,7 @@ export default function DepartmentsManagement() {
 
   return (
     <div>
-      {error && (
+      {error && !modalOpen && (
         <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg flex items-center gap-2 text-sm text-red-700">
           <AlertCircle className="w-4 h-4 flex-shrink-0" />
           <span>{error}</span>
@@ -198,6 +215,14 @@ export default function DepartmentsManagement() {
               <h3 className="text-lg font-semibold">{editingId ? 'Edit Department' : 'Create Department'}</h3>
               <button onClick={() => setModalOpen(false)}><X className="w-5 h-5" /></button>
             </div>
+            {/* Inside the dialog: a save/validation failure used to render at page
+                level, behind this overlay, and was never seen. */}
+            {error && (
+              <div role="alert" className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg flex items-center gap-2 text-sm text-red-700">
+                <AlertCircle className="w-4 h-4 flex-shrink-0" />
+                <span>{error}</span>
+              </div>
+            )}
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Department ID *</label>
@@ -211,12 +236,14 @@ export default function DepartmentsManagement() {
                   className="w-full px-3 py-2 text-sm border rounded-lg" />
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">School *</label>
-                <select required value={form.schoolId} onChange={(e) => setForm({ ...form, schoolId: e.target.value })}
-                  className="w-full px-3 py-2 text-sm border rounded-lg">
-                  <option value="">Select school...</option>
-                  {schools.map((s) => <option key={s.schoolId} value={s.schoolId}>{s.schoolName}</option>)}
-                </select>
+                <label htmlFor="dept-school" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">School *</label>
+                <CustomSelect
+                  id="dept-school"
+                  value={form.schoolId}
+                  onChange={(val) => setForm({ ...form, schoolId: val })}
+                  options={schoolOptions}
+                  required
+                />
               </div>
               <div className="flex justify-end gap-2 pt-2">
                 <button type="button" onClick={() => setModalOpen(false)} className="px-4 py-2 text-sm border rounded-lg">Cancel</button>

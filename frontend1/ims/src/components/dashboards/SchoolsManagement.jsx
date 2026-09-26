@@ -7,10 +7,17 @@ import {
   deleteSchool,
 } from '../../services/api';
 import ExportButton from '../ExportButton';
+import CustomSelect from '../CustomSelect';
 import Pagination from '../Pagination';
 
 const ITEMS_PER_PAGE = 10;
 const TYPES = ['COLLEGE', 'SCHOOL', 'DIRECTORATE'];
+
+// design-system dropdown options (see components/CustomSelect.jsx)
+const TYPE_OPTIONS = [
+  { value: '', label: '—' },
+  ...TYPES.map((t) => ({ value: t, label: t })),
+];
 
 const initialForm = {
   schoolId: '',
@@ -133,7 +140,7 @@ export default function SchoolsManagement() {
 
   return (
     <div>
-      {error && (
+      {error && !modalOpen && (
         <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg flex items-center gap-2 text-sm text-red-700">
           <AlertCircle className="w-4 h-4 flex-shrink-0" />
           <span>{error}</span>
@@ -206,6 +213,14 @@ export default function SchoolsManagement() {
               <h3 className="text-lg font-semibold">{editingId ? 'Edit School' : 'Create School'}</h3>
               <button onClick={() => setModalOpen(false)}><X className="w-5 h-5" /></button>
             </div>
+            {/* Inside the dialog: a save failure used to render at page level,
+                behind this overlay, and was never seen. */}
+            {error && (
+              <div role="alert" className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg flex items-center gap-2 text-sm text-red-700">
+                <AlertCircle className="w-4 h-4 flex-shrink-0" />
+                <span>{error}</span>
+              </div>
+            )}
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">School ID *</label>
@@ -225,12 +240,13 @@ export default function SchoolsManagement() {
                     className="w-full px-3 py-2 text-sm border rounded-lg" />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Type</label>
-                  <select value={form.type} onChange={(e) => setForm({ ...form, type: e.target.value })}
-                    className="w-full px-3 py-2 text-sm border rounded-lg">
-                    <option value="">—</option>
-                    {TYPES.map((t) => <option key={t} value={t}>{t}</option>)}
-                  </select>
+                  <label htmlFor="school-type" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Type</label>
+                  <CustomSelect
+                    id="school-type"
+                    value={form.type}
+                    onChange={(val) => setForm({ ...form, type: val })}
+                    options={TYPE_OPTIONS}
+                  />
                 </div>
               </div>
               <div>

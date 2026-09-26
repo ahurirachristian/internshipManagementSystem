@@ -91,6 +91,7 @@ record, assert against it, then delete it inside the same spec.
 | `19-dashboard-chart-palette.spec.ts` | all four chart sections use the emerald/teal ramp, no legacy green/amber/red |
 | `20-status-by-day-layout.spec.ts` | Status by Day spans the grid; day columns and their values never overlap |
 | `21-profile-settings.spec.ts` | Profile Settings uses the design-system dropdown and switches, no native controls |
+| `22-university-catalog-selects.spec.ts` | Schools/Departments/Programmes dialogs use `CustomSelect`, persist values, validate inline |
 | `99-sweep.spec.ts` | final gate: routes silent, modal gauntlet, logout |
 
 ## Recorded dead code (H12) — not deleted during this phase

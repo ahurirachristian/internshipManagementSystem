@@ -9,10 +9,16 @@ import {
   fetchDepartments,
 } from '../../services/api';
 import ExportButton from '../ExportButton';
+import CustomSelect from '../CustomSelect';
 import Pagination from '../Pagination';
 
 const ITEMS_PER_PAGE = 10;
 const LEVELS = ['Certificate', 'Diploma', 'Bachelors', 'Masters', 'PhD'];
+
+const LEVEL_OPTIONS = [
+  { value: '', label: 'Select...' },
+  ...LEVELS.map((l) => ({ value: l, label: l })),
+];
 
 const initialForm = {
   programmeId: '',
@@ -47,6 +53,24 @@ export default function ProgrammesManagement() {
     departments.forEach((d) => { map[d.departmentId] = d; });
     return map;
   }, [departments]);
+
+  // design-system dropdown options (CustomSelect compares values strictly, so
+  // every value is a string — including the ids read back from the API).
+  const schoolOptions = useMemo(
+    () => [
+      { value: '', label: 'Select school...' },
+      ...schools.map((s) => ({ value: String(s.schoolId), label: s.schoolName })),
+    ],
+    [schools]
+  );
+
+  const departmentOptions = useMemo(
+    () => [
+      { value: '', label: 'None' },
+      ...departments.map((d) => ({ value: String(d.departmentId), label: d.departmentName })),
+    ],
+    [departments]
+  );
 
   const filteredProgrammes = useMemo(() => {
     const q = searchQuery.toLowerCase().trim();
@@ -96,8 +120,9 @@ export default function ProgrammesManagement() {
       programmeName: prog.programmeName || '',
       programmeLevel: prog.programmeLevel || '',
       durationYears: prog.durationYears || '',
-      schoolId: prog.schoolId || '',
-      departmentId: prog.departmentId || '',
+      schoolId: prog.schoolId != null && prog.schoolId !== '' ? String(prog.schoolId) : '',
+      departmentId:
+        prog.departmentId != null && prog.departmentId !== '' ? String(prog.departmentId) : '',
     });
     setEditingId(prog.programmeId);
     setModalOpen(true);
@@ -106,6 +131,12 @@ export default function ProgrammesManagement() {
   async function handleSubmit(e) {
     e.preventDefault();
     setError('');
+    // CustomSelect is a button, so the browser no longer enforces the old native
+    // `required`; keep the same guarantee explicitly.
+    if (!form.programmeLevel || !form.schoolId) {
+      setError('Level and school are required.');
+      return;
+    }
     try {
       const payload = {
         ...form,
@@ -152,7 +183,7 @@ export default function ProgrammesManagement() {
 
   return (
     <div>
-      {error && (
+      {error && !modalOpen && (
         <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg flex items-center gap-2 text-sm text-red-700">
           <AlertCircle className="w-4 h-4 flex-shrink-0" />
           <span>{error}</span>
@@ -229,6 +260,14 @@ export default function ProgrammesManagement() {
               <h3 className="text-lg font-semibold">{editingId ? 'Edit Programme' : 'Create Programme'}</h3>
               <button onClick={() => setModalOpen(false)}><X className="w-5 h-5" /></button>
             </div>
+            {/* Inside the dialog: a save/validation failure used to render at page
+                level, behind this overlay, and was never seen. */}
+            {error && (
+              <div role="alert" className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg flex items-center gap-2 text-sm text-red-700">
+                <AlertCircle className="w-4 h-4 flex-shrink-0" />
+                <span>{error}</span>
+              </div>
+            )}
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Programme ID *</label>
@@ -243,12 +282,14 @@ export default function ProgrammesManagement() {
                     className="w-full px-3 py-2 text-sm border rounded-lg" />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Level *</label>
-                  <select required value={form.programmeLevel} onChange={(e) => setForm({ ...form, programmeLevel: e.target.value })}
-                    className="w-full px-3 py-2 text-sm border rounded-lg">
-                    <option value="">Select...</option>
-                    {LEVELS.map((l) => <option key={l} value={l}>{l}</option>)}
-                  </select>
+                  <label htmlFor="programme-level" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Level *</label>
+                  <CustomSelect
+                    id="programme-level"
+                    value={form.programmeLevel}
+                    onChange={(val) => setForm({ ...form, programmeLevel: val })}
+                    options={LEVEL_OPTIONS}
+                    required
+                  />
                 </div>
               </div>
               <div>
@@ -262,20 +303,23 @@ export default function ProgrammesManagement() {
                   className="w-full px-3 py-2 text-sm border rounded-lg" />
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">School *</label>
-                <select required value={form.schoolId} onChange={(e) => setForm({ ...form, schoolId: e.target.value })}
-                  className="w-full px-3 py-2 text-sm border rounded-lg">
-                  <option value="">Select school...</option>
-                  {schools.map((s) => <option key={s.schoolId} value={s.schoolId}>{s.schoolName}</option>)}
-                </select>
+                <label htmlFor="programme-school" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">School *</label>
+                <CustomSelect
+                  id="programme-school"
+                  value={form.schoolId}
+                  onChange={(val) => setForm({ ...form, schoolId: val })}
+                  options={schoolOptions}
+                  required
+                />
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Department</label>
-                <select value={form.departmentId} onChange={(e) => setForm({ ...form, departmentId: e.target.value })}
-                  className="w-full px-3 py-2 text-sm border rounded-lg">
-                  <option value="">None</option>
-                  {departments.map((d) => <option key={d.departmentId} value={d.departmentId}>{d.departmentName}</option>)}
-                </select>
+                <label htmlFor="programme-department" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Department</label>
+                <CustomSelect
+                  id="programme-department"
+                  value={form.departmentId}
+                  onChange={(val) => setForm({ ...form, departmentId: val })}
+                  options={departmentOptions}
+                />
               </div>
               <div className="flex justify-end gap-2 pt-2">
                 <button type="button" onClick={() => setModalOpen(false)} className="px-4 py-2 text-sm border rounded-lg">Cancel</button>
