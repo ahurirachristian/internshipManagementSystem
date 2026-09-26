@@ -1,5 +1,5 @@
 import { test, expect, type Page } from '@playwright/test';
-import { login, API } from './helpers';
+import { login, pickCustomSelect, API } from './helpers';
 
 // Block 14 — modal audit (dialog integrity):
 //
@@ -304,13 +304,16 @@ test.describe('14 modal audit', () => {
     const label = (text: string) => page.locator('.modal-content label', { hasText: text });
 
     await page.getByRole('button', { name: 'Add Vacancy' }).click();
+    // Block 27: Status is a design-system control, not a native <select>.
+    await expect(modal.locator('select')).toHaveCount(0);
+    await expect(page.locator('#vacancy-status')).toHaveAttribute('aria-haspopup', 'listbox');
     await label('Title').locator('input').fill(VACANCY_TITLE);
     await label('Description').locator('textarea').fill('Audit round-trip vacancy.');
     await label('Company ID').locator('input').fill('1');
     await label('Location').locator('input').fill('Kampala');
     await label('Requirements').locator('textarea').fill('Playwright.');
     await label('Deadline').locator('input').fill('2026-12-31');
-    await label('Status').locator('select').selectOption('OPEN');
+    await pickCustomSelect(page, 'vacancy-status', 'Open');
     await modal.getByRole('button', { name: 'Create Vacancy' }).click({ force: true });
 
     const row = page.locator('table tbody tr', { hasText: VACANCY_TITLE });
@@ -319,6 +322,7 @@ test.describe('14 modal audit', () => {
     // all values pre-fill the Edit dialog
     await row.getByRole('button', { name: 'Edit' }).click();
     await expect(modal).toBeVisible();
+    await expect(page.locator('#vacancy-status')).toHaveText('Open');
     expect(await label('Title').locator('input').inputValue()).toBe(VACANCY_TITLE);
     expect(await label('Description').locator('textarea').inputValue()).toBe('Audit round-trip vacancy.');
     expect(await label('Company ID').locator('input').inputValue()).toBe('1');

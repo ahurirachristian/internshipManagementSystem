@@ -1,7 +1,15 @@
 import { useEffect, useState } from 'react';
 import { Pencil, Trash2 } from 'lucide-react';
 import { createVacancy, deleteVacancy, fetchVacancies, updateVacancy } from '../services/api';
+import CustomSelect from './CustomSelect';
 import ExportButton from './ExportButton';
+
+// design-system dropdown options (see components/CustomSelect.jsx)
+const STATUS_OPTIONS = [
+  { value: 'OPEN', label: 'Open' },
+  { value: 'CLOSED', label: 'Closed' },
+  { value: 'FILLED', label: 'Filled' },
+];
 
 const initialForm = {
   title: '',
@@ -254,14 +262,12 @@ export default function VacanciesManagement() {
                 </label>
                 <label>
                   Status
-                  <select
+                  <CustomSelect
+                    id="vacancy-status"
                     value={form.status}
-                    onChange={(e) => setForm({ ...form, status: e.target.value })}
-                  >
-                    <option value="OPEN">Open</option>
-                    <option value="CLOSED">Closed</option>
-                    <option value="FILLED">Filled</option>
-                  </select>
+                    onChange={(value) => setForm({ ...form, status: value })}
+                    options={STATUS_OPTIONS}
+                  />
                 </label>
               </div>
               <div className="modal-actions">
