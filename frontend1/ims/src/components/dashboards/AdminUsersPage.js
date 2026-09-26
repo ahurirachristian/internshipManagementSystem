@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import DashboardLayout from '../DashboardLayout';
+import { useAuth } from '../../context/AuthContext';
 import { createUser, deleteUser, fetchUsers, updateUser } from '../../services/api';
 import {
   Users,
@@ -31,6 +32,7 @@ const ROLE_BADGE_STYLES = {
 const initialForm = { username: '', role: 'STUDENT' };
 
 export default function AdminUsersPage() {
+  const { user } = useAuth();
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -146,7 +148,7 @@ export default function AdminUsersPage() {
   }
 
   return (
-    <DashboardLayout title="User Management" subtitle="Welcome,">
+    <DashboardLayout title="User Management" subtitle={`Welcome, ${user?.username || 'User'}`}>
       <div className="space-y-6 max-w-7xl mx-auto">
         {notice && (
           <div role="status" className="p-3.5 bg-emerald-50 border border-emerald-200 rounded-xl flex items-center justify-between gap-3 text-emerald-900 text-sm fade-in">

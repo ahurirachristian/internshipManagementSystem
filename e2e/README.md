@@ -84,6 +84,7 @@ record, assert against it, then delete it inside the same spec.
 | `11-csv-downloads.spec.ts` | CSV contract: filenames, headers, row counts, server vs client export (H1/H2/H3) |
 | `12-admin-cross-area.spec.ts` | cross-area routes as ADMIN, university-dashboard degradation, sidebar Vacancies entry |
 | `14-modal-audit.spec.ts` | dialog integrity: containment at 720p/800x600 for all admin modals + company/vacancy field round-trips |
+| `15-dashboard-welcome.spec.ts` | dashboard greeting names the signed-in user (student/admin/company) |
 | `99-sweep.spec.ts` | final gate: routes silent, modal gauntlet, logout |
 
 ## Recorded dead code (H12) — not deleted during this phase

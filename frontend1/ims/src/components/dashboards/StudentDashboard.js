@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import DashboardLayout from '../DashboardLayout';
 import { useStudentData } from '../../context/StudentDataContext';
+import { useAuth } from '../../context/AuthContext';
 
 const STATUS_COLORS = {
   Completed: '#16a34a',
@@ -391,6 +392,7 @@ function TodoList({ tasks }) {
 
 export default function StudentDashboard() {
   const { tasks, dailyProgress, statusTotals } = useStudentData();
+  const { user } = useAuth();
 
   const totalProjects = tasks.length;
   const inProgressCount = statusTotals['In Progress'];
@@ -425,7 +427,7 @@ export default function StudentDashboard() {
   ];
 
   return (
-    <DashboardLayout title="Dashboard" subtitle="Welcome,">
+    <DashboardLayout title="Dashboard" subtitle={`Welcome, ${user?.username || 'User'}`}>
       <div className="project-management-hero">
         <div className="project-management-hero-title">
           <h2>Project Management</h2>

@@ -888,7 +888,7 @@ export default function CompanyDashboard() {
   return (
     <DashboardLayout
       title="Company Dashboard"
-      subtitle="Welcome,"
+      subtitle={`Welcome, ${user?.username || 'User'}`}
       tabs={null}
       activeTab={null}
       onTabChange={null}
