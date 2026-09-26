@@ -1,7 +1,14 @@
 import { useState } from 'react';
 import { submitDiaryFeedback } from '../services/api';
+import CustomSelect from './CustomSelect';
 
-const STATUS_OPTIONS = ['PENDING', 'APPROVED', 'NEEDS_REVISION', 'REJECTED'];
+// design-system dropdown options (see components/CustomSelect.jsx)
+const STATUS_OPTIONS = [
+  { value: 'PENDING', label: 'Pending' },
+  { value: 'APPROVED', label: 'Approved' },
+  { value: 'NEEDS_REVISION', label: 'Needs Revision' },
+  { value: 'REJECTED', label: 'Rejected' },
+];
 
 export default function DiaryReviewModal({ diary, onClose, onSaved }) {
   const [feedback, setFeedback] = useState(diary.feedback || '');
@@ -115,13 +122,12 @@ export default function DiaryReviewModal({ diary, onClose, onSaved }) {
             </label>
             <label>
               Status
-              <select value={status} onChange={(e) => setStatus(e.target.value)}>
-                {STATUS_OPTIONS.map((option) => (
-                  <option key={option} value={option}>
-                    {option}
-                  </option>
-                ))}
-              </select>
+              <CustomSelect
+                id="diary-status"
+                value={status}
+                onChange={setStatus}
+                options={STATUS_OPTIONS}
+              />
             </label>
           </div>
 

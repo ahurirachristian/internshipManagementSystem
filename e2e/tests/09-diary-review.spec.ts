@@ -1,5 +1,5 @@
 import { test, expect, type Page } from '@playwright/test';
-import { login, loginAs, API, collectFailedRequests } from './helpers';
+import { login, loginAs, pickCustomSelect, API, collectFailedRequests } from './helpers';
 
 // Block 9 — Diary review + feedback flow:
 //
@@ -133,7 +133,9 @@ test.describe('09 diary review', () => {
       .locator('.modal-content label', { hasText: 'University Supervisor Comment' })
       .locator('textarea')
       .fill(UNIVERSITY_COMMENT);
-    await page.locator('.modal-content select').selectOption('APPROVED');
+    // Block 28: Status is a design-system control, not a native <select>.
+    await expect(page.locator('.modal-content select')).toHaveCount(0);
+    await pickCustomSelect(page, 'diary-status', 'Approved');
 
     await page.getByRole('button', { name: 'Save Feedback' }).click({ force: true });
     await expect(page.locator('.modal-content h2')).toHaveCount(0);
@@ -166,7 +168,8 @@ test.describe('09 diary review', () => {
     await expect(
       page.locator('.modal-content label', { hasText: 'University Supervisor Comment' }).locator('textarea')
     ).toHaveValue(UNIVERSITY_COMMENT);
-    await expect(page.locator('.modal-content select')).toHaveValue('APPROVED');
+    await expect(page.locator('.modal-content select')).toHaveCount(0);
+    await expect(page.locator('#diary-status')).toHaveText('Approved');
 
     await page.getByRole('button', { name: 'Cancel' }).click({ force: true });
     await expect(page.locator('.modal-content h2')).toHaveCount(0);
