@@ -163,6 +163,20 @@ test.describe('07 vacancies', () => {
     await expect(page.locator('table tbody tr', { hasText: 'Mobile Money Operations Intern' })).toHaveCount(1);
   });
 
+  test('the actions column is icon-only, matching the User Management reference', async ({ page }) => {
+    const row = page.locator('table tbody tr').first();
+    await expect(row).toBeVisible();
+    const buttons = row.locator('td').last().getByRole('button');
+    await expect(buttons).toHaveCount(2);
+
+    for (const text of await buttons.allInnerTexts()) expect(text.trim()).toBe('');
+    await expect(buttons.nth(0).locator('svg')).toHaveCount(1);
+    await expect(buttons.nth(1).locator('svg')).toHaveCount(1);
+
+    await expect(buttons.nth(0)).toHaveAttribute('title', 'Edit');
+    await expect(buttons.nth(1)).toHaveAttribute('title', 'Delete');
+  });
+
   test('Add Vacancy validation: title and company are required', async ({ page }) => {
     await page.getByRole('button', { name: 'Add Vacancy' }).click();
     await expect(page.locator('.modal-content h2')).toHaveText('Add Vacancy');

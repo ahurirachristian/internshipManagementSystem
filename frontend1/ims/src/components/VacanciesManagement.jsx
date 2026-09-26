@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { Pencil, Trash2 } from 'lucide-react';
 import { createVacancy, deleteVacancy, fetchVacancies, updateVacancy } from '../services/api';
 import ExportButton from './ExportButton';
 
@@ -115,13 +116,29 @@ export default function VacanciesManagement() {
       <td>{vacancy.location}</td>
       <td>{vacancy.requirements}</td>
       <td>{vacancy.status}</td>
+      {/* Icon-only row actions, matching the User Management / Universities
+          reference: the pill carries the meaning via title + aria-label. */}
       <td>
-        <button className="icon-button edit" onClick={() => openModal(vacancy)}>
-          Edit
-        </button>
-        <button className="icon-button delete" onClick={() => handleDelete(vacancy.id)}>
-          Delete
-        </button>
+        <div className="inline-flex items-center gap-1.5 justify-end">
+          <button
+            type="button"
+            onClick={() => openModal(vacancy)}
+            title="Edit"
+            aria-label={`Edit ${vacancy.title}`}
+            className="p-1.5 rounded-lg bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-100 dark:hover:bg-emerald-900/60 border border-emerald-200/60 dark:border-emerald-800/60 transition-colors"
+          >
+            <Pencil className="w-3.5 h-3.5" />
+          </button>
+          <button
+            type="button"
+            onClick={() => handleDelete(vacancy.id)}
+            title="Delete"
+            aria-label={`Delete ${vacancy.title}`}
+            className="p-1.5 rounded-lg bg-rose-50 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400 hover:bg-rose-100 dark:hover:bg-rose-900/60 border border-rose-200/60 dark:border-rose-800/60 transition-colors"
+          >
+            <Trash2 className="w-3.5 h-3.5" />
+          </button>
+        </div>
       </td>
     </tr>
   ));

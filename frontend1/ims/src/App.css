@@ -253,16 +253,6 @@ tbody tr:hover {
   border-radius: 12px;
 }
 
-.icon-button.edit {
-  background: #eff6ff;
-  color: #1d4ed8;
-}
-
-.icon-button.delete {
-  background: #fee2e2;
-  color: #b91c1c;
-}
-
 .icon-button.view {
   background: #0f766e;
   color: #fff;
