@@ -66,11 +66,12 @@ test.describe('16 dashboard theme colours', () => {
     for (const indigo of INDIGO) expect(tabStyle).not.toContain(indigo);
   });
 
-  test('status colours match the design-system success/warning/danger tokens', async ({ page }) => {
+  test('status colours use the project emerald/teal chart ramp', async ({ page }) => {
     const swatches = page.locator('.donut-swatch');
     await expect(swatches).toHaveCount(3);
 
-    const expected = ['rgb(22, 163, 74)', 'rgb(217, 119, 6)', 'rgb(220, 38, 38)'];
+    // --chart-completed / --chart-inprogress / --chart-uncompleted
+    const expected = ['rgb(10, 77, 76)', 'rgb(13, 148, 136)', 'rgb(45, 212, 191)'];
     for (let i = 0; i < expected.length; i += 1) {
       await expect(swatches.nth(i)).toHaveCSS('background-color', expected[i]);
     }

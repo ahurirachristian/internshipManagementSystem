@@ -3,12 +3,13 @@ import DashboardLayout from '../DashboardLayout';
 import { useStudentData } from '../../context/StudentDataContext';
 import { useAuth } from '../../context/AuthContext';
 
-// Status colours come from the RIHO theme tokens (--riho-success / --riho-warning
-// / --riho-danger) so the hand-rolled SVG charts match the rest of the app.
+// Chart status ramp — the project emerald/teal palette, mirrored from the
+// --chart-completed / --chart-inprogress / --chart-uncompleted custom properties
+// in App.css. Keep the two in sync; SVG attributes cannot read CSS variables.
 const STATUS_COLORS = {
-  Completed: '#16a34a',
-  'In Progress': '#d97706',
-  Uncompleted: '#dc2626',
+  Completed: '#0a4d4c',
+  'In Progress': '#0d9488',
+  Uncompleted: '#2dd4bf',
 };
 
 function Legend() {
@@ -155,7 +156,7 @@ function DonutChart({ totals }) {
           cy={size / 2}
           r={radius}
           fill="none"
-          stroke="#e2e8f0"
+          stroke="#cfe3e0"
           strokeWidth={stroke}
         />
         {segments.map((seg) => {

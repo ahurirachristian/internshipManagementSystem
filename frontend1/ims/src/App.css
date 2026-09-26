@@ -5,6 +5,15 @@
   line-height: 1.5;
   color: #1f2937;
   background-color: #f4f7f6;
+
+  /* Chart status ramp — derived from the RIHO emerald/teal project theme
+     (--riho-primary #0a4d4c plus the teal accents used across the UI), so the
+     dashboard graphs read as part of the product instead of a foreign palette.
+     Keep in sync with STATUS_COLORS in dashboards/StudentDashboard.js. */
+  --chart-completed: #0a4d4c;
+  --chart-inprogress: #0d9488;
+  --chart-uncompleted: #2dd4bf;
+  --chart-track: #cfe3e0;
 }
 
 * {
@@ -747,9 +756,9 @@ tbody tr:hover {
   display: inline-block;
 }
 
-.swatch-completed { background: var(--riho-success); }
-.swatch-inprogress { background: var(--riho-warning); }
-.swatch-uncompleted { background: var(--riho-danger); }
+.swatch-completed { background: var(--chart-completed); }
+.swatch-inprogress { background: var(--chart-inprogress); }
+.swatch-uncompleted { background: var(--chart-uncompleted); }
 
 .progress-chart-headings {
   display: grid;
@@ -781,25 +790,25 @@ tbody tr:hover {
 }
 
 .progress-chart-heading.heading-completed {
-  background: #dcfce7;
-  color: #166534;
-  border-color: #bbf7d0;
+  background: var(--chart-completed);
+  color: #ffffff;
+  border-color: var(--chart-completed);
 }
-.progress-chart-heading.heading-completed strong { color: #14532d; }
+.progress-chart-heading.heading-completed strong { color: #ffffff; }
 
 .progress-chart-heading.heading-in-progress {
-  background: #fef3c7;
-  color: #92400e;
-  border-color: #fde68a;
+  background: var(--chart-inprogress);
+  color: #ffffff;
+  border-color: var(--chart-inprogress);
 }
-.progress-chart-heading.heading-in-progress strong { color: #78350f; }
+.progress-chart-heading.heading-in-progress strong { color: #ffffff; }
 
 .progress-chart-heading.heading-uncompleted {
-  background: #fee2e2;
-  color: #991b1b;
-  border-color: #fecaca;
+  background: var(--chart-uncompleted);
+  color: #05332e;
+  border-color: var(--chart-uncompleted);
 }
-.progress-chart-heading.heading-uncompleted strong { color: #7f1d1d; }
+.progress-chart-heading.heading-uncompleted strong { color: #05332e; }
 
 .progress-chart {
   display: grid;
@@ -837,7 +846,7 @@ tbody tr:hover {
   width: 100%;
   max-width: 56px;
   flex: 1;
-  background: #e2e8f0;
+  background: var(--chart-track);
   border-radius: 12px;
   overflow: hidden;
   display: flex;
@@ -846,7 +855,7 @@ tbody tr:hover {
 
 .progress-bar-fill {
   width: 100%;
-  background: #0f766e;
+  background: var(--chart-completed);
   border-radius: 12px 12px 6px 6px;
   transition: height 0.6s ease;
   display: flex;
@@ -865,13 +874,13 @@ tbody tr:hover {
 }
 
 .segment-completed {
-  background: linear-gradient(180deg, #22c55e 0%, var(--riho-success) 100%);
+  background: linear-gradient(180deg, #0e6260 0%, var(--chart-completed) 100%);
 }
 .segment-inprogress {
-  background: linear-gradient(180deg, #f59e0b 0%, var(--riho-warning) 100%);
+  background: linear-gradient(180deg, #14b8a6 0%, var(--chart-inprogress) 100%);
 }
 .segment-uncompleted {
-  background: linear-gradient(180deg, #ef4444 0%, var(--riho-danger) 100%);
+  background: linear-gradient(180deg, #5eead4 0%, var(--chart-uncompleted) 100%);
   border-radius: 0 0 8px 8px;
 }
 
@@ -929,7 +938,7 @@ tbody tr:hover {
 .grouped-bar-track {
   position: relative;
   height: 100%;
-  background: #e2e8f0;
+  background: var(--chart-track);
   border-radius: 8px;
   overflow: hidden;
   display: flex;
@@ -955,9 +964,9 @@ tbody tr:hover {
   padding: 1px 4px;
 }
 
-.grouped-completed { background: linear-gradient(180deg, #22c55e 0%, var(--riho-success) 100%); }
-.grouped-inprogress { background: linear-gradient(180deg, #f59e0b 0%, var(--riho-warning) 100%); }
-.grouped-uncompleted { background: linear-gradient(180deg, #ef4444 0%, var(--riho-danger) 100%); }
+.grouped-completed { background: linear-gradient(180deg, #0e6260 0%, var(--chart-completed) 100%); }
+.grouped-inprogress { background: linear-gradient(180deg, #14b8a6 0%, var(--chart-inprogress) 100%); }
+.grouped-uncompleted { background: linear-gradient(180deg, #5eead4 0%, var(--chart-uncompleted) 100%); }
 
 .grouped-axis-hint {
   display: grid;

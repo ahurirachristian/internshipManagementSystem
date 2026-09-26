@@ -88,6 +88,7 @@ record, assert against it, then delete it inside the same spec.
 | `16-dashboard-theme-colors.spec.ts` | dashboard hero/KPI/chart/To-Do colours follow the RIHO theme, not indigo |
 | `17-dashboard-responsive.spec.ts` | dashboard fits 1440/1024/768/390 without horizontal scroll or clipped text |
 | `18-dashboard-todo.spec.ts` | redesigned To-Do List: summary ring, filter tabs, card meta, progress bars |
+| `19-dashboard-chart-palette.spec.ts` | all four chart sections use the emerald/teal ramp, no legacy green/amber/red |
 | `99-sweep.spec.ts` | final gate: routes silent, modal gauntlet, logout |
 
 ## Recorded dead code (H12) — not deleted during this phase
