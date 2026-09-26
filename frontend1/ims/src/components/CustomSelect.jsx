@@ -1,9 +1,15 @@
 import { useEffect, useRef, useState } from 'react';
 import { Check } from 'lucide-react';
 
-export default function CustomSelect({ id, value, onChange, options, required, placeholder }) {
+export default function CustomSelect({ id, value, onChange, options, required, placeholder, disabled = false }) {
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef(null);
+
+  // A select that becomes disabled (e.g. while a form is saving) must not keep
+  // an open popup behind it.
+  useEffect(() => {
+    if (disabled) setIsOpen(false);
+  }, [disabled]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -35,11 +41,13 @@ export default function CustomSelect({ id, value, onChange, options, required, p
       <button
         id={id}
         type="button"
-        onClick={() => setIsOpen((prev) => !prev)}
+        onClick={() => !disabled && setIsOpen((prev) => !prev)}
+        disabled={disabled}
         aria-haspopup="listbox"
         aria-expanded={isOpen}
         aria-required={required || undefined}
-        className="w-full bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 text-sm rounded-xl border border-slate-300 dark:border-slate-700 px-3.5 py-2.5 focus:border-teal-600 focus:ring-2 focus:ring-teal-600/20 focus:outline-none transition-all cursor-pointer shadow-xs font-medium text-left flex items-center justify-between gap-2"
+        aria-disabled={disabled || undefined}
+        className="w-full bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 text-sm rounded-xl border border-slate-300 dark:border-slate-700 px-3.5 py-2.5 focus:border-teal-600 focus:ring-2 focus:ring-teal-600/20 focus:outline-none transition-all cursor-pointer shadow-xs font-medium text-left flex items-center justify-between gap-2 disabled:cursor-not-allowed disabled:opacity-60 disabled:bg-slate-50 dark:disabled:bg-slate-900/60"
       >
         <span className={`truncate ${!displayLabel ? 'text-slate-400' : ''}`}>
           {displayLabel || placeholder || 'Select...'}
