@@ -88,45 +88,42 @@ function GroupedBarChart({ data }) {
     return Math.max(m, 1);
   }, [data]);
 
-  const keys = ['completed', 'inProgress', 'uncompleted'];
-  const labels = ['Completed', 'In Progress', 'Uncompleted'];
-  const classes = ['grouped-completed', 'grouped-inprogress', 'grouped-uncompleted'];
+  // Each day shows its total above the group, then one value directly under
+  // each of the three bars. Values used to sit above the group as "12 / 5 / 3"
+  // and inside the bars as badges, which overlapped the next day at narrow
+  // widths — a cell per bar keeps every number inside its own column.
+  const series = [
+    { key: 'completed', label: 'Completed', className: 'grouped-completed' },
+    { key: 'inProgress', label: 'In Progress', className: 'grouped-inprogress' },
+    { key: 'uncompleted', label: 'Uncompleted', className: 'grouped-uncompleted' },
+  ];
 
   return (
     <div className="progress-chart">
       {data.map((item) => {
+        const total = item.completed + item.inProgress + item.uncompleted;
         return (
           <div className="progress-bar-wrapper" key={item.day}>
-            <div className="progress-bar-value">
-              <span style={{ color: STATUS_COLORS.Completed }}>{item.completed}</span>
-              {' / '}
-              <span style={{ color: STATUS_COLORS['In Progress'] }}>{item.inProgress}</span>
-              {' / '}
-              <span style={{ color: STATUS_COLORS.Uncompleted }}>{item.uncompleted}</span>
-            </div>
+            <div className="progress-bar-value">{total}</div>
             <div className="progress-bar-grouped">
-              {keys.map((k, i) => {
-                const v = item[k];
-                const h = (v / maxValue) * 100;
-                return (
-                  <div className="grouped-bar-track" key={k}>
-                    <div
-                      className={`grouped-bar-fill ${classes[i]}`}
-                      style={{ height: `${h}%` }}
-                      title={`${item.day} ${labels[i]}: ${v}`}
-                    >
-                      <span className="grouped-bar-num">{v}</span>
-                    </div>
-                  </div>
-                );
-              })}
+              {series.map((s) => (
+                <div className="grouped-bar-track" key={s.key}>
+                  <div
+                    className={`grouped-bar-fill ${s.className}`}
+                    style={{ height: `${(item[s.key] / maxValue) * 100}%` }}
+                    title={`${item.day} ${s.label}: ${item[s.key]}`}
+                  ></div>
+                </div>
+              ))}
+            </div>
+            <div className="grouped-bar-values" aria-label={`${item.day} counts`}>
+              {series.map((s) => (
+                <span className={`grouped-bar-count count-${s.key}`} key={s.key}>
+                  {item[s.key]}
+                </span>
+              ))}
             </div>
             <div className="progress-bar-label">{item.day}</div>
-            <div className="grouped-axis-hint" aria-hidden="true">
-              <span>C</span>
-              <span>I</span>
-              <span>U</span>
-            </div>
           </div>
         );
       })}
@@ -531,6 +528,16 @@ export default function StudentDashboard() {
 
         <div className="card-panel progress-chart-card">
           <div className="progress-chart-header">
+            <h2>Overall Distribution</h2>
+            <p>Total tasks by status</p>
+          </div>
+          <DonutChart totals={statusTotals} />
+        </div>
+
+        {/* Full width: the grouped chart needs six comfortable columns, otherwise
+            its per-day values collide with the neighbouring day. */}
+        <div className="card-panel progress-chart-card status-by-day grid-span-3">
+          <div className="progress-chart-header">
             <h2>Status by Day</h2>
             <p>Three side-by-side bars per day</p>
           </div>
@@ -550,15 +557,7 @@ export default function StudentDashboard() {
           <GroupedBarChart data={dailyProgress} />
         </div>
 
-        <div className="card-panel progress-chart-card">
-          <div className="progress-chart-header">
-            <h2>Overall Distribution</h2>
-            <p>Total tasks by status</p>
-          </div>
-          <DonutChart totals={statusTotals} />
-        </div>
-
-        <div className="card-panel progress-chart-card grid-span-2">
+        <div className="card-panel progress-chart-card grid-span-3">
           <div className="progress-chart-header">
             <h2>Trend Across the Week</h2>
             <p>Status counts from Monday to Saturday</p>

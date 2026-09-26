@@ -927,11 +927,11 @@ tbody tr:hover {
 
 .progress-bar-grouped {
   width: 100%;
-  max-width: 96px;
+  max-width: 120px;
   flex: 1;
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 4px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
   align-items: end;
 }
 
@@ -948,37 +948,35 @@ tbody tr:hover {
 .grouped-bar-fill {
   width: 100%;
   border-radius: 8px 8px 4px 4px;
-  display: flex;
-  align-items: flex-start;
-  justify-content: center;
-  padding-top: 4px;
   transition: height 0.6s ease;
-}
-
-.grouped-bar-num {
-  font-size: 0.7rem;
-  font-weight: 700;
-  color: #ffffff;
-  background: rgba(15, 23, 42, 0.35);
-  border-radius: 6px;
-  padding: 1px 4px;
 }
 
 .grouped-completed { background: linear-gradient(180deg, #0e6260 0%, var(--chart-completed) 100%); }
 .grouped-inprogress { background: linear-gradient(180deg, #14b8a6 0%, var(--chart-inprogress) 100%); }
 .grouped-uncompleted { background: linear-gradient(180deg, #5eead4 0%, var(--chart-uncompleted) 100%); }
 
-.grouped-axis-hint {
+/* One count under each bar, in the same three-column rhythm as the bars, so no
+   value can drift into the neighbouring day. */
+.grouped-bar-values {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 4px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
   width: 100%;
-  max-width: 96px;
-  font-size: 0.65rem;
-  color: #94a3b8;
+  max-width: 120px;
   text-align: center;
-  margin-top: 2px;
+  font-size: 0.72rem;
+  font-weight: 700;
 }
+
+.grouped-bar-count {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.count-completed { color: var(--chart-completed); }
+.count-inprogress { color: var(--chart-inprogress); }
+.count-uncompleted { color: #0f766e; }
 
 .donut-chart {
   display: flex;
