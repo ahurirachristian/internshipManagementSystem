@@ -28,8 +28,11 @@ const TEXT_SELECTORS = [
   '.donut-label',
   '.donut-value',
   '.todo-tab',
-  '.todo-row-title',
-  '.todo-row-meta',
+  '.todo-toolbar',
+  '.todo-card-title',
+  '.todo-chip',
+  '.todo-badge',
+  '.todo-fact-value',
 ];
 
 /** Shell check that also works below the 900px breakpoint, where the fixed
@@ -114,7 +117,7 @@ test.describe('17 dashboard responsiveness', () => {
       await page.setViewportSize({ width: vp.width, height: vp.height });
       await page.goto('/student/dashboard');
       await expectDashboard(page);
-      await expect(page.locator('.todo-row').first()).toBeVisible();
+      await expect(page.locator('.todo-card').first()).toBeVisible();
 
       expect(await clippedText(page), `clipped text at ${vp.name}`).toEqual([]);
     }

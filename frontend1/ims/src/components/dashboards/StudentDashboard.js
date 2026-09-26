@@ -311,6 +311,33 @@ function LineChart({ data }) {
   );
 }
 
+const TODO_TABS = [
+  { key: 'all', label: 'All Tasks' },
+  { key: 'inProcess', label: 'In Progress' },
+  { key: 'completed', label: 'Completed' },
+  { key: 'pending', label: 'Pending' },
+];
+
+const TODO_STATUS_META = {
+  Completed: { label: 'Completed', modifier: 'completed' },
+  'In Progress': { label: 'In Progress', modifier: 'inprogress' },
+  Uncompleted: { label: 'Pending', modifier: 'uncompleted' },
+};
+
+const TODO_FILTERS = {
+  completed: 'Completed',
+  pending: 'Uncompleted',
+  inProcess: 'In Progress',
+};
+
+const TODO_PAGE_SIZE = 12;
+
+function formatDue(iso) {
+  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sept', 'Oct', 'Nov', 'Dec'];
+  const d = new Date(`${iso}T00:00:00`);
+  return `${String(d.getDate()).padStart(2, '0')} ${months[d.getMonth()]}`;
+}
+
 function TodoList({ tasks }) {
   const [activeTab, setActiveTab] = useState('all');
 
@@ -323,70 +350,99 @@ function TodoList({ tasks }) {
     };
   }, [tasks]);
 
-  const visible = useMemo(() => {
+  const filtered = useMemo(() => {
     if (activeTab === 'all') return tasks;
-    const map = {
-      completed: 'Completed',
-      pending: 'Uncompleted',
-      inProcess: 'In Progress',
-    };
-    return tasks.filter((t) => t.status === map[activeTab]);
+    return tasks.filter((t) => t.status === TODO_FILTERS[activeTab]);
   }, [tasks, activeTab]);
 
-  const formatDue = (iso) => {
-    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sept', 'Oct', 'Nov', 'Dec'];
-    const d = new Date(iso);
-    return `${String(d.getDate()).padStart(2, '0')} ${months[d.getMonth()]}`;
-  };
+  const completion = counts.all ? Math.round((counts.completed / counts.all) * 100) : 0;
+  const shown = filtered.slice(0, TODO_PAGE_SIZE);
 
-  const tabs = [
-    { key: 'all', label: 'All Task' },
-    { key: 'completed', label: 'Completed' },
-    { key: 'pending', label: 'Pending' },
-    { key: 'inProcess', label: 'In Process' },
+  const summaryFacts = [
+    { label: 'Total', value: counts.all },
+    { label: 'Completed', value: counts.completed },
+    { label: 'In Progress', value: counts.inProcess },
+    { label: 'Pending', value: counts.pending },
   ];
 
-  const statusClass = {
-    Completed: 'pill pill-done',
-    'In Progress': 'pill pill-in-progress',
-    Uncompleted: 'pill pill-pending',
-  };
-
-  const statusLabel = {
-    Completed: 'Done',
-    'In Progress': 'In Progress',
-    Uncompleted: 'Pending',
-  };
-
   return (
-    <div className="todo-list">
-      <div className="todo-tabs">
-        {tabs.map((tab) => (
-          <button
-            key={tab.key}
-            type="button"
-            className={`todo-tab${activeTab === tab.key ? ' active' : ''}`}
-            onClick={() => setActiveTab(tab.key)}
-          >
-            <span>{tab.label}</span>
-            <span className="todo-tab-count">{counts[tab.key]}</span>
-          </button>
-        ))}
+    <div className="todo-board">
+      <div className="todo-summary">
+        <div
+          className="todo-summary-ring"
+          style={{ '--todo-pct': `${completion}%` }}
+          role="img"
+          aria-label={`${completion}% of tasks completed`}
+        >
+          <span className="todo-summary-value">{completion}%</span>
+          <span className="todo-summary-caption">Done</span>
+        </div>
+        <div className="todo-summary-facts">
+          {summaryFacts.map((fact) => (
+            <div className="todo-fact" key={fact.label}>
+              <span className="todo-fact-value">{fact.value.toLocaleString()}</span>
+              <span className="todo-fact-label">{fact.label}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="todo-toolbar">
+        <div className="todo-tabs" role="tablist" aria-label="Filter tasks">
+          {TODO_TABS.map((tab) => (
+            <button
+              key={tab.key}
+              type="button"
+              role="tab"
+              aria-selected={activeTab === tab.key}
+              className={`todo-tab${activeTab === tab.key ? ' active' : ''}`}
+              onClick={() => setActiveTab(tab.key)}
+            >
+              <span>{tab.label}</span>
+              <span className="todo-tab-count">{counts[tab.key].toLocaleString()}</span>
+            </button>
+          ))}
+        </div>
+        <p className="todo-count">
+          Showing {shown.length} of {filtered.length.toLocaleString()}
+        </p>
       </div>
 
       <ul className="todo-rows">
-        {visible.slice(0, 12).map((t) => (
-          <li className="todo-row" key={t.id}>
-            <div className="todo-row-main">
-              <p className="todo-row-title">{t.title.replace(/ #\d+$/, '')}</p>
-              <span className={statusClass[t.status]}>{statusLabel[t.status]}</span>
-            </div>
-            <div className="todo-row-meta">{formatDue(t.dueDate)}</div>
-          </li>
-        ))}
-        {visible.length === 0 && (
-          <li className="todo-row-empty">No tasks in this view.</li>
-        )}
+        {shown.map((t) => {
+          const meta = TODO_STATUS_META[t.status] || TODO_STATUS_META.Uncompleted;
+          return (
+            <li className={`todo-card todo-is-${meta.modifier}`} key={t.id}>
+              <div className="todo-card-head">
+                <p className="todo-card-title">{t.title}</p>
+                <span className={`todo-badge todo-badge-${meta.modifier}`}>{meta.label}</span>
+              </div>
+              <div className="todo-card-meta">
+                <span className="todo-chip">
+                  <i className="fa-solid fa-tag" aria-hidden="true"></i>
+                  {t.type}
+                </span>
+                <span className="todo-chip">
+                  <i className="fa-solid fa-user" aria-hidden="true"></i>
+                  {t.assignee}
+                </span>
+                <span className="todo-chip">
+                  <i className="fa-solid fa-calendar-day" aria-hidden="true"></i>
+                  Due {formatDue(t.dueDate)}
+                </span>
+                <span className={`todo-priority prio-${String(t.priority).toLowerCase()}`}>
+                  {t.priority}
+                </span>
+              </div>
+              {t.status === 'In Progress' && (
+                <div className="todo-progress" aria-label={`${t.progress}% complete`}>
+                  <span style={{ width: `${t.progress}%` }}></span>
+                </div>
+              )}
+            </li>
+          );
+        })}
+        {shown.length === 0 && <li className="todo-empty">No tasks in this view.</li>}
       </ul>
     </div>
   );
