@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { Pencil, Trash2 } from 'lucide-react';
 import { createCompany, deleteCompany, fetchCompanies, updateCompany } from '../services/api';
 import ExportButton from './ExportButton';
 
@@ -122,13 +123,27 @@ export default function CompanyPage() {
               </td>
               <td style={{ padding: '16px 24px', fontSize: '0.875rem', color: '#374151' }}>{company.phone}</td>
               <td style={{ padding: '16px 24px', fontSize: '0.875rem', color: '#374151' }}>{company.postalAddress}</td>
+              {/* Icon-only row actions, matching the User Management / Universities
+                  reference: the pill carries the meaning via title + aria-label. */}
               <td style={{ padding: '16px 24px', fontSize: '0.875rem' }}>
-                <div style={{ display: 'flex', gap: '8px' }}>
-                  <button className="icon-button edit" onClick={() => openModal(company)}>
-                    Edit
+                <div className="inline-flex items-center gap-1.5 justify-end">
+                  <button
+                    type="button"
+                    onClick={() => openModal(company)}
+                    title="Edit"
+                    aria-label={`Edit ${company.name}`}
+                    className="p-1.5 rounded-lg bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-100 dark:hover:bg-emerald-900/60 border border-emerald-200/60 dark:border-emerald-800/60 transition-colors"
+                  >
+                    <Pencil className="w-3.5 h-3.5" />
                   </button>
-                  <button className="icon-button delete" onClick={() => handleDelete(company.id)}>
-                    Delete
+                  <button
+                    type="button"
+                    onClick={() => handleDelete(company.id)}
+                    title="Delete"
+                    aria-label={`Delete ${company.name}`}
+                    className="p-1.5 rounded-lg bg-rose-50 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400 hover:bg-rose-100 dark:hover:bg-rose-900/60 border border-rose-200/60 dark:border-rose-800/60 transition-colors"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
                   </button>
                 </div>
               </td>

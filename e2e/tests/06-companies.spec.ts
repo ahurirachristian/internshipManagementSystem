@@ -43,6 +43,24 @@ test.describe('06 companies', () => {
     await expect(page.locator('table tbody tr', { hasText: 'Airtel' })).toHaveCount(1);
   });
 
+  test('the actions column is icon-only, matching the User Management reference', async ({ page }) => {
+    const row = page.locator('table tbody tr').first();
+    await expect(row).toBeVisible();
+    const buttons = row.locator('td').last().getByRole('button');
+    await expect(buttons).toHaveCount(2);
+
+    // no visible label — the icon alone carries the action
+    for (const text of await buttons.allInnerTexts()) expect(text.trim()).toBe('');
+    await expect(buttons.nth(0).locator('svg')).toHaveCount(1);
+    await expect(buttons.nth(1).locator('svg')).toHaveCount(1);
+
+    // meaning is kept for accessibility and for the existing click tests
+    await expect(buttons.nth(0)).toHaveAttribute('title', 'Edit');
+    await expect(buttons.nth(1)).toHaveAttribute('title', 'Delete');
+    await expect(buttons.nth(0)).toHaveAttribute('aria-label', /^Edit /);
+    await expect(buttons.nth(1)).toHaveAttribute('aria-label', /^Delete /);
+  });
+
   test('modal validation: missing name/email/website is rejected by the component', async ({ page }) => {
     await page.getByRole('button', { name: '+ Add Company' }).click();
     await expect(page.locator(MODAL_TITLE)).toHaveText('Add Company');
