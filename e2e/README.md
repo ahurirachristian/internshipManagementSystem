@@ -85,6 +85,7 @@ record, assert against it, then delete it inside the same spec.
 | `12-admin-cross-area.spec.ts` | cross-area routes as ADMIN, university-dashboard degradation, sidebar Vacancies entry |
 | `14-modal-audit.spec.ts` | dialog integrity: containment at 720p/800x600 for all admin modals + company/vacancy field round-trips |
 | `15-dashboard-welcome.spec.ts` | dashboard greeting names the signed-in user (student/admin/company) |
+| `16-dashboard-theme-colors.spec.ts` | dashboard hero/KPI/chart/To-Do colours follow the RIHO theme, not indigo |
 | `99-sweep.spec.ts` | final gate: routes silent, modal gauntlet, logout |
 
 ## Recorded dead code (H12) — not deleted during this phase

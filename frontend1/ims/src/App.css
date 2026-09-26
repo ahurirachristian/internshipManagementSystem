@@ -747,9 +747,9 @@ tbody tr:hover {
   display: inline-block;
 }
 
-.swatch-completed { background: #16a34a; }
-.swatch-inprogress { background: #f59e0b; }
-.swatch-uncompleted { background: #ef4444; }
+.swatch-completed { background: var(--riho-success); }
+.swatch-inprogress { background: var(--riho-warning); }
+.swatch-uncompleted { background: var(--riho-danger); }
 
 .progress-chart-headings {
   display: grid;
@@ -807,7 +807,7 @@ tbody tr:hover {
   height: 320px;
   padding: 16px 8px 8px;
   border-radius: 16px;
-  background: linear-gradient(180deg, #f8fafc 0%, #eef2ff 100%);
+  background: linear-gradient(180deg, #f8fafc 0%, #e6f2f1 100%);
 }
 
 .progress-bar-wrapper {
@@ -839,7 +839,7 @@ tbody tr:hover {
 
 .progress-bar-fill {
   width: 100%;
-  background: #6366f1;
+  background: #0f766e;
   border-radius: 12px 12px 6px 6px;
   transition: height 0.6s ease;
   display: flex;
@@ -858,13 +858,13 @@ tbody tr:hover {
 }
 
 .segment-completed {
-  background: linear-gradient(180deg, #4ade80 0%, #16a34a 100%);
+  background: linear-gradient(180deg, #22c55e 0%, var(--riho-success) 100%);
 }
 .segment-inprogress {
-  background: linear-gradient(180deg, #fbbf24 0%, #f59e0b 100%);
+  background: linear-gradient(180deg, #f59e0b 0%, var(--riho-warning) 100%);
 }
 .segment-uncompleted {
-  background: linear-gradient(180deg, #fca5a5 0%, #ef4444 100%);
+  background: linear-gradient(180deg, #ef4444 0%, var(--riho-danger) 100%);
   border-radius: 0 0 8px 8px;
 }
 
@@ -948,9 +948,9 @@ tbody tr:hover {
   padding: 1px 4px;
 }
 
-.grouped-completed { background: linear-gradient(180deg, #4ade80 0%, #16a34a 100%); }
-.grouped-inprogress { background: linear-gradient(180deg, #fbbf24 0%, #f59e0b 100%); }
-.grouped-uncompleted { background: linear-gradient(180deg, #fca5a5 0%, #ef4444 100%); }
+.grouped-completed { background: linear-gradient(180deg, #22c55e 0%, var(--riho-success) 100%); }
+.grouped-inprogress { background: linear-gradient(180deg, #f59e0b 0%, var(--riho-warning) 100%); }
+.grouped-uncompleted { background: linear-gradient(180deg, #ef4444 0%, var(--riho-danger) 100%); }
 
 .grouped-axis-hint {
   display: grid;
@@ -1107,9 +1107,9 @@ tbody tr:hover {
 .todo-tab:hover { background: #e2e8f0; }
 
 .todo-tab.active {
-  background: #eef2ff;
-  border-color: #c7d2fe;
-  color: #4338ca;
+  background: #e6f2f1;
+  border-color: #a7d5d2;
+  color: var(--riho-primary);
 }
 
 .todo-tab-count {
@@ -1123,9 +1123,9 @@ tbody tr:hover {
 }
 
 .todo-tab.active .todo-tab-count {
-  background: #4338ca;
+  background: var(--riho-primary);
   color: #ffffff;
-  border-color: #4338ca;
+  border-color: var(--riho-primary);
 }
 
 .todo-rows {
@@ -1240,11 +1240,11 @@ tbody tr:hover {
 
 
 .project-management-hero {
-  background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+  background: linear-gradient(135deg, var(--riho-primary) 0%, var(--riho-primary-light) 100%);
   border-radius: 24px;
   padding: 28px 32px;
   color: #ffffff;
-  box-shadow: 0 24px 80px rgba(79, 70, 229, 0.25);
+  box-shadow: 0 24px 80px rgba(10, 77, 76, 0.25);
   margin-bottom: 20px;
 }
 
@@ -1303,10 +1303,10 @@ tbody tr:hover {
   flex-shrink: 0;
 }
 
-.kpi-indigo .kpi-card-icon { background: linear-gradient(135deg, #6366f1, #4338ca); }
-.kpi-amber  .kpi-card-icon { background: linear-gradient(135deg, #fbbf24, #f59e0b); }
-.kpi-green  .kpi-card-icon { background: linear-gradient(135deg, #4ade80, #16a34a); }
-.kpi-red    .kpi-card-icon { background: linear-gradient(135deg, #fca5a5, #ef4444); }
+.kpi-teal   .kpi-card-icon { background: linear-gradient(135deg, #0f766e, var(--riho-primary)); }
+.kpi-amber  .kpi-card-icon { background: linear-gradient(135deg, #f59e0b, var(--riho-warning)); }
+.kpi-green  .kpi-card-icon { background: linear-gradient(135deg, #22c55e, var(--riho-success)); }
+.kpi-red    .kpi-card-icon { background: linear-gradient(135deg, #ef4444, var(--riho-danger)); }
 
 .kpi-card-body {
   display: flex;

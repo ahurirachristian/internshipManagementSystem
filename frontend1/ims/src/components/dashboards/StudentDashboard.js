@@ -3,10 +3,12 @@ import DashboardLayout from '../DashboardLayout';
 import { useStudentData } from '../../context/StudentDataContext';
 import { useAuth } from '../../context/AuthContext';
 
+// Status colours come from the RIHO theme tokens (--riho-success / --riho-warning
+// / --riho-danger) so the hand-rolled SVG charts match the rest of the app.
 const STATUS_COLORS = {
   Completed: '#16a34a',
-  'In Progress': '#f59e0b',
-  Uncompleted: '#ef4444',
+  'In Progress': '#d97706',
+  Uncompleted: '#dc2626',
 };
 
 function Legend() {
@@ -404,7 +406,7 @@ export default function StudentDashboard() {
       label: 'Total Project',
       value: totalProjects,
       icon: 'fa-folder-open',
-      tone: 'kpi-indigo',
+      tone: 'kpi-teal',
     },
     {
       label: 'In Progress',
