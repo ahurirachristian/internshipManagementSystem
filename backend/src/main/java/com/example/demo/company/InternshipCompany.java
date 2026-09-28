@@ -126,4 +126,10 @@ public class InternshipCompany {
     public void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
     }
+
+    public String getPhoneNumber() { return null; }
+    public void setPhoneNumber(String phoneNumber) { }
+
+    public String getContactPerson() { return null; }
+    public void setContactPerson(String contactPerson) { }
 }

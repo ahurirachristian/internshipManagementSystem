@@ -22,6 +22,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import com.example.demo.auth.UserEntity;
 import com.example.demo.auth.UserRepository;
+<<<<<<< HEAD
 import com.example.demo.company.Company;
 import com.example.demo.company.CompanyRepository;
 import com.example.demo.dto.CompanyDetailsDto;
@@ -34,6 +35,23 @@ import com.example.demo.student.DayDiary;
 import com.example.demo.student.DayDiaryRepository;
 import com.example.demo.student.StudentProfile;
 import com.example.demo.student.StudentProfileRepository;
+=======
+import com.example.demo.company.InternshipCompany;
+import com.example.demo.company.InternshipCompanyRepository;
+import com.example.demo.department.Department;
+import com.example.demo.department.DepartmentRepository;
+import com.example.demo.dto.StudentDto;
+import com.example.demo.dto.LearningInstituteDto;
+import com.example.demo.dto.CompanyDetailsDto;
+import com.example.demo.dto.IndustrialSupervisorDto;
+import com.example.demo.dto.UniversitySupervisorDto;
+import com.example.demo.dto.StudentSettingsDto;
+import com.example.demo.programme.Programme;
+import com.example.demo.programme.ProgrammeRepository;
+import com.example.demo.student.DayDiaryRepository;
+import com.example.demo.student.Student;
+import com.example.demo.student.StudentRepository;
+>>>>>>> developer
 import com.example.demo.student.StudentSetting;
 import com.example.demo.student.StudentSettingRepository;
 import com.example.demo.supervisor.IndustrialSupervisor;
@@ -64,7 +82,12 @@ public class StudentController {
             UniversitySupervisorRepository universitySupervisorRepository,
             IndustrialSupervisorRepository industrialSupervisorRepository,
             StudentSettingRepository studentSettingRepository) {
+<<<<<<< HEAD
         this.studentProfileRepository = studentProfileRepository;
+=======
+        this.studentRepository = studentRepository;
+        this.userRepository = userRepository;
+>>>>>>> developer
         this.dayDiaryRepository = dayDiaryRepository;
         this.userRepository = userRepository;
         this.universityRepository = universityRepository;
@@ -89,6 +112,7 @@ public class StudentController {
         if (profile == null) {
             return ResponseEntity.notFound().build();
         }
+<<<<<<< HEAD
         long diaryCount = dayDiaryRepository.findByStudentProfileUsernameOrderByDateDesc(principal.getName()).size();
         Map<String, Object> progress = Map.of(
                 "startDate", profile.getInternshipCompany() != null && !profile.getInternshipCompany().equals("Pending"),
@@ -244,6 +268,156 @@ public class StudentController {
         return ResponseEntity.ok(new StudentSettingsDto(
                 saved.getUsername(), saved.isEmailNotifications(),
                 saved.isSmsNotifications(), saved.isDiaryReminders(), saved.getTheme()));
+=======
+        long diaryCount = dayDiaryRepository.findByStudentIdOrderByDateDesc(student.getId()).size();
+        boolean started = student.getInternshipCompanyId() != null;
+        return ResponseEntity.ok(new java.util.HashMap<>() {{
+            put("startDate", started);
+            put("diaryCount", diaryCount);
+            put("midTerm", diaryCount >= 5);
+            put("finalReport", diaryCount >= 10);
+        }});
+>>>>>>> developer
+    }
+
+    @GetMapping("/me/learning-institute")
+    @PreAuthorize("hasAnyAuthority('STUDENT', 'ADMIN', 'SUPERVISOR')")
+    public ResponseEntity<?> getMyLearningInstitute(Principal principal) {
+        Student student = currentStudent(principal);
+        if (student == null || student.getUniversityId() == null) {
+            return ResponseEntity.notFound().build();
+        }
+        return universityRepository.findById(student.getUniversityId().intValue())
+                .map(u -> {
+                    LearningInstituteDto dto = new LearningInstituteDto();
+                    dto.setId(u.getId());
+                    dto.setName(u.getShortForm() != null ? u.getShortForm() : u.getFullName());
+                    dto.setShortForm(u.getShortForm());
+                    dto.setFullName(u.getFullName());
+                    dto.setEmail(u.getEmail());
+                    dto.setPhone(u.getPhoneNumber());
+                    dto.setAddress(u.getPhysicalAddress());
+                    dto.setWebsite(u.getWebsite());
+                    return ResponseEntity.ok(dto);
+                })
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    @GetMapping("/me/company")
+    @PreAuthorize("hasAnyAuthority('STUDENT', 'ADMIN', 'SUPERVISOR')")
+    public ResponseEntity<?> getMyCompany(Principal principal) {
+        Student student = currentStudent(principal);
+        if (student == null || student.getInternshipCompanyId() == null) {
+            return ResponseEntity.notFound().build();
+        }
+        return internshipCompanyRepository.findById(student.getInternshipCompanyId())
+                .map(c -> {
+                    CompanyDetailsDto dto = new CompanyDetailsDto();
+                    dto.setId(c.getId());
+                    dto.setCompanyName(c.getCompanyName());
+                    dto.setBranch(c.getBranch());
+                    dto.setPhysicalAddress(c.getPhysicalAddress());
+                    dto.setWebsite(c.getWebsite());
+                    dto.setEmail(c.getEmail());
+                    return ResponseEntity.ok(dto);
+                })
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    @GetMapping("/me/industrial-supervisor")
+    @PreAuthorize("hasAnyAuthority('STUDENT', 'ADMIN', 'SUPERVISOR')")
+    public ResponseEntity<?> getMyIndustrialSupervisor(Principal principal) {
+        Student student = currentStudent(principal);
+        if (student == null || student.getIndSupervisorId() == null) {
+            return ResponseEntity.notFound().build();
+        }
+        return industrialSupervisorRepository.findById(student.getIndSupervisorId())
+                .map(s -> {
+                    IndustrialSupervisorDto dto = new IndustrialSupervisorDto();
+                    dto.setId(s.getId());
+                    dto.setFirstName(s.getFirstName());
+                    dto.setLastName(s.getLastName());
+                    dto.setPhoneNumber(s.getPhoneNumber());
+                    dto.setDepartment(s.getDepartment());
+                    userRepository.findById(s.getUserId()).ifPresent(u -> dto.setEmail(u.getEmail()));
+                    internshipCompanyRepository.findById(s.getCompanyId()).ifPresent(c -> dto.setCompanyName(c.getCompanyName()));
+                    return ResponseEntity.ok(dto);
+                })
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    @GetMapping("/me/university-supervisor")
+    @PreAuthorize("hasAnyAuthority('STUDENT', 'ADMIN', 'SUPERVISOR')")
+    public ResponseEntity<?> getMyUniversitySupervisor(Principal principal) {
+        Student student = currentStudent(principal);
+        if (student == null || student.getUniSupervisorId() == null) {
+            return ResponseEntity.notFound().build();
+        }
+        return universitySupervisorRepository.findById(student.getUniSupervisorId())
+                .map(s -> {
+                    UniversitySupervisorDto dto = new UniversitySupervisorDto();
+                    dto.setId(s.getId());
+                    dto.setFirstName(s.getFirstName());
+                    dto.setLastName(s.getLastName());
+                    dto.setPhoneNumber(s.getPhoneNumber());
+                    dto.setDepartment(s.getDepartment());
+                    userRepository.findById(s.getUserId()).ifPresent(u -> dto.setEmail(u.getEmail()));
+                    universityRepository.findById(s.getUniversityId().intValue()).ifPresent(u -> dto.setUniversityName(u.getFullName()));
+                    return ResponseEntity.ok(dto);
+                })
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    @GetMapping("/me/settings")
+    @PreAuthorize("hasAnyAuthority('STUDENT', 'ADMIN', 'SUPERVISOR')")
+    public ResponseEntity<?> getMySettings(Principal principal) {
+        Student student = currentStudent(principal);
+        if (student == null) {
+            return ResponseEntity.notFound().build();
+        }
+        StudentSetting setting = studentSettingRepository.findByStudentId(student.getUserId());
+        if (setting == null) {
+            setting = new StudentSetting();
+            setting.setStudentId(student.getUserId());
+            setting.setEmailNotifications(Boolean.TRUE);
+            setting.setSmsNotifications(Boolean.TRUE);
+            setting.setDarkMode(Boolean.FALSE);
+            setting.setLanguage("en");
+            setting = studentSettingRepository.save(setting);
+        }
+        StudentSettingsDto dto = new StudentSettingsDto();
+        dto.setId(setting.getId());
+        dto.setEmailNotifications(setting.getEmailNotifications());
+        dto.setSmsNotifications(setting.getSmsNotifications());
+        dto.setDarkMode(setting.getDarkMode());
+        dto.setLanguage(setting.getLanguage());
+        return ResponseEntity.ok(dto);
+    }
+
+    @PutMapping("/me/settings")
+    @PreAuthorize("hasAnyAuthority('STUDENT', 'ADMIN', 'SUPERVISOR')")
+    public ResponseEntity<?> updateMySettings(@RequestBody StudentSettingsDto dto, Principal principal) {
+        Student student = currentStudent(principal);
+        if (student == null) {
+            return ResponseEntity.notFound().build();
+        }
+        StudentSetting setting = studentSettingRepository.findByStudentId(student.getUserId());
+        if (setting == null) {
+            setting = new StudentSetting();
+            setting.setStudentId(student.getUserId());
+        }
+        setting.setEmailNotifications(dto.getEmailNotifications() != null ? dto.getEmailNotifications() : setting.getEmailNotifications());
+        setting.setSmsNotifications(dto.getSmsNotifications() != null ? dto.getSmsNotifications() : setting.getSmsNotifications());
+        setting.setDarkMode(dto.getDarkMode() != null ? dto.getDarkMode() : setting.getDarkMode());
+        setting.setLanguage(dto.getLanguage() != null ? dto.getLanguage() : setting.getLanguage());
+        StudentSettingsDto result = new StudentSettingsDto();
+        StudentSetting saved = studentSettingRepository.save(setting);
+        result.setId(saved.getId());
+        result.setEmailNotifications(saved.getEmailNotifications());
+        result.setSmsNotifications(saved.getSmsNotifications());
+        result.setDarkMode(saved.getDarkMode());
+        result.setLanguage(saved.getLanguage());
+        return ResponseEntity.ok(result);
     }
 
     @PutMapping("/me")

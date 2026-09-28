@@ -44,6 +44,7 @@ public class DayDiaryApiController {
     public ResponseEntity<String> exportDiariesCsv() {
         List<DayDiary> diaries = dayDiaryRepository.findAllWithStudent();
         String csv = diaries.stream()
+<<<<<<< HEAD
                 .map(d -> {
                     String studentName = d.getStudentProfile() != null
                             ? escape(d.getStudentProfile().getFirstName() + " " + d.getStudentProfile().getLastName())
@@ -61,6 +62,22 @@ public class DayDiaryApiController {
                 .reduce((a, b) -> a + "\n" + b)
                 .orElse("");
         String body = "ID,Date,Student,Username,DailyActivities,KnowledgeAndSkillsGained,Accomplishments\n" + csv;
+=======
+                .map(d -> String.join(",",
+                        escape(d.get("id")),
+                        escape(d.get("date")),
+                        escape(d.get("studentName")),
+                        escape(d.get("studentNumber")),
+                        escape(d.get("dailyActivities")),
+                        escape(d.get("knowledgeAndSkillsGained")),
+                        escape(d.get("accomplishments")),
+                        escape(d.get("accountNumber")),
+                        escape(d.get("action")),
+                        escape(d.get("technologyTools"))))
+                .reduce((a, b) -> a + "\n" + b)
+                .orElse("");
+        String body = "ID,Date,Student,StudentNo,DailyActivities,KnowledgeAndSkillsGained,Accomplishments,AccountNumber,Action,TechnologyTools\n" + csv;
+>>>>>>> developer
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"diaries.csv\"")
                 .body(body);
@@ -117,9 +134,16 @@ public class DayDiaryApiController {
         diary.setAccountNumber(updates.getAccountNumber());
         diary.setAction(updates.getAction());
         diary.setTechnologyTools(updates.getTechnologyTools());
+<<<<<<< HEAD
         diary.setIndustrialSupervisorComment(updates.getIndustrialSupervisorComment());
         diary.setUniversitySupervisorComment(updates.getUniversitySupervisorComment());
         return ResponseEntity.ok(dayDiaryRepository.save(diary));
+=======
+        DayDiary updated = dayDiaryRepository.save(diary);
+        auditLogService.log(principal.getName(), "STUDENT", "UPDATE", "DayDiary",
+                "Updated diary entry for " + diaryOwnerName(diary), null);
+        return ResponseEntity.ok(toView(updated));
+>>>>>>> developer
     }
 
     @PostMapping("/{id}/feedback")
@@ -131,11 +155,18 @@ public class DayDiaryApiController {
         }
         String feedback = body.getOrDefault("feedback", "");
         String status = body.getOrDefault("status", "PENDING");
+<<<<<<< HEAD
         String industrialComment = body.getOrDefault("industrialSupervisorComment", diary.getIndustrialSupervisorComment());
         String universityComment = body.getOrDefault("universitySupervisorComment", diary.getUniversitySupervisorComment());
         diary.setAccomplishments(diary.getAccomplishments() != null
                 ? diary.getAccomplishments() + "\n\n[Supervisor Feedback]: " + feedback
                 : "[Supervisor Feedback]: " + feedback);
+=======
+        String industrialComment = body.getOrDefault("industrialSupervisorComment", "");
+        String universityComment = body.getOrDefault("universitySupervisorComment", "");
+        diary.setSupervisorFeedback(feedback);
+        diary.setStatus(status);
+>>>>>>> developer
         diary.setIndustrialSupervisorComment(industrialComment);
         diary.setUniversitySupervisorComment(universityComment);
         DayDiary saved = dayDiaryRepository.save(diary);
@@ -143,8 +174,13 @@ public class DayDiaryApiController {
                 "id", saved.getId(),
                 "status", status,
                 "feedback", feedback,
+<<<<<<< HEAD
                 "industrialSupervisorComment", saved.getIndustrialSupervisorComment(),
                 "universitySupervisorComment", saved.getUniversitySupervisorComment(),
+=======
+                "industrialSupervisorComment", industrialComment,
+                "universitySupervisorComment", universityComment,
+>>>>>>> developer
                 "message", "Feedback submitted successfully"
         ));
     }
@@ -159,6 +195,59 @@ public class DayDiaryApiController {
         return ResponseEntity.noContent().build();
     }
 
+<<<<<<< HEAD
+=======
+    private Map<String, Object> toView(DayDiary d) {
+        Map<String, Object> view = new HashMap<>();
+        view.put("id", d.getId());
+        view.put("date", d.getDate());
+        view.put("dailyActivities", d.getDailyActivities());
+        view.put("knowledgeAndSkillsGained", d.getKnowledgeAndSkillsGained());
+        view.put("accomplishments", d.getAccomplishments());
+        view.put("status", d.getStatus());
+        view.put("supervisorFeedback", d.getSupervisorFeedback());
+        view.put("accountNumber", d.getAccountNumber());
+        view.put("action", d.getAction());
+        view.put("technologyTools", d.getTechnologyTools());
+        view.put("industrialSupervisorComment", d.getIndustrialSupervisorComment());
+        view.put("universitySupervisorComment", d.getUniversitySupervisorComment());
+        view.put("studentId", d.getStudentId());
+        Student owner = d.getStudentId() != null ? studentRepository.findById(d.getStudentId()).orElse(null) : null;
+        view.put("studentName", owner != null ? fullName(owner) : "");
+        view.put("studentNumber", owner != null ? owner.getStudentNumber() : "");
+        return view;
+    }
+
+    private Student currentStudent(String username) {
+        return userRepository.findByUsername(username)
+                .flatMap(user -> studentRepository.findByUserId(user.getId()))
+                .orElse(null);
+    }
+
+    private boolean isOwner(DayDiary diary, String username) {
+        Student mine = currentStudent(username);
+        return mine != null && diary.getStudentId() != null && diary.getStudentId().equals(mine.getId());
+    }
+
+    private String diaryOwnerName(DayDiary diary) {
+        Student owner = diary.getStudentId() != null ? studentRepository.findById(diary.getStudentId()).orElse(null) : null;
+        return owner != null ? fullName(owner) : "Unknown";
+    }
+
+    private String fullName(Student s) {
+        return (s.getFirstName() + " " + s.getLastName()).trim();
+    }
+
+    private boolean isStudent(Principal principal) {
+        return hasAuthority(principal, "STUDENT");
+    }
+
+    private boolean hasAuthority(Principal principal, String authority) {
+        return principal instanceof Authentication auth
+                && auth.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals(authority));
+    }
+
+>>>>>>> developer
     private String escape(Object value) {
         if (value == null) return "";
         String s = value.toString();

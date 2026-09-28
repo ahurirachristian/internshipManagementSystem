@@ -11,6 +11,15 @@ const SUBJECTS = [
   'Wireframes', 'Deployment Plan', 'Release Notes', 'Demo Prep',
 ];
 
+<<<<<<< HEAD
+=======
+const PRIORITIES = ['Low', 'Medium', 'High'];
+const ASSIGNEES = ['Self', 'Team A', 'Team B', 'Team C', 'Supervisor'];
+
+const DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+const WEEKDAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+
+>>>>>>> developer
 const TASK_SENTENCES = [
   'Test the outgoing links from all the pages to the specific domain under test.',
   'Test links are used to send emails to admin or other users from web pages.',
@@ -29,12 +38,15 @@ const TASK_SENTENCES = [
   'Make sure role-based routes redirect unauthorized users.',
 ];
 
+<<<<<<< HEAD
 const PRIORITIES = ['Low', 'Medium', 'High'];
 const ASSIGNEES = ['Self', 'Team A', 'Team B', 'Team C', 'Supervisor'];
 
 const DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 const WEEKDAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
+=======
+>>>>>>> developer
 function seedRand(seed) {
   let s = seed % 2147483647;
   if (s <= 0) s += 2147483646;

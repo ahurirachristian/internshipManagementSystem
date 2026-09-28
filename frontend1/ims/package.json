@@ -7,10 +7,18 @@
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
     "@testing-library/user-event": "^13.5.0",
+<<<<<<< HEAD
+=======
+    "lucide-react": "^0.468.0",
+>>>>>>> developer
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
     "react-router-dom": "^6.30.4",
     "react-scripts": "^5.0.1",
+<<<<<<< HEAD
+=======
+    "recharts": "^2.15.0",
+>>>>>>> developer
     "web-vitals": "^2.1.4"
   },
   "scripts": {

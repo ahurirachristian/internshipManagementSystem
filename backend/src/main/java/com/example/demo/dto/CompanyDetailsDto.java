@@ -1,6 +1,7 @@
 package com.example.demo.dto;
 
 public class CompanyDetailsDto {
+<<<<<<< HEAD
 
     private Long id;
     private String name;
@@ -12,10 +13,21 @@ public class CompanyDetailsDto {
     private String department;
     private String fieldSupervisor;
     private String roles;
+=======
+    private Long id;
+    private String companyName;
+    private String branch;
+    private String physicalAddress;
+    private String website;
+    private String email;
+    private String phone;
+    private String contactPerson;
+>>>>>>> developer
 
     public CompanyDetailsDto() {
     }
 
+<<<<<<< HEAD
     public CompanyDetailsDto(Long id, String name, String location, String email, String phone,
             String website, String profile, String department, String fieldSupervisor, String roles) {
         this.id = id;
@@ -30,6 +42,8 @@ public class CompanyDetailsDto {
         this.roles = roles;
     }
 
+=======
+>>>>>>> developer
     public Long getId() {
         return id;
     }
@@ -38,6 +52,7 @@ public class CompanyDetailsDto {
         this.id = id;
     }
 
+<<<<<<< HEAD
     public String getName() {
         return name;
     }
@@ -52,6 +67,38 @@ public class CompanyDetailsDto {
 
     public void setLocation(String location) {
         this.location = location;
+=======
+    public String getCompanyName() {
+        return companyName;
+    }
+
+    public void setCompanyName(String companyName) {
+        this.companyName = companyName;
+    }
+
+    public String getBranch() {
+        return branch;
+    }
+
+    public void setBranch(String branch) {
+        this.branch = branch;
+    }
+
+    public String getPhysicalAddress() {
+        return physicalAddress;
+    }
+
+    public void setPhysicalAddress(String physicalAddress) {
+        this.physicalAddress = physicalAddress;
+    }
+
+    public String getWebsite() {
+        return website;
+    }
+
+    public void setWebsite(String website) {
+        this.website = website;
+>>>>>>> developer
     }
 
     public String getEmail() {
@@ -70,6 +117,7 @@ public class CompanyDetailsDto {
         this.phone = phone;
     }
 
+<<<<<<< HEAD
     public String getWebsite() {
         return website;
     }
@@ -108,5 +156,13 @@ public class CompanyDetailsDto {
 
     public void setRoles(String roles) {
         this.roles = roles;
+=======
+    public String getContactPerson() {
+        return contactPerson;
+    }
+
+    public void setContactPerson(String contactPerson) {
+        this.contactPerson = contactPerson;
+>>>>>>> developer
     }
 }

@@ -1,6 +1,7 @@
 package com.example.demo.dto;
 
 public class UniversitySupervisorDto {
+<<<<<<< HEAD
 
     private Long id;
     private Long userId;
@@ -9,11 +10,20 @@ public class UniversitySupervisorDto {
     private String lastName;
     private String department;
     private String phoneNumber;
+=======
+    private Long id;
+    private String firstName;
+    private String lastName;
+    private String email;
+    private String phoneNumber;
+    private String department;
+>>>>>>> developer
     private String universityName;
 
     public UniversitySupervisorDto() {
     }
 
+<<<<<<< HEAD
     public UniversitySupervisorDto(Long id, Long userId, Long universityId, String firstName, String lastName,
             String department, String phoneNumber, String universityName) {
         this.id = id;
@@ -26,6 +36,8 @@ public class UniversitySupervisorDto {
         this.universityName = universityName;
     }
 
+=======
+>>>>>>> developer
     public Long getId() {
         return id;
     }
@@ -34,6 +46,7 @@ public class UniversitySupervisorDto {
         this.id = id;
     }
 
+<<<<<<< HEAD
     public Long getUserId() {
         return userId;
     }
@@ -50,6 +63,8 @@ public class UniversitySupervisorDto {
         this.universityId = universityId;
     }
 
+=======
+>>>>>>> developer
     public String getFirstName() {
         return firstName;
     }
@@ -66,12 +81,21 @@ public class UniversitySupervisorDto {
         this.lastName = lastName;
     }
 
+<<<<<<< HEAD
     public String getDepartment() {
         return department;
     }
 
     public void setDepartment(String department) {
         this.department = department;
+=======
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+>>>>>>> developer
     }
 
     public String getPhoneNumber() {
@@ -82,6 +106,17 @@ public class UniversitySupervisorDto {
         this.phoneNumber = phoneNumber;
     }
 
+<<<<<<< HEAD
+=======
+    public String getDepartment() {
+        return department;
+    }
+
+    public void setDepartment(String department) {
+        this.department = department;
+    }
+
+>>>>>>> developer
     public String getUniversityName() {
         return universityName;
     }

@@ -15,6 +15,7 @@ public class StudentSetting {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+<<<<<<< HEAD
     @Column(nullable = false, unique = true)
     private String username;
 
@@ -29,10 +30,27 @@ public class StudentSetting {
 
     @Column(nullable = false)
     private String theme = "light";
+=======
+    @Column(name = "student_id", nullable = false, unique = true)
+    private Long studentId;
+
+    @Column(name = "email_notifications")
+    private Boolean emailNotifications = Boolean.TRUE;
+
+    @Column(name = "sms_notifications")
+    private Boolean smsNotifications = Boolean.TRUE;
+
+    @Column(name = "dark_mode")
+    private Boolean darkMode = Boolean.FALSE;
+
+    @Column(name = "language")
+    private String language = "en";
+>>>>>>> developer
 
     public StudentSetting() {
     }
 
+<<<<<<< HEAD
     public StudentSetting(String username, boolean emailNotifications, boolean smsNotifications,
             boolean diaryReminders, String theme) {
         this.username = username;
@@ -42,6 +60,8 @@ public class StudentSetting {
         this.theme = theme;
     }
 
+=======
+>>>>>>> developer
     public Long getId() {
         return id;
     }
@@ -50,6 +70,7 @@ public class StudentSetting {
         this.id = id;
     }
 
+<<<<<<< HEAD
     public String getUsername() {
         return username;
     }
@@ -88,5 +109,45 @@ public class StudentSetting {
 
     public void setTheme(String theme) {
         this.theme = theme;
+=======
+    public Long getStudentId() {
+        return studentId;
+    }
+
+    public void setStudentId(Long studentId) {
+        this.studentId = studentId;
+    }
+
+    public Boolean getEmailNotifications() {
+        return emailNotifications;
+    }
+
+    public void setEmailNotifications(Boolean emailNotifications) {
+        this.emailNotifications = emailNotifications;
+    }
+
+    public Boolean getSmsNotifications() {
+        return smsNotifications;
+    }
+
+    public void setSmsNotifications(Boolean smsNotifications) {
+        this.smsNotifications = smsNotifications;
+    }
+
+    public Boolean getDarkMode() {
+        return darkMode;
+    }
+
+    public void setDarkMode(Boolean darkMode) {
+        this.darkMode = darkMode;
+    }
+
+    public String getLanguage() {
+        return language;
+    }
+
+    public void setLanguage(String language) {
+        this.language = language;
+>>>>>>> developer
     }
 }
