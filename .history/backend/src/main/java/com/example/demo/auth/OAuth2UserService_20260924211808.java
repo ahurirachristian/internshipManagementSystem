@@ -49,7 +49,7 @@ public class OAuth2UserService extends DefaultOAuth2UserService {
         return new org.springframework.security.oauth2.core.user.DefaultOAuth2User(
                 Collections.singletonList(new SimpleGrantedAuthority("STUDENT")),
                 oAuth2User.getAttributes(),
-                "sub"
+                "sub
         );
     }
-}w
+}

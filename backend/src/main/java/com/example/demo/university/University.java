@@ -57,4 +57,19 @@ public class University {
 
     public Integer getEstablishedYear() { return establishedYear; }
     public void setEstablishedYear(Integer establishedYear) { this.establishedYear = establishedYear; }
+
+    public Long getId() { return universityId == null ? null : universityId.longValue(); }
+    public void setId(Long id) { this.universityId = id == null ? null : id.intValue(); }
+
+    public String getEmail() { return null; }
+    public void setEmail(String email) { }
+
+    public String getPhoneNumber() { return null; }
+    public void setPhoneNumber(String phoneNumber) { }
+
+    public String getPhysicalAddress() { return null; }
+    public void setPhysicalAddress(String address) { }
+
+    public String getWebsite() { return null; }
+    public void setWebsite(String website) { }
 }

@@ -79,10 +79,13 @@ public class DayDiaryApiController {
                         escape(d.get("studentNumber")),
                         escape(d.get("dailyActivities")),
                         escape(d.get("knowledgeAndSkillsGained")),
-                        escape(d.get("accomplishments"))))
+                        escape(d.get("accomplishments")),
+                        escape(d.get("accountNumber")),
+                        escape(d.get("action")),
+                        escape(d.get("technologyTools"))))
                 .reduce((a, b) -> a + "\n" + b)
                 .orElse("");
-        String body = "ID,Date,Student,StudentNo,DailyActivities,KnowledgeAndSkillsGained,Accomplishments\n" + csv;
+        String body = "ID,Date,Student,StudentNo,DailyActivities,KnowledgeAndSkillsGained,Accomplishments,AccountNumber,Action,TechnologyTools\n" + csv;
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"diaries.csv\"")
                 .body(body);
@@ -144,6 +147,9 @@ public class DayDiaryApiController {
         diary.setDailyActivities(updates.getDailyActivities());
         diary.setKnowledgeAndSkillsGained(updates.getKnowledgeAndSkillsGained());
         diary.setAccomplishments(updates.getAccomplishments());
+        diary.setAccountNumber(updates.getAccountNumber());
+        diary.setAction(updates.getAction());
+        diary.setTechnologyTools(updates.getTechnologyTools());
         DayDiary updated = dayDiaryRepository.save(diary);
         auditLogService.log(principal.getName(), "STUDENT", "UPDATE", "DayDiary",
                 "Updated diary entry for " + diaryOwnerName(diary), null);
@@ -159,8 +165,12 @@ public class DayDiaryApiController {
         }
         String feedback = body.getOrDefault("feedback", "");
         String status = body.getOrDefault("status", "PENDING");
+        String industrialComment = body.getOrDefault("industrialSupervisorComment", "");
+        String universityComment = body.getOrDefault("universitySupervisorComment", "");
         diary.setSupervisorFeedback(feedback);
         diary.setStatus(status);
+        diary.setIndustrialSupervisorComment(industrialComment);
+        diary.setUniversitySupervisorComment(universityComment);
         DayDiary saved = dayDiaryRepository.save(diary);
         auditLogService.log("supervisor", "SUPERVISOR", "FEEDBACK", "DayDiary",
                 "Submitted feedback on diary for " + diaryOwnerName(saved) + " (status: " + status + ")", null);
@@ -168,6 +178,8 @@ public class DayDiaryApiController {
                 "id", saved.getId(),
                 "status", status,
                 "feedback", feedback,
+                "industrialSupervisorComment", industrialComment,
+                "universitySupervisorComment", universityComment,
                 "message", "Feedback submitted successfully"
         ));
     }
@@ -196,6 +208,11 @@ public class DayDiaryApiController {
         view.put("accomplishments", d.getAccomplishments());
         view.put("status", d.getStatus());
         view.put("supervisorFeedback", d.getSupervisorFeedback());
+        view.put("accountNumber", d.getAccountNumber());
+        view.put("action", d.getAction());
+        view.put("technologyTools", d.getTechnologyTools());
+        view.put("industrialSupervisorComment", d.getIndustrialSupervisorComment());
+        view.put("universitySupervisorComment", d.getUniversitySupervisorComment());
         view.put("studentId", d.getStudentId());
         Student owner = d.getStudentId() != null ? studentRepository.findById(d.getStudentId()).orElse(null) : null;
         view.put("studentName", owner != null ? fullName(owner) : "");

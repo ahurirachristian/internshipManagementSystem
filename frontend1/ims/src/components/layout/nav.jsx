@@ -10,6 +10,12 @@ import {
   BookOpen,
   FolderOpen,
   IdCard,
+  BarChart3,
+  CheckSquare,
+  Building,
+  Settings,
+  UserCheck,
+  BookMarked,
 } from 'lucide-react';
 
 export const ROLE_LABELS = {
@@ -24,10 +30,21 @@ export const NAV_GROUPS = [
     label: 'Main',
     links: [
       { to: '/admin/dashboard', icon: Shield, label: 'Admin Dashboard', roles: ['ADMIN'] },
-      { to: '/student/dashboard', icon: GraduationCap, label: 'Student Area', roles: ['ADMIN', 'STUDENT'] },
-      { to: '/student/profile', icon: IdCard, label: 'Student Profile', roles: ['STUDENT'] },
       { to: '/company/dashboard', icon: Building2, label: 'Company Area', roles: ['ADMIN', 'COMPANY'] },
       { to: '/university/dashboard', icon: LayoutDashboard, label: 'University Dashboard', roles: ['ADMIN', 'SUPERVISOR'] },
+    ],
+  },
+  {
+    label: 'Student',
+    links: [
+      { to: '/student/dashboard', icon: GraduationCap, label: 'Student Dashboard', roles: ['ADMIN', 'STUDENT'] },
+      { to: '/student/progress', icon: BarChart3, label: 'Level of Progress', roles: ['ADMIN', 'STUDENT'] },
+      { to: '/student/tasks', icon: CheckSquare, label: 'Tasks', roles: ['ADMIN', 'STUDENT'] },
+      { to: '/student/learning-institute', icon: BookOpen, label: 'Learning Institute', roles: ['ADMIN', 'STUDENT'] },
+      { to: '/student/companies', icon: Building, label: 'Companies', roles: ['ADMIN', 'STUDENT'] },
+      { to: '/student/profile-settings', icon: Settings, label: 'Profile Settings', roles: ['ADMIN', 'STUDENT'] },
+      { to: '/student/supervisor', icon: UserCheck, label: 'Supervisor', roles: ['ADMIN', 'STUDENT'] },
+      { to: '/student/day-diaries', icon: BookMarked, label: 'Day Diaries', roles: ['ADMIN', 'STUDENT'] },
     ],
   },
   {

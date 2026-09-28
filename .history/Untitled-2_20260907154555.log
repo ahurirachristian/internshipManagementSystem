@@ -1,0 +1,8 @@
+Invoke-RestMethod : The remote server returned an error: (401) Unauthorized.
+At line:4 char:1
++ Invoke-RestMethod -Uri http://localhost:8082/api/login -Method Post - ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : InvalidOperation: (System.Net.HttpWebRequest:HttpWebRequest) [Invoke-RestMethod], WebExc 
+   eption
+    + FullyQualifiedErrorId : WebCmdletWebResponseException,Microsoft.PowerShell.Commands.InvokeRestMethodCommand
+ 

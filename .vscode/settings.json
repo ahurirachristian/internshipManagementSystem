@@ -1,4 +1,5 @@
 {
     "java.configuration.updateBuildConfiguration": "interactive",
-    "java.compile.nullAnalysis.mode": "automatic"
+    "java.compile.nullAnalysis.mode": "automatic",
+    "todo-tree.ripgrep": "C:\\tools\\ripgrep\\ripgrep-13.0.0-x86_64-pc-windows-msvc\\rg.exe"
 }

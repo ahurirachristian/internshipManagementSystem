@@ -4,6 +4,8 @@ import DashboardLayout from '../DashboardLayout';
 import StudentEditModal from '../StudentEditModal';
 import InternshipProgress from '../InternshipProgress';
 import DiaryReviewModal from '../DiaryReviewModal';
+import OverviewSection from './OverviewSection';
+import StudentDataProvider from '../../context/StudentDataContext';
 import {
   createDiary,
   deleteDiary,
@@ -13,20 +15,34 @@ import {
   fetchSupervisors,
   saveMyProfile,
   updateDiary,
+  fetchMyLearningInstitute,
+  fetchMyCompany,
+  fetchMyIndustrialSupervisor,
+  fetchMyUniversitySupervisor,
+  fetchMySettings,
+  updateMySettings,
 } from '../../services/api';
+import LearningInstituteSection from './LearningInstituteSection';
+import CompaniesSection from './CompaniesSection';
+import IndustrialSupervisorSection from './IndustrialSupervisorSection';
+import UniversitySupervisorSection from './UniversitySupervisorSection';
+import SettingsSection from './SettingsSection';
 
 const emptyDiaryForm = {
   date: new Date().toISOString().split('T')[0],
   dailyActivities: '',
   knowledgeAndSkillsGained: '',
   accomplishments: '',
+  accountNumber: '',
+  action: '',
+  technologyTools: '',
 };
 
 const inputClass = "w-full bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 text-xs rounded-xl border border-slate-300 dark:border-slate-700 px-3.5 py-2.5 focus:border-teal-600 focus:ring-2 focus:ring-teal-600/20 focus:outline-none transition-all shadow-xs font-medium";
 const labelClass = "block text-xs font-bold uppercase tracking-wider text-slate-800 dark:text-slate-200 mb-1.5";
 
 export default function StudentDashboard() {
-  const [activeTab, setActiveTab] = useState('profile');
+  const [activeTab, setActiveTab] = useState('overview');
   const [profile, setProfile] = useState(null);
   const [profileLoading, setProfileLoading] = useState(true);
   const [profileError, setProfileError] = useState('');
@@ -142,6 +158,9 @@ export default function StudentDashboard() {
       dailyActivities: entry.dailyActivities,
       knowledgeAndSkillsGained: entry.knowledgeAndSkillsGained,
       accomplishments: entry.accomplishments,
+      accountNumber: entry.accountNumber || '',
+      action: entry.action || '',
+      technologyTools: entry.technologyTools || '',
     });
     setEditingDiaryId(entry.id);
     setDiaryError('');
@@ -252,15 +271,28 @@ export default function StudentDashboard() {
               : 'Record the activities and skills gained for a day.'}
           </p>
           <form id="diary-form" onSubmit={handleDiarySubmit} className="space-y-4">
-            <div>
-              <label htmlFor="diary-date" className={labelClass}>Date <span className="text-rose-600" aria-hidden="true">*</span></label>
-              <input
-                id="diary-date"
-                type="date"
-                value={diaryForm.date}
-                onChange={(e) => setDiaryForm({ ...diaryForm, date: e.target.value })}
-                className={inputClass}
-              />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label htmlFor="diary-date" className={labelClass}>Date <span className="text-rose-600" aria-hidden="true">*</span></label>
+                <input
+                  id="diary-date"
+                  type="date"
+                  value={diaryForm.date}
+                  onChange={(e) => setDiaryForm({ ...diaryForm, date: e.target.value })}
+                  className={inputClass}
+                />
+              </div>
+              <div>
+                <label htmlFor="diary-account" className={labelClass}>Account Number</label>
+                <input
+                  id="diary-account"
+                  type="text"
+                  value={diaryForm.accountNumber}
+                  onChange={(e) => setDiaryForm({ ...diaryForm, accountNumber: e.target.value })}
+                  className={inputClass}
+                  placeholder="Enter account number"
+                />
+              </div>
             </div>
             <div>
               <label htmlFor="diary-activities" className={labelClass}>Daily Activities <span className="text-rose-600" aria-hidden="true">*</span></label>
@@ -281,6 +313,30 @@ export default function StudentDashboard() {
                 onChange={(e) => setDiaryForm({ ...diaryForm, knowledgeAndSkillsGained: e.target.value })}
                 className={`${inputClass} min-h-[60px] resize-y`}
               />
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label htmlFor="diary-action" className={labelClass}>Action</label>
+                <textarea
+                  id="diary-action"
+                  rows="3"
+                  value={diaryForm.action}
+                  onChange={(e) => setDiaryForm({ ...diaryForm, action: e.target.value })}
+                  className={`${inputClass} min-h-[60px] resize-y`}
+                  placeholder="Describe the action taken"
+                />
+              </div>
+              <div>
+                <label htmlFor="diary-tech" className={labelClass}>Technology / Tools Used</label>
+                <textarea
+                  id="diary-tech"
+                  rows="3"
+                  value={diaryForm.technologyTools}
+                  onChange={(e) => setDiaryForm({ ...diaryForm, technologyTools: e.target.value })}
+                  className={`${inputClass} min-h-[60px] resize-y`}
+                  placeholder="List technologies or tools used"
+                />
+              </div>
             </div>
             <div>
               <label htmlFor="diary-accomplishments" className={labelClass}>Accomplishments</label>
@@ -319,62 +375,81 @@ export default function StudentDashboard() {
           {!diaryLoading && diaries.length === 0 && (
             <p className="text-sm text-slate-500 dark:text-slate-400 text-center py-8">No diary entries yet. Add your first entry above.</p>
           )}
-          <div className="space-y-3">
-            {diaries.map((entry) => (
-              <div key={entry.id} className="bg-slate-50 dark:bg-slate-800/40 rounded-xl p-4 border border-slate-200 dark:border-slate-800">
-                <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100 mb-3">{entry.date}</h3>
-                <div className="space-y-2 mb-4">
-                  <div>
-                    <span className="text-[11px] font-bold uppercase tracking-wider text-slate-800 dark:text-slate-200">Daily Activities</span>
-                    <p className="text-sm text-slate-700 dark:text-slate-300 mt-0.5">{entry.dailyActivities || '—'}</p>
-                  </div>
-                  <div>
-                    <span className="text-[11px] font-bold uppercase tracking-wider text-slate-800 dark:text-slate-200">Knowledge &amp; Skills Gained</span>
-                    <p className="text-sm text-slate-700 dark:text-slate-300 mt-0.5">{entry.knowledgeAndSkillsGained || '—'}</p>
-                  </div>
-                  <div>
-                    <span className="text-[11px] font-bold uppercase tracking-wider text-slate-800 dark:text-slate-200">Accomplishments</span>
-                    <p className="text-sm text-slate-700 dark:text-slate-300 mt-0.5">{entry.accomplishments || '—'}</p>
-                  </div>
-                  {entry.supervisorFeedback && (
+          {!diaryLoading && diaries.length > 0 && (
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs">
+                <thead>
+                  <tr className="border-b border-slate-200 dark:border-slate-800">
+                    <th className="py-2.5 px-3 font-bold text-slate-800 dark:text-slate-200">Date</th>
+                    <th className="py-2.5 px-3 font-bold text-slate-800 dark:text-slate-200">Account Number</th>
+                    <th className="py-2.5 px-3 font-bold text-slate-800 dark:text-slate-200">Activities</th>
+                    <th className="py-2.5 px-3 font-bold text-slate-800 dark:text-slate-200">Action</th>
+                    <th className="py-2.5 px-3 font-bold text-slate-800 dark:text-slate-200">Skills Gained</th>
+                    <th className="py-2.5 px-3 font-bold text-slate-800 dark:text-slate-200">Technology / Tools Used</th>
+                    <th className="py-2.5 px-3 font-bold text-slate-800 dark:text-slate-200 text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {diaries.map((entry) => (
+                    <tr key={entry.id} className="border-b border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/40">
+                      <td className="py-2.5 px-3 text-slate-700 dark:text-slate-300 whitespace-nowrap">{entry.date}</td>
+                      <td className="py-2.5 px-3 text-slate-700 dark:text-slate-300">{entry.accountNumber || '—'}</td>
+                      <td className="py-2.5 px-3 text-slate-700 dark:text-slate-300 max-w-[200px] truncate">{entry.dailyActivities || '—'}</td>
+                      <td className="py-2.5 px-3 text-slate-700 dark:text-slate-300 max-w-[200px] truncate">{entry.action || '—'}</td>
+                      <td className="py-2.5 px-3 text-slate-700 dark:text-slate-300 max-w-[200px] truncate">{entry.knowledgeAndSkillsGained || '—'}</td>
+                      <td className="py-2.5 px-3 text-slate-700 dark:text-slate-300 max-w-[200px] truncate">{entry.technologyTools || '—'}</td>
+                      <td className="py-2.5 px-3 text-right whitespace-nowrap">
+                        <div className="flex items-center justify-end gap-2">
+                          <button
+                            onClick={() => startEditDiary(entry)}
+                            className="p-1.5 text-emerald-600 hover:text-emerald-800 hover:bg-emerald-50 rounded-lg transition-colors focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:outline-none"
+                            title="Edit"
+                          >
+                            <Pencil className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => handleDeleteDiary(entry.id)}
+                            className="p-1.5 text-rose-600 hover:text-rose-800 hover:bg-rose-50 rounded-lg transition-colors focus-visible:ring-2 focus-visible:ring-rose-600 focus-visible:outline-none"
+                            title="Delete"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => setReviewDiary(entry)}
+                            className="px-2.5 py-1.5 text-teal-600 hover:text-teal-800 hover:bg-teal-50 rounded-lg transition-colors focus-visible:ring-2 focus-visible:ring-teal-600 focus-visible:outline-none text-[11px] font-bold"
+                            title="View"
+                          >
+                            View
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+
+          {(diaries.length > 0) && (
+            <div className="mt-6 space-y-4">
+              <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100">Supervisor Comments</h3>
+              {diaries.map((entry) => (
+                <div key={`comments-${entry.id}`} className="bg-slate-50 dark:bg-slate-800/40 rounded-xl p-4 border border-slate-200 dark:border-slate-800">
+                  <p className="text-xs font-bold text-slate-800 dark:text-slate-200 mb-2">{entry.date}</p>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <span className="text-[11px] font-bold uppercase tracking-wider text-slate-800 dark:text-slate-200">Supervisor Feedback</span>
-                      <p className="text-sm text-slate-700 dark:text-slate-300 mt-0.5">{entry.supervisorFeedback}</p>
+                      <span className="text-[11px] font-bold uppercase tracking-wider text-slate-800 dark:text-slate-200">Industrial Supervisor Comment</span>
+                      <p className="text-sm text-slate-700 dark:text-slate-300 mt-1">{entry.industrialSupervisorComment || '—'}</p>
                     </div>
-                  )}
+                    <div>
+                      <span className="text-[11px] font-bold uppercase tracking-wider text-slate-800 dark:text-slate-200">University Supervisor Comment</span>
+                      <p className="text-sm text-slate-700 dark:text-slate-300 mt-1">{entry.universitySupervisorComment || '—'}</p>
+                    </div>
+                  </div>
                 </div>
-                <ul className="flex items-center gap-2 border-t border-slate-200 dark:border-slate-800 pt-3">
-                  <li>
-                    <button
-                      onClick={() => startEditDiary(entry)}
-                      className="p-1.5 text-emerald-600 hover:text-emerald-800 hover:bg-emerald-50 rounded-lg transition-colors focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:outline-none"
-                      title="Edit"
-                    >
-                      <Pencil className="w-4 h-4" />
-                    </button>
-                  </li>
-                  <li>
-                    <button
-                      onClick={() => handleDeleteDiary(entry.id)}
-                      className="p-1.5 text-rose-600 hover:text-rose-800 hover:bg-rose-50 rounded-lg transition-colors focus-visible:ring-2 focus-visible:ring-rose-600 focus-visible:outline-none"
-                      title="Delete"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  </li>
-                  <li>
-                    <button
-                      onClick={() => setReviewDiary(entry)}
-                      className="p-1.5 text-teal-600 hover:text-teal-800 hover:bg-teal-50 rounded-lg transition-colors focus-visible:ring-2 focus-visible:ring-teal-600 focus-visible:outline-none"
-                      title="Review / Comment"
-                    >
-                      <MessageSquare className="w-4 h-4" />
-                    </button>
-                  </li>
-                </ul>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </div>
       </>
     );
@@ -385,7 +460,14 @@ export default function StudentDashboard() {
       title="Student Dashboard"
       subtitle="Welcome,"
       tabs={[
+        { id: 'overview', label: 'Overview' },
         { id: 'profile', label: 'Profile' },
+        { id: 'progress', label: 'Progress' },
+        { id: 'learning-institute', label: 'Learning Institute' },
+        { id: 'companies', label: 'Companies' },
+        { id: 'industrial-supervisor', label: 'Industrial Supervisor' },
+        { id: 'university-supervisor', label: 'University Supervisor' },
+        { id: 'settings', label: 'Settings' },
         { id: 'diary', label: 'Day Diary' },
       ]}
       activeTab={activeTab}
@@ -423,7 +505,19 @@ export default function StudentDashboard() {
         </div>
       )}
 
-      {activeTab === 'profile' ? renderProfile() : renderDiary()}
+      {activeTab === 'overview' && (
+        <StudentDataProvider>
+          <OverviewSection />
+        </StudentDataProvider>
+      )}
+      {activeTab === 'profile' ? renderProfile() : null}
+      {activeTab === 'progress' ? <InternshipProgress /> : null}
+      {activeTab === 'learning-institute' ? <LearningInstituteSection /> : null}
+      {activeTab === 'companies' ? <CompaniesSection /> : null}
+      {activeTab === 'industrial-supervisor' ? <IndustrialSupervisorSection /> : null}
+      {activeTab === 'university-supervisor' ? <UniversitySupervisorSection /> : null}
+      {activeTab === 'settings' ? <SettingsSection /> : null}
+      {activeTab === 'diary' ? renderDiary() : null}
 
       {profileModalOpen && (
         <StudentEditModal

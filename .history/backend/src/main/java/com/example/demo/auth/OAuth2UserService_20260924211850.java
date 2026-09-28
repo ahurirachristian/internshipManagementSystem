@@ -52,4 +52,4 @@ public class OAuth2UserService extends DefaultOAuth2UserService {
                 "sub"
         );
     }
-}w
+}

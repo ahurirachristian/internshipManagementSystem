@@ -8,6 +8,8 @@ const STATUS_OPTIONS = ['PENDING', 'APPROVED', 'NEEDS_REVISION', 'REJECTED'];
 export default function DiaryReviewModal({ diary, onClose, onSaved }) {
   const [feedback, setFeedback] = useState(diary.feedback || '');
   const [status, setStatus] = useState(diary.status || 'PENDING');
+  const [industrialSupervisorComment, setIndustrialSupervisorComment] = useState(diary.industrialSupervisorComment || '');
+  const [universitySupervisorComment, setUniversitySupervisorComment] = useState(diary.universitySupervisorComment || '');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
 
@@ -26,7 +28,7 @@ export default function DiaryReviewModal({ diary, onClose, onSaved }) {
     setError('');
     setBusy(true);
     try {
-      await submitDiaryFeedback(diary.id, { feedback, status });
+      await submitDiaryFeedback(diary.id, { feedback, status, industrialSupervisorComment, universitySupervisorComment });
       onSaved();
       onClose();
     } catch (err) {
@@ -39,8 +41,11 @@ export default function DiaryReviewModal({ diary, onClose, onSaved }) {
   const detailItems = [
     { label: 'Date', value: diary.date, full: false },
     { label: 'Student', value: studentName, full: false },
+    { label: 'Account Number', value: diary.accountNumber, full: false },
     { label: 'Daily Activities', value: diary.dailyActivities, full: true },
+    { label: 'Action', value: diary.action, full: true },
     { label: 'Knowledge & Skills Gained', value: diary.knowledgeAndSkillsGained, full: true },
+    { label: 'Technology / Tools Used', value: diary.technologyTools, full: true },
     { label: 'Accomplishments', value: diary.accomplishments, full: true },
   ];
 
@@ -117,6 +122,34 @@ export default function DiaryReviewModal({ diary, onClose, onSaved }) {
               value={status}
               onChange={setStatus}
               options={STATUS_OPTIONS}
+            />
+          </div>
+
+          <div>
+            <label htmlFor="industrial-supervisor-comment" className="block text-xs font-bold uppercase tracking-wider text-slate-800 dark:text-slate-200 mb-1.5">
+              Industrial Supervisor Comment
+            </label>
+            <textarea
+              id="industrial-supervisor-comment"
+              rows="3"
+              value={industrialSupervisorComment}
+              onChange={(e) => setIndustrialSupervisorComment(e.target.value)}
+              placeholder="Enter industrial supervisor comment..."
+              className="w-full bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 text-xs rounded-xl border border-slate-300 dark:border-slate-700 px-3.5 py-2.5 focus:border-teal-600 focus:ring-2 focus:ring-teal-600/20 focus:outline-none transition-all shadow-xs font-medium min-h-[60px] resize-y"
+            />
+          </div>
+
+          <div>
+            <label htmlFor="university-supervisor-comment" className="block text-xs font-bold uppercase tracking-wider text-slate-800 dark:text-slate-200 mb-1.5">
+              University Supervisor Comment
+            </label>
+            <textarea
+              id="university-supervisor-comment"
+              rows="3"
+              value={universitySupervisorComment}
+              onChange={(e) => setUniversitySupervisorComment(e.target.value)}
+              placeholder="Enter university supervisor comment..."
+              className="w-full bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 text-xs rounded-xl border border-slate-300 dark:border-slate-700 px-3.5 py-2.5 focus:border-teal-600 focus:ring-2 focus:ring-teal-600/20 focus:outline-none transition-all shadow-xs font-medium min-h-[60px] resize-y"
             />
           </div>
         </form>

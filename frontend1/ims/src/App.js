@@ -6,6 +6,8 @@ import LoginPage from './components/LoginPage';
 import RegisterPage from './components/RegisterPage';
 import ForgotPasswordPage from './components/ForgotPasswordPage';
 import StudentDashboard from './components/dashboards/StudentDashboard';
+import InternshipProgress from './components/InternshipProgress';
+import DayDiariesPage from './components/dashboards/DayDiariesPage';
 import StudentProfile from './components/StudentProfile';
 import UniversityDashboard from './components/dashboards/UniversityDashboard';
 import CompanyDashboard from './components/dashboards/CompanyDashboard';
@@ -157,6 +159,89 @@ function AppRoutes() {
         element={
           <ProtectedRoute roles={["STUDENT"]}>
             <StudentProfile defaultEditing />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/student/progress"
+        element={
+          <ProtectedRoute roles={["ADMIN", "STUDENT"]}>
+            <DashboardLayout title="Level of Progress" subtitle="Track your internship milestones">
+              <InternshipProgress />
+            </DashboardLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/student/tasks"
+        element={
+          <ProtectedRoute roles={["ADMIN", "STUDENT"]}>
+            <DashboardLayout title="Tasks" subtitle="Your assigned tasks">
+              <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-xs p-6">
+                <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100 mb-2">Tasks</h2>
+                <p className="text-sm text-slate-500 dark:text-slate-400">Your assigned tasks will appear here.</p>
+              </div>
+            </DashboardLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/student/learning-institute"
+        element={
+          <ProtectedRoute roles={["ADMIN", "STUDENT"]}>
+            <DashboardLayout title="Learning Institute" subtitle="Your learning institution details">
+              <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-xs p-6">
+                <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100 mb-2">Learning Institute</h2>
+                <p className="text-sm text-slate-500 dark:text-slate-400">Your learning institute information will appear here.</p>
+              </div>
+            </DashboardLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/student/companies"
+        element={
+          <ProtectedRoute roles={["ADMIN", "STUDENT"]}>
+            <DashboardLayout title="Companies" subtitle="Your company placements">
+              <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-xs p-6">
+                <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100 mb-2">Companies</h2>
+                <p className="text-sm text-slate-500 dark:text-slate-400">Your company placement information will appear here.</p>
+              </div>
+            </DashboardLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/student/profile-settings"
+        element={
+          <ProtectedRoute roles={["ADMIN", "STUDENT"]}>
+            <DashboardLayout title="Profile Settings" subtitle="Manage your preferences">
+              <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-xs p-6">
+                <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100 mb-2">Profile Settings</h2>
+                <p className="text-sm text-slate-500 dark:text-slate-400">Your settings will appear here.</p>
+              </div>
+            </DashboardLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/student/supervisor"
+        element={
+          <ProtectedRoute roles={["ADMIN", "STUDENT"]}>
+            <DashboardLayout title="Supervisor" subtitle="Your supervisors">
+              <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-xs p-6">
+                <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100 mb-2">Supervisor</h2>
+                <p className="text-sm text-slate-500 dark:text-slate-400">Your supervisor information will appear here.</p>
+              </div>
+            </DashboardLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/student/day-diaries"
+        element={
+          <ProtectedRoute roles={["ADMIN", "STUDENT"]}>
+            <DayDiariesPage />
           </ProtectedRoute>
         }
       />
