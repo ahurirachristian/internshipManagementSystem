@@ -58,7 +58,7 @@ Assessed against `a13d290`, field by field. This matters because much of what lo
 | 6 | 4 detail endpoints: `GET /api/students/me/{learning-institute,company,industrial-supervisor,university-supervisor}` | 4 new DTOs, `StudentController.java` | Needs #5 |
 | 7 | 4 detail tab components | `CompaniesSection.jsx`, `IndustrialSupervisorSection.jsx`, `LearningInstituteSection.jsx`, `UniversitySupervisorSection.jsx` (all new, 76–78L each) | Needs #6 |
 | 8 | To-do list + milestone stepper | `InternshipProgress.jsx` | `/me/progress` already in `a13d290`; Chris's version also prefixes the fetch with `API_ROOT`, fixing the `npm start` bug |
-| 9 | 2 new demo accounts `student`/`student123`, `supervisor`/`supervisor123` | `DataSeeder.java` | Self-contained |
+| 9 | 2 new demo accounts `student`/`student123`, `supervisor`/`supervisor123` | `DataSeeder.java` | **Dropped during Phase 3** — `student` activates dormant M4 diary seeding and turns 3 gate tests red (see Phase 3 step 6); neither account is needed by any feature or test. |
 
 ### Do not take — already in `fred`
 
@@ -150,8 +150,8 @@ Merge → `fred`, push.
 3. Add `StudentSettingDataSeeder.java` — **at `@Order(41)`, not Chris's `@Order(33)`.** `Order(33)` collides with both `auth/StudentProfileDataSeeder.java:11` and `student/StudentDataSeeder.java:18`. `41` is free (seeder order currently spans 20–40 with one existing 33/33 collision). **Iterate only `Role.STUDENT` users.** Chris iterates `userRepository.findAll()` unfiltered, creating settings rows for admins and supervisors.
 4. Add `StudentSettingsDto.java` (verbatim)
 5. `StudentController.java` — add `StudentSettingRepository` as an 11th constructor param; add `GET` and `PUT /api/students/me/settings`. Keep the `!= null ? new : old` partial-update pattern for PUT.
-6. `DataSeeder.java` — add 2 `ensureUser` lines using the **existing** early-return method. `Role.STUDENT` and `Role.SUPERVISOR` already exist in the enum; `universityId 1L` resolves to Makerere per `UniversityDataSeeder.java:23`.
-7. `MigrationCatalogCountTest.java:61` — `assertEquals(7, …)` → `assertEquals(9, …)`. Required: the 2 new accounts take the count to 9 and the build goes red otherwise. Exact count is retained deliberately; this test is the catalog drift detector.
+6. ~~`DataSeeder.java` — add 2 `ensureUser` lines~~ **Dropped during execution (revised 2026-09-29).** Restoring `student`/`student123` activates the dormant fallback in `DayDiaryDataSeeder` (M4): no `.java` file has contained `student123` since `471e556`, so that path — which creates a 4th "Demo Student" Model-B row (reg no `Pending`, school 902) plus 2 `PENDING` diaries — has never actually run, and the M8/M9 gates encode the state it produces being absent. With the account added, 3 tests went red: `UniversityDashboardAnalyticsTest` ×2 (`bySchool[0].count` 3→4, `diaryStatus.PENDING` 0→2) and `DayDiaryIntegrationTest.supervisorFeedbackFlattensStudentIdentity` (`$[0]` becomes "Demo Student", because `GET /api/diaries` is a bare `findAll()`). `MIGRATION_README.md:258` separately documents the account's removal as intentional. The settings feature needs neither account, so both were dropped and `DataSeeder.java` stays untouched.
+7. ~~`MigrationCatalogCountTest.java:61` — `assertEquals(7, …)` → `assertEquals(9, …)`~~ **Moot once step 6 was dropped.** The assertion stays at 7, the M1 catalog gate stays byte-identical, and Phase 3 ends up changing no test file at all.
 
 **Frontend:**
 
@@ -159,7 +159,7 @@ Merge → `fred`, push.
 9. `services/api.js` — add `fetchMySettings`, `updateMySettings`
 10. `StudentDashboard.js` — add the `settings` tab
 
-Gate: `./start.sh test` **41 green with the count assertion now 9** — this is the gate that proves steps 6 and 7 agree. Toggle dark mode, PUT, confirm the other 3 fields are preserved by the partial update. Restart, confirm the row exists. `npm run build` succeeds.
+Gate: `./start.sh test` **41 green with the count assertion unchanged at 7** — this is the gate that proves steps 1–5 touched no catalog data and no test. Toggle dark mode, PUT, confirm the other 3 fields are preserved by the partial update. Restart, confirm the row exists. `npm run build` succeeds.
 
 Merge → `fred`, push.
 
@@ -210,7 +210,7 @@ Pure addition, 0 deletions, 0 modifications to existing functions.
 
 | Risk | Mitigation |
 |---|---|
-| `MigrationCatalogCountTest` hardcodes counts for 8 tables | Phase 3 updates the user assertion 7→9 in the same commit that adds the accounts. Phase 4 re-runs the suite after the seeder edits. |
+| `MigrationCatalogCountTest` hardcodes counts for 8 tables | Phase 3 adds no accounts (revised — see Phase 3 step 6), so the user assertion stays at 7 untouched. Phase 4 re-runs the suite after the seeder edits; row counts must not change. |
 | `StudentSettingDataSeeder` `@Order(33)` collides | Moved to `41`. |
 | Chris's `PUT /api/diaries/{id}` nulls columns on partial body | Null-guards added in Phase 2, step 3. |
 | Chris's `/university-supervisor` can NPE on null `university_id` | Null-guard added in Phase 4, step 5. |

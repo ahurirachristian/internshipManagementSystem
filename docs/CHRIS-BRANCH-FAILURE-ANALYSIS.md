@@ -344,7 +344,7 @@ Every conflicted file, and what the port does with it.
 | **Not ported — artifacts of the discarded side** (2) | `frontend1/ims/package.json` `proxy` key, `.history/` log files | IDE and tooling noise. |
 | **Take neither — absorbed by redesign** (2) | `student/StudentSettingDataSeeder.java` HEAD side, `dto/*.java` HEAD sides | The HEAD variants are superseded wholesale by the `c461bde` design described in 2.5. |
 
-Two of the 27 are not conflicted but are handled in the same pass: `auth/OAuth2UserService.java` (the stray `w`, 1.4) and `auth/DataSeeder.java` (take the 2 new accounts, keep fred's early-return instead of Chris's unconditional upsert, which would reset every seeded account's password, email, role, `companyId` and `universityId` on every boot).
+Two of the 27 are not conflicted but are handled in the same pass: `auth/OAuth2UserService.java` (the stray `w`, 1.4) and `auth/DataSeeder.java` (planned: take the 2 new accounts with fred's early-return instead of Chris's unconditional upsert, which would reset every seeded account's password, email, role, `companyId` and `universityId` on every boot — **revised during the port: neither account is taken at all, see Part 4**).
 
 **Verified: `c461bde` deletes `auth/StudentProfileDataSeeder.java`, and fred has it. Not porting that deletion loses nothing.** Confirmed absent from merge result tree `d75bf1b7`, so a naive merge *would* lose it.
 
@@ -371,7 +371,7 @@ The merge delivers the 8 wanted capabilities and the 4 regressions in one indivi
 | Risk | Status |
 |---|---|
 | 11 nullable columns added to a live MySQL across phases 2 and 4 | `ddl-auto=update` on both profiles adds them; no existing row is invalidated. `backend/schema.sql` is not on the classpath and is already stale, so it needs no update. |
-| `MigrationCatalogCountTest.java:61` asserts `assertEquals(7, userRepository.count())` | Phase 3 adds 2 accounts and updates the assertion to 9 **in the same commit**. Exact count retained deliberately — this is the catalog drift detector. |
+| `MigrationCatalogCountTest.java:61` asserts `assertEquals(7, userRepository.count())` | **Revised during the port:** Phase 3 adds no accounts. The planned `student`/`student123` login activates the dormant fallback in `DayDiaryDataSeeder` — a 4th "Demo Student" row + 2 `PENDING` diaries that has never executed because no `.java` file has contained `student123` since `471e556` — and turns 3 gate tests red; `MIGRATION_README.md:258` documents that account's removal as intentional. Assertion stays at 7: the drift detector now also proves Phase 3 touched no seed data. |
 | `StudentSettingDataSeeder` `@Order` | Moved to `41`. `Order(33)` collides with two existing seeders; `Order(4)` would run before users exist. |
 | `PUT /api/diaries/{id}` nulls columns on a partial body | Null-guards added in phase 2, not inherited. |
 | `/university-supervisor` NPE on null `university_id` | Null-guard added in phase 4, not inherited. |
