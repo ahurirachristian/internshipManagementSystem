@@ -178,6 +178,7 @@ Merge → `fred`, push.
 6. Add the 4 section components (verbatim)
 7. `services/api.js` — add `fetchMyLearningInstitute`, `fetchMyCompany`, `fetchMyIndustrialSupervisor`, `fetchMyUniversitySupervisor`
 8. `StudentDashboard.js` — add the 4 tabs
+9. `InternshipProgress.jsx` — replace with Chris's version. **This carries capability #8**, which no earlier phase picked up: the `API_ROOT` fetch prefix is already in `a13d290`, so only the milestone-stepper rework and the to-do-list section port. Pure component swap (`<InternshipProgress />` takes no props); no new npm dependency.
 
 Gate: `./start.sh test` 41 green, 50 universities still asserted. Login as student, open each of the 4 tabs, confirm no field renders `—` for the 6 new columns. Supervisor tabs should populate with no schema change at all: `IndustrialSupervisor` and `UniversitySupervisor` already carry `department` and `phoneNumber`. `npm run build` succeeds.
 
