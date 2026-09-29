@@ -623,3 +623,31 @@ export async function updateMySettings(settings) {
   });
   return parseResponse(response);
 }
+
+export async function fetchMyLearningInstitute() {
+  const response = await fetch(`${API_ROOT}/api/students/me/learning-institute`, {
+    credentials: 'include',
+  });
+  return parseResponse(response);
+}
+
+export async function fetchMyCompany() {
+  const response = await fetch(`${API_ROOT}/api/students/me/company`, {
+    credentials: 'include',
+  });
+  return parseResponse(response);
+}
+
+export async function fetchMyIndustrialSupervisor() {
+  const response = await fetch(`${API_ROOT}/api/students/me/industrial-supervisor`, {
+    credentials: 'include',
+  });
+  return parseResponse(response);
+}
+
+export async function fetchMyUniversitySupervisor() {
+  const response = await fetch(`${API_ROOT}/api/students/me/university-supervisor`, {
+    credentials: 'include',
+  });
+  return parseResponse(response);
+}

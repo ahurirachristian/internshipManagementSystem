@@ -7,6 +7,10 @@ import DiaryReviewModal from '../DiaryReviewModal';
 import StudentDataProvider from '../../context/StudentDataContext';
 import OverviewSection from './OverviewSection';
 import SettingsSection from './SettingsSection';
+import LearningInstituteSection from './LearningInstituteSection';
+import CompaniesSection from './CompaniesSection';
+import IndustrialSupervisorSection from './IndustrialSupervisorSection';
+import UniversitySupervisorSection from './UniversitySupervisorSection';
 import {
   createDiary,
   deleteDiary,
@@ -452,6 +456,10 @@ export default function StudentDashboard() {
       tabs={[
         { id: 'overview', label: 'Overview' },
         { id: 'profile', label: 'Profile' },
+        { id: 'learning-institute', label: 'Learning Institute' },
+        { id: 'companies', label: 'Companies' },
+        { id: 'industrial-supervisor', label: 'Industrial Supervisor' },
+        { id: 'university-supervisor', label: 'University Supervisor' },
         { id: 'settings', label: 'Settings' },
         { id: 'diary', label: 'Day Diary' },
       ]}
@@ -496,6 +504,10 @@ export default function StudentDashboard() {
         </StudentDataProvider>
       )}
       {activeTab === 'profile' && renderProfile()}
+      {activeTab === 'learning-institute' && <LearningInstituteSection />}
+      {activeTab === 'companies' && <CompaniesSection />}
+      {activeTab === 'industrial-supervisor' && <IndustrialSupervisorSection />}
+      {activeTab === 'university-supervisor' && <UniversitySupervisorSection />}
       {activeTab === 'settings' && <SettingsSection />}
       {activeTab === 'diary' && renderDiary()}
 

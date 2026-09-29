@@ -35,6 +35,12 @@ public class InternshipCompany {
     @Column(name = "branch", nullable = true)
     private String branch;
 
+    @Column(name = "phone", nullable = true)
+    private String phone;
+
+    @Column(name = "contact_person", nullable = true)
+    private String contactPerson;
+
     @Column(name = "country_id", nullable = false)
     private Integer countryId;
 
@@ -101,6 +107,22 @@ public class InternshipCompany {
 
     public void setBranch(String branch) {
         this.branch = branch;
+    }
+
+    public String getPhone() {
+        return phone;
+    }
+
+    public void setPhone(String phone) {
+        this.phone = phone;
+    }
+
+    public String getContactPerson() {
+        return contactPerson;
+    }
+
+    public void setContactPerson(String contactPerson) {
+        this.contactPerson = contactPerson;
     }
 
     public Integer getCountryId() {

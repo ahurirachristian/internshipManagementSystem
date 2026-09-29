@@ -25,8 +25,12 @@ import com.example.demo.company.InternshipCompany;
 import com.example.demo.company.InternshipCompanyRepository;
 import com.example.demo.department.Department;
 import com.example.demo.department.DepartmentRepository;
+import com.example.demo.dto.CompanyDetailsDto;
+import com.example.demo.dto.IndustrialSupervisorDto;
+import com.example.demo.dto.LearningInstituteDto;
 import com.example.demo.dto.StudentDto;
 import com.example.demo.dto.StudentSettingsDto;
+import com.example.demo.dto.UniversitySupervisorDto;
 import com.example.demo.programme.Programme;
 import com.example.demo.programme.ProgrammeRepository;
 import com.example.demo.student.DayDiaryRepository;
@@ -112,6 +116,104 @@ public class StudentController {
             put("midTerm", diaryCount >= 5);
             put("finalReport", diaryCount >= 10);
         }});
+    }
+
+    @GetMapping("/me/learning-institute")
+    @PreAuthorize("hasAnyAuthority('STUDENT', 'ADMIN', 'SUPERVISOR')")
+    public ResponseEntity<?> getMyLearningInstitute(Principal principal) {
+        Student student = currentStudent(principal);
+        if (student == null || student.getUniversityId() == null) {
+            return ResponseEntity.notFound().build();
+        }
+        return universityRepository.findById(student.getUniversityId().intValue())
+                .map(u -> {
+                    LearningInstituteDto dto = new LearningInstituteDto();
+                    dto.setId(u.getId());
+                    dto.setName(u.getShortForm() != null ? u.getShortForm() : u.getFullName());
+                    dto.setShortForm(u.getShortForm());
+                    dto.setFullName(u.getFullName());
+                    dto.setEmail(u.getEmail());
+                    dto.setPhone(u.getPhone());
+                    dto.setAddress(u.getPhysicalAddress());
+                    dto.setWebsite(u.getWebsite());
+                    return ResponseEntity.ok(dto);
+                })
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    @GetMapping("/me/company")
+    @PreAuthorize("hasAnyAuthority('STUDENT', 'ADMIN', 'SUPERVISOR')")
+    public ResponseEntity<?> getMyCompany(Principal principal) {
+        Student student = currentStudent(principal);
+        if (student == null || student.getInternshipCompanyId() == null) {
+            return ResponseEntity.notFound().build();
+        }
+        return internshipCompanyRepository.findById(student.getInternshipCompanyId())
+                .map(c -> {
+                    CompanyDetailsDto dto = new CompanyDetailsDto();
+                    dto.setId(c.getId());
+                    dto.setCompanyName(c.getCompanyName());
+                    dto.setBranch(c.getBranch());
+                    dto.setPhysicalAddress(c.getPhysicalAddress());
+                    dto.setWebsite(c.getWebsite());
+                    dto.setEmail(c.getEmail());
+                    // Chris leaves these two null; the tab would render them as em-dashes.
+                    dto.setPhone(c.getPhone());
+                    dto.setContactPerson(c.getContactPerson());
+                    return ResponseEntity.ok(dto);
+                })
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    @GetMapping("/me/industrial-supervisor")
+    @PreAuthorize("hasAnyAuthority('STUDENT', 'ADMIN', 'SUPERVISOR')")
+    public ResponseEntity<?> getMyIndustrialSupervisor(Principal principal) {
+        Student student = currentStudent(principal);
+        if (student == null || student.getIndSupervisorId() == null) {
+            return ResponseEntity.notFound().build();
+        }
+        return industrialSupervisorRepository.findById(student.getIndSupervisorId())
+                .map(s -> {
+                    IndustrialSupervisorDto dto = new IndustrialSupervisorDto();
+                    dto.setId(s.getId());
+                    dto.setFirstName(s.getFirstName());
+                    dto.setLastName(s.getLastName());
+                    dto.setPhoneNumber(s.getPhoneNumber());
+                    dto.setDepartment(s.getDepartment());
+                    userRepository.findById(s.getUserId()).ifPresent(u -> dto.setEmail(u.getEmail()));
+                    if (s.getCompanyId() != null) {
+                        internshipCompanyRepository.findById(s.getCompanyId())
+                                .ifPresent(c -> dto.setCompanyName(c.getCompanyName()));
+                    }
+                    return ResponseEntity.ok(dto);
+                })
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    @GetMapping("/me/university-supervisor")
+    @PreAuthorize("hasAnyAuthority('STUDENT', 'ADMIN', 'SUPERVISOR')")
+    public ResponseEntity<?> getMyUniversitySupervisor(Principal principal) {
+        Student student = currentStudent(principal);
+        if (student == null || student.getUniSupervisorId() == null) {
+            return ResponseEntity.notFound().build();
+        }
+        return universitySupervisorRepository.findById(student.getUniSupervisorId())
+                .map(s -> {
+                    UniversitySupervisorDto dto = new UniversitySupervisorDto();
+                    dto.setId(s.getId());
+                    dto.setFirstName(s.getFirstName());
+                    dto.setLastName(s.getLastName());
+                    dto.setPhoneNumber(s.getPhoneNumber());
+                    dto.setDepartment(s.getDepartment());
+                    userRepository.findById(s.getUserId()).ifPresent(u -> dto.setEmail(u.getEmail()));
+                    // Chris dereferences getUniversityId() unguarded; null-safe here.
+                    if (s.getUniversityId() != null) {
+                        universityRepository.findById(s.getUniversityId().intValue())
+                                .ifPresent(u -> dto.setUniversityName(u.getFullName()));
+                    }
+                    return ResponseEntity.ok(dto);
+                })
+                .orElse(ResponseEntity.notFound().build());
     }
 
     @GetMapping("/me/settings")

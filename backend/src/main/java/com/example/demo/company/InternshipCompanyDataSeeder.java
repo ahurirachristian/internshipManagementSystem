@@ -27,6 +27,7 @@ public class InternshipCompanyDataSeeder implements CommandLineRunner {
     @Override
     public void run(String... args) {
         if (repository.count() > 0) {
+            fillDemoContact();
             return;
         }
         Integer ugandaId = countryRepository.findAll().stream()
@@ -46,5 +47,22 @@ public class InternshipCompanyDataSeeder implements CommandLineRunner {
         e.setUniversityId(19L);
         e.setCreatedAt(LocalDateTime.now());
         repository.save(e);
+    }
+
+    /**
+     * Phase 4 of the Chris port adds phone/contact_person to
+     * internship_companies. Fill them on the demo row only, and only where
+     * still blank, so existing databases are never overwritten.
+     */
+    private void fillDemoContact() {
+        repository.findAll().stream()
+                .filter(c -> "Airtel Uganda".equals(c.getCompanyName()))
+                .filter(c -> c.getPhone() == null)
+                .findFirst()
+                .ifPresent(c -> {
+                    c.setPhone("+256 752 175 175");
+                    c.setContactPerson("Jane Doe");
+                    repository.save(c);
+                });
     }
 }

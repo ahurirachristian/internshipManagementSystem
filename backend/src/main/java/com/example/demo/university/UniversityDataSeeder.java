@@ -19,6 +19,35 @@ public class UniversityDataSeeder implements CommandLineRunner {
         if (universityRepository.count() == 0) {
             saveAll();
         }
+        fillMissingContactDetails();
+    }
+
+    /**
+     * Phase 4 of the Chris port adds email/phone/physicalAddress/website to
+     * universities. Fill them for the three demo-slice roots only, and only
+     * where still blank, so existing databases are never overwritten.
+     */
+    private void fillMissingContactDetails() {
+        setContactIfBlank("NU", "info@nku.ac.ug", "+256 414 260 434",
+                "P.O. Box 75, Entebbe, Uganda", "https://www.nkumba.ac.ug");
+        setContactIfBlank("KYU", "info@kyu.ac.ug", "+256 414 254 503",
+                "P.O. Box 1, Kyambogo, Kampala, Uganda", "https://www.kyu.ac.ug");
+        setContactIfBlank("MAK", "info@mak.ac.ug", "+256 414 530 001",
+                "P.O. Box 7062, Kampala, Uganda", "https://www.mak.ac.ug");
+    }
+
+    private void setContactIfBlank(String shortForm, String email, String phone, String address, String website) {
+        universityRepository.findAll().stream()
+                .filter(u -> shortForm.equals(u.getShortForm()))
+                .filter(u -> u.getEmail() == null)
+                .findFirst()
+                .ifPresent(u -> {
+                    u.setEmail(email);
+                    u.setPhone(phone);
+                    u.setPhysicalAddress(address);
+                    u.setWebsite(website);
+                    universityRepository.save(u);
+                });
     }
 
     private void saveAll() {

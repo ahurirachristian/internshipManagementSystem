@@ -28,6 +28,18 @@ public class University {
     @Column(name = "established_year")
     private Integer establishedYear;
 
+    @Column(length = 200)
+    private String email;
+
+    @Column(length = 50)
+    private String phone;
+
+    @Column(name = "physical_address", length = 255)
+    private String physicalAddress;
+
+    @Column(length = 200)
+    private String website;
+
     public University() {
     }
 
@@ -57,4 +69,19 @@ public class University {
 
     public Integer getEstablishedYear() { return establishedYear; }
     public void setEstablishedYear(Integer establishedYear) { this.establishedYear = establishedYear; }
+
+    public String getEmail() { return email; }
+    public void setEmail(String email) { this.email = email; }
+
+    public String getPhone() { return phone; }
+    public void setPhone(String phone) { this.phone = phone; }
+
+    public String getPhysicalAddress() { return physicalAddress; }
+    public void setPhysicalAddress(String physicalAddress) { this.physicalAddress = physicalAddress; }
+
+    public String getWebsite() { return website; }
+    public void setWebsite(String website) { this.website = website; }
+
+    public Long getId() { return universityId == null ? null : universityId.longValue(); }
+    public void setId(Long id) { this.universityId = id == null ? null : id.intValue(); }
 }
