@@ -1,11 +1,12 @@
 import { useEffect, useState, useCallback } from 'react';
-import { Pencil, Trash2, MessageSquare, Loader2, CheckCircle, AlertCircle } from 'lucide-react';
+import { Pencil, Trash2, Loader2, CheckCircle, AlertCircle } from 'lucide-react';
 import DashboardLayout from '../DashboardLayout';
 import StudentEditModal from '../StudentEditModal';
 import InternshipProgress from '../InternshipProgress';
 import DiaryReviewModal from '../DiaryReviewModal';
 import StudentDataProvider from '../../context/StudentDataContext';
 import OverviewSection from './OverviewSection';
+import SettingsSection from './SettingsSection';
 import {
   createDiary,
   deleteDiary,
@@ -451,6 +452,7 @@ export default function StudentDashboard() {
       tabs={[
         { id: 'overview', label: 'Overview' },
         { id: 'profile', label: 'Profile' },
+        { id: 'settings', label: 'Settings' },
         { id: 'diary', label: 'Day Diary' },
       ]}
       activeTab={activeTab}
@@ -494,6 +496,7 @@ export default function StudentDashboard() {
         </StudentDataProvider>
       )}
       {activeTab === 'profile' && renderProfile()}
+      {activeTab === 'settings' && <SettingsSection />}
       {activeTab === 'diary' && renderDiary()}
 
       {profileModalOpen && (

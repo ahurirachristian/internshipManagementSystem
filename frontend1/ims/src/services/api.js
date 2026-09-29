@@ -604,3 +604,22 @@ export async function deleteProgramme(id) {
   });
   return parseResponse(response);
 }
+
+export async function fetchMySettings() {
+  const response = await fetch(`${API_ROOT}/api/students/me/settings`, {
+    credentials: 'include',
+  });
+  return parseResponse(response);
+}
+
+export async function updateMySettings(settings) {
+  const response = await fetch(`${API_ROOT}/api/students/me/settings`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    credentials: 'include',
+    body: JSON.stringify(settings),
+  });
+  return parseResponse(response);
+}
