@@ -41,6 +41,24 @@ public class DayDiary {
     @Lob
     private String supervisorFeedback;
 
+    @Column(name = "account_number")
+    private String accountNumber;
+
+    @Lob
+    private String action;
+
+    @Lob
+    @Column(name = "technology_tools")
+    private String technologyTools;
+
+    @Lob
+    @Column(name = "industrial_supervisor_comment")
+    private String industrialSupervisorComment;
+
+    @Lob
+    @Column(name = "university_supervisor_comment")
+    private String universitySupervisorComment;
+
     /**
      * M4: rekeyed from the Model-A student_profile_id join to the Model-B
      * students.id reference (MIGRATION_PLAN.md R1/R2).
@@ -108,6 +126,46 @@ public class DayDiary {
 
     public void setSupervisorFeedback(String supervisorFeedback) {
         this.supervisorFeedback = supervisorFeedback;
+    }
+
+    public String getAccountNumber() {
+        return accountNumber;
+    }
+
+    public void setAccountNumber(String accountNumber) {
+        this.accountNumber = accountNumber;
+    }
+
+    public String getAction() {
+        return action;
+    }
+
+    public void setAction(String action) {
+        this.action = action;
+    }
+
+    public String getTechnologyTools() {
+        return technologyTools;
+    }
+
+    public void setTechnologyTools(String technologyTools) {
+        this.technologyTools = technologyTools;
+    }
+
+    public String getIndustrialSupervisorComment() {
+        return industrialSupervisorComment;
+    }
+
+    public void setIndustrialSupervisorComment(String industrialSupervisorComment) {
+        this.industrialSupervisorComment = industrialSupervisorComment;
+    }
+
+    public String getUniversitySupervisorComment() {
+        return universitySupervisorComment;
+    }
+
+    public void setUniversitySupervisorComment(String universitySupervisorComment) {
+        this.universitySupervisorComment = universitySupervisorComment;
     }
 
     public Long getStudentId() {

@@ -7,6 +7,7 @@ import RegisterPage from './components/RegisterPage';
 import ForgotPasswordPage from './components/ForgotPasswordPage';
 import StudentDashboard from './components/dashboards/StudentDashboard';
 import StudentProfile from './components/StudentProfile';
+import DayDiariesPage from './components/dashboards/DayDiariesPage';
 import UniversityDashboard from './components/dashboards/UniversityDashboard';
 import CompanyDashboard from './components/dashboards/CompanyDashboard';
 import AdminDashboard from './components/dashboards/AdminDashboard';
@@ -157,6 +158,14 @@ function AppRoutes() {
         element={
           <ProtectedRoute roles={["STUDENT"]}>
             <StudentProfile defaultEditing />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/student/day-diaries"
+        element={
+          <ProtectedRoute roles={["STUDENT"]}>
+            <DayDiariesPage />
           </ProtectedRoute>
         }
       />
