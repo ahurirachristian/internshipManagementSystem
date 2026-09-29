@@ -4,6 +4,8 @@ import DashboardLayout from '../DashboardLayout';
 import StudentEditModal from '../StudentEditModal';
 import InternshipProgress from '../InternshipProgress';
 import DiaryReviewModal from '../DiaryReviewModal';
+import StudentDataProvider from '../../context/StudentDataContext';
+import OverviewSection from './OverviewSection';
 import {
   createDiary,
   deleteDiary,
@@ -26,7 +28,7 @@ const inputClass = "w-full bg-white dark:bg-slate-900 text-slate-900 dark:text-s
 const labelClass = "block text-xs font-bold uppercase tracking-wider text-slate-800 dark:text-slate-200 mb-1.5";
 
 export default function StudentDashboard() {
-  const [activeTab, setActiveTab] = useState('profile');
+  const [activeTab, setActiveTab] = useState('overview');
   const [profile, setProfile] = useState(null);
   const [profileLoading, setProfileLoading] = useState(true);
   const [profileError, setProfileError] = useState('');
@@ -385,6 +387,7 @@ export default function StudentDashboard() {
       title="Student Dashboard"
       subtitle="Welcome,"
       tabs={[
+        { id: 'overview', label: 'Overview' },
         { id: 'profile', label: 'Profile' },
         { id: 'diary', label: 'Day Diary' },
       ]}
@@ -423,7 +426,13 @@ export default function StudentDashboard() {
         </div>
       )}
 
-      {activeTab === 'profile' ? renderProfile() : renderDiary()}
+      {activeTab === 'overview' && (
+        <StudentDataProvider>
+          <OverviewSection />
+        </StudentDataProvider>
+      )}
+      {activeTab === 'profile' && renderProfile()}
+      {activeTab === 'diary' && renderDiary()}
 
       {profileModalOpen && (
         <StudentEditModal
