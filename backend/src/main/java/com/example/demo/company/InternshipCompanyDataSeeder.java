@@ -43,6 +43,8 @@ public class InternshipCompanyDataSeeder implements CommandLineRunner {
         e.setPhysicalAddress("Airtel House, Plot 4 Wampewo Avenue, Kampala");
         e.setWebsite("https://www.airtel.co.ug");
         e.setBranch("Kampala Head Office");
+        e.setPhone("+256 752 175 175");
+        e.setContactPerson("Jane Doe");
         e.setCountryId(ugandaId);
         e.setUniversityId(19L);
         e.setCreatedAt(LocalDateTime.now());
