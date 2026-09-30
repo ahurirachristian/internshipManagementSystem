@@ -9,6 +9,9 @@ import {
   fetchCompanySupervisors,
   createCompanySupervisor,
   resetUserPassword,
+  fetchUniversityOptions,
+  studentLookup,
+  offerPlacement,
 } from '../../services/api';
 import {
   Building2,
@@ -18,6 +21,7 @@ import {
   X,
   CheckCircle,
   Users,
+  Search,
 } from 'lucide-react';
 
 export default function CompanyDashboard() {
@@ -32,6 +36,10 @@ export default function CompanyDashboard() {
   const [refresh, setRefresh] = useState(0);
   const [supervisors, setSupervisors] = useState([]);
   const [supForm, setSupForm] = useState({ firstName: '', lastName: '', email: '', phone: '', department: '' });
+  const [universities, setUniversities] = useState([]);
+  const [lookupForm, setLookupForm] = useState({ universityId: '', studentNumber: '' });
+  const [lookupResult, setLookupResult] = useState(null);
+  const [offerNote, setOfferNote] = useState('');
 
   async function loadSupervisors() {
     setError('');
@@ -40,6 +48,34 @@ export default function CompanyDashboard() {
       setSupervisors(Array.isArray(list) ? list : []);
     } catch (err) {
       setError(err.message || 'Unable to load field supervisors.');
+    }
+  }
+
+  async function handleLookup(event) {
+    event.preventDefault();
+    setError('');
+    setNotice('');
+    setLookupResult(null);
+    try {
+      const student = await studentLookup(lookupForm.universityId, lookupForm.studentNumber.trim());
+      setLookupResult(student);
+    } catch (err) {
+      setError(err.message || 'Student not found.');
+    }
+  }
+
+  async function handleOffer() {
+    if (!lookupResult) return;
+    setError('');
+    setNotice('');
+    try {
+      await offerPlacement(lookupResult.studentId, offerNote.trim());
+      setNotice(`Offer sent for ${lookupResult.firstName} ${lookupResult.lastName}. The university will assign a supervisor.`);
+      setLookupResult(null);
+      setOfferNote('');
+      setLookupForm({ universityId: '', studentNumber: '' });
+    } catch (err) {
+      setError(err.message || 'Unable to send the offer.');
     }
   }
 
@@ -268,6 +304,81 @@ export default function CompanyDashboard() {
     );
   }
 
+  function renderOffers() {
+    const inputClass = 'w-full bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-slate-100 text-sm rounded-xl border-2 border-slate-200 dark:border-slate-700 px-3.5 py-2.5 focus:border-primary focus:outline-none transition-all font-medium';
+    return (
+      <div className="space-y-6">
+        <section className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5">
+          <div className="flex items-center gap-3 mb-3">
+            <div className="w-10 h-10 rounded-xl bg-blue-50 border border-blue-200 flex items-center justify-center text-blue-700">
+              <Search className="w-5 h-5" />
+            </div>
+            <div>
+              <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100">Find a student</h3>
+              <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                Look up a student by university and student number, then send them an internship offer.
+              </p>
+            </div>
+          </div>
+          <form onSubmit={handleLookup} className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <select
+              className={inputClass}
+              value={lookupForm.universityId}
+              onChange={(e) => setLookupForm({ ...lookupForm, universityId: e.target.value })}
+            >
+              <option value="">Select university</option>
+              {universities.map((uni) => (
+                <option key={uni.id} value={uni.id}>{uni.fullName || uni.shortForm}</option>
+              ))}
+            </select>
+            <input
+              className={inputClass}
+              placeholder="Student number"
+              value={lookupForm.studentNumber}
+              onChange={(e) => setLookupForm({ ...lookupForm, studentNumber: e.target.value })}
+            />
+            <button type="submit" className="px-4 py-2.5 rounded-xl bg-primary text-white text-xs font-bold">
+              Look up student
+            </button>
+          </form>
+
+          {lookupResult && (
+            <div className="mt-4 p-4 rounded-xl border border-teal-200 bg-teal-50/60 dark:bg-slate-800/60">
+              <div className="flex items-center justify-between gap-3 flex-wrap">
+                <div>
+                  <div className="text-sm font-bold text-slate-900 dark:text-slate-100">
+                    {lookupResult.firstName} {lookupResult.lastName}
+                  </div>
+                  <div className="text-xs text-slate-600 dark:text-slate-300">
+                    {lookupResult.studentNumber} · {lookupResult.degreeProgram} · Year {lookupResult.yearOfStudy ?? '—'}
+                  </div>
+                  <div className="text-[11px] text-slate-500 dark:text-slate-400">
+                    Reg. {lookupResult.registrationNumber} · Phone {lookupResult.phoneNumber || '—'}
+                  </div>
+                </div>
+              </div>
+              <div className="mt-3 grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <input
+                  className={inputClass}
+                  placeholder="Offer note (optional)"
+                  value={offerNote}
+                  onChange={(e) => setOfferNote(e.target.value)}
+                />
+                <button
+                  type="button"
+                  onClick={handleOffer}
+                  className="px-4 py-2.5 rounded-xl bg-primary text-white text-xs font-bold"
+                >
+                  Send internship offer
+                </button>
+              </div>
+            </div>
+          )}
+        </section>
+      </div>
+    );
+  }
+
   function renderSupervisors() {
     const inputClass = 'w-full bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-slate-100 text-sm rounded-xl border-2 border-slate-200 dark:border-slate-700 px-3.5 py-2.5 focus:border-primary focus:outline-none transition-all font-medium';
     return (
@@ -356,6 +467,7 @@ export default function CompanyDashboard() {
       tabs={[
         { id: 'profile', label: 'Profile' },
         { id: 'interns', label: 'Interns' },
+        { id: 'offers', label: 'Offers' },
         { id: 'supervisors', label: 'Field Supervisors' },
       ]}
       activeTab={activeTab}
@@ -366,6 +478,9 @@ export default function CompanyDashboard() {
         }
         if (tab === 'supervisors') {
           loadSupervisors();
+        }
+        if (tab === 'offers' && universities.length === 0) {
+          fetchUniversityOptions().then((list) => setUniversities(Array.isArray(list) ? list : [])).catch(() => {});
         }
       }}
     >
@@ -399,6 +514,7 @@ export default function CompanyDashboard() {
 
         {activeTab === 'profile' && renderProfile()}
         {activeTab === 'interns' && renderInterns()}
+        {activeTab === 'offers' && renderOffers()}
         {activeTab === 'supervisors' && renderSupervisors()}
       </div>
 

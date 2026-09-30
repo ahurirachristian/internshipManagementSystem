@@ -15,6 +15,8 @@ public class Placement {
 
     public enum Status {
         PENDING,
+        /** P7: company offer awaiting university supervisor assignment. */
+        OFFERED,
         ASSIGNED,
         ACTIVE,
         COMPLETED,

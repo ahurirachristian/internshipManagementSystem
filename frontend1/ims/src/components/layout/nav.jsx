@@ -38,6 +38,7 @@ export const NAV_GROUPS = [
     label: 'Management',
     links: [
       { to: '/university/students', icon: GraduationCap, label: 'Students', roles: ['SUPERVISOR'] },
+      { to: '/university/placements', icon: RectangleHorizontal, label: 'Placement Approvals', roles: ['SUPERVISOR', 'ADMIN'] },
       { to: '/university/people', icon: Users, label: 'People & Roles', roles: ['SUPERVISOR', 'ADMIN'] },
       { to: '/company', icon: Building2, label: 'Companies', roles: ['ADMIN', 'SUPERVISOR'] },
       { to: '/admin/placements', icon: RectangleHorizontal, label: 'Internship Placement', roles: ['ADMIN'] },

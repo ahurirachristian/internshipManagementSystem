@@ -478,6 +478,53 @@ export async function fetchVacancies() {
   return parseResponse(response);
 }
 
+// --- Placement pipeline (P7) ---
+
+export async function studentLookup(universityId, studentNumber) {
+  const response = await fetch(`${API_ROOT}/api/companies/student-lookup`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+    body: JSON.stringify({ universityId, studentNumber }),
+  });
+  return parseResponse(response);
+}
+
+export async function offerPlacement(studentId, offerNote) {
+  const response = await fetch(`${API_ROOT}/api/placements`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+    body: JSON.stringify({ studentId, offerNote }),
+  });
+  return parseResponse(response);
+}
+
+export async function approvePlacement(id, universitySupervisorId) {
+  const response = await fetch(`${API_ROOT}/api/placements/${id}/approve`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+    body: JSON.stringify({ universitySupervisorId }),
+  });
+  return parseResponse(response);
+}
+
+export async function rejectPlacement(id) {
+  const response = await fetch(`${API_ROOT}/api/placements/${id}/reject`, {
+    method: 'POST',
+    credentials: 'include',
+  });
+  return parseResponse(response);
+}
+
+export async function fetchUniversitySupervisorRows() {
+  const response = await fetch(`${API_ROOT}/api/supervisors/university`, {
+    credentials: 'include',
+  });
+  return parseResponse(response);
+}
+
 export async function fetchUniversities() {
   const response = await fetch(`${API_ROOT}/api/universities`, {
     credentials: 'include',

@@ -52,6 +52,19 @@ public class GlobalExceptionHandler {
                 .body(Map.of("error", "Access denied"));
     }
 
+    /** P7: cross-company placement actions get the generic 403. */
+    @ExceptionHandler(com.example.demo.placement.PlacementScopeException.class)
+    public ResponseEntity<Map<String, String>> handlePlacementScope(
+            com.example.demo.placement.PlacementScopeException ex) {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("error", ex.getMessage()));
+    }
+
+    /** P7: pipeline state violations (e.g. reviewing a non-OFFERED placement). */
+    @ExceptionHandler(IllegalStateException.class)
+    public ResponseEntity<Map<String, String>> handleIllegalState(IllegalStateException ex) {
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("error", ex.getMessage()));
+    }
+
     @ExceptionHandler(NoResourceFoundException.class)
     public ResponseEntity<Map<String, String>> handleNoHandlerFound(NoResourceFoundException ex) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND)

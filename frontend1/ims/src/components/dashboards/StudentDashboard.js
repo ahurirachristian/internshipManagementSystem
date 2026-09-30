@@ -16,6 +16,7 @@ import {
   deleteDiary,
   fetchMyProfile,
   fetchMyDiaries,
+  fetchMyPlacement,
   fetchCompanies,
   fetchSupervisors,
   saveMyProfile,
@@ -51,6 +52,7 @@ export default function StudentDashboard() {
   const [reviewDiary, setReviewDiary] = useState(null);
   const [companies, setCompanies] = useState([]);
   const [supervisors, setSupervisors] = useState([]);
+  const [placement, setPlacement] = useState(null);
 
   const loadDiaries = useCallback(async function loadDiaries() {
     setDiaryLoading(true);
@@ -69,8 +71,19 @@ export default function StudentDashboard() {
     loadCompanies();
     loadSupervisors();
     loadDiaries();
+    loadPlacement();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  async function loadPlacement() {
+    try {
+      const data = await fetchMyPlacement();
+      setPlacement(data || null);
+    } catch (err) {
+      // 404 simply means no placement yet.
+      setPlacement(null);
+    }
+  }
 
   async function loadProfile() {
     setProfileLoading(true);
@@ -499,9 +512,27 @@ export default function StudentDashboard() {
       )}
 
       {activeTab === 'overview' && (
-        <StudentDataProvider>
-          <OverviewSection />
-        </StudentDataProvider>
+        <>
+          {placement && (
+            <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-xs p-5 flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <h2 className="text-sm font-bold text-slate-900 dark:text-slate-100">My Internship Placement</h2>
+                <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">
+                  {companies.find((c) => String(c.id) === String(placement.companyId))?.name
+                    || `Company #${placement.companyId}`}
+                  {' · University supervisor: '}
+                  {placement.universitySupervisor || 'Pending assignment'}
+                </p>
+              </div>
+              <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-bold ${placement.status === 'CANCELLED' ? 'bg-rose-50 text-rose-700 border border-rose-200' : placement.status === 'ACTIVE' || placement.status === 'ASSIGNED' || placement.status === 'COMPLETED' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-amber-50 text-amber-700 border border-amber-200'}`}>
+                {placement.status}
+              </span>
+            </div>
+          )}
+          <StudentDataProvider>
+            <OverviewSection />
+          </StudentDataProvider>
+        </>
       )}
       {activeTab === 'profile' && renderProfile()}
       {activeTab === 'learning-institute' && <LearningInstituteSection />}

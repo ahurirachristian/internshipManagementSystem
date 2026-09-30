@@ -32,6 +32,7 @@ import UnitCoursesManagement from './components/dashboards/UnitCoursesManagement
 import RequestRolePage from './components/dashboards/RequestRolePage';
 import AdminRoleRequestsPage from './components/dashboards/AdminRoleRequestsPage';
 import UniversityPeoplePage from './components/dashboards/UniversityPeoplePage';
+import UniversityPlacementsPage from './components/dashboards/UniversityPlacementsPage';
 import DashboardLayout from './components/DashboardLayout';
 import './App.css';
 
@@ -205,6 +206,14 @@ function AppRoutes() {
         element={
           <ProtectedRoute roles={["ADMIN", "SUPERVISOR"]}>
             <UniversityDashboard />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/university/placements"
+        element={
+          <ProtectedRoute roles={["ADMIN", "SUPERVISOR"]}>
+            <UniversityPlacementsPage />
           </ProtectedRoute>
         }
       />

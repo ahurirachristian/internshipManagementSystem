@@ -1,6 +1,7 @@
 package com.example.demo.placement;
 
 import java.util.List;
+import java.util.Map;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -14,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import com.example.demo.audit.AuditLogService;
+import com.example.demo.auth.UserEntity;
 import com.example.demo.auth.UserRepository;
 import com.example.demo.student.StudentRepository;
 import com.example.demo.supervisor.IndustrialSupervisorRepository;
@@ -23,22 +25,25 @@ import com.example.demo.student.Student;
 
 @RestController
 @RequestMapping("/api/placements")
-@PreAuthorize("hasAnyAuthority('ADMIN', 'SUPERVISOR')")
+@PreAuthorize("hasAnyAuthority('ADMIN', 'SUPERVISOR', 'COMPANY')")
 public class PlacementController {
 
     private final PlacementService placementService;
+    private final PlacementPipelineService pipelineService;
     private final AuditLogService auditLogService;
     private final UniversitySupervisorRepository universitySupervisorRepository;
     private final IndustrialSupervisorRepository industrialSupervisorRepository;
     private final UserRepository userRepository;
     private final StudentRepository studentRepository;
 
-    public PlacementController(PlacementService placementService, AuditLogService auditLogService,
+    public PlacementController(PlacementService placementService, PlacementPipelineService pipelineService,
+            AuditLogService auditLogService,
             UniversitySupervisorRepository universitySupervisorRepository,
             IndustrialSupervisorRepository industrialSupervisorRepository,
             UserRepository userRepository,
             StudentRepository studentRepository) {
         this.placementService = placementService;
+        this.pipelineService = pipelineService;
         this.auditLogService = auditLogService;
         this.universitySupervisorRepository = universitySupervisorRepository;
         this.industrialSupervisorRepository = industrialSupervisorRepository;
@@ -125,12 +130,92 @@ public class PlacementController {
         return ResponseEntity.ok(placement);
     }
 
+    /**
+     * P7: a COMPANY caller posts an offer ({studentId, offerNote}) — status
+     * OFFERED with the companyId forced from the session (L8). ADMIN keeps
+     * the legacy direct-creation path.
+     */
     @PostMapping
-    public ResponseEntity<Placement> createPlacement(@RequestBody Placement placement, Principal principal) {
+    public ResponseEntity<?> createPlacement(@RequestBody Map<String, Object> body, Principal principal) {
+        UserEntity actor = currentUser(principal);
+        if (actor != null && "COMPANY".equals(actor.getRole().name())) {
+            Long studentId = longValue(body.get("studentId"));
+            if (studentId == null) {
+                return ResponseEntity.badRequest().body(Map.of("error", "A student is required."));
+            }
+            Placement saved = pipelineService.createOffer(actor, studentId,
+                    body.get("offerNote") == null ? null : body.get("offerNote").toString());
+            return ResponseEntity.status(HttpStatus.CREATED).body(saved);
+        }
+
+        Placement placement = new Placement();
+        placement.setStudentId(longValue(body.get("studentId")));
+        placement.setCompanyId(longValue(body.get("companyId")));
+        placement.setUniversitySupervisor(string(body.get("universitySupervisor")));
+        placement.setCompanySupervisor(string(body.get("companySupervisor")));
+        placement.setUniversitySupervisorId(longValue(body.get("universitySupervisorId")));
+        placement.setCompanySupervisorId(longValue(body.get("companySupervisorId")));
+        String status = string(body.get("status"));
+        if (status == null || status.isBlank()) {
+            // Legacy binding kept the entity default when the field was absent.
+            placement.setStatus(Placement.Status.PENDING);
+        } else {
+            try {
+                placement.setStatus(Placement.Status.valueOf(status.trim().toUpperCase()));
+            } catch (IllegalArgumentException ex) {
+                return ResponseEntity.badRequest().body(Map.of("error", "Unknown status: " + status));
+            }
+        }
         resolveSupervisorIds(placement);
         Placement saved = placementService.create(placement);
-        auditLogService.log(principal != null ? principal.getName() : "system", "ADMIN", "CREATE", "Placement", "Created placement for student ID: " + saved.getStudentId() + " at company ID: " + saved.getCompanyId(), null);
+        auditLogService.log(actor != null ? actor.getUsername() : "system",
+                actor != null ? actor.getRole().name() : "ADMIN", "CREATE", "Placement",
+                "Created placement for student ID: " + saved.getStudentId()
+                        + " at company ID: " + saved.getCompanyId(), null);
         return ResponseEntity.status(HttpStatus.CREATED).body(saved);
+    }
+
+    /** P7 (R9): university approves an offer — status ASSIGNED + 3 notifications. */
+    @PostMapping("/{id}/approve")
+    @PreAuthorize("hasAnyAuthority('SUPERVISOR', 'ADMIN')")
+    public ResponseEntity<?> approvePlacement(@PathVariable Long id, @RequestBody Map<String, Object> body,
+            Principal principal) {
+        UserEntity actor = currentUser(principal);
+        Long supervisorId = longValue(body.get("universitySupervisorId"));
+        if (supervisorId == null) {
+            return ResponseEntity.badRequest().body(Map.of("error", "A university supervisor is required."));
+        }
+        return ResponseEntity.ok(pipelineService.approve(actor, id, supervisorId));
+    }
+
+    /** P7 (R9): university declines an offer — status CANCELLED. */
+    @PostMapping("/{id}/reject")
+    @PreAuthorize("hasAnyAuthority('SUPERVISOR', 'ADMIN')")
+    public ResponseEntity<?> rejectPlacement(@PathVariable Long id, Principal principal) {
+        UserEntity actor = currentUser(principal);
+        return ResponseEntity.ok(pipelineService.reject(actor, id));
+    }
+
+    private UserEntity currentUser(Principal principal) {
+        if (principal == null) {
+            return null;
+        }
+        return userRepository.findByUsername(principal.getName()).orElse(null);
+    }
+
+    private String string(Object value) {
+        return value == null ? null : value.toString();
+    }
+
+    private Long longValue(Object value) {
+        if (value == null || value.toString().isBlank()) {
+            return null;
+        }
+        try {
+            return Long.parseLong(value.toString().trim());
+        } catch (NumberFormatException ex) {
+            return null;
+        }
     }
 
     @PutMapping("/{id}")
