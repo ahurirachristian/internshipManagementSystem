@@ -7,6 +7,27 @@
   background-color: #f4f7f6;
 }
 
+/* Chart palette. The JS mirror lives in src/charts/colors.js — SVG fill/stroke
+   attributes and recharts Cell fills cannot read CSS variables reliably, so both
+   sides are kept in sync deliberately. */
+:root {
+  --chart-1: #0d9488;
+  --chart-2: #f59e0b;
+  --chart-3: #059669;
+  --chart-4: #e11d48;
+  --chart-5: #0284c7;
+  --chart-6: #7c3aed;
+  --chart-track: #e2e8f0;
+  --chart-text: #0f172a;
+  --chart-muted: #64748b;
+}
+
+.dark {
+  --chart-track: #1e293b;
+  --chart-text: #e2e8f0;
+  --chart-muted: #94a3b8;
+}
+
 * {
   box-sizing: border-box;
 }

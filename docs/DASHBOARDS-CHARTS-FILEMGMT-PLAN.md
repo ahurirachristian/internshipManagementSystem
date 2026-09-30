@@ -56,20 +56,25 @@ PC1 only needs to extract from `OverviewSection.js`; PC1/PC5 do not need to touc
 
 ### 0.2 What is MISSING on fred (the actual gaps)
 
-1. **Chart CSS** — `origin/Chris:…/App.css` and `origin/developer:…/App.css` each contain
-   **32** matching selector rules spanning **lines 396–1003** (`.card-panel`, `.progress-chart*`,
-   `.grouped-bar*`, `.donut-*`, `.swatch*`, plus adjacent chart rules to ~1014). **fred has 0**
-   (`grep -cE '\.progress-chart|\.donut-|\.grouped-bar|\.swatch|\.card-panel' App.css` → 0).
-   → The charts render unstyled today. This is the single biggest visible gap.
+1. **Chart color tokens** — there is no palette behind the charts. `origin/Chris:App.css` and
+   `origin/developer:App.css` each carry **32** rules for a `.progress-chart*` / `.donut-*` /
+   `.grouped-bar*` / `.swatch*` markup spanning lines 396–1003, and fred's `App.css` has **0** of
+   those selectors — but **that is not a defect**: those rules style a class-name-based
+   implementation that only exists in Chris's and developer's `StudentDashboard.js`. fred's
+   `OverviewSection.js` is pure Tailwind and **all 143 of its literal classes are emitted in the
+   built CSS** (verified against `build/static/css/main.*.css`), so the charts already render
+   correctly. The genuine gap is **17 hardcoded hexes inside SVG attributes, recharts fills, and
+   chart chrome** in `OverviewSection.js` and `UniversityDashboard.js`, none of which respond to
+   the dark-mode toggle. PC1 fixes that and leaves the 32 rules behind.
 2. **Conflict-free chart reference** — `origin/Chris:…/StudentDashboard.js` is 933 lines with
    **12 committed merge-conflict markers** (6 hunks, `<<<<<<<` at lines 3/431/483/623/838/891)
    and **cannot build**. `origin/developer:…/StudentDashboard.js` is 518 lines with **0 markers**.
    Since fred's `OverviewSection.js` is already the clean version of the same work, developer is
    reference-only; there is nothing to port from either file.
-3. **No color token system for charts** — `UniversityDashboard.js:68` hardcodes
-   `['#0d9488', '#f59e0b', '#8b5cf6', …]`. There is no `src/charts/` directory, and the only CSS
-   token blocks are in `index.css` and `riho.css`. Hand-rolled SVG charts in `OverviewSection.js`
-   hardcode their own hexes.
+3. **No color token system for charts** — there is no `src/charts/` directory, and the only CSS
+   token blocks are in `index.css` and `riho.css`. `UniversityDashboard.js:68` hardcoded a local
+   `CHART_COLORS` array, `OverviewSection.js` hardcoded its own `STATUS_COLORS`, and both used
+   raw `isDark ? '#…' : '#…'` ternaries for grid, tick, tooltip, and axis colors. Resolved in PC1.
 4. **Real data for the student charts** — `src/data/tasksData.js` generates 1,000 fake tasks with
    no IMS meaning. `StudentDataContext.js:14` calls `generateTasks(1000, 2026)` on every mount.
    Its only consumer is `StudentDataContext`. Needs real diary aggregation (PC2).
@@ -145,24 +150,42 @@ Reviewed-vs-awaiting-review semantic pair: emerald-600 = reviewed, amber-500 = a
 
 ## 2. Phase plan (execute in order; each phase = branch → gates → footer-free commit → ff-merge)
 
-### PC1 — Chart foundations (tokens + CSS + shared module)  ·  branch `port/pc1-chart-foundations`
+### PC1 — Chart foundations (tokens + shared module)  ·  branch `port/pc1-chart-foundations`
+**Scope correction, verified during implementation**: the earlier draft of this plan assumed fred's
+charts were unstyled and that porting the 32 `.progress-chart*` rules from
+`origin/Chris:App.css` was the fix. That is false. Those rules style a **class-name-based**
+implementation that only exists in Chris's and developer's `StudentDashboard.js`; fred's
+`OverviewSection.js` is pure Tailwind, and **all 143 of its literal classes are emitted in the
+built CSS** (verified against `build/static/css/main.*.css`). Porting the rules would have added
+~200 lines of dead CSS. The real gap is **17 hardcoded hexes in SVG attributes, recharts fills,
+and chart chrome that never respond to the dark-mode toggle**. PC1 therefore does:
+
 1. Add a dedicated `--chart-*` token block to `App.css` with light and `.dark` variants, and create
-   `src/charts/colors.js` exporting `CHART`, `STATUS_COLORS` (reviewed/awaiting), `TRACK`, `TEXT`.
-   Rewire `UniversityDashboard.js:68` `CHART_COLORS` to import from it.
-2. Port the 32 selector rules from `origin/Chris:App.css` lines 396–1003 (`.card-panel`,
-   `.progress-chart*`, `.grouped-bar*` if kept, `.donut-*`, `.swatch*`) **rewritten onto the
-   tokens** — replace every hardcoded hex (`#e2e8f0`, `#0f172a`, `#16a34a`, …) and add dark-mode
-   rules. Exclude `.file-management*` / `.storage-bar` (PC3 scope).
-3. Move the chart components out of `OverviewSection.js` into `src/charts/ProgressCharts.jsx`
-   exporting `Legend`, `StatusHeadings`, `StackedBarChart`, `DonutChart`, `LineChart` — minus
-   `GroupedBarChart`. Add: container-measured `LineChart` width (one `ResizeObserver`),
-   `role="img"` + descriptive `aria-label` on each SVG, token-driven colors, number formatting.
-   `OverviewSection.js` imports from `src/charts/`; `StudentDashboard.js` is untouched.
-4. Keep `tasksData` feeding the charts unchanged in this phase (data swap is PC2) — purely visual
+   `src/charts/colors.js` exporting `CHART`, `CHART_DARK`, `STATUS_COLORS`, `STATUS_COLORS_DARK`,
+   `TRACK`, `TEXT`, `MUTED`, `SERIES`, plus `chartTheme()`, `chartColor()`, `seriesColor()`.
+   The JS mirror exists because SVG `fill`/`stroke` and recharts `<Cell fill=>` cannot reliably
+   read CSS custom properties.
+2. Create `src/charts/ProgressCharts.jsx` exporting `Legend`, `StatusHeadings`,
+   `StackedBarChart`, `DonutChart`, `LineChart` — minus `GroupedBarChart`. Changes vs the inline
+   originals: charts take a `statuses` array and sum rows generically, so PC2 can change the
+   status vocabulary without another rewrite; `DonutChart` accepts arbitrary `entries` so PC4's
+   offers funnel reuses it; colors and track/tick/text resolve through `chartTheme(isDark)`;
+   `role="img"` + descriptive `aria-label` on each SVG; `LineChart` measures its own width with one
+   `ResizeObserver` instead of a hardcoded 560px viewBox; day labels abbreviate so six columns fit
+   narrow screens; the stacked-bar background gets a dark-mode variant.
+3. `OverviewSection.js` imports from `src/charts/` and drops its four local chart definitions
+   (420 → 195 lines). Its dark-mode gradient backgrounds and axis text now follow the theme.
+4. `UniversityDashboard.js` drops the local `CHART_COLORS` array and its seven `isDark ? '#…' : '#…'`
+   ternaries, routing all 24 hexes through `chartColor()`, `seriesColor()`, and `chartTheme()`.
+   Dark mode now has a real palette instead of only swapping grid and tick colors.
+5. Keep `tasksData` feeding the charts unchanged in this phase (data swap is PC2) — purely visual
    and structural, so a regression here is unambiguous.
-5. **Gates**: build ≤9 warnings (must not grow); backend suite still 136 green; visual check at
-   390/768/1920 in light and dark mode (charts styled, legend readable, donut center legible).
-   **Commit**: `fix(dashboards): style progress charts with shared design tokens (PC1)`
+6. **Verified gates**: build `Compiled with warnings`, **9 warnings, unchanged and all pre-existing**;
+   backend suite **136 green**; frontend **2 suites / 8 tests** green; all 259 literal classes in
+   the new and edited files confirmed emitted in the built CSS; `--chart-*` tokens present in the
+   built stylesheet; eslint clean on every touched file (the one remaining warning,
+   `UniversityDashboard.js:109`, is pre-existing and untouched).
+   **Commit**: `fix(dashboards): route charts through shared palette and extract chart module (PC1)`
 
 ### PC2 — Real data behind the student charts  ·  branch `port/pc2-real-chart-data`
 1. Rewrite `StudentDataContext` to aggregate **real diary data**:
@@ -275,7 +298,7 @@ commits: `for c in $(git rev-list origin/fred..fred); do git cat-file commit $c 
 
 | Risk | Mitigation |
 |---|---|
-| CSS port drags in light-only hexes → dark mode regressions | PC1 rewrites every rule onto tokens; visual matrix includes dark mode |
+| A hand-rolled hex survives the token pass → dark mode regression | PC1 verified zero remaining hexes in both chart files, and 9 warnings unchanged |
 | Diary-derived buckets disagree with chart prop shapes | PC1 removes `GroupedBarChart` first, so PC2 changes one prop contract, not two |
 | `""` supervisor comment misread as "reviewed" | PC2 tests trimmed non-empty, pinned by test |
 | Document read scoping needs a migration with no live DB access | PC3a is its own branch and its own decision; no UI work starts before it lands |

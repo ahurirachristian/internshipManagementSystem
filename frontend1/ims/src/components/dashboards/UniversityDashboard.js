@@ -4,6 +4,7 @@ import DashboardLayout from '../DashboardLayout';
 import StudentEditModal from '../StudentEditModal';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
+import { chartColor, chartTheme, seriesColor } from '../../charts/colors';
 import {
   deleteStudent,
   fetchUniversityStudents,
@@ -64,8 +65,6 @@ const emptyAssignForm = {
   uniSupervisorId: '',
   indSupervisorId: '',
 };
-
-const CHART_COLORS = ['#0d9488', '#f59e0b', '#8b5cf6', '#e11d48', '#0ea5e9', '#84cc16', '#f97316', '#14b8a6'];
 
 export default function UniversityDashboard() {
   const { user } = useAuth();
@@ -954,18 +953,19 @@ export default function UniversityDashboard() {
     ];
     const hasScores = scoreRadar.some((d) => d.value > 0);
 
-    const chartGrid = isDark ? '#1e293b' : '#e2e8f0';
-    const chartTick = isDark ? '#94a3b8' : '#64748b';
+    const theme = chartTheme(isDark);
+    const chartGrid = theme.track;
+    const chartTick = theme.muted;
     const chartTickProps = { fontSize: 12, fill: chartTick };
     const chartTooltipStyle = {
-      backgroundColor: isDark ? '#0f172a' : '#ffffff',
-      border: `1px solid ${isDark ? '#1e293b' : '#e2e8f0'}`,
-      color: isDark ? '#e2e8f0' : '#0f172a',
+      backgroundColor: theme.surface,
+      border: `1px solid ${theme.track}`,
+      color: theme.text,
       borderRadius: '8px',
       fontSize: '12px',
     };
-    const chartLabelStyle = { color: isDark ? '#e2e8f0' : '#0f172a' };
-    const chartLegendStyle = { color: isDark ? '#cbd5e1' : '#334155' };
+    const chartLabelStyle = { color: theme.text };
+    const chartLegendStyle = { color: theme.label };
 
     const card = (title, subtitle, children) => (
       <section className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs p-5">
@@ -990,7 +990,7 @@ export default function UniversityDashboard() {
                   <XAxis dataKey="year" tick={chartTickProps} />
                   <YAxis allowDecimals={false} tick={chartTickProps} />
                   <Tooltip contentStyle={chartTooltipStyle} labelStyle={chartLabelStyle} />
-                  <Bar dataKey="count" fill="#0d9488" radius={[6, 6, 0, 0]} />
+                  <Bar dataKey="count" fill={seriesColor('primary', isDark)} radius={[6, 6, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             ) : empty('No student data yet')
@@ -1001,7 +1001,7 @@ export default function UniversityDashboard() {
               <ResponsiveContainer width="100%" height={240}>
                 <PieChart>
                   <Pie data={byGender} dataKey="count" nameKey="gender" cx="50%" cy="50%" outerRadius={90} label>
-                    {byGender.map((_, i) => <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />)}
+                    {byGender.map((_, i) => <Cell key={i} fill={chartColor(i, isDark)} />)}
                   </Pie>
                   <Tooltip contentStyle={chartTooltipStyle} labelStyle={chartLabelStyle} />
                   <Legend wrapperStyle={chartLegendStyle} />
@@ -1021,8 +1021,8 @@ export default function UniversityDashboard() {
                   <YAxis allowDecimals={false} tick={chartTickProps} />
                   <Tooltip contentStyle={chartTooltipStyle} labelStyle={chartLabelStyle} />
                   <Legend wrapperStyle={chartLegendStyle} />
-                  <Bar dataKey="count" name="Total" fill="#f59e0b" radius={[6, 6, 0, 0]} />
-                  <Bar dataKey="assigned" name="Placed" fill="#0d9488" radius={[6, 6, 0, 0]} />
+                  <Bar dataKey="count" name="Total" fill={seriesColor('accent', isDark)} radius={[6, 6, 0, 0]} />
+                  <Bar dataKey="assigned" name="Placed" fill={seriesColor('primary', isDark)} radius={[6, 6, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             ) : empty('No school data yet')
@@ -1036,7 +1036,7 @@ export default function UniversityDashboard() {
                   <XAxis type="number" allowDecimals={false} tick={chartTickProps} />
                   <YAxis type="category" dataKey="programme" width={150} tick={chartTickProps} />
                   <Tooltip contentStyle={chartTooltipStyle} labelStyle={chartLabelStyle} />
-                  <Bar dataKey="count" fill="#8b5cf6" radius={[0, 6, 6, 0]} />
+                  <Bar dataKey="count" fill={seriesColor('violet', isDark)} radius={[0, 6, 6, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             ) : empty('No programme data yet')
@@ -1052,7 +1052,7 @@ export default function UniversityDashboard() {
                   <XAxis type="number" allowDecimals={false} tick={chartTickProps} />
                   <YAxis type="category" dataKey="company" width={120} tick={chartTickProps} />
                   <Tooltip contentStyle={chartTooltipStyle} labelStyle={chartLabelStyle} />
-                  <Bar dataKey="interns" fill="#0ea5e9" radius={[0, 6, 6, 0]} />
+                  <Bar dataKey="interns" fill={seriesColor('sky', isDark)} radius={[0, 6, 6, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             ) : empty('No company data yet')
@@ -1063,7 +1063,7 @@ export default function UniversityDashboard() {
               <ResponsiveContainer width="100%" height={240}>
                 <PieChart>
                   <Pie data={placementPie} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={90} label>
-                    {placementPie.map((_, i) => <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />)}
+                    {placementPie.map((_, i) => <Cell key={i} fill={chartColor(i, isDark)} />)}
                   </Pie>
                   <Tooltip contentStyle={chartTooltipStyle} labelStyle={chartLabelStyle} />
                   <Legend wrapperStyle={chartLegendStyle} />
@@ -1077,7 +1077,7 @@ export default function UniversityDashboard() {
               <ResponsiveContainer width="100%" height={240}>
                 <PieChart>
                   <Pie data={diaryPie} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={90} label>
-                    {diaryPie.map((_, i) => <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />)}
+                    {diaryPie.map((_, i) => <Cell key={i} fill={chartColor(i, isDark)} />)}
                   </Pie>
                   <Tooltip contentStyle={chartTooltipStyle} labelStyle={chartLabelStyle} />
                   <Legend wrapperStyle={chartLegendStyle} />
@@ -1094,7 +1094,7 @@ export default function UniversityDashboard() {
                 <PolarGrid stroke={chartGrid} />
                 <PolarAngleAxis dataKey="metric" tick={chartTickProps} />
                 <PolarRadiusAxis angle={30} domain={[0, 10]} tick={chartTickProps} />
-                <Radar dataKey="value" stroke="#0d9488" fill="#0d9488" fillOpacity={0.4} />
+                <Radar dataKey="value" stroke={seriesColor('primary', isDark)} fill={seriesColor('primary', isDark)} fillOpacity={0.4} />
                 <Tooltip contentStyle={chartTooltipStyle} labelStyle={chartLabelStyle} />
               </RadarChart>
             </ResponsiveContainer>
