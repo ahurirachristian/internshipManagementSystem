@@ -450,6 +450,34 @@ export async function resetUserPassword(id) {
   return parseResponse(response);
 }
 
+// --- Company field supervisors (P6) ---
+
+export async function fetchCompanySupervisors() {
+  const response = await fetch(`${API_ROOT}/api/companies/me/supervisors`, {
+    credentials: 'include',
+  });
+  return parseResponse(response);
+}
+
+export async function createCompanySupervisor(payload) {
+  const response = await fetch(`${API_ROOT}/api/companies/me/supervisors`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+    body: JSON.stringify(payload),
+  });
+  return parseResponse(response);
+}
+
+// --- Vacancies (P6) ---
+
+export async function fetchVacancies() {
+  const response = await fetch(`${API_ROOT}/api/vacancies`, {
+    credentials: 'include',
+  });
+  return parseResponse(response);
+}
+
 export async function fetchUniversities() {
   const response = await fetch(`${API_ROOT}/api/universities`, {
     credentials: 'include',

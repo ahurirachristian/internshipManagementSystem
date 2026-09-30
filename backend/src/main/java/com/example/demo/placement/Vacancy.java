@@ -45,7 +45,7 @@ public class Vacancy {
     @NotNull(message = "Deadline is required")
     private LocalDate deadline;
 
-    @NotNull(message = "Created at is required")
+    /** Stamped server-side on save; not required from the client. */
     private LocalDate createdAt;
 
     public Vacancy() {

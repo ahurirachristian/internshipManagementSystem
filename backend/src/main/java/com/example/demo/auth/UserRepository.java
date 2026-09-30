@@ -20,4 +20,6 @@ public interface UserRepository extends JpaRepository<UserEntity, Long> {
     List<UserEntity> findByUniversityId(Long universityId);
 
     List<UserEntity> findByUniversityIdAndRole(Long universityId, Role role);
+
+    List<UserEntity> findByCompanyId(Long companyId);
 }

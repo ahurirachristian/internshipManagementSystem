@@ -15,6 +15,7 @@ import com.example.demo.auth.ManagedResetService;
 import com.example.demo.auth.UserEntity;
 import com.example.demo.auth.UserRepository;
 import com.example.demo.auth.UserRoleService;
+import com.example.demo.company.CompanyPeopleService;
 import com.example.demo.university.UniversityPeopleService;
 
 /**
@@ -30,23 +31,31 @@ public class UserManagementApiController {
     private final UserRoleService userRoleService;
     private final AuthorizationScopeService scopeService;
     private final UniversityPeopleService universityPeopleService;
+    private final CompanyPeopleService companyPeopleService;
 
     public UserManagementApiController(ManagedResetService managedResetService,
             UserRepository userRepository, UserRoleService userRoleService,
-            AuthorizationScopeService scopeService, UniversityPeopleService universityPeopleService) {
+            AuthorizationScopeService scopeService, UniversityPeopleService universityPeopleService,
+            CompanyPeopleService companyPeopleService) {
         this.managedResetService = managedResetService;
         this.userRepository = userRepository;
         this.userRoleService = userRoleService;
         this.scopeService = scopeService;
         this.universityPeopleService = universityPeopleService;
+        this.companyPeopleService = companyPeopleService;
     }
 
-    /** P2/L21: ADMIN anywhere; P5 adds university supervisors within their own university. */
+    /** P2/L21: ADMIN anywhere; P5 university supervisors within their own university; P6 companies for their own field supervisors. */
     @PostMapping("/{id}/reset")
-    @PreAuthorize("hasAnyAuthority('ADMIN', 'SUPERVISOR')")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'SUPERVISOR', 'COMPANY')")
     public ResponseEntity<?> resetPassword(@PathVariable Long id, Principal principal) {
         UserEntity actor = userRepository.findByUsername(principal.getName()).orElseThrow();
-        if (!scopeService.isAdminLike(actor)) {
+        if (scopeService.isAdminLike(actor)) {
+            // Admin anywhere.
+        } else if ("COMPANY".equals(actor.getRole().name())) {
+            // Own field supervisors only, never ADMIN/super-admin targets (L7).
+            companyPeopleService.requireOwnSupervisor(actor, id);
+        } else {
             // 404 across tenants, 403 for privileged targets, per L7.
             universityPeopleService.requireTarget(actor, id);
         }

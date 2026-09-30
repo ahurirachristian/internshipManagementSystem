@@ -5,7 +5,7 @@ import ExportButton from '../ExportButton';
 import DiaryReviewModal from '../DiaryReviewModal';
 import StudentEditModal from '../StudentEditModal';
 import { Modal } from '../ui/Modal';
-import { fetchDiaries, fetchStudents, updateStudent, deleteStudent } from '../../services/api';
+import { fetchDiaries, fetchStudents, updateStudent, deleteStudent, fetchVacancies, fetchCompanies } from '../../services/api';
 import {
   GraduationCap,
   BookOpen,
@@ -39,6 +39,8 @@ export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState('students');
   const [students, setStudents] = useState([]);
   const [diaries, setDiaries] = useState([]);
+  const [vacancies, setVacancies] = useState([]);
+  const [companies, setCompanies] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
@@ -48,11 +50,13 @@ export default function AdminDashboard() {
 
   useEffect(() => {
     let cancelled = false;
-    Promise.all([fetchStudents(), fetchDiaries()])
-      .then(([studentsData, diariesData]) => {
+    Promise.all([fetchStudents(), fetchDiaries(), fetchVacancies(), fetchCompanies()])
+      .then(([studentsData, diariesData, vacanciesData, companiesData]) => {
         if (cancelled) return;
         setStudents(studentsData);
         setDiaries(diariesData);
+        setVacancies(Array.isArray(vacanciesData) ? vacanciesData : []);
+        setCompanies(Array.isArray(companiesData) ? companiesData : []);
       })
       .catch((err) => {
         if (!cancelled) setError(err.message || 'Unable to load admin data.');
@@ -352,6 +356,102 @@ export default function AdminDashboard() {
     );
   }
 
+  function companyName(companyId) {
+    const company = companies.find((c) => String(c.id) === String(companyId));
+    return company ? company.name : `Company #${companyId}`;
+  }
+
+  const filteredVacancies = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase();
+    if (!q) return vacancies;
+    return vacancies.filter((vacancy) => {
+      const company = companyName(vacancy.companyId).toLowerCase();
+      return (
+        (vacancy.title || '').toLowerCase().includes(q) ||
+        company.includes(q) ||
+        (vacancy.location || '').toLowerCase().includes(q) ||
+        (vacancy.status || '').toLowerCase().includes(q)
+      );
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [vacancies, companies, searchQuery]);
+
+  function renderMarketplace() {
+    return (
+      <section className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs overflow-hidden">
+        <div className="px-5 py-4 border-b border-slate-200 dark:border-slate-800">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-emerald-50 border border-emerald-200 flex items-center justify-center text-emerald-700">
+              <Briefcase className="w-5 h-5" />
+            </div>
+            <div>
+              <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100">Internship Marketplace</h3>
+              <p className="text-[11px] text-slate-500 dark:text-slate-400">Vacancies published by companies across the system</p>
+            </div>
+          </div>
+        </div>
+        <div className="overflow-x-auto custom-scrollbar">
+          <table className="w-full text-left border-collapse" style={{ minWidth: '750px' }} aria-label="Internship vacancies">
+            <thead>
+              <tr className="border-b border-slate-200 dark:border-slate-800 bg-slate-50/90 dark:bg-slate-800/60 text-[11px] font-bold tracking-wider text-slate-800 dark:text-slate-200">
+                <th scope="col" className="py-3.5 px-3 pl-5">Vacancy</th>
+                <th scope="col" className="py-3.5 px-3">Company</th>
+                <th scope="col" className="py-3.5 px-3">Location</th>
+                <th scope="col" className="py-3.5 px-3">Deadline</th>
+                <th scope="col" className="py-3.5 px-3 pr-5">Status</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100 dark:divide-slate-800 text-sm">
+              {filteredVacancies.length > 0 ? (
+                filteredVacancies.map((vacancy) => (
+                  <tr key={vacancy.id} className="hover:bg-slate-50/80 dark:hover:bg-slate-800/60 transition-colors">
+                    <td className="py-3.5 px-3 pl-5">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center justify-center shrink-0 shadow-xs">
+                          <Briefcase className="w-4 h-4" />
+                        </div>
+                        <div>
+                          <div className="font-bold text-slate-900 dark:text-slate-100">{vacancy.title}</div>
+                          <div className="text-[11px] text-slate-500 dark:text-slate-400 max-w-[240px] truncate">{vacancy.description}</div>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="py-3.5 px-3 text-xs text-slate-600 dark:text-slate-400">{companyName(vacancy.companyId)}</td>
+                    <td className="py-3.5 px-3 text-xs text-slate-600 dark:text-slate-400">{vacancy.location || '—'}</td>
+                    <td className="py-3.5 px-3 text-xs text-slate-600 dark:text-slate-400">{formatDate(vacancy.deadline)}</td>
+                    <td className="py-3.5 px-3 pr-5">
+                      <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold ${vacancy.status === 'OPEN' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-slate-100 text-slate-600 border border-slate-200'}`}>
+                        {vacancy.status || '—'}
+                      </span>
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan={5} className="py-12 px-4 text-center">
+                    <div className="max-w-sm mx-auto flex flex-col items-center">
+                      <div className="w-12 h-12 rounded-full bg-slate-100 dark:bg-slate-700 border border-slate-200 dark:border-slate-800 flex items-center justify-center text-slate-400 mb-3">
+                        {searchQuery ? <Search className="w-6 h-6" /> : <Briefcase className="w-6 h-6" />}
+                      </div>
+                      <h3 className="text-base font-bold text-slate-800 dark:text-slate-200">
+                        {searchQuery ? 'No matching vacancies' : 'No vacancies published'}
+                      </h3>
+                      <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                        {searchQuery
+                          ? 'No vacancies match your search criteria.'
+                          : 'When companies publish vacancies, they appear here.'}
+                      </p>
+                    </div>
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </section>
+    );
+  }
+
   function renderSystem() {
     const controls = [
       { to: '/company', icon: Building2, title: 'Company Management', desc: 'Add, edit, and manage company profiles and locations.' },
@@ -406,6 +506,12 @@ export default function AdminDashboard() {
           label: 'Day Diary Logs',
           icon: 'fa-book-open',
           count: stats.totalDiaryEntries,
+        },
+        {
+          id: 'marketplace',
+          label: 'Marketplace',
+          icon: 'fa-briefcase',
+          count: vacancies.length,
         },
         {
           id: 'system',
@@ -485,6 +591,7 @@ export default function AdminDashboard() {
 
             {activeTab === 'students' && renderStudents()}
             {activeTab === 'diaries' && renderDiaries()}
+            {activeTab === 'marketplace' && renderMarketplace()}
             {activeTab === 'system' && renderSystem()}
           </>
         )}
