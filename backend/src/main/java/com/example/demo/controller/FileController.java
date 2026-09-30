@@ -1,7 +1,9 @@
 package com.example.demo.controller;
 
+import com.example.demo.auth.UserEntity;
 import com.example.demo.document.Document;
 import com.example.demo.document.DocumentRepository;
+import com.example.demo.document.DocumentScopeService;
 import com.example.demo.document.FileStorageService;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -10,6 +12,7 @@ import java.security.Principal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
@@ -42,28 +45,24 @@ public class FileController {
 
     private final DocumentRepository documentRepository;
     private final FileStorageService fileStorageService;
+    private final DocumentScopeService documentScope;
 
-    public FileController(DocumentRepository documentRepository, FileStorageService fileStorageService) {
+    public FileController(DocumentRepository documentRepository, FileStorageService fileStorageService,
+            DocumentScopeService documentScope) {
         this.documentRepository = documentRepository;
         this.fileStorageService = fileStorageService;
+        this.documentScope = documentScope;
     }
 
+    /**
+     * PC3a (L7): the list is filtered to the caller's institution. Documents with
+     * no resolvable institution stay ADMIN-only, so they are absent here for
+     * everyone else rather than leaking into another tenant's list.
+     */
     @GetMapping
-    public List<Map<String, Object>> getAllFiles() {
-        return documentRepository.findAll().stream()
-                .map(doc -> {
-                    Map<String, Object> map = new java.util.HashMap<>();
-                    map.put("id", doc.getId());
-                    map.put("fileName", doc.getFileName());
-                    map.put("originalFileName", doc.getOriginalFileName());
-                    map.put("contentType", doc.getContentType());
-                    map.put("fileSize", doc.getFileSize());
-                    map.put("category", doc.getCategory());
-                    map.put("uploadedBy", doc.getUploadedBy());
-                    map.put("uploadDate", doc.getUploadDate() != null ? doc.getUploadDate().toString() : null);
-                    map.put("filePath", doc.getFilePath());
-                    return map;
-                })
+    public List<Map<String, Object>> getAllFiles(Principal principal) {
+        return documentScope.visibleTo(documentScope.current(principal)).stream()
+                .map(FileController::toSummary)
                 .collect(Collectors.toList());
     }
 
@@ -96,7 +95,11 @@ public class FileController {
     public ResponseEntity<?> uploadFile(
             @RequestParam("file") MultipartFile file,
             @RequestParam("category") String category,
+            @RequestParam(value = "audience", required = false) String audience,
+            @RequestParam(value = "version", required = false) String version,
+            @RequestParam(value = "description", required = false) String description,
             Principal principal) {
+        UserEntity actor = documentScope.current(principal);
         try {
             String storedFileName = fileStorageService.storeFile(file);
 
@@ -111,23 +114,20 @@ public class FileController {
             document.setContentType(file.getContentType());
             document.setFileSize(file.getSize());
             document.setCategory(category);
-            document.setUploadedBy(principal == null ? null : principal.getName());
+            document.setUploadedBy(actor.getUsername());
             document.setUploadDate(LocalDateTime.now());
             document.setFilePath(fileDownloadUri);
             document.setFileData(file.getBytes());
+            document.setAudience(blankToNull(audience));
+            document.setVersion(blankToNull(version));
+            document.setDescription(blankToNull(description));
+            // A document is scoped to the uploader's own institution so it is
+            // immediately visible to that institution and to nobody else.
+            document.setUniversityId(actor.getUniversityId());
+            document.setCompanyId(actor.getCompanyId());
 
             Document saved = documentRepository.save(document);
-            Map<String, Object> body = new java.util.HashMap<>();
-            body.put("id", saved.getId());
-            body.put("fileName", saved.getFileName());
-            body.put("originalFileName", saved.getOriginalFileName());
-            body.put("contentType", saved.getContentType());
-            body.put("fileSize", saved.getFileSize());
-            body.put("category", saved.getCategory());
-            body.put("uploadedBy", saved.getUploadedBy());
-            body.put("uploadDate", saved.getUploadDate() != null ? saved.getUploadDate().toString() : null);
-            body.put("filePath", saved.getFilePath());
-            return ResponseEntity.status(HttpStatus.CREATED).body(body);
+            return ResponseEntity.status(HttpStatus.CREATED).body(toSummary(saved));
         } catch (IOException ex) {
             Map<String, String> errorBody = new java.util.HashMap<>();
             errorBody.put("error", "Could not upload file: " + ex.getMessage());
@@ -136,15 +136,46 @@ public class FileController {
         }
     }
 
+    /**
+     * PC3a (L7): deletes are still ADMIN/SUPERVISOR-only, and now additionally
+     * refuse rows outside the caller's institution. An out-of-scope id returns 404
+     * rather than 403 so ids cannot be probed across tenants.
+     */
     @DeleteMapping("/{id}")
     @PreAuthorize(CAN_UPLOAD)
-    public ResponseEntity<Void> deleteFile(@PathVariable Long id) {
-        Document document = documentRepository.findById(id).orElse(null);
-        if (document == null) {
+    public ResponseEntity<Void> deleteFile(@PathVariable Long id, Principal principal) {
+        UserEntity actor = documentScope.current(principal);
+        Optional<Document> visible = documentScope.findVisible(actor, id);
+        if (visible.isEmpty()) {
             return ResponseEntity.notFound().build();
         }
-        fileStorageService.deleteFile(document.getFileName());
+        fileStorageService.deleteFile(visible.get().getFileName());
         documentRepository.deleteById(id);
         return ResponseEntity.noContent().build();
+    }
+
+    private static Map<String, Object> toSummary(Document doc) {
+        Map<String, Object> map = new java.util.HashMap<>();
+        map.put("id", doc.getId());
+        map.put("fileName", doc.getFileName());
+        map.put("originalFileName", doc.getOriginalFileName());
+        map.put("contentType", doc.getContentType());
+        map.put("fileSize", doc.getFileSize());
+        map.put("category", doc.getCategory());
+        map.put("uploadedBy", doc.getUploadedBy());
+        map.put("uploadDate", doc.getUploadDate() != null ? doc.getUploadDate().toString() : null);
+        map.put("filePath", doc.getFilePath());
+        map.put("universityId", doc.getUniversityId());
+        map.put("companyId", doc.getCompanyId());
+        map.put("audience", doc.getAudience());
+        map.put("version", doc.getVersion());
+        map.put("description", doc.getDescription());
+        map.put("downloadCount", doc.getDownloadCount());
+        map.put("shared", doc.getShareToken() != null);
+        return map;
+    }
+
+    private static String blankToNull(String value) {
+        return value == null || value.isBlank() ? null : value.trim();
     }
 }

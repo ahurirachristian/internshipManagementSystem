@@ -11,9 +11,17 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.transaction.annotation.Transactional;
 
+/**
+ * Registered users are committed, so this class must roll back. Without it the
+ * shared H2 instance (DB_CLOSE_DELAY=-1) keeps the accounts for the rest of the
+ * JVM, and MigrationCatalogCountTest's absolute user count fails depending on
+ * whichever order surefire happens to pick.
+ */
 @SpringBootTest
 @AutoConfigureMockMvc
+@Transactional
 class AuthFlowIntegrationTest {
 
     @Autowired

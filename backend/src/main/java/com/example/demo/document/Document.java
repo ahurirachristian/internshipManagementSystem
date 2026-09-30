@@ -41,6 +41,35 @@ public class Document {
     @Column(nullable = false)
     private String filePath;
 
+    /**
+     * Institution scope (PC3a). Exactly one of these is normally set, matching
+     * the uploader's own UserEntity scope. A document with neither set is
+     * unscoped and readable by ADMIN only, which is also how pre-scope rows read
+     * until DocumentScopeBackfill resolves them.
+     */
+    @Column(name = "university_id", nullable = true)
+    private Long universityId;
+
+    @Column(name = "company_id", nullable = true)
+    private Long companyId;
+
+    /** Intended audience, e.g. STUDENTS, SUPERVISORS, STAFF. Free text for now. */
+    @Column(nullable = true)
+    private String audience;
+
+    @Column(nullable = true)
+    private String version;
+
+    @Column(length = 1000, nullable = true)
+    private String description;
+
+    @Column(nullable = false)
+    private Long downloadCount = 0L;
+
+    /** Opaque token for the public share link; null means the document is not shared. */
+    @Column(name = "share_token", nullable = true, unique = true, length = 64)
+    private String shareToken;
+
     @Lob
     @Column(nullable = false, columnDefinition = "LONGBLOB")
     private byte[] fileData;
@@ -139,5 +168,66 @@ public class Document {
 
     public void setFileData(byte[] fileData) {
         this.fileData = fileData;
+    }
+
+    public Long getUniversityId() {
+        return universityId;
+    }
+
+    public void setUniversityId(Long universityId) {
+        this.universityId = universityId;
+    }
+
+    public Long getCompanyId() {
+        return companyId;
+    }
+
+    public void setCompanyId(Long companyId) {
+        this.companyId = companyId;
+    }
+
+    public String getAudience() {
+        return audience;
+    }
+
+    public void setAudience(String audience) {
+        this.audience = audience;
+    }
+
+    public String getVersion() {
+        return version;
+    }
+
+    public void setVersion(String version) {
+        this.version = version;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public Long getDownloadCount() {
+        return downloadCount;
+    }
+
+    public void setDownloadCount(Long downloadCount) {
+        this.downloadCount = downloadCount;
+    }
+
+    public String getShareToken() {
+        return shareToken;
+    }
+
+    public void setShareToken(String shareToken) {
+        this.shareToken = shareToken;
+    }
+
+    /** True when neither institution is set, i.e. ADMIN-only until resolved. */
+    public boolean isUnscoped() {
+        return universityId == null && companyId == null;
     }
 }

@@ -111,10 +111,23 @@ ff-merged): uploads and deletes restricted to `ADMIN`/`SUPERVISOR`, `uploadedBy`
 principal, path traversal rejected by a storage-root containment check, upload directory bound to
 `file.upload-dir` with an OS-native default instead of the hardcoded `C:/ims_uploads/`, and
 `FileAccessScopeTest` (9 tests) covering role scoping, uploader identity, traversal, and storage
-location. **Residual gap, deliberately not closed:** reads (`GET /api/files`,
-`GET /api/files/view/{name}`) are still visible to any authenticated user. Institution- or
-owner-scoped reads need new `Document` fields plus a data migration, so it belongs to PC3 as an
-explicit decision, not a silent change.
+location.
+
+**Read scoping shipped in PC3a** (branch `port/pc3a-file-model`, ff-merged): the residual gap above
+is closed. `Document` gained nullable `universityId`/`companyId` plus `audience`, `version`,
+`description`, `downloadCount`, and `shareToken`. `GET /api/files` is filtered through
+`DocumentScopeService`, whose predicate lives in `DocumentRepository.findVisibleTo` so the list and
+single-document lookups cannot drift: ADMIN sees everything; everyone else sees their own
+university or company, plus rows they uploaded. Cross-institution deletes return 404, never 403, so
+ids cannot be probed. `DocumentScopeBackfill` resolves pre-scope rows from the uploader's account on
+boot and deliberately leaves unresolvable rows (deleted accounts, institution-less admins)
+unscoped rather than guessing them into the wrong tenant. `DocumentScopeTest` (11) and
+`DocumentScopeBackfillTest` (7) cover it.
+
+**PC3a also fixed a latent test-isolation defect:** `AuthFlowIntegrationTest` registered users
+without `@Transactional`, committing them into the shared H2 (`DB_CLOSE_DELAY=-1`) and breaking
+`MigrationCatalogCountTest`'s absolute user count whenever surefire picked a different class order.
+It now rolls back.
 
 ---
 
@@ -221,15 +234,26 @@ and chart chrome that never respond to the dark-mode toggle**. PC1 therefore doe
 This phase is split because the model gaps are the real blocker: the UI cannot be "wired to the
 real API" when the real API has none of the fields the UI already renders.
 
-**PC3a — Document model + read scoping** · branch `port/pc3a-file-model`
-1. Decide and implement **read scoping**. This is the open decision from §0.4: owner-scoped,
-   institution-scoped, or global-authenticated. Recommended: institution-scoped, which needs
-   `companyId`/`universityId` on `Document` plus a backfill migration for existing rows.
-2. Add the fields the UI already implies: `audience`, `version`, `description`, `downloadCount`,
-   `shareToken` (nullable share link). Keep `fileData` LOB as-is — removing it is a separate
-   storage decision, not chart work.
-3. Extend `DocumentRepository` with the scoped queries the chosen policy needs; add
-   `DocumentScopeTest` proving company A cannot read company B's documents.
+**PC3a — Document model + read scoping** · branch `port/pc3a-file-model` — **DONE**
+1. **Read scoping decided and implemented: institution-scoped** (the recommendation from §0.4).
+   `Document` carries nullable `universityId`/`companyId`; new uploads are stamped from the
+   authenticated uploader's own `UserEntity`. ADMIN reads everything; everyone else reads their own
+   university or company plus their own uploads.
+2. Fields the UI already implies added: `audience`, `version`, `description`, `downloadCount`
+   (defaults to 0), `shareToken` (nullable, unique). `fileData` LOB kept as-is — removing it is a
+   separate storage decision, not chart work.
+3. `DocumentRepository.findVisibleTo` / `findVisibleById` hold the predicate in one place;
+   `DocumentScopeService` is the only caller. Uploads accept `audience`/`version`/`description`
+   params, blank values stored as NULL. Deletes stay ADMIN/SUPERVISOR-only and now also refuse
+   other institutions' rows with **404** (matching the university-scope convention).
+4. `DocumentScopeBackfill` (idempotent `CommandLineRunner`, `@Order(45)`) resolves pre-scope rows
+   from the uploader's account. Unresolvable rows stay unscoped and ADMIN-only. No Flyway/Liquibase
+   exists and production uses `ddl-auto=update`, so additive nullable columns plus a startup backfill
+   is the reversible option; introducing a migration tool here would need the schema baselined first.
+5. `DocumentScopeTest` (11) covers university/company isolation, ADMIN, unscoped rows, the uploader
+   clause, cross-tenant delete → 404, and upload scoping. `DocumentScopeBackfillTest` (7) covers
+   resolution, unresolvable rows, no overwrite of already-scoped rows, idempotency, and defaults.
+   Backend **153 green** (136 + 17); frontend untouched at **3 suites / 16 tests**; build **9 warnings**.
 **Commit**: `feat(files): scope documents by institution and add file metadata (PC3a)`
 
 **PC3b — API + frontend wiring** · branch `port/pc3b-file-api-ui`
