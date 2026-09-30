@@ -12,16 +12,34 @@ export default function AuthShell({ children }) {
     if (!ctx) return;
     let width, height;
     let particles = [];
-    const particleCount = 220;
     let mouse = { x: null, y: null };
     const linkDistance = 120;
     const cursorLinkDistance = 100;
     let senseRadius = SENSE_RADIUS;
     let animationId;
 
+    // R10 (§8.4): particle count scales with viewport area — desktop keeps
+    // today's 220 cap, mobile drops to a floor of 40.
+    const MIN_PARTICLES = 40;
+    const MAX_PARTICLES = 220;
+    const targetCount = (w, h) =>
+      Math.min(MAX_PARTICLES, Math.max(MIN_PARTICLES, Math.round((w * h) / 9000)));
+    const reducedMotion =
+      typeof window.matchMedia === 'function' &&
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    // Cursor field only on fine pointers — a touch-drag must not spawn it.
+    const finePointer =
+      typeof window.matchMedia === 'function' &&
+      window.matchMedia('(pointer: fine)').matches;
+    const dpr = window.devicePixelRatio || 1;
+
     function resize() {
-      width = canvas.width = canvas.offsetWidth;
-      height = canvas.height = canvas.offsetHeight;
+      width = canvas.offsetWidth;
+      height = canvas.offsetHeight;
+      canvas.width = Math.round(width * dpr);
+      canvas.height = Math.round(height * dpr);
+      // Keep all math in CSS px while staying crisp on retina.
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     }
 
     class Particle {
@@ -39,15 +57,45 @@ export default function AuthShell({ children }) {
       }
     }
 
-    function init() {
-      resize();
-      particles = [];
-      for (let i = 0; i < particleCount; i++) {
+    function spawnAdditional(count) {
+      for (let i = 0; i < count; i++) {
         particles.push(new Particle());
       }
     }
 
-    function animate() {
+    function init() {
+      resize();
+      particles = [];
+      spawnAdditional(targetCount(width, height));
+    }
+
+    /** R10: all particles are interchangeable — grow by spawning, shrink by splicing. */
+    function recomputePopulation() {
+      const target = targetCount(width, height);
+      if (target > particles.length) {
+        spawnAdditional(target - particles.length);
+      } else if (target < particles.length) {
+        particles.splice(target);
+      }
+      // Dev-only visibility of the live count (§8.4 gate).
+      if (process.env.NODE_ENV === 'development') {
+        // eslint-disable-next-line no-console
+        console.log(`[particles] ${particles.length} (${width}x${height})`);
+      }
+    }
+
+    let resizeTimer;
+    function handleResize() {
+      resize();
+      particles.forEach((p) => {
+        if (p.x > width) p.x = width;
+        if (p.y > height) p.y = height;
+      });
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(recomputePopulation, 200);
+    }
+
+    function paint() {
       ctx.clearRect(0, 0, width, height);
       const hasCursor = mouse.x !== null;
 
@@ -135,7 +183,10 @@ export default function AuthShell({ children }) {
       for (let i = 0; i < particles.length; i++) {
         particles[i].update();
       }
+    }
 
+    function animate() {
+      paint();
       animationId = requestAnimationFrame(animate);
     }
 
@@ -149,26 +200,40 @@ export default function AuthShell({ children }) {
         mouse.y = null;
       }
     }
-    function handleResize() {
-      resize();
-      particles.forEach((p) => {
-        if (p.x > width) p.x = width;
-        if (p.y > height) p.y = height;
-      });
+    // Battery: skip work while the tab is hidden.
+    function handleVisibility() {
+      if (document.hidden) {
+        cancelAnimationFrame(animationId);
+      } else if (!reducedMotion) {
+        cancelAnimationFrame(animationId);
+        animationId = requestAnimationFrame(animate);
+      }
     }
 
-    window.addEventListener('mousemove', handleMouseMove);
-    window.addEventListener('mouseout', handleMouseOut);
     window.addEventListener('resize', handleResize);
+    document.addEventListener('visibilitychange', handleVisibility);
+    if (finePointer) {
+      window.addEventListener('mousemove', handleMouseMove);
+      window.addEventListener('mouseout', handleMouseOut);
+    }
 
     init();
-    animate();
+    if (reducedMotion) {
+      // Accessibility: one static frame, no animation loop.
+      paint();
+    } else {
+      animate();
+    }
 
     return () => {
       cancelAnimationFrame(animationId);
-      window.removeEventListener('mousemove', handleMouseMove);
-      window.removeEventListener('mouseout', handleMouseOut);
+      clearTimeout(resizeTimer);
       window.removeEventListener('resize', handleResize);
+      document.removeEventListener('visibilitychange', handleVisibility);
+      if (finePointer) {
+        window.removeEventListener('mousemove', handleMouseMove);
+        window.removeEventListener('mouseout', handleMouseOut);
+      }
     };
   }, []);
 
