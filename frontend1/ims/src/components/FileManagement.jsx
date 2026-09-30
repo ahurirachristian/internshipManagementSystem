@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, useMemo } from 'react';
+import { useCallback, useEffect, useRef, useState, useMemo } from 'react';
 import {
   FileText,
   FileSpreadsheet,
@@ -37,12 +37,18 @@ import { FilterTabs } from './ui/FilterTabs';
 import { Avatar } from './ui/Avatar';
 import { EmptyState } from './ui/EmptyState';
 import { Modal } from './ui/Modal';
+import {
+  API_ROOT,
+  fetchDocuments,
+  fetchDocumentUsage,
+  deleteDocument,
+  updateDocumentShare,
+  uploadDocument,
+} from '../services/api';
 
 // ---------------------------------------------------------------------------
 // Constants
 // ---------------------------------------------------------------------------
-
-const STORAGE_KEY = 'ims.fileManagement.documents';
 
 const CATEGORIES = [
   { name: 'Logbook Templates', color: '#14b8a6', desc: 'Weekly logbook formats for student daily activity records.' },
@@ -61,16 +67,6 @@ const MAX_SIZE_MB = 25;
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
-
-function loadDocuments() {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    const parsed = raw ? JSON.parse(raw) : [];
-    return Array.isArray(parsed) ? parsed : [];
-  } catch {
-    return [];
-  }
-}
 
 function formatDate(dateString) {
   if (!dateString) return '—';
@@ -93,10 +89,6 @@ function formatFileSize(bytes) {
   if (!bytes || bytes <= 0) return '—';
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)} KB`;
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
-}
-
-function makeId() {
-  return Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
 }
 
 // ---------------------------------------------------------------------------
@@ -127,7 +119,7 @@ function Toast({ message, onDone }) {
 // UploadDocumentCard
 // ---------------------------------------------------------------------------
 
-function UploadDocumentCard({ onAddDocument, currentUser }) {
+function UploadDocumentCard({ onAddDocument }) {
   const [category, setCategory] = useState(CATEGORY_NAMES[0]);
   const [selectedFile, setSelectedFile] = useState(null);
   const [customTitle, setCustomTitle] = useState('');
@@ -163,59 +155,41 @@ function UploadDocumentCard({ onAddDocument, currentUser }) {
     if (e.dataTransfer.files?.length > 0) handleFileSelect(e.dataTransfer.files[0]);
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!selectedFile) {
       setErrorMessage('Please select or drop a valid document to upload.');
       return;
     }
+    setErrorMessage(null);
+    setSuccessMessage(null);
     setIsUploading(true);
-    setUploadProgress(10);
+    setUploadProgress(0);
 
-    const reader = new FileReader();
-    reader.onload = () => {
-      const interval = setInterval(() => {
-        setUploadProgress((prev) => {
-          if (prev >= 90) { clearInterval(interval); return 95; }
-          return prev + 25;
-        });
-      }, 120);
-
-      setTimeout(() => {
-        clearInterval(interval);
-        setUploadProgress(100);
-
-        const sizeBytes = selectedFile.size;
-
-        const doc = {
-          id: makeId(),
-          name: customTitle.trim() || selectedFile.name,
-          originalFilename: selectedFile.name,
+    try {
+      await uploadDocument(
+        selectedFile,
+        {
           category,
-          uploadedBy: currentUser?.username || 'Unknown',
-          date: new Date().toISOString(),
-          dataUrl: reader.result,
-          size: formatFileSize(sizeBytes),
-          sizeBytes,
-          fileType: guessFileType(selectedFile.name),
-          downloads: 0,
-          description: description.trim() || `Official ${category} uploaded for internship compliance.`,
           audience,
-          version: version || '1.0',
-          verified: true
-        };
-
-        onAddDocument(doc);
-        setIsUploading(false);
-        setSelectedFile(null);
-        setCustomTitle('');
-        setDescription('');
-        setVersion('1.0');
-        setSuccessMessage(`"${doc.name}" has been uploaded and published to ${audience} audience.`);
-        if (fileInputRef.current) fileInputRef.current.value = '';
-      }, 700);
-    };
-    reader.readAsDataURL(selectedFile);
+          version,
+          description: description.trim() || `Official ${category} uploaded for internship compliance.`,
+        },
+        setUploadProgress
+      );
+      setUploadProgress(100);
+      await onAddDocument();
+      setSelectedFile(null);
+      setCustomTitle('');
+      setDescription('');
+      setVersion('1.0');
+      setSuccessMessage(`"${selectedFile.name}" has been uploaded and published to ${audience} audience.`);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    } catch (error) {
+      setErrorMessage(error.message || 'Upload failed. Please try again.');
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   const getFileIcon = (fileName) => {
@@ -407,19 +381,20 @@ function UploadDocumentCard({ onAddDocument, currentUser }) {
 // StorageAnalyticsCard
 // ---------------------------------------------------------------------------
 
-function StorageAnalyticsCard({ documents, onFilterByCategory, selectedCategory }) {
-  const maxStorageBytes = 500 * 1024 * 1024;
-  const totalUsedBytes = documents.reduce((sum, doc) => sum + (doc.sizeBytes || 0), 0);
-  const totalDownloads = documents.reduce((sum, doc) => sum + (doc.downloads || 0), 0);
+function StorageAnalyticsCard({ documents, usage, onFilterByCategory, selectedCategory }) {
+  const totalUsedBytes = usage?.totalBytes ?? documents.reduce((sum, doc) => sum + (doc.fileSize || 0), 0);
+  const totalDownloads = usage?.totalDownloads ?? documents.reduce((sum, doc) => sum + (doc.downloadCount || 0), 0);
   const usedMB = (totalUsedBytes / (1024 * 1024)).toFixed(2);
-  const maxMB = (maxStorageBytes / (1024 * 1024)).toFixed(0);
-  const quotaPercent = Math.min(100, (totalUsedBytes / maxStorageBytes) * 100);
+  const sharedCount = documents.filter((doc) => doc.shared).length;
 
+  // Proportional bar against the documents actually present. There is no server
+  // storage quota, so the old hardcoded 500 MB "LocalStorage quota" and the
+  // "Encrypted in browser (Base64)" claim were both fiction and are gone.
   const categoryStats = useMemo(() => {
     return CATEGORIES.map((cat) => {
       const matching = documents.filter((d) => d.category === cat.name);
-      const catBytes = matching.reduce((acc, d) => acc + (d.sizeBytes || 0), 0);
-      const catDownloads = matching.reduce((acc, d) => acc + (d.downloads || 0), 0);
+      const catBytes = matching.reduce((acc, d) => acc + (d.fileSize || 0), 0);
+      const catDownloads = matching.reduce((acc, d) => acc + (d.downloadCount || 0), 0);
       return {
         category: cat.name,
         color: cat.color,
@@ -436,32 +411,31 @@ function StorageAnalyticsCard({ documents, onFilterByCategory, selectedCategory 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
         <KpiCard
           title="Active Documents"
-          value={documents.length}
-          period="Institutional templates &amp; guides"
+          value={usage?.documentCount ?? documents.length}
+          period="Visible to your institution"
           icon="FileText"
           badgeColor="teal"
           change="Live"
         />
         <KpiCard
           title="Total Downloads"
-          value={totalDownloads.toLocaleString()}
-          period="By students, faculty &amp; hosts"
+          value={Number(totalDownloads || 0).toLocaleString()}
+          period="Recorded server-side"
           icon={Download}
           badgeColor="blue"
         />
         <KpiCard
           title="Storage Consumed"
           value={`${usedMB} MB`}
-          period={`of ${maxMB} MB LocalStorage quota`}
+          period="Across all documents you can read"
           icon="HardDrive"
           badgeColor="emerald"
-          progress={Math.round((usedMB / Math.max(1, maxMB)) * 100)}
         />
         <KpiCard
-          title="Integrity &amp; Trust"
-          value="Encrypted"
-          period="Secured in browser (Base64)"
-          icon={ShieldCheck}
+          title="Share Links Active"
+          value={sharedCount}
+          period={sharedCount > 0 ? 'Publicly reachable by token' : 'None shared yet'}
+          icon="ShieldCheck"
           badgeColor="purple"
         />
       </div>
@@ -479,12 +453,12 @@ function StorageAnalyticsCard({ documents, onFilterByCategory, selectedCategory 
           </div>
           <div className="text-right shrink-0">
             <span className="text-xs font-bold text-slate-900 dark:text-slate-100">{usedMB} MB used</span>
-            <span className="text-xs text-slate-500 dark:text-slate-400"> ({quotaPercent.toFixed(1)}% quota)</span>
+            <span className="text-xs text-slate-500 dark:text-slate-400"> across {documents.length} documents</span>
           </div>
         </div>
 
         {totalUsedBytes > 0 && (
-          <div className="w-full h-3 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden flex shadow-inner mb-3.5" role="progressbar" aria-label="Storage allocation by category" aria-valuenow={Math.round(quotaPercent)} aria-valuemin={0} aria-valuemax={100}>
+          <div className="w-full h-3 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden flex shadow-inner mb-3.5" role="progressbar" aria-label="Storage allocation by category" aria-valuenow={100} aria-valuemin={0} aria-valuemax={100}>
             {categoryStats.map((item) => {
               const segWidth = (item.sizeBytes / totalUsedBytes) * 100;
               return (
@@ -541,7 +515,7 @@ function StorageAnalyticsCard({ documents, onFilterByCategory, selectedCategory 
 // DocumentListTable
 // ---------------------------------------------------------------------------
 
-function DocumentListTable({ documents, activeCategory, onCategoryChange, searchQuery, onSearchChange, onDownload, onPreview, onDelete, onShare, onRequestBulkDelete, onResetFilters, onSeedSample, canUpload, onUploadClick }) {
+function DocumentListTable({ documents, activeCategory, onCategoryChange, searchQuery, onSearchChange, onDownload, onPreview, onDelete, onShare, onRequestBulkDelete, onResetFilters, canUpload, onUploadClick }) {
   const [selectedIds, setSelectedIds] = useState([]);
 
   const isAllSelected = documents.length > 0 && documents.every((d) => selectedIds.includes(d.id));
@@ -560,7 +534,7 @@ function DocumentListTable({ documents, activeCategory, onCategoryChange, search
   };
 
   const handleDeleteOne = (doc) => {
-    if (window.confirm(`Delete "${doc.name}" from repository?`)) {
+    if (window.confirm(`Delete "${doc.originalFileName}" from repository?`)) {
       onDelete(doc.id);
       setSelectedIds((prev) => prev.filter((id) => id !== doc.id));
     }
@@ -619,16 +593,6 @@ function DocumentListTable({ documents, activeCategory, onCategoryChange, search
       icon={FolderClosed}
       actions={
         <div className="flex items-center gap-2">
-          {documents.length === 0 && onSeedSample && (
-            <button
-              type="button"
-              onClick={onSeedSample}
-              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors shadow-xs"
-            >
-              <Sparkles className="w-3.5 h-3.5" />
-              <span>Load Official Templates</span>
-            </button>
-          )}
           {canUpload && (
             <button
               type="button"
@@ -704,7 +668,7 @@ function DocumentListTable({ documents, activeCategory, onCategoryChange, search
             {documents.length > 0 ? (
               documents.map((doc) => {
                 const isSelected = selectedIds.includes(doc.id);
-                const ft = doc.fileType || guessFileType(doc.name);
+                const ft = guessFileType(doc.originalFileName);
                 const tile = getIconTile(ft);
                 const IconComponent = tile.icon;
 
@@ -745,19 +709,14 @@ function DocumentListTable({ documents, activeCategory, onCategoryChange, search
                               onClick={() => onPreview(doc)}
                               className="font-semibold text-slate-800 dark:text-slate-100 block truncate max-w-xs hover:text-teal-700 transition-colors focus-visible:underline focus-visible:outline-none"
                             >
-                              {doc.name}
+                              {doc.originalFileName}
                             </button>
                             <span className="text-[10px] font-semibold px-1.5 py-0.2 rounded bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-800 shrink-0">
                               v{doc.version || '1.0'}
                             </span>
-                            {doc.verified !== false && (
-                              <span className="text-emerald-600 dark:text-emerald-400 shrink-0" title="Institutionally verified">
-                                <ShieldCheck className="w-3.5 h-3.5" />
-                              </span>
-                            )}
                           </div>
                           <span className="text-[11px] text-slate-400 font-mono">
-                            .{(doc.fileType || guessFileType(doc.name) || 'FILE').toUpperCase()} · {doc.downloads || 0} downloads
+                            .{guessFileType(doc.originalFileName).toUpperCase()} · {doc.downloadCount || 0} downloads
                           </span>
                         </div>
                       </div>
@@ -770,7 +729,7 @@ function DocumentListTable({ documents, activeCategory, onCategoryChange, search
                     </td>
 
                     <td className="px-4 py-3.5 font-mono text-slate-700 dark:text-slate-300">
-                      {doc.size || formatFileSize(doc.sizeBytes)}
+                      {formatFileSize(doc.fileSize)}
                     </td>
 
                     <td className="px-4 py-3.5">
@@ -786,7 +745,7 @@ function DocumentListTable({ documents, activeCategory, onCategoryChange, search
                     </td>
 
                     <td className="px-4 py-3.5 text-slate-500 dark:text-slate-400 text-[11px]">
-                      {formatDate(doc.date)}
+                      {formatDate(doc.uploadDate)}
                     </td>
 
                     <td className="px-4 py-3.5">
@@ -874,8 +833,10 @@ function DocumentPreviewModal({ document: doc, onClose, onDownload }) {
 
   if (!doc) return null;
 
+  // Copies the real public share URL, and only when one exists.
   const handleCopyLink = () => {
-    navigator.clipboard?.writeText(window.location.href);
+    if (!doc?.shared || !doc?.shareToken) return;
+    navigator.clipboard?.writeText(`${API_ROOT}/api/files/share/${doc.shareToken}`);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
@@ -884,21 +845,21 @@ function DocumentPreviewModal({ document: doc, onClose, onDownload }) {
     <Modal
       isOpen={!!doc}
       onClose={onClose}
-      title={doc.name}
-      subtitle={`${doc.originalFilename || doc.name} — ${doc.category}`}
+      title={doc.originalFileName}
+      subtitle={`${doc.originalFileName} — ${doc.category}`}
       maxWidth="max-w-3xl"
       footer={
         <div className="w-full flex flex-col sm:flex-row items-center justify-between gap-3">
           <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
             <Clock className="w-4 h-4 text-slate-400" />
-            <span>Published on {formatDate(doc.date)}</span>
+            <span>Published on {formatDate(doc.uploadDate)}</span>
           </div>
           <div className="flex items-center gap-2.5 w-full sm:w-auto">
             <button type="button" onClick={handleCopyLink} className="flex-1 sm:flex-none px-3.5 py-2 rounded-xl bg-white dark:bg-slate-900 hover:bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-semibold border border-slate-300 dark:border-slate-700 transition-colors flex items-center justify-center gap-1.5 shadow-xs">
-              {copied ? <><Check className="w-4 h-4 text-emerald-600" /><span>Link Copied!</span></> : <><Share2 className="w-4 h-4" /><span>Share Link</span></>}
+              {copied ? <><Check className="w-4 h-4 text-emerald-600" /><span>Link Copied!</span></> : <><Share2 className="w-4 h-4" /><span>{doc.shared ? 'Copy Share Link' : 'Not Shared'}</span></>}
             </button>
             <button type="button" onClick={() => onDownload(doc)} className="flex-1 sm:flex-none px-4 py-2 rounded-xl bg-primary hover:bg-primary text-white text-xs font-bold transition-all flex items-center justify-center gap-1.5 shadow-sm">
-              <Download className="w-4 h-4" /><span>Download ({doc.size || '—'})</span>
+              <Download className="w-4 h-4" /><span>Download ({formatFileSize(doc.fileSize)})</span>
             </button>
           </div>
         </div>
@@ -912,7 +873,7 @@ function DocumentPreviewModal({ document: doc, onClose, onDownload }) {
           </div>
           <div>
             <span className="text-slate-500 dark:text-slate-400 font-medium block">File Size</span>
-            <span className="font-bold text-slate-900 dark:text-slate-100">{doc.size || '—'}</span>
+            <span className="font-bold text-slate-900 dark:text-slate-100">{formatFileSize(doc.fileSize)}</span>
           </div>
           <div>
             <span className="text-slate-500 dark:text-slate-400 font-medium block">Audience</span>
@@ -920,7 +881,7 @@ function DocumentPreviewModal({ document: doc, onClose, onDownload }) {
           </div>
           <div>
             <span className="text-slate-500 dark:text-slate-400 font-medium block">Downloads</span>
-            <span className="font-bold text-slate-900 dark:text-slate-100">{doc.downloads || 0} times</span>
+            <span className="font-bold text-slate-900 dark:text-slate-100">{doc.downloadCount || 0} times</span>
           </div>
         </div>
 
@@ -937,7 +898,7 @@ function DocumentPreviewModal({ document: doc, onClose, onDownload }) {
               <span>REPUBLIC OF UGANDA — INTERNSHIP PORTAL</span>
               <span>DOC REF: {(doc.id || '').toUpperCase()}</span>
             </div>
-            <h1 className="text-lg font-bold text-slate-900 dark:text-slate-100 uppercase tracking-tight text-center py-2">{doc.name}</h1>
+            <h1 className="text-lg font-bold text-slate-900 dark:text-slate-100 uppercase tracking-tight text-center py-2">{doc.originalFileName}</h1>
             <p className="text-xs text-slate-600 dark:text-slate-400 text-center italic">Faculty Academic Affairs &amp; Industrial Training Board</p>
           </div>
           <div className="py-4 space-y-2 text-xs text-slate-600 dark:text-slate-400">
@@ -964,7 +925,10 @@ export default function FileManagement() {
   const { user } = useAuth();
   const canUpload = user?.role === 'ADMIN' || user?.role === 'SUPERVISOR';
 
-  const [documents, setDocuments] = useState(loadDocuments);
+  const [documents, setDocuments] = useState([]);
+  const [usage, setUsage] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('ALL');
   const [previewDoc, setPreviewDoc] = useState(null);
@@ -973,13 +937,27 @@ export default function FileManagement() {
   const [isUploadOpen, setIsUploadOpen] = useState(false);
   const [toastMessage, setToastMessage] = useState(null);
 
-  useEffect(() => {
+  /**
+   * Single reload path, mirroring UniversityStudents.jsx. The server is the only
+   * source of truth now: every mutation calls this rather than patching local
+   * state, so a rejected write can never leave the list showing a phantom row.
+   */
+  const loadData = useCallback(async () => {
+    setError('');
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(documents));
-    } catch {
-      setToastMessage('Storage is full. Some documents could not be saved.');
+      const [docs, usageStats] = await Promise.all([fetchDocuments(), fetchDocumentUsage()]);
+      setDocuments(Array.isArray(docs) ? docs : []);
+      setUsage(usageStats || null);
+    } catch (loadError) {
+      setError(loadError.message || 'Could not load documents.');
+    } finally {
+      setIsLoading(false);
     }
-  }, [documents]);
+  }, []);
+
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
 
   const showToast = (msg) => {
     setToastMessage(msg);
@@ -990,73 +968,114 @@ export default function FileManagement() {
       const matchCat = selectedCategory === 'ALL' || doc.category === selectedCategory;
       const q = searchQuery.trim().toLowerCase();
       const matchSearch = q === '' ||
-        (doc.name || '').toLowerCase().includes(q) ||
+        (doc.originalFileName || '').toLowerCase().includes(q) ||
         (doc.category || '').toLowerCase().includes(q) ||
         (doc.uploadedBy || '').toLowerCase().includes(q) ||
-        (doc.originalFilename || '').toLowerCase().includes(q) ||
-        (doc.description || '').toLowerCase().includes(q);
+        (doc.description || '').toLowerCase().includes(q) ||
+        (doc.audience || '').toLowerCase().includes(q) ||
+        (doc.version || '').toLowerCase().includes(q);
       return matchCat && matchSearch;
     });
   }, [documents, selectedCategory, searchQuery]);
 
-  const handleAddDocument = (doc) => {
-    setDocuments((prev) => [doc, ...prev]);
-    showToast(`"${doc.name}" uploaded successfully.`);
+  const handleDeleteDocument = async (id) => {
+    try {
+      await deleteDocument(id);
+      await loadData();
+      showToast('Document removed from repository.');
+    } catch (deleteError) {
+      showToast(deleteError.message || 'Could not delete that document.');
+    }
   };
 
-  const handleDeleteDocument = (id) => {
-    setDocuments((prev) => prev.filter((d) => d.id !== id));
-    showToast('Document removed from repository.');
-  };
-
-  const handleDownloadDocument = (doc) => {
-    setDocuments((prev) => prev.map((d) => d.id === doc.id ? { ...d, downloads: (d.downloads || 0) + 1 } : d));
+  /**
+   * The server counts the download, so the count shown afterwards comes from a
+   * reload rather than an optimistic local increment.
+   */
+  const handleDownloadDocument = async (doc) => {
+    const url = `${API_ROOT}/api/files/${doc.id}/download`;
+    const opened = window.open(url, '_blank', 'noopener');
+    if (!opened) {
+      // Popup blocked: fall back to a same-tab navigation so the click still works.
+      window.location.href = url;
+    }
+    try {
+      await loadData();
+    } catch {
+      // The file already downloaded; a refresh failure here is not worth a toast.
+    }
   };
 
   const handleShareDocument = (doc) => {
     setShareDoc(doc);
   };
 
-  const handleBulkDeleteConfirm = () => {
-    setDocuments((prev) => prev.filter((d) => !bulkDeleteIds.includes(d.id)));
-    showToast(`${bulkDeleteIds.length} document(s) removed from repository.`);
-    setBulkDeleteIds([]);
+  const handleToggleShare = async (doc, enabled) => {
+    try {
+      const result = await updateDocumentShare(doc.id, enabled);
+      await loadData();
+      setShareDoc((prev) => (prev ? {
+        ...prev,
+        shared: result.shared,
+        shareToken: result.shareToken || null,
+      } : prev));
+      showToast(result.shared ? 'Share link created.' : 'Share link revoked.');
+    } catch (shareError) {
+      showToast(shareError.message || 'Could not update the share link.');
+    }
   };
 
-  const handleSeedSample = () => {
-    const samples = [
-      { name: 'Weekly Student Logbook Template', category: 'Logbook Templates', audience: 'Students' },
-      { name: 'Mid-Term Evaluation Rubric', category: 'Evaluation Forms', audience: 'Supervisors' },
-      { name: 'Internship Programme Handbook 2026', category: 'Internship Guidelines', audience: 'All' },
-      { name: 'Standard MoU Template', category: 'MoU Agreements', audience: 'Supervisors' },
-      { name: 'Weekly Progress Report Format', category: 'Weekly Reports', audience: 'Students' },
-      { name: 'Final Appraisal Grading Sheet', category: 'Appraisal Sheets', audience: 'Supervisors' },
-    ];
-    const newDocs = samples.map((s) => ({
-      id: makeId(),
-      name: s.name,
-      originalFilename: `${s.name.replace(/\s+/g, '_').toLowerCase()}.pdf`,
-      category: s.category,
-      uploadedBy: user?.username || 'System',
-      date: new Date().toISOString(),
-      dataUrl: '#',
-      size: '—',
-      sizeBytes: 0,
-      fileType: 'pdf',
-      downloads: 0,
-      description: `Official ${s.category} template for the internship programme.`,
-      audience: s.audience,
-      version: '1.0',
-      verified: true
-    }));
-    setDocuments((prev) => [...newDocs, ...prev]);
-    showToast(`${newDocs.length} official templates loaded.`);
+  const handleBulkDeleteConfirm = async () => {
+    const ids = [...bulkDeleteIds];
+    setBulkDeleteIds([]);
+    try {
+      // Sequential rather than parallel: a bulk delete is destructive and each
+      // row must surface its own failure instead of racing.
+      for (const id of ids) {
+        await deleteDocument(id);
+      }
+      await loadData();
+      showToast(`${ids.length} document(s) removed from repository.`);
+    } catch (bulkError) {
+      await loadData();
+      showToast(bulkError.message || 'Some documents could not be removed.');
+    }
   };
 
   return (
     <DashboardLayout title="File Management" subtitle="Shared documents for the internship programme">
       <div className="space-y-6 max-w-7xl mx-auto">
         <Toast message={toastMessage} onDone={() => setToastMessage(null)} />
+
+        <div aria-live="polite" className="sr-only">
+          {error && `Error: ${error}`}
+          {isLoading && 'Loading documents.'}
+          {!isLoading && !error && `${documents.length} documents available.`}
+        </div>
+
+        {error && (
+          <div role="alert" className="p-3.5 bg-rose-50 border border-rose-200 rounded-xl flex items-center justify-between gap-3 text-rose-900 text-sm">
+            <div className="flex items-center gap-2.5">
+              <AlertCircle className="w-5 h-5 text-rose-600 shrink-0" />
+              <span className="font-medium">{error}</span>
+            </div>
+            <button
+              type="button"
+              onClick={loadData}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-rose-600 text-white text-xs font-semibold hover:bg-rose-700"
+            >
+              <RefreshCw className="w-3.5 h-3.5" /><span>Retry</span>
+            </button>
+          </div>
+        )}
+
+        {isLoading && (
+          <div className="space-y-3" aria-hidden="true">
+            {[0, 1, 2].map((row) => (
+              <div key={row} className="h-14 rounded-xl bg-slate-100 dark:bg-slate-800 animate-pulse" />
+            ))}
+          </div>
+        )}
 
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
@@ -1081,6 +1100,7 @@ export default function FileManagement() {
 
         <StorageAnalyticsCard
           documents={documents}
+          usage={usage}
           onFilterByCategory={setSelectedCategory}
           selectedCategory={selectedCategory}
         />
@@ -1097,7 +1117,6 @@ export default function FileManagement() {
           onShare={handleShareDocument}
           onRequestBulkDelete={(ids) => setBulkDeleteIds(ids)}
           onResetFilters={() => { setSelectedCategory('ALL'); setSearchQuery(''); }}
-          onSeedSample={handleSeedSample}
           canUpload={canUpload}
           onUploadClick={() => setIsUploadOpen(true)}
         />
@@ -1110,39 +1129,58 @@ export default function FileManagement() {
             subtitle="Publish logbook templates, evaluation forms, or internship guidelines"
             maxWidth="max-w-2xl"
           >
-            <UploadDocumentCard onAddDocument={(doc) => { handleAddDocument(doc); setIsUploadOpen(false); }} currentUser={user} />
+            <UploadDocumentCard onAddDocument={loadData} />
           </Modal>
         )}
 
         <Modal
           isOpen={!!shareDoc}
           onClose={() => setShareDoc(null)}
-          title="Share Secure Link"
-          subtitle={`Generate encrypted shareable URL for ${shareDoc?.name}`}
+          title="Share Document Link"
+          subtitle={shareDoc ? `Public link for ${shareDoc.originalFileName}` : ''}
           maxWidth="max-w-md"
           footer={
-            <button
-              type="button"
-              onClick={() => {
-                if (shareDoc) {
-                  navigator.clipboard?.writeText(`https://portal.ims.ac.ug/documents/${shareDoc.id}`);
-                  showToast(`Direct download link for "${shareDoc.name}" copied to clipboard!`);
-                }
-                setShareDoc(null);
-              }}
-              className="px-4 py-2 rounded-xl text-xs font-semibold bg-primary text-white shadow-xs"
-            >
-              Copy Link
-            </button>
+            <>
+              <button
+                type="button"
+                onClick={() => setShareDoc(null)}
+                className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"
+              >
+                Close
+              </button>
+              {shareDoc?.shared ? (
+                <button
+                  type="button"
+                  onClick={() => handleToggleShare(shareDoc, false)}
+                  className="px-4 py-2 rounded-xl text-xs font-semibold bg-rose-600 text-white shadow-xs hover:bg-rose-700"
+                >
+                  Revoke Link
+                </button>
+              ) : null}
+              <button
+                type="button"
+                onClick={() => handleToggleShare(shareDoc, true)}
+                className="px-4 py-2 rounded-xl text-xs font-semibold bg-primary text-white shadow-xs"
+              >
+                {shareDoc?.shared ? 'Regenerate Link' : 'Create Share Link'}
+              </button>
+            </>
           }
         >
           <div className="space-y-3 text-xs">
-            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300">
-              Share URL (Expires in 7 days)
-            </label>
-            <div className="flex items-center gap-2 p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 font-mono text-[11px] text-slate-600 dark:text-slate-300 select-all overflow-x-auto">
-              <span>{`https://portal.ims.ac.ug/documents/${shareDoc?.id || 'doc-token'}`}</span>
-            </div>
+            <p className="text-slate-600 dark:text-slate-400">
+              Anyone with the link can download this file without an IMS account. Revoking
+              disables the current link immediately.
+            </p>
+            {shareDoc?.shared && shareDoc?.shareToken ? (
+              <div className="flex items-center gap-2 p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 font-mono text-[11px] text-slate-600 dark:text-slate-300 select-all overflow-x-auto">
+                <span>{`${API_ROOT}/api/files/share/${shareDoc.shareToken}`}</span>
+              </div>
+            ) : (
+              <div className="p-2.5 rounded-xl bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900 font-mono text-[11px] text-amber-900 dark:text-amber-200">
+                No active share link. Create one to get a public URL.
+              </div>
+            )}
           </div>
         </Modal>
 

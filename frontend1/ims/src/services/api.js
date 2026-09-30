@@ -942,3 +942,83 @@ export async function markAllNotificationsRead() {
   });
   return parseResponse(response);
 }
+
+// --- Documents / file management (PC3b) ---
+
+export async function fetchDocuments() {
+  const response = await fetch(`${API_ROOT}/api/files`, {
+    credentials: 'include',
+  });
+  return parseResponse(response);
+}
+
+export async function fetchDocumentUsage() {
+  const response = await fetch(`${API_ROOT}/api/files/usage`, {
+    credentials: 'include',
+  });
+  return parseResponse(response);
+}
+
+export async function deleteDocument(id) {
+  const response = await fetch(`${API_ROOT}/api/files/${id}`, {
+    method: 'DELETE',
+    credentials: 'include',
+  });
+  return parseResponse(response);
+}
+
+/** Regenerate (enabled=true) or revoke (enabled=false) a share link. */
+export async function updateDocumentShare(id, enabled) {
+  const response = await fetch(`${API_ROOT}/api/files/${id}/share?enabled=${enabled}`, {
+    method: 'PATCH',
+    credentials: 'include',
+  });
+  return parseResponse(response);
+}
+
+/**
+ * Upload with real progress. fetch() cannot report upload progress, so this uses
+ * XMLHttpRequest and resolves with the created document.
+ */
+export function uploadDocument(file, { category, audience, version, description }, onProgress) {
+  return new Promise((resolve, reject) => {
+    const form = new FormData();
+    form.append('file', file);
+    form.append('category', category);
+    if (audience) form.append('audience', audience);
+    if (version) form.append('version', version);
+    if (description) form.append('description', description);
+
+    const xhr = new XMLHttpRequest();
+    xhr.open('POST', `${API_ROOT}/api/files`);
+    xhr.withCredentials = true;
+
+    if (xhr.upload) {
+      xhr.upload.onprogress = (event) => {
+        if (event.lengthComputable && typeof onProgress === 'function') {
+          onProgress(Math.round((event.loaded / event.total) * 100));
+        }
+      };
+    }
+
+    xhr.onload = () => {
+      let payload = null;
+      try {
+        payload = xhr.responseText ? JSON.parse(xhr.responseText) : null;
+      } catch {
+        payload = null;
+      }
+      if (xhr.status >= 200 && xhr.status < 300) {
+        resolve(payload);
+      } else {
+        const message = payload?.error || payload?.message || 'Upload failed';
+        const error = new Error(message);
+        error.status = xhr.status;
+        reject(error);
+      }
+    };
+
+    xhr.onerror = () => reject(new Error('Upload failed. Check your connection.'));
+    xhr.send(form);
+  });
+}

@@ -7,6 +7,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Lob;
+import jakarta.persistence.PostLoad;
 import jakarta.persistence.Table;
 
 @Entity
@@ -73,6 +74,14 @@ public class Document {
     @Lob
     @Column(nullable = false, columnDefinition = "LONGBLOB")
     private byte[] fileData;
+
+    /** PC3a added the nullable scope columns; ddl-auto=update backfills NULL here. */
+    @PostLoad
+    private void normalizeCounters() {
+        if (downloadCount == null) {
+            downloadCount = 0L;
+        }
+    }
 
     public Document() {
     }

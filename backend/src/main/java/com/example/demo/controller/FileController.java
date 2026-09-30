@@ -23,6 +23,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -66,8 +67,18 @@ public class FileController {
                 .collect(Collectors.toList());
     }
 
+    /**
+     * Inline preview. The stored name is a server-generated UUID, so this cannot
+     * be authorized by id — resolve it through the caller's scope first and
+     * answer 404 for anything they may not see.
+     */
     @GetMapping("/view/{fileName}")
-    public ResponseEntity<Resource> viewFile(@PathVariable String fileName) throws IOException {
+    public ResponseEntity<Resource> viewFile(@PathVariable String fileName, Principal principal) throws IOException {
+        UserEntity actor = documentScope.current(principal);
+        if (documentScope.findVisibleByFileName(actor, fileName).isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+
         Path filePath;
         try {
             filePath = fileStorageService.loadFile(fileName);
@@ -88,6 +99,130 @@ public class FileController {
                 .contentType(MediaType.parseMediaType(contentType))
                 .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + resource.getFilename() + "\"")
                 .body(resource);
+    }
+
+    /**
+     * PC3b: attachment download, which also records the download. Distinct from
+     * /view so a preview does not inflate the count the UI shows.
+     */
+    @GetMapping("/{id}/download")
+    public ResponseEntity<Resource> downloadFile(@PathVariable Long id, Principal principal) throws IOException {
+        UserEntity actor = documentScope.current(principal);
+        Optional<Document> visible = documentScope.findVisible(actor, id);
+        if (visible.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+        Document doc = visible.get();
+
+        Path filePath;
+        try {
+            filePath = fileStorageService.loadFile(doc.getFileName());
+        } catch (IllegalArgumentException ex) {
+            return ResponseEntity.badRequest().body(null);
+        }
+        if (!Files.isReadable(filePath)) {
+            return ResponseEntity.notFound().build();
+        }
+
+        doc.setDownloadCount((doc.getDownloadCount() == null ? 0L : doc.getDownloadCount()) + 1);
+        documentRepository.save(doc);
+
+        Resource resource = new UrlResource(filePath.toUri());
+        return ResponseEntity.ok()
+                .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                .header(HttpHeaders.CONTENT_DISPOSITION,
+                        "attachment; filename=\"" + sanitizeForHeader(doc.getOriginalFileName()) + "\"")
+                .body(resource);
+    }
+
+    /** Real usage: only what the caller can actually see. Never a quota fiction. */
+    @GetMapping("/usage")
+    public Map<String, Object> usage(Principal principal) {
+        UserEntity actor = documentScope.current(principal);
+        List<Document> visible = documentScope.visibleTo(actor);
+        long totalBytes = visible.stream()
+                .mapToLong(doc -> doc.getFileSize() == null ? 0L : doc.getFileSize())
+                .sum();
+        long totalDownloads = visible.stream()
+                .mapToLong(doc -> doc.getDownloadCount() == null ? 0L : doc.getDownloadCount())
+                .sum();
+
+        Map<String, Object> usage = new java.util.HashMap<>();
+        usage.put("documentCount", visible.size());
+        usage.put("totalBytes", totalBytes);
+        usage.put("totalDownloads", totalDownloads);
+        usage.put("byCategory", visible.stream()
+                .collect(Collectors.groupingBy(Document::getCategory,
+                        Collectors.collectingAndThen(Collectors.toList(), group -> {
+                            Map<String, Object> entry = new java.util.HashMap<>();
+                            long bytes = group.stream()
+                                    .mapToLong(doc -> doc.getFileSize() == null ? 0L : doc.getFileSize())
+                                    .sum();
+                            entry.put("count", group.size());
+                            entry.put("totalBytes", bytes);
+                            return entry;
+                        }))));
+        return usage;
+    }
+
+    /**
+     * PC3b: regenerate or revoke a share link. Regenerating invalidates the old
+     * token, which is the point — a leaked link must be revocable.
+     */
+    @PatchMapping("/{id}/share")
+    @PreAuthorize(CAN_UPLOAD)
+    public ResponseEntity<?> updateShare(@PathVariable Long id,
+            @RequestParam(value = "enabled", defaultValue = "true") boolean enabled,
+            Principal principal) {
+        UserEntity actor = documentScope.current(principal);
+        Optional<Document> visible = documentScope.findVisible(actor, id);
+        if (visible.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+        Document doc = visible.get();
+        doc.setShareToken(enabled ? java.util.UUID.randomUUID().toString().replace("-", "") : null);
+        Document saved = documentRepository.save(doc);
+        return ResponseEntity.ok(Map.of("id", saved.getId(), "shared", saved.getShareToken() != null,
+                "shareToken", saved.getShareToken() == null ? "" : saved.getShareToken()));
+    }
+
+    /**
+     * PC3b: public, token-addressed access. No authentication by design — the
+     * method-level permitAll overrides the class-level isAuthenticated().
+     */
+    @GetMapping("/share/{token}")
+    @PreAuthorize("permitAll()")
+    public ResponseEntity<Resource> sharedFile(@PathVariable String token) throws IOException {
+        Optional<Document> found = documentRepository.findByShareToken(token);
+        if (found.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+        Document doc = found.get();
+
+        Path filePath;
+        try {
+            filePath = fileStorageService.loadFile(doc.getFileName());
+        } catch (IllegalArgumentException ex) {
+            return ResponseEntity.badRequest().build();
+        }
+        if (!Files.isReadable(filePath)) {
+            return ResponseEntity.notFound().build();
+        }
+
+        Resource resource = new UrlResource(filePath.toUri());
+        return ResponseEntity.ok()
+                .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                .header(HttpHeaders.CONTENT_DISPOSITION,
+                        "attachment; filename=\"" + sanitizeForHeader(doc.getOriginalFileName()) + "\"")
+                .body(resource);
+    }
+
+    /** Strip CR/LF and quotes so a filename cannot inject extra headers. */
+    private static String sanitizeForHeader(String name) {
+        if (name == null || name.isBlank()) {
+            return "download";
+        }
+        return name.replaceAll("[\\r\\n\"]", "_");
     }
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)

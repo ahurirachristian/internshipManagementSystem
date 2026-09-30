@@ -58,4 +58,13 @@ public class DocumentScopeService {
         return documentRepository.findVisibleById(id, isAdmin(actor), actor.getUniversityId(),
                 actor.getCompanyId(), actor.getUsername());
     }
+
+    /**
+     * Filename-keyed variant, for the preview endpoint which is addressed by the
+     * stored name rather than the id. Same 404-not-403 contract.
+     */
+    public Optional<Document> findVisibleByFileName(UserEntity actor, String fileName) {
+        return documentRepository.findVisibleByFileName(fileName, isAdmin(actor), actor.getUniversityId(),
+                actor.getCompanyId(), actor.getUsername());
+    }
 }

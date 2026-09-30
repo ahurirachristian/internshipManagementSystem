@@ -256,16 +256,41 @@ real API" when the real API has none of the fields the UI already renders.
    Backend **153 green** (136 + 17); frontend untouched at **3 suites / 16 tests**; build **9 warnings**.
 **Commit**: `feat(files): scope documents by institution and add file metadata (PC3a)`
 
-**PC3b — API + frontend wiring** · branch `port/pc3b-file-api-ui`
-4. Add `PATCH /api/files/{id}` (share link regeneration), `GET /api/files/{id}/download` (bumps
-   `downloadCount`), `GET /api/files/usage` (real count + aggregate size — never a fake
-   "100 GB plan"), `GET /api/files/share/{token}` (public token access).
-5. Replace every `localStorage` read/write in `FileManagement.jsx` with `src/services/api.js` calls;
-   mirror the `useState` + `useEffect` + `loadData()` pattern used in `UniversityStudents.jsx`
-   so the a11y warning class doesn't grow. Upload keeps real progress via `XMLHttpRequest`.
-6. Preserve every existing behavior: upload, download, download-count bump, share-link copy,
-   search, category filter, audience badges.
-**Commit**: `feat(files): replace local storage with real documents api (PC3b)`
+**PC3b — API + frontend wiring** · branch `port/pc3b-file-api-ui` — **DONE**
+4. Endpoints added, all inheriting PC3a's scope rules:
+   - `GET /api/files/{id}/download` — streams the file as an attachment **and** increments
+     `downloadCount` server-side. Distinct from `/view` so a preview does not inflate the count.
+   - `GET /api/files/usage` — real `documentCount`, `totalBytes`, `totalDownloads`, and a
+     per-category breakdown, computed only over rows the caller can see.
+   - `PATCH /api/files/{id}/share?enabled=` — creates, regenerates, or revokes the token.
+     Regenerating invalidates the previous token, so a leaked link is revocable.
+   - `GET /api/files/share/{token}` — public, token-addressed download for recipients with no
+     IMS account. `permitAll` in `SecurityConfig` plus method-level `@PreAuthorize("permitAll()")`
+     to override the class-level `isAuthenticated()`.
+   - `GET /api/files/view/{name}` was closed too: the preview endpoint was still unscoped, so it
+     now resolves the stored name through the same visibility predicate. `DocumentScopeService`
+     grew `findVisibleByFileName` so this stays O(1) rather than scanning every visible row.
+5. `FileManagement.jsx` rewritten off `localStorage`:
+   - `useState` + `useEffect` + `loadData()` per `UniversityStudents.jsx`, with loading skeletons,
+     an error banner and a retry button, and an `aria-live` region.
+   - Every mutation (delete, bulk delete, share toggle, upload) calls `loadData()` rather than
+     patching local state, so a rejected write cannot leave a phantom row on screen.
+   - Upload keeps real progress via `XMLHttpRequest` — `fetch` cannot report upload progress.
+   - Download opens `/api/files/{id}/download` (with a `window.open`-blocked fallback) and reloads
+     so the displayed count is the server's.
+   - `api.js` gained `fetchDocuments`, `fetchDocumentUsage`, `deleteDocument`,
+     `updateDocumentShare`, and `uploadDocument`.
+6. **Fiction removed** rather than ported. The card claimed "of 500 MB LocalStorage quota" and
+   "Encrypted — Secured in browser (Base64)" against a hardcoded `maxStorageBytes`; neither was
+   real. Usage now comes from the endpoint and the bar is proportional to actual documents. The
+   "Load Official Templates" button, which fabricated six fake rows client-side, is gone. The
+   fabricated preview document body ("Page 1 of 4", fixed Section 1/2 boilerplate, "Integrity
+   Verified") is left to PC3c, which is where the preview becomes real bytes.
+   `Document.normalizeCounters()` (`@PostLoad`) keeps `downloadCount` non-null on rows that
+   `ddl-auto=update` created as NULL.
+7. Preserved: upload, download, count bump, share-link copy, search, category filter, audience
+   badges. `FileApiTest` (17) and `documentApi.test.js` (8) added. Backend **170 green**;
+   frontend **5 suites / 28 tests**; build **9 warnings, unchanged**.
 
 **PC3c — Layout** · branch `port/pc3c-file-layout`
 7. Port `.file-management*` / `.storage-bar` CSS from `origin/Chris:App.css` onto tokens + dark

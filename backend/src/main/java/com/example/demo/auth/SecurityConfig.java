@@ -88,6 +88,10 @@ public class SecurityConfig {
                         "/api/roles", "/api/universities/options", "/favicon.ico"
                 ).permitAll()
                 .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/companies", "/api/supervisors").permitAll()
+                // PC3b: a share link is addressed by an unguessable token precisely so
+                // recipients outside the institution can open it. The token is the
+                // credential; the DocumentScopeService check does not apply here.
+                .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/files/share/*").permitAll()
                 .anyRequest().authenticated()
             )
             .logout(logout -> logout

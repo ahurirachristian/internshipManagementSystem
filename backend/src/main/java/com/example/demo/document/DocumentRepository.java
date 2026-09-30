@@ -11,6 +11,8 @@ public interface DocumentRepository extends JpaRepository<Document, Long> {
 
     Optional<Document> findByShareToken(String shareToken);
 
+    Optional<Document> findByFileNameOrderByIdAsc(String fileName);
+
     List<Document> findByUniversityId(Long universityId);
 
     List<Document> findByCompanyId(Long companyId);
@@ -40,6 +42,22 @@ public interface DocumentRepository extends JpaRepository<Document, Long> {
             + "(:companyId IS NOT NULL AND d.companyId = :companyId) OR "
             + "(d.uploadedBy = :username))")
     Optional<Document> findVisibleById(@Param("id") Long id,
+            @Param("admin") boolean admin,
+            @Param("universityId") Long universityId,
+            @Param("companyId") Long companyId,
+            @Param("username") String username);
+
+    /**
+     * Same predicate as {@link #findVisibleById}, but for the filename-keyed
+     * preview endpoint. Kept as a query so preview stays O(1) instead of
+     * loading every visible row to test one name.
+     */
+    @Query("SELECT d FROM Document d WHERE d.fileName = :fileName AND ("
+            + "(:admin = true) OR "
+            + "(:universityId IS NOT NULL AND d.universityId = :universityId) OR "
+            + "(:companyId IS NOT NULL AND d.companyId = :companyId) OR "
+            + "(d.uploadedBy = :username))")
+    Optional<Document> findVisibleByFileName(@Param("fileName") String fileName,
             @Param("admin") boolean admin,
             @Param("universityId") Long universityId,
             @Param("companyId") Long companyId,
