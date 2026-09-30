@@ -9,6 +9,8 @@ import org.springframework.transaction.annotation.Transactional;
 import com.example.demo.audit.AuditLogService;
 import com.example.demo.auth.Role;
 import com.example.demo.auth.UserEntity;
+import com.example.demo.course.Course;
+import com.example.demo.course.CourseRepository;
 import com.example.demo.student.Student;
 import com.example.demo.student.StudentRepository;
 
@@ -16,19 +18,23 @@ import com.example.demo.student.StudentRepository;
  * P7 (R8/L9): vetted companies (and university staff) can resolve a student
  * by university + student number. The result is scoped per plan §13-D4 and
  * every lookup is audited with the acting account and client IP; unknown
- * students produce a generic 404 so numbers cannot be probed (L9).
+ * students produce a generic 404 so numbers cannot be probed (L9). Since P8
+ * the payload includes the student's course units for their year.
  */
 @Service
 public class StudentLookupService {
 
     private final StudentRepository studentRepository;
     private final com.example.demo.auth.UserRepository userRepository;
+    private final CourseRepository courseRepository;
     private final AuditLogService auditLogService;
 
     public StudentLookupService(StudentRepository studentRepository,
-            com.example.demo.auth.UserRepository userRepository, AuditLogService auditLogService) {
+            com.example.demo.auth.UserRepository userRepository, CourseRepository courseRepository,
+            AuditLogService auditLogService) {
         this.studentRepository = studentRepository;
         this.userRepository = userRepository;
+        this.courseRepository = courseRepository;
         this.auditLogService = auditLogService;
     }
 
@@ -77,6 +83,19 @@ public class StudentLookupService {
                 student.getSchoolId(),
                 student.getDepartmentId(),
                 student.getProgrammeId(),
-                List.of());
+                unitsFor(student));
+    }
+
+    /** P8: units of the student's programme for their year (null year → all years). */
+    private List<Course> unitsFor(Student student) {
+        if (student.getProgrammeId() == null || student.getUniversityId() == null) {
+            return List.of();
+        }
+        if (student.getYearOfStudy() == null) {
+            return courseRepository.findByUniversityIdAndProgrammeId(student.getUniversityId(),
+                    student.getProgrammeId());
+        }
+        return courseRepository.findByUniversityIdAndProgrammeIdAndYearOfStudy(student.getUniversityId(),
+                student.getProgrammeId(), student.getYearOfStudy());
     }
 }

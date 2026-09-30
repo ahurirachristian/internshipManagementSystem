@@ -525,6 +525,43 @@ export async function fetchUniversitySupervisorRows() {
   return parseResponse(response);
 }
 
+// --- Course units (P8) ---
+
+export async function fetchCourses() {
+  const response = await fetch(`${API_ROOT}/api/courses`, {
+    credentials: 'include',
+  });
+  return parseResponse(response);
+}
+
+export async function createCourse(course) {
+  const response = await fetch(`${API_ROOT}/api/courses`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+    body: JSON.stringify(course),
+  });
+  return parseResponse(response);
+}
+
+export async function updateCourse(id, course) {
+  const response = await fetch(`${API_ROOT}/api/courses/${id}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+    body: JSON.stringify(course),
+  });
+  return parseResponse(response);
+}
+
+export async function deleteCourse(id) {
+  const response = await fetch(`${API_ROOT}/api/courses/${id}`, {
+    method: 'DELETE',
+    credentials: 'include',
+  });
+  return parseResponse(response);
+}
+
 export async function fetchUniversities() {
   const response = await fetch(`${API_ROOT}/api/universities`, {
     credentials: 'include',
