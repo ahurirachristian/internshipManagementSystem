@@ -18,7 +18,8 @@ public class Student {
     @Column(name = "user_id", nullable = false)
     private Long userId;
 
-    @Column(name = "university_id", nullable = false)
+    /** P1/L13: nullable — a student may register before their university is listed. */
+    @Column(name = "university_id", nullable = true)
     private Long universityId;
 
     @Column(name = "internship_company_id", nullable = true)

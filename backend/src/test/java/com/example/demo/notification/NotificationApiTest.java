@@ -29,6 +29,15 @@ class NotificationApiTest {
     @Autowired
     private com.example.demo.auth.UserRepository userRepository;
 
+    @Autowired
+    private NotificationRepository notificationRepository;
+
+    /** Shared H2 context: clear rows other test classes may have created (rolled back per test). */
+    @org.junit.jupiter.api.BeforeEach
+    void clearNotifications() {
+        notificationRepository.deleteAll();
+    }
+
     private Long userId(String username) {
         return userRepository.findByUsername(username).orElseThrow().getId();
     }

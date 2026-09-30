@@ -86,8 +86,8 @@ export function AuthProvider({ children }) {
     };
   }, [loggedIn, refreshUser, refreshNotifications]);
 
-  const login = useCallback(async (username, password, role) => {
-    const payload = await apiLogin(username, password, role);
+  const login = useCallback(async (username, password) => {
+    const payload = await apiLogin(username, password);
     const me = await fetchCurrentUser();
     setUser(me || { username: payload.username, role: payload.role });
     if (me) roleRef.current = me.role;

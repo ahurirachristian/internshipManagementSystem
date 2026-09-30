@@ -3,7 +3,6 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { GraduationCap, User, Lock, Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import AuthShell from './AuthShell';
-import CustomSelect from './CustomSelect';
 import './LoginPage.css';
 
 export default function LoginPage() {
@@ -12,7 +11,6 @@ export default function LoginPage() {
   const location = useLocation();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  const [role, setRole] = useState('STUDENT');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -34,7 +32,7 @@ export default function LoginPage() {
 
     setLoading(true);
     try {
-      const payload = await login(username.trim(), password, role.toUpperCase());
+      const payload = await login(username.trim(), password);
       navigate(homeFor(payload.role), { replace: true });
     } catch (err) {
       setError(err.message || 'Login failed.');
@@ -75,16 +73,6 @@ export default function LoginPage() {
               />
               <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
             </div>
-          </div>
-
-          <div>
-            <label className={labelClass}>Role</label>
-            <CustomSelect
-              id="login-role"
-              value={role}
-              onChange={setRole}
-              options={['STUDENT', 'SUPERVISOR', 'COMPANY', 'ADMIN']}
-            />
           </div>
 
           <div>

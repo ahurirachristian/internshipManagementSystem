@@ -9,13 +9,13 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Pattern;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -28,16 +28,27 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import com.example.demo.audit.AuditLogService;
+import com.example.demo.notification.NotificationService;
 import com.example.demo.student.Student;
 import com.example.demo.student.StudentRepository;
 import com.example.demo.company.Company;
 import com.example.demo.company.CompanyRepository;
 import com.example.demo.supervisor.UniversitySupervisor;
 import com.example.demo.supervisor.UniversitySupervisorRepository;
+import com.example.demo.university.University;
+import com.example.demo.university.UniversityRepository;
 
 @RestController
 @RequestMapping("/api")
 public class AuthApiController {
+
+    private static final Pattern EMAIL = Pattern.compile("^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$");
+
+    /**
+     * L2: a duplicate email must not confirm that the address exists, so the
+     * duplicate path returns the very same generic message as a malformed one.
+     */
+    private static final String INVALID_EMAIL = "Please enter a valid email address.";
 
     private final AuthenticationManager authenticationManager;
     private final UserRepository userRepository;
@@ -46,6 +57,8 @@ public class AuthApiController {
     private final StudentRepository studentRepository;
     private final CompanyRepository companyRepository;
     private final UniversitySupervisorRepository universitySupervisorRepository;
+    private final UniversityRepository universityRepository;
+    private final NotificationService notificationService;
 
     public AuthApiController(AuthenticationManager authenticationManager,
             UserRepository userRepository,
@@ -53,7 +66,9 @@ public class AuthApiController {
             AuditLogService auditLogService,
             StudentRepository studentRepository,
             CompanyRepository companyRepository,
-            UniversitySupervisorRepository universitySupervisorRepository) {
+            UniversitySupervisorRepository universitySupervisorRepository,
+            UniversityRepository universityRepository,
+            NotificationService notificationService) {
         this.authenticationManager = authenticationManager;
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
@@ -61,6 +76,8 @@ public class AuthApiController {
         this.studentRepository = studentRepository;
         this.companyRepository = companyRepository;
         this.universitySupervisorRepository = universitySupervisorRepository;
+        this.universityRepository = universityRepository;
+        this.notificationService = notificationService;
     }
 
     @GetMapping("/me")
@@ -73,6 +90,8 @@ public class AuthApiController {
                     result.put("companyId", user.getCompanyId());
                     result.put("universityId", user.getUniversityId());
                     result.put("email", user.getEmail());
+                    result.put("mustChangePassword", Boolean.TRUE.equals(user.getMustChangePassword()));
+                    result.put("superAdmin", Boolean.TRUE.equals(user.getSuperAdmin()));
                     return result;
                 })
                 .orElseGet(() -> Map.<String, Object>of("username", principal.getName()));
@@ -84,6 +103,13 @@ public class AuthApiController {
                 .map(user -> {
                     String email = body.getOrDefault("email", "").trim();
                     if (!email.isBlank()) {
+                        if (!EMAIL.matcher(email).matches()) {
+                            return ResponseEntity.badRequest().body(Map.of("error", INVALID_EMAIL));
+                        }
+                        if (userRepository.findByEmail(email)
+                                .filter(other -> !other.getId().equals(user.getId())).isPresent()) {
+                            return ResponseEntity.badRequest().body(Map.of("error", INVALID_EMAIL));
+                        }
                         user.setEmail(email);
                         userRepository.save(user);
                         auditLogService.log(principal.getName(), user.getRole().name(), "UPDATE", "User",
@@ -104,9 +130,21 @@ public class AuthApiController {
         return Arrays.stream(Role.values()).map(Role::name).toList();
     }
 
+    /** P1 (R5): public slim list so anonymous registration can pick a university. */
+    @GetMapping("/universities/options")
+    public List<Map<String, Object>> universityOptions() {
+        return universityRepository.findAll().stream()
+                .sorted(java.util.Comparator.comparing(University::getFullName,
+                        java.util.Comparator.nullsLast(String::compareToIgnoreCase)))
+                .map(u -> Map.<String, Object>of(
+                        "id", u.getUniversityId(),
+                        "shortForm", u.getShortForm() == null ? "" : u.getShortForm(),
+                        "fullName", u.getFullName() == null ? "" : u.getFullName()))
+                .toList();
+    }
+
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestParam String username, @RequestParam String password,
-            @RequestParam(required = false) String role,
             HttpServletRequest request) {
         try {
             Authentication authentication = authenticationManager.authenticate(
@@ -116,16 +154,9 @@ public class AuthApiController {
             context.setAuthentication(authentication);
             request.getSession(true).setAttribute(HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY, context);
 
-            // Determine actual role from the persisted user record for consistency
-            String actualRole = userRepository.findByUsername(username)
-                    .map(u -> u.getRole().name())
-                    .orElse("STUDENT");
-
-            Role selectedRole = parseRole(role);
-            if (selectedRole != null && !selectedRole.name().equals(actualRole)) {
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                        .body(Map.of("error", "Selected role does not match your account role."));
-            }
+            // R2: the role is resolved server-side from the account, never from the client.
+            UserEntity user = userRepository.findByUsername(username).orElseThrow();
+            String actualRole = user.getRole().name();
 
             String path = resolveHome(actualRole);
             String baseUrl = request.getScheme() + "://" + request.getServerName() + ":" + request.getServerPort();
@@ -134,7 +165,8 @@ public class AuthApiController {
             return ResponseEntity.ok(Map.of(
                     "username", username,
                     "role", actualRole,
-                    "redirect", baseUrl + path));
+                    "redirect", baseUrl + path,
+                    "mustChangePassword", Boolean.TRUE.equals(user.getMustChangePassword())));
         } catch (AuthenticationException ex) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(Map.of("error", "Invalid username or password"));
@@ -144,11 +176,12 @@ public class AuthApiController {
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody Map<String, String> body) {
         String username = body.getOrDefault("username", "").trim();
-        String password = body.getOrDefault("password", "").trim();
-        String confirmPassword = body.getOrDefault("confirmPassword", "").trim();
-        String roleName = body.getOrDefault("role", "STUDENT").trim();
+        String email = body.getOrDefault("email", "").trim();
+        // D2: passwords are never trimmed — login, register and reset stay consistent.
+        String password = body.getOrDefault("password", "");
+        String confirmPassword = body.getOrDefault("confirmPassword", "");
 
-        if (username.isEmpty() || password.isEmpty() || confirmPassword.isEmpty() || roleName.isEmpty()) {
+        if (username.isEmpty() || email.isEmpty() || password.isEmpty() || confirmPassword.isEmpty()) {
             return ResponseEntity.badRequest().body(Map.of("error", "All fields are required."));
         }
 
@@ -156,35 +189,52 @@ public class AuthApiController {
             return ResponseEntity.badRequest().body(Map.of("error", "Passwords do not match."));
         }
 
+        if (!EMAIL.matcher(email).matches() || userRepository.findByEmail(email).isPresent()) {
+            return ResponseEntity.badRequest().body(Map.of("error", INVALID_EMAIL));
+        }
+
         if (userRepository.findByUsername(username).isPresent()) {
             return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("error", "Username already exists."));
         }
 
-        Role selectedRole = parseRole(roleName);
-        if (selectedRole == null) {
-            return ResponseEntity.badRequest().body(Map.of("error", "Invalid role selected."));
-        }
+        // R3/L3: the incoming role is ignored — registration always creates a STUDENT.
+        Long universityId = resolveUniversityId(body.get("universityId"));
 
-        UserEntity user = new UserEntity(username, passwordEncoder.encode(password), selectedRole);
+        UserEntity user = new UserEntity(username, passwordEncoder.encode(password), Role.STUDENT);
+        user.setEmail(email);
+        user.setUniversityId(universityId);
+        // The registrant chose their own password, so no forced change (R14 applies
+        // to org-issued credentials only).
+        user.setMustChangePassword(false);
         userRepository.save(user);
 
-        if (selectedRole == Role.STUDENT) {
-            createStudentRecord(user, body);
+        createStudentRecord(user, body, universityId);
+
+        if (universityId == null) {
+            // L13: unlisted university ⇒ the account holds only STUDENT and admins
+            // are asked to link it manually.
+            List<Long> adminIds = userRepository.findByRole(Role.ADMIN).stream()
+                    .map(UserEntity::getId).toList();
+            notificationService.notify(adminIds, "REGISTRATION_UNLISTED_UNIVERSITY",
+                    "New student needs a university",
+                    "Student " + username + " registered without a listed university.",
+                    "/admin/users");
         }
 
-        auditLogService.log(username, roleName, "REGISTER", "User", "New account created with role: " + roleName, null);
+        auditLogService.log(username, Role.STUDENT.name(), "REGISTER", "User",
+                "New student account created", null);
         return ResponseEntity.status(HttpStatus.CREATED).body(Map.of("message", "Account created successfully."));
     }
 
     /**
-     * M3 (MIGRATION_PLAN.md): every STUDENT registration now creates a
-     * Model-B students row linked to the account. Nkumba (19) is the default
-     * university in this single-university deployment.
+     * M3 (MIGRATION_PLAN.md): every registration creates a linked Model-B
+     * students row. P1: the university comes from the (validated) request; an
+     * absent or unknown university is stored as NULL and escalated to admins.
      */
-    private void createStudentRecord(UserEntity user, Map<String, String> body) {
+    private void createStudentRecord(UserEntity user, Map<String, String> body, Long universityId) {
         Student student = new Student();
         student.setUserId(user.getId());
-        student.setUniversityId(parseLong(body.get("universityId"), 19L));
+        student.setUniversityId(universityId);
         String fullName = body.getOrDefault("fullName", "").trim();
         String firstName = body.getOrDefault("firstName", "").trim();
         String lastName = body.getOrDefault("lastName", "").trim();
@@ -243,12 +293,18 @@ public class AuthApiController {
         studentRepository.save(student);
     }
 
-    private Long parseLong(String value, Long fallback) {
-        try {
-            return value != null && !value.isBlank() ? Long.parseLong(value.trim()) : fallback;
-        } catch (NumberFormatException ex) {
-            return fallback;
+    /** Returns the university id only when it exists in the catalog; otherwise NULL (L13). */
+    private Long resolveUniversityId(String value) {
+        if (value == null || value.isBlank()) {
+            return null;
         }
+        long id;
+        try {
+            id = Long.parseLong(value.trim());
+        } catch (NumberFormatException ex) {
+            return null;
+        }
+        return universityRepository.findById((int) id).map(u -> Long.valueOf(id)).orElse(null);
     }
 
     private Integer parseIntOrNull(String value) {
@@ -270,8 +326,8 @@ public class AuthApiController {
     @PostMapping("/forgot-password")
     public ResponseEntity<?> forgotPassword(@RequestBody Map<String, String> body) {
         String username = body.getOrDefault("username", "").trim();
-        String newPassword = body.getOrDefault("newPassword", "").trim();
-        String confirmPassword = body.getOrDefault("confirmPassword", "").trim();
+        String newPassword = body.getOrDefault("newPassword", "");
+        String confirmPassword = body.getOrDefault("confirmPassword", "");
 
         if (username.isEmpty() || newPassword.isEmpty() || confirmPassword.isEmpty()) {
             return ResponseEntity.badRequest().body(Map.of("error", "All fields are required."));
@@ -290,17 +346,6 @@ public class AuthApiController {
                 })
                 .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND)
                         .body(Map.of("error", "Username not found.")));
-    }
-
-    private Role parseRole(String roleName) {
-        if (roleName == null || roleName.isBlank()) {
-            return null;
-        }
-        try {
-            return Role.valueOf(roleName.trim().toUpperCase());
-        } catch (IllegalArgumentException ex) {
-            return null;
-        }
     }
 
     private String resolveHome(String role) {

@@ -1,6 +1,5 @@
 package com.example.demo.auth;
 
-import static org.hamcrest.Matchers.containsString;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -8,8 +7,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -26,9 +25,16 @@ class AuthFlowIntegrationTest {
     @Autowired
     private org.springframework.security.crypto.password.PasswordEncoder passwordEncoder;
 
-    private String json(String username, String role, String password, String confirmPassword) {
+    @Autowired
+    private com.example.demo.student.StudentRepository studentRepository;
+
+    @Autowired
+    private com.example.demo.university.UniversityRepository universityRepository;
+
+    private String json(String username, String email, String role, String password, String confirmPassword) {
         return "{"
                 + "\"username\":\"" + username + "\","
+                + "\"email\":\"" + email + "\","
                 + "\"role\":\"" + role + "\","
                 + "\"password\":\"" + password + "\","
                 + "\"confirmPassword\":\"" + confirmPassword + "\""
@@ -38,7 +44,7 @@ class AuthFlowIntegrationTest {
     private void register(String username, String role, String password) throws Exception {
         mockMvc.perform(post("/api/register")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(json(username, role, password, password)))
+                        .content(json(username, username + "@example.com", role, password, password)))
                 .andExpect(status().isCreated());
     }
 
@@ -60,6 +66,16 @@ class AuthFlowIntegrationTest {
     }
 
     @Test
+    void universityOptionsArePublicAndSlim() throws Exception {
+        mockMvc.perform(get("/api/universities/options"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].id").exists())
+                .andExpect(jsonPath("$[0].fullName").exists())
+                .andExpect(jsonPath("$[0].shortForm").exists())
+                .andExpect(jsonPath("$[0].country").doesNotExist());
+    }
+
+    @Test
     void registerCreatesAccountAndAllowsLogin() throws Exception {
         String username = "newstudent" + System.currentTimeMillis();
         String password = "secret123";
@@ -68,6 +84,8 @@ class AuthFlowIntegrationTest {
 
         var saved = userRepository.findByUsername(username).orElseThrow();
         org.assertj.core.api.Assertions.assertThat(saved.getRole()).isEqualTo(Role.STUDENT);
+        org.assertj.core.api.Assertions.assertThat(saved.getEmail()).isEqualTo(username + "@example.com");
+        org.assertj.core.api.Assertions.assertThat(saved.getMustChangePassword()).isFalse();
         org.assertj.core.api.Assertions.assertThat(passwordEncoder.matches(password, saved.getPassword())).isTrue();
 
         mockMvc.perform(post("/api/login")
@@ -76,7 +94,54 @@ class AuthFlowIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.username").value(username))
                 .andExpect(jsonPath("$.role").value("STUDENT"))
-                .andExpect(jsonPath("$.redirect").value(containsString("/student/dashboard")));
+                .andExpect(jsonPath("$.mustChangePassword").value(false))
+                .andExpect(jsonPath("$.redirect").value(org.hamcrest.Matchers.containsString("/student/dashboard")));
+    }
+
+    @Test
+    void registerStoresUniversityOnUserAndStudent() throws Exception {
+        Integer universityId = universityRepository.findAll().get(0).getUniversityId();
+        String username = "uni" + System.currentTimeMillis();
+
+        mockMvc.perform(post("/api/register")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"username\":\"" + username + "\","
+                                + "\"email\":\"" + username + "@example.com\","
+                                + "\"universityId\":\"" + universityId + "\","
+                                + "\"password\":\"secret123\",\"confirmPassword\":\"secret123\"}"))
+                .andExpect(status().isCreated());
+
+        var saved = userRepository.findByUsername(username).orElseThrow();
+        org.assertj.core.api.Assertions.assertThat(saved.getUniversityId()).isEqualTo(universityId.longValue());
+        var student = studentRepository.findByUserId(saved.getId()).orElseThrow();
+        org.assertj.core.api.Assertions.assertThat(student.getUniversityId()).isEqualTo(universityId.longValue());
+    }
+
+    @Test
+    void registerWithoutListedUniversityStoresNull() throws Exception {
+        String username = "unlisted" + System.currentTimeMillis();
+
+        mockMvc.perform(post("/api/register")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json(username, username + "@example.com", "STUDENT", "secret123", "secret123")))
+                .andExpect(status().isCreated());
+
+        var saved = userRepository.findByUsername(username).orElseThrow();
+        org.assertj.core.api.Assertions.assertThat(saved.getUniversityId()).isNull();
+        var student = studentRepository.findByUserId(saved.getId()).orElseThrow();
+        org.assertj.core.api.Assertions.assertThat(student.getUniversityId()).isNull();
+    }
+
+    @Test
+    void registerIgnoresIncomingRoleField() throws Exception {
+        String username = "wouldbeadmin" + System.currentTimeMillis();
+        mockMvc.perform(post("/api/register")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json(username, username + "@example.com", "ADMIN", "abc123", "abc123")))
+                .andExpect(status().isCreated());
+
+        org.assertj.core.api.Assertions.assertThat(
+                userRepository.findByUsername(username).orElseThrow().getRole()).isEqualTo(Role.STUDENT);
     }
 
     @Test
@@ -84,28 +149,41 @@ class AuthFlowIntegrationTest {
         String username = "2400101003";
         mockMvc.perform(post("/api/register")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(json(username, "STUDENT", "whatever1", "whatever1")))
+                        .content(json(username, "fresh" + System.currentTimeMillis() + "@example.com",
+                                "STUDENT", "whatever1", "whatever1")))
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.error").value("Username already exists."));
+    }
+
+    @Test
+    void registerRejectsDuplicateEmailGenerically() throws Exception {
+        String username = "dupemail" + System.currentTimeMillis();
+        mockMvc.perform(post("/api/register")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json(username, "kasaggafred999@gmail.com", "STUDENT", "abc123", "abc123")))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.error").value("Please enter a valid email address."));
+    }
+
+    @Test
+    void registerRejectsMalformedEmail() throws Exception {
+        mockMvc.perform(post("/api/register")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json("badmail" + System.currentTimeMillis(), "not-an-email",
+                                "STUDENT", "abc123", "abc123")))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.error").value("Please enter a valid email address."));
     }
 
     @Test
     void registerRejectsMismatchedPasswords() throws Exception {
         mockMvc.perform(post("/api/register")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(json("mismatch" + System.currentTimeMillis(), "STUDENT", "abc123", "def456")))
+                        .content(json("mismatch" + System.currentTimeMillis(),
+                                "mismatch" + System.currentTimeMillis() + "@example.com",
+                                "STUDENT", "abc123", "def456")))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.error").value("Passwords do not match."));
-    }
-
-    @Test
-    void registerRejectsInvalidRole() throws Exception {
-        String username = "badrole" + System.currentTimeMillis();
-        mockMvc.perform(post("/api/register")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(json(username, "ROBOT", "abc123", "abc123")))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.error").value("Invalid role selected."));
     }
 
     @Test
@@ -116,7 +194,7 @@ class AuthFlowIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.username").value("2400101003"))
                 .andExpect(jsonPath("$.role").value("STUDENT"))
-                .andExpect(jsonPath("$.redirect").value(containsString("/student/dashboard")));
+                .andExpect(jsonPath("$.redirect").value(org.hamcrest.Matchers.containsString("/student/dashboard")));
     }
 
     @Test
@@ -129,24 +207,25 @@ class AuthFlowIntegrationTest {
     }
 
     @Test
-    void loginRejectsSelectedRoleMismatch() throws Exception {
+    void loginIgnoresUnknownRoleParam() throws Exception {
+        // L4: the role param no longer exists — passing one must neither change the
+        // resolved role nor leak an authenticated session on a mismatch.
         mockMvc.perform(post("/api/login")
                         .param("username", "2400101003")
                         .param("password", "Student@123")
                         .param("role", "ADMIN"))
-                .andExpect(status().isUnauthorized())
-                .andExpect(jsonPath("$.error").value("Selected role does not match your account role."));
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.role").value("STUDENT"));
     }
 
     @Test
-    void loginRoutesCompanyToCompanyDashboard() throws Exception {
+    void loginWithoutRoleParamRoutesCompanyToCompanyDashboard() throws Exception {
         mockMvc.perform(post("/api/login")
                         .param("username", "airtel")
-                        .param("password", "company123")
-                        .param("role", "COMPANY"))
+                        .param("password", "company123"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.role").value("COMPANY"))
-                .andExpect(jsonPath("$.redirect").value(containsString("/company/dashboard")));
+                .andExpect(jsonPath("$.redirect").value(org.hamcrest.Matchers.containsString("/company/dashboard")));
     }
 
     @Test

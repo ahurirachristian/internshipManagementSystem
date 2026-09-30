@@ -39,7 +39,8 @@ public class UserEntity {
     @Column(name = "university_id", nullable = true)
     private Long universityId;
 
-    @Column(nullable = true)
+    /** P1 (L14): unique so an address can belong to one account; NULLs allowed for legacy rows. */
+    @Column(nullable = true, unique = true)
     private String email;
 
     @Column(name = "must_change_password", nullable = false)

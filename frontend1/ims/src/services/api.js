@@ -26,9 +26,9 @@ async function parseResponse(response) {
   return payload;
 }
 
-export async function login(username, password, role) {
+export async function login(username, password) {
+  // R2: the server resolves the role from the account — no role is sent.
   const body = new URLSearchParams({ username, password });
-  if (role) body.append('role', role);
 
   const response = await fetch(`${API_ROOT}/api/login`, {
     method: 'POST',
@@ -86,6 +86,13 @@ export async function forgotPassword(username, newPassword, confirmPassword) {
     },
     credentials: 'include',
     body: JSON.stringify({ username, newPassword, confirmPassword }),
+  });
+  return parseResponse(response);
+}
+
+export async function fetchUniversityOptions() {
+  const response = await fetch(`${API_ROOT}/api/universities/options`, {
+    credentials: 'include',
   });
   return parseResponse(response);
 }

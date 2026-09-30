@@ -74,7 +74,7 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers(
                         "/", "/api/login", "/api/register", "/api/forgot-password", "/api/roles",
-                        "/favicon.ico"
+                        "/api/universities/options", "/favicon.ico"
                 ).permitAll()
                 .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/companies", "/api/supervisors").permitAll()
                 .anyRequest().authenticated()

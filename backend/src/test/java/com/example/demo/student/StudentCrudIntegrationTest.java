@@ -48,8 +48,10 @@ class StudentCrudIntegrationTest {
     void registrationCreatesModelBStudentRow() throws Exception {
         mockMvc.perform(post("/api/register")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"username\":\"m3row\",\"password\":\"Student@123\","
+                        .content("{\"username\":\"m3row\",\"email\":\"m3row@example.com\","
+                                + "\"password\":\"Student@123\","
                                 + "\"confirmPassword\":\"Student@123\",\"role\":\"STUDENT\","
+                                + "\"universityId\":\"19\","
                                 + "\"firstName\":\"Probe\",\"lastName\":\"Three\","
                                 + "\"degreeProgram\":\"BSc Computer Science\",\"yearOfStudy\":\"2\"}"))
                 .andExpect(status().isCreated());
@@ -64,14 +66,18 @@ class StudentCrudIntegrationTest {
     }
 
     @Test
-    void nonStudentRegistrationDoesNotCreateStudentRow() throws Exception {
-        long before = studentRepository.count();
+    void registrationAlwaysCreatesStudentRowEvenWithOtherRoleField() throws Exception {
+        // P1/R3: the incoming role is ignored — every registration is a STUDENT.
         mockMvc.perform(post("/api/register")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"username\":\"m3company\",\"password\":\"Student@123\","
+                        .content("{\"username\":\"m3company\",\"email\":\"m3company@example.com\","
+                                + "\"password\":\"Student@123\","
                                 + "\"confirmPassword\":\"Student@123\",\"role\":\"COMPANY\"}"))
                 .andExpect(status().isCreated());
-        org.junit.jupiter.api.Assertions.assertEquals(before, studentRepository.count());
+
+        UserEntity user = userRepository.findByUsername("m3company").orElseThrow();
+        org.junit.jupiter.api.Assertions.assertEquals(Role.STUDENT, user.getRole());
+        org.junit.jupiter.api.Assertions.assertTrue(studentRepository.findByUserId(user.getId()).isPresent());
     }
 
     @Test

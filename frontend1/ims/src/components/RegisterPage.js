@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { GraduationCap, Eye, EyeOff } from 'lucide-react';
-import { register, fetchCompanies, fetchSupervisors } from '../services/api';
+import { register, fetchCompanies, fetchSupervisors, fetchUniversityOptions } from '../services/api';
 import AuthShell from './AuthShell';
 import CustomSelect from './CustomSelect';
 import './LoginPage.css';
@@ -13,7 +13,7 @@ const emptyForm = {
   lastName: '',
   password: '',
   confirmPassword: '',
-  role: 'STUDENT',
+  universityId: '',
   agreeTerms: false,
   registrationNumber: '',
   degreeProgram: '',
@@ -39,10 +39,12 @@ export default function RegisterPage() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [companies, setCompanies] = useState([]);
   const [supervisors, setSupervisors] = useState([]);
+  const [universities, setUniversities] = useState([]);
 
   useEffect(() => {
     fetchCompanies().then(setCompanies).catch(() => {});
     fetchSupervisors('UNIVERSITY').then(setSupervisors).catch(() => {});
+    fetchUniversityOptions().then((list) => setUniversities(Array.isArray(list) ? list : [])).catch(() => {});
   }, []);
 
   function setField(name, value) {
@@ -105,8 +107,8 @@ export default function RegisterPage() {
         username: form.username.trim(),
         password: form.password,
         confirmPassword: form.confirmPassword,
-        role: form.role.toUpperCase(),
         email: form.email.trim(),
+        universityId: form.universityId || null,
         firstName: form.firstName.trim(),
         lastName: form.lastName.trim(),
         studentNumber: form.username.trim(),
@@ -219,8 +221,13 @@ export default function RegisterPage() {
                 </div>
               </div>
               <div>
-                <label className={labelClass}>Role</label>
-                <CustomSelect id="register-role" value={form.role} onChange={(val) => setField('role', val)} options={['STUDENT', 'SUPERVISOR', 'COMPANY', 'ADMIN']} />
+                <label className={labelClass}>University</label>
+                <CustomSelect
+                  id="register-university"
+                  value={form.universityId}
+                  onChange={(val) => setField('universityId', val)}
+                  options={[{ value: '', label: 'Not listed / my university is missing' }, ...universities.map((u) => ({ value: String(u.id), label: `${u.shortForm} — ${u.fullName}` }))]}
+                />
               </div>
               <div>
                 <label htmlFor="password" className={labelClass}>Password</label>
@@ -313,7 +320,7 @@ export default function RegisterPage() {
                   ['Username', form.username],
                   ['Email', form.email],
                   ['Full Name', `${form.firstName} ${form.lastName}`],
-                  ['Role', form.role],
+                  ['University', universities.find((u) => String(u.id) === form.universityId)?.fullName || 'Not listed'],
                   ['Registration Number', form.registrationNumber],
                   ['Degree Program', form.degreeProgram],
                   ['Year of Study', form.yearOfStudy],
