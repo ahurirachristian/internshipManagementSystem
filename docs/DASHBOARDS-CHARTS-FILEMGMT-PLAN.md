@@ -75,9 +75,10 @@ PC1 only needs to extract from `OverviewSection.js`; PC1/PC5 do not need to touc
    token blocks are in `index.css` and `riho.css`. `UniversityDashboard.js:68` hardcoded a local
    `CHART_COLORS` array, `OverviewSection.js` hardcoded its own `STATUS_COLORS`, and both used
    raw `isDark ? '#…' : '#…'` ternaries for grid, tick, tooltip, and axis colors. Resolved in PC1.
-4. **Real data for the student charts** — `src/data/tasksData.js` generates 1,000 fake tasks with
-   no IMS meaning. `StudentDataContext.js:14` calls `generateTasks(1000, 2026)` on every mount.
-   Its only consumer is `StudentDataContext`. Needs real diary aggregation (PC2).
+4. **Real data for the student charts** — `src/data/tasksData.js` generated 1,000 fake tasks with
+   no IMS meaning, and `StudentDataContext` called `generateTasks(1000, 2026)` on every mount. Its
+   only consumer was `StudentDataContext`. Resolved in PC2: real diary aggregation, generator
+   deleted.
 5. **File Management is disconnected** — fred's `FileManagement.jsx` (1,189 lines) is a
    `localStorage`-only mock: **zero** `fetch`/API calls, 26 occurrences of
    `audience`/`shareLink`/`downloads`/`downloadCount` that exist only client-side. The real
@@ -189,23 +190,31 @@ and chart chrome that never respond to the dark-mode toggle**. PC1 therefore doe
 
 ### PC2 — Real data behind the student charts  ·  branch `port/pc2-real-chart-data`
 1. Rewrite `StudentDataContext` to aggregate **real diary data**:
-   - load via the existing `GET /api/diaries/me` — no backend change;
+   - load via the existing `fetchMyDiaries()` (`GET /api/diaries/me`) — no backend change;
    - `dailyProgress`: buckets **Mon–Sat** (matching `tasksData.js:18` `WEEKDAYS`, *not* Mon–Sun)
-     of the current week keyed off `entry.date`, two segments where `reviewed` = the entry has a
+     of the current week keyed off `entry.date`, two segments where `Reviewed` = the entry has a
      **non-blank** `universitySupervisorComment`. `DayDiaryApiController.java:175` defaults that
-     field to `""`, so a truthy check would mislabel every untouched entry as reviewed — test for
-     trimmed non-empty;
-   - `statusTotals`: `{ Reviewed, 'Awaiting review' }`;
-   - expose `loading` + `error` so charts render skeletons instead of zeros;
-   - drop `GroupedBarChart`'s `{completed, inProgress, uncompleted}` shim entirely — it is gone in
-     PC1, so no compat layer is needed.
-2. Update `OverviewSection.js` card titles/subtitles to describe the real meaning
-   ("Level of Progress — diary entries this week by review status").
-3. **Delete `src/data/tasksData.js`**; `StudentDataContext.js:2` and `:14` are the only references —
-   grep to confirm zero after.
+     field to `""`, so a truthy check would mislabel every untouched entry as reviewed — hence
+     `isReviewed()` trims before testing, and a test pins that;
+   - `statusTotals`: `{ Reviewed, 'Awaiting review' }` across **all** time, while `dailyProgress`
+     is scoped to the current week — the two deliberately answer different questions;
+   - Sunday entries are dropped: the internship working week is Mon–Sat, so a Sunday entry belongs
+     in `statusTotals` but has no weekday column;
+   - expose `loading` + `error` + `reload` so charts render a skeleton and a retry banner instead
+     of zeros on failure;
+   - no compat shim for `{completed, inProgress, uncompleted}` — `GroupedBarChart` is already gone
+     from PC1.
+2. Update `OverviewSection.js` copy to the real meaning: the header becomes "Internship Progress /
+   Diary review overview", KPI cards become Total Entries / Awaiting Review / Reviewed / This Week,
+   and the fake "To-Do List" becomes "Recent Diary Entries" backed by real submissions. Cards
+   render `ChartSkeleton` while loading and an `role="alert"` retry banner on error.
+3. **Delete `src/data/tasksData.js`** — the 1,000-fake-task generator. Verified zero remaining
+   references after the rewrite.
 4. Student placement card (P7) stays; charts complement it.
-5. **Gates**: backend suite unchanged-green (no backend change), build ≤9 warnings, visual check
-   that charts change with real diary activity (seeded students have entries).
+5. **Verified gates**: frontend **3 suites / 16 tests** green (8 new in
+   `src/context/StudentDataContext.test.js` covering the blank-comment trap, week boundaries,
+   Sunday and unparseable dates, and non-NaN columns); build **9 warnings, unchanged**; backend
+   **136 green, untouched**; eslint clean on all touched files.
    **Commit**: `feat(student): drive progress charts from real day-diary data (PC2)`
 
 ### PC3 — File Management: real API, then real UI  ·  branch `port/pc3a-file-model` → `pc3b-file-api-ui` → `pc3c-file-layout`
