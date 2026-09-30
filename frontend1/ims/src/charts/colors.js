@@ -40,20 +40,23 @@ export const CHART = Object.freeze([LIGHT.chart1, LIGHT.chart2, LIGHT.chart3, LI
 export const CHART_DARK = Object.freeze([DARK.chart1, DARK.chart2, DARK.chart3, DARK.chart4, DARK.chart5, DARK.chart6]);
 
 /**
- * Review-state colors. `Completed` = a university supervisor has commented,
- * `In Progress` = awaiting that comment. Kept as the legacy task-board keys
- * until PC2 replaces the prop contract with real diary semantics.
+ * Review-state colors, keyed by the real diary vocabulary from
+ * StudentDataContext: `Reviewed` = a university supervisor has commented,
+ * `Awaiting review` = everything else.
+ *
+ * These keys must stay in sync with STATUSES there. `colors.test.js` asserts the
+ * contract so the two cannot drift apart again — an earlier revision kept the
+ * legacy task-board keys (Completed / In Progress / Uncompleted) and every chart
+ * segment silently rendered `undefined`.
  */
 export const STATUS_COLORS = Object.freeze({
-  Completed: LIGHT.chart3,
-  'In Progress': LIGHT.chart2,
-  Uncompleted: LIGHT.chart4,
+  Reviewed: LIGHT.chart3,
+  'Awaiting review': LIGHT.chart2,
 });
 
 export const STATUS_COLORS_DARK = Object.freeze({
-  Completed: DARK.chart3,
-  'In Progress': DARK.chart2,
-  Uncompleted: DARK.chart4,
+  Reviewed: DARK.chart3,
+  'Awaiting review': DARK.chart2,
 });
 
 export const TRACK = LIGHT.track;

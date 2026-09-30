@@ -27,10 +27,10 @@ export function Legend({ statuses, isDark }) {
 }
 
 export function StatusHeadings({ totals, statuses }) {
+  // Same review-state vocabulary as STATUS_COLORS; keep the keys aligned.
   const TONE = {
-    Completed: { box: 'bg-emerald-50 text-emerald-900 border-emerald-200', strong: 'text-emerald-950' },
-    'In Progress': { box: 'bg-amber-50 text-amber-900 border-amber-200', strong: 'text-amber-950' },
-    Uncompleted: { box: 'bg-rose-50 text-rose-900 border-rose-200', strong: 'text-rose-950' },
+    Reviewed: { box: 'bg-emerald-50 text-emerald-900 border-emerald-200', strong: 'text-emerald-950' },
+    'Awaiting review': { box: 'bg-amber-50 text-amber-900 border-amber-200', strong: 'text-amber-950' },
   };
   return (
     <div className={`grid grid-cols-1 gap-3 my-3 ${statuses.length === 3 ? 'sm:grid-cols-3' : 'sm:grid-cols-2'}`}>
