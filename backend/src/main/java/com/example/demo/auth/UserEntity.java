@@ -48,6 +48,14 @@ public class UserEntity {
     @Column(name = "password_reset_token", nullable = true)
     private String passwordResetToken;
 
+    /** P0 (L5/L6): only super admins may grant/revoke ADMIN or act on admin accounts. */
+    @Column(name = "super_admin", nullable = false)
+    private Boolean superAdmin = false;
+
+    /** P0 (L5): disabled users are logged out by AuthorityRefreshFilter on their next request. */
+    @Column(nullable = false)
+    private Boolean enabled = true;
+
     public UserEntity() {
     }
 
@@ -148,4 +156,10 @@ public class UserEntity {
 
     public String getPasswordResetToken() { return passwordResetToken; }
     public void setPasswordResetToken(String passwordResetToken) { this.passwordResetToken = passwordResetToken; }
+
+    public Boolean getSuperAdmin() { return superAdmin; }
+    public void setSuperAdmin(Boolean superAdmin) { this.superAdmin = superAdmin; }
+
+    public Boolean getEnabled() { return enabled; }
+    public void setEnabled(Boolean enabled) { this.enabled = enabled; }
 }

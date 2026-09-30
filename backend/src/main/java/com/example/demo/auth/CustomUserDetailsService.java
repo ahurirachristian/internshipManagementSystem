@@ -22,10 +22,15 @@ public class CustomUserDetailsService implements UserDetailsService {
         UserEntity user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found: " + username));
 
+        java.util.List<SimpleGrantedAuthority> authorities = new java.util.ArrayList<>();
+        authorities.add(new SimpleGrantedAuthority(user.getRole().name()));
+        if (Boolean.TRUE.equals(user.getSuperAdmin())) {
+            authorities.add(new SimpleGrantedAuthority("super_admin"));
+        }
         return new User(
                 user.getUsername(),
                 user.getPassword(),
-                List.of(new SimpleGrantedAuthority(user.getRole().name()))
+                authorities
         );
     }
 }

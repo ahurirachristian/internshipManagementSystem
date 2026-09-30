@@ -40,6 +40,16 @@ public class DataSeeder implements CommandLineRunner {
 
         // Admin
         ensureUser("admin", "admin123", Role.ADMIN, "admin@ims.ac.ug", null, null);
+
+        // P0 (L19-safe): mutate the existing admin row only — user count stays 7.
+        // The super admin authorizes role requests and revocations (L6).
+        userRepository.findByUsername("admin").ifPresent(admin -> {
+            if (!Boolean.TRUE.equals(admin.getSuperAdmin())) {
+                admin.setSuperAdmin(true);
+                admin.setEnabled(true);
+                userRepository.save(admin);
+            }
+        });
     }
 
     private void ensureUser(String username, String password, Role role, String email, Long companyId, Long universityId) {

@@ -16,22 +16,40 @@ import { useAuth } from '../../context/AuthContext';
 import { ROLE_LABELS } from './nav';
 import { useTheme } from '../../context/ThemeContext';
 
+function relativeTime(iso) {
+  if (!iso) return '';
+  const then = new Date(iso).getTime();
+  if (Number.isNaN(then)) return '';
+  const min = Math.floor((Date.now() - then) / 60000);
+  if (min < 1) return 'just now';
+  if (min < 60) return `${min}m ago`;
+  const hrs = Math.floor(min / 60);
+  if (hrs < 24) return `${hrs}h ago`;
+  return `${Math.floor(hrs / 24)}d ago`;
+}
+
 export function Header({
   onToggleMobile,
   onToggleCollapse,
   isCollapsed,
-  notifications = [],
   searchable = true,
   onSearch,
 }) {
-  const { user, logout, homeFor } = useAuth();
+  const {
+    user,
+    logout,
+    homeFor,
+    notifications,
+    unreadCount,
+    markRead,
+    markAllRead,
+  } = useAuth();
   const { isDark, toggleDark } = useTheme();
   const navigate = useNavigate();
 
   const [isNotifOpen, setIsNotifOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [clearedNotifs, setClearedNotifs] = useState(false);
 
   const notifRef = useRef(null);
   const userRef = useRef(null);
@@ -40,9 +58,6 @@ export function Header({
   const roleLabel = ROLE_LABELS[role] || role;
   const displayName = user?.username || 'User';
   const displayEmail = user?.email || '';
-
-  const visibleNotifications = clearedNotifs ? [] : notifications;
-  const unreadCount = visibleNotifications.length;
 
   useEffect(() => {
     const handleClickOutside = (e) => {
@@ -142,7 +157,7 @@ export function Header({
               <Bell className="w-5 h-5" />
               {unreadCount > 0 && (
                 <span className="absolute top-1.5 right-1.5 w-4 h-4 rounded-full bg-primary text-white text-[9px] font-bold flex items-center justify-center ring-2 ring-white dark:ring-slate-900">
-                  {unreadCount}
+                  {unreadCount > 9 ? '9+' : unreadCount}
                 </span>
               )}
             </button>
@@ -163,42 +178,71 @@ export function Header({
                   {unreadCount > 0 && (
                     <button
                       type="button"
-                      onClick={() => setClearedNotifs(true)}
+                      onClick={() => markAllRead()}
                       className="text-[11px] font-semibold text-teal-600 dark:text-teal-400 hover:underline"
                     >
-                      Clear all
+                      Mark all read
                     </button>
                   )}
                 </div>
 
                 <div className="max-h-72 overflow-y-auto divide-y divide-gray-100 dark:divide-slate-800">
-                  {visibleNotifications.length > 0 ? (
-                    visibleNotifications.map((n, idx) => (
-                      <div
-                        key={idx}
-                        className="p-3.5 flex items-start gap-3 hover:bg-gray-50 dark:hover:bg-slate-800/60 transition-colors"
+                  {(notifications || []).length > 0 ? (
+                    (notifications || []).map((n) => (
+                      <button
+                        type="button"
+                        key={n.id}
+                        onClick={() => {
+                          if (!n.read) markRead(n.id);
+                          if (n.link) {
+                            setIsNotifOpen(false);
+                            navigate(n.link);
+                          }
+                        }}
+                        className={`w-full text-left p-3.5 flex items-start gap-3 transition-colors ${
+                          n.read
+                            ? 'hover:bg-gray-50 dark:hover:bg-slate-800/60'
+                            : 'bg-teal-50/60 dark:bg-teal-900/10 hover:bg-teal-50 dark:hover:bg-teal-900/20'
+                        }`}
                       >
-                        <div className="w-8 h-8 rounded-xl bg-accent/15 flex items-center justify-center shrink-0">
-                          <CheckCircle className="w-4 h-4 text-teal-600 dark:text-teal-400" />
+                        <div
+                          className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 ${
+                            n.read ? 'bg-gray-100 dark:bg-slate-800' : 'bg-accent/20'
+                          }`}
+                        >
+                          <CheckCircle
+                            className={`w-4 h-4 ${
+                              n.read ? 'text-slate-400' : 'text-teal-600 dark:text-teal-400'
+                            }`}
+                          />
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center justify-between gap-1">
-                            <span className="text-xs font-semibold text-slate-800 dark:text-slate-100 truncate">
+                            <span
+                              className={`text-xs truncate ${
+                                n.read
+                                  ? 'font-medium text-slate-600 dark:text-slate-300'
+                                  : 'font-bold text-slate-800 dark:text-slate-100'
+                              }`}
+                            >
                               {n.title}
                             </span>
                             <span className="text-[10px] text-slate-400 whitespace-nowrap">
-                              {n.time}
+                              {relativeTime(n.createdAt)}
                             </span>
                           </div>
                           <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5 line-clamp-2">
-                            {n.message}
+                            {n.body}
                           </p>
                         </div>
-                      </div>
+                        {!n.read && (
+                          <span className="w-2 h-2 rounded-full bg-teal-500 mt-1.5 shrink-0" />
+                        )}
+                      </button>
                     ))
                   ) : (
                     <div className="py-8 px-4 text-center text-xs text-slate-400">
-                      No new notifications
+                      No notifications yet
                     </div>
                   )}
                 </div>

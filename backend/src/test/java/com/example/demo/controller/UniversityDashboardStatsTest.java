@@ -50,14 +50,17 @@ class UniversityDashboardStatsTest {
 
     @Test
     void unauthenticatedRequestIsRejected() throws Exception {
+        // P0: SPA expects a 401 instead of a redirect to a server-rendered login page.
         mockMvc.perform(get("/api/university/stats"))
-                .andExpect(status().is3xxRedirection());
+                .andExpect(status().isUnauthorized());
     }
 
     @Test
     void nonSupervisorRoleIsForbidden() throws Exception {
+        // A principal with no DB row keeps its MockMvc authorities (the refresh
+        // filter only rebuilds authorities for real accounts).
         mockMvc.perform(get("/api/university/stats")
-                        .with(user("admin").authorities(new SimpleGrantedAuthority("STUDENT"))))
+                        .with(user("plainstudent").authorities(new SimpleGrantedAuthority("STUDENT"))))
                 .andExpect(status().isForbidden());
     }
 

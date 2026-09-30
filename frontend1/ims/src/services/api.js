@@ -651,3 +651,37 @@ export async function fetchMyUniversitySupervisor() {
   });
   return parseResponse(response);
 }
+
+// --- Notifications (P0) ---
+
+export async function fetchNotifications(unreadOnly = false, page = 0) {
+  const params = new URLSearchParams({ page: String(page) });
+  if (unreadOnly) params.append('unreadOnly', 'true');
+  const response = await fetch(`${API_ROOT}/api/notifications?${params}`, {
+    credentials: 'include',
+  });
+  return parseResponse(response);
+}
+
+export async function fetchUnreadCount() {
+  const response = await fetch(`${API_ROOT}/api/notifications/unread-count`, {
+    credentials: 'include',
+  });
+  return parseResponse(response);
+}
+
+export async function markNotificationRead(id) {
+  const response = await fetch(`${API_ROOT}/api/notifications/${id}/read`, {
+    method: 'POST',
+    credentials: 'include',
+  });
+  return parseResponse(response);
+}
+
+export async function markAllNotificationsRead() {
+  const response = await fetch(`${API_ROOT}/api/notifications/read-all`, {
+    method: 'POST',
+    credentials: 'include',
+  });
+  return parseResponse(response);
+}

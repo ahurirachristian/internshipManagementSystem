@@ -1,6 +1,8 @@
 package com.example.demo.auth;
 
 import java.util.List;
+
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -13,20 +15,26 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
+/**
+ * P0: the React SPA is the only UI (R12/R13) — form login, OAuth2 client and
+ * the Thymeleaf stack are gone. CORS is pinned to APP_ALLOWED_ORIGINS (L17).
+ */
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
 public class SecurityConfig {
 
-    private final AuthenticationSuccessHandler authenticationSuccessHandler;
+    private final AuthorityRefreshFilter authorityRefreshFilter;
 
-    public SecurityConfig(AuthenticationSuccessHandler authenticationSuccessHandler) {
-        this.authenticationSuccessHandler = authenticationSuccessHandler;
+    @Value("${APP_ALLOWED_ORIGINS:http://localhost:3000}")
+    private String allowedOrigins;
+
+    public SecurityConfig(AuthorityRefreshFilter authorityRefreshFilter) {
+        this.authorityRefreshFilter = authorityRefreshFilter;
     }
 
     @Bean
@@ -45,7 +53,7 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOriginPatterns(List.of("*"));
+        config.setAllowedOriginPatterns(List.of(allowedOrigins.split(",")));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
         config.setAllowCredentials(true);
@@ -59,30 +67,26 @@ public class SecurityConfig {
         http
             .csrf(csrf -> csrf.disable())
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+            // P0 (L5): roles and enabled-flags take effect live — registered inside the
+            // security chain so the refresh runs BEFORE authorization decisions.
+            .addFilterBefore(authorityRefreshFilter,
+                    org.springframework.security.web.access.intercept.AuthorizationFilter.class)
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers(
-                        "/", "/login", "/admin/login", "/register", "/forgot-password",
-                        "/api/login", "/api/register", "/api/forgot-password", "/api/roles",
-                        "/css/**", "/js/**", "/images/**", "/assets/**",
-                        "/app.js", "/favicon.ico", "/h2-console/**"
+                        "/", "/api/login", "/api/register", "/api/forgot-password", "/api/roles",
+                        "/favicon.ico"
                 ).permitAll()
                 .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/companies", "/api/supervisors").permitAll()
-                .requestMatchers("/admin/**").hasAuthority("ADMIN")
-                .requestMatchers("/university/universities/search").hasAnyAuthority("STUDENT", "SUPERVISOR", "ADMIN")
-                .requestMatchers("/university/**", "/supervisor/**").hasAnyAuthority("SUPERVISOR", "ADMIN")
-                .requestMatchers("/company/dashboard", "/company/**", "/students/**").hasAnyAuthority("ADMIN", "SUPERVISOR", "COMPANY")
-                .requestMatchers("/student/**").hasAnyAuthority("STUDENT", "SUPERVISOR", "ADMIN")
                 .anyRequest().authenticated()
-            )
-            .formLogin(form -> form
-                .loginPage("/login")
-                .successHandler(authenticationSuccessHandler)
-                .permitAll()
             )
             .logout(logout -> logout
                 .logoutSuccessUrl("/login?logout")
                 .permitAll()
             )
+            // SPA expects a machine-readable 401 (no server-rendered login page anymore)
+            .exceptionHandling(ex -> ex.authenticationEntryPoint(
+                    new org.springframework.security.web.authentication.HttpStatusEntryPoint(
+                            org.springframework.http.HttpStatus.UNAUTHORIZED)))
             .headers(headers -> headers.frameOptions(frame -> frame.sameOrigin()));
 
         return http.build();

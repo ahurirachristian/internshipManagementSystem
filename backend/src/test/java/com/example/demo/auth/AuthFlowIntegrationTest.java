@@ -3,7 +3,6 @@ package com.example.demo.auth;
 import static org.hamcrest.Matchers.containsString;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -44,13 +43,10 @@ class AuthFlowIntegrationTest {
     }
 
     @Test
-    void authPagesAreAccessibleWithoutLogin() throws Exception {
-        mockMvc.perform(get("/login")).andExpect(status().isOk())
-                .andExpect(content().string(containsString("Sign in")));
-        mockMvc.perform(get("/register")).andExpect(status().isOk())
-                .andExpect(content().string(containsString("Create account")));
-        mockMvc.perform(get("/forgot-password")).andExpect(status().isOk())
-                .andExpect(content().string(containsString("Reset password")));
+    void protectedApisRejectAnonymousUsers() throws Exception {
+        // P0: no server-rendered auth pages remain; the SPA talks to the JSON API.
+        mockMvc.perform(get("/api/notifications")).andExpect(status().isUnauthorized());
+        mockMvc.perform(get("/api/admin/users")).andExpect(status().isUnauthorized());
     }
 
     @Test
