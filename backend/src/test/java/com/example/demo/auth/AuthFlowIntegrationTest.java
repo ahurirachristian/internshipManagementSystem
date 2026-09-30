@@ -229,48 +229,31 @@ class AuthFlowIntegrationTest {
     }
 
     @Test
-    void forgotPasswordResetsPassword() throws Exception {
-        String username = "resetme" + System.currentTimeMillis();
-        register(username, "STUDENT", "oldpass1");
-
+    void forgotPasswordReturnsGenericMessageForUnknownEmail() throws Exception {
+        // P2/L2: no enumeration — an unknown address looks exactly like a known one.
         mockMvc.perform(post("/api/forgot-password")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"username\":\"" + username
-                                + "\",\"newPassword\":\"newpass1\",\"confirmPassword\":\"newpass1\"}"))
+                        .content("{\"email\":\"nobody" + System.currentTimeMillis() + "@example.com\"}"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message").value("Password updated successfully."));
-
-        var saved = userRepository.findByUsername(username).orElseThrow();
-        org.assertj.core.api.Assertions.assertThat(passwordEncoder.matches("newpass1", saved.getPassword())).isTrue();
-        org.assertj.core.api.Assertions.assertThat(passwordEncoder.matches("oldpass1", saved.getPassword())).isFalse();
-
-        mockMvc.perform(post("/api/login")
-                        .param("username", username)
-                        .param("password", "oldpass1"))
-                .andExpect(status().isUnauthorized());
-
-        mockMvc.perform(post("/api/login")
-                        .param("username", username)
-                        .param("password", "newpass1"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.role").value("STUDENT"));
+                .andExpect(jsonPath("$.message")
+                        .value("If that email exists, a reset link is on its way."));
     }
 
     @Test
-    void forgotPasswordRejectsUnknownUser() throws Exception {
+    void forgotPasswordRejectsBlankEmail() throws Exception {
         mockMvc.perform(post("/api/forgot-password")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"username\":\"nobody\",\"newPassword\":\"newpass1\",\"confirmPassword\":\"newpass1\"}"))
-                .andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.error").value("Username not found."));
+                        .content("{\"email\":\"\"}"))
+                .andExpect(status().isBadRequest());
     }
 
     @Test
-    void forgotPasswordRejectsMismatchedPasswords() throws Exception {
-        mockMvc.perform(post("/api/forgot-password")
+    void resetPasswordRejectsUnknownToken() throws Exception {
+        mockMvc.perform(post("/api/reset-password")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"username\":\"2400101003\",\"newPassword\":\"aaa111\",\"confirmPassword\":\"bbb222\"}"))
+                        .content("{\"token\":\"not-a-real-token\",\"password\":\"newpass1\","
+                                + "\"confirmPassword\":\"newpass1\"}"))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.error").value("Passwords do not match."));
+                .andExpect(jsonPath("$.error").value("RESET_LINK_INVALID_OR_EXPIRED"));
     }
 }

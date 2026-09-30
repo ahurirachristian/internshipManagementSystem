@@ -78,14 +78,38 @@ export async function register(payload) {
   return parseResponse(response);
 }
 
-export async function forgotPassword(username, newPassword, confirmPassword) {
+export async function forgotPassword(email) {
   const response = await fetch(`${API_ROOT}/api/forgot-password`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
     },
     credentials: 'include',
-    body: JSON.stringify({ username, newPassword, confirmPassword }),
+    body: JSON.stringify({ email }),
+  });
+  return parseResponse(response);
+}
+
+export async function resetPassword(token, password, confirmPassword) {
+  const response = await fetch(`${API_ROOT}/api/reset-password`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    credentials: 'include',
+    body: JSON.stringify({ token, password, confirmPassword }),
+  });
+  return parseResponse(response);
+}
+
+export async function changeMyPassword(currentPassword, newPassword) {
+  const response = await fetch(`${API_ROOT}/api/me/password`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    credentials: 'include',
+    body: JSON.stringify({ currentPassword, newPassword }),
   });
   return parseResponse(response);
 }

@@ -29,12 +29,15 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 public class SecurityConfig {
 
     private final AuthorityRefreshFilter authorityRefreshFilter;
+    private final SessionFreshnessFilter sessionFreshnessFilter;
 
     @Value("${APP_ALLOWED_ORIGINS:http://localhost:3000}")
     private String allowedOrigins;
 
-    public SecurityConfig(AuthorityRefreshFilter authorityRefreshFilter) {
+    public SecurityConfig(AuthorityRefreshFilter authorityRefreshFilter,
+            SessionFreshnessFilter sessionFreshnessFilter) {
         this.authorityRefreshFilter = authorityRefreshFilter;
+        this.sessionFreshnessFilter = sessionFreshnessFilter;
     }
 
     @Bean
@@ -69,12 +72,14 @@ public class SecurityConfig {
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
             // P0 (L5): roles and enabled-flags take effect live — registered inside the
             // security chain so the refresh runs BEFORE authorization decisions.
+            .addFilterBefore(sessionFreshnessFilter,
+                    org.springframework.security.web.access.intercept.AuthorizationFilter.class)
             .addFilterBefore(authorityRefreshFilter,
                     org.springframework.security.web.access.intercept.AuthorizationFilter.class)
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers(
-                        "/", "/api/login", "/api/register", "/api/forgot-password", "/api/roles",
-                        "/api/universities/options", "/favicon.ico"
+                        "/", "/api/login", "/api/register", "/api/forgot-password", "/api/reset-password",
+                        "/api/roles", "/api/universities/options", "/favicon.ico"
                 ).permitAll()
                 .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/companies", "/api/supervisors").permitAll()
                 .anyRequest().authenticated()

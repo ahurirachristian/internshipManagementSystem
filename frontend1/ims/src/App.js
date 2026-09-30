@@ -5,6 +5,8 @@ import ProtectedRoute from './components/ProtectedRoute';
 import LoginPage from './components/LoginPage';
 import RegisterPage from './components/RegisterPage';
 import ForgotPasswordPage from './components/ForgotPasswordPage';
+import ResetPasswordPage from './components/ResetPasswordPage';
+import ChangePasswordPage from './components/ChangePasswordPage';
 import StudentDashboard from './components/dashboards/StudentDashboard';
 import StudentProfile from './components/StudentProfile';
 import DayDiariesPage from './components/dashboards/DayDiariesPage';
@@ -137,6 +139,8 @@ function AppRoutes() {
       />
       <Route path="/register" element={<RegisterPage />} />
       <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+      <Route path="/reset-password" element={<ResetPasswordPage />} />
+      <Route path="/change-password" element={<ChangePasswordPage />} />
       <Route
         path="/student/dashboard"
         element={

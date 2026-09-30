@@ -1,39 +1,31 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { GraduationCap, User, Lock, Eye, EyeOff } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { GraduationCap, Mail } from 'lucide-react';
 import { forgotPassword } from '../services/api';
 import AuthShell from './AuthShell';
 import './LoginPage.css';
 
 export default function ForgotPasswordPage() {
-  const navigate = useNavigate();
-  const [username, setUsername] = useState('');
-  const [newPassword, setNewPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
+  const [email, setEmail] = useState('');
   const [error, setError] = useState('');
+  const [sent, setSent] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   async function handleSubmit(event) {
     event.preventDefault();
     setError('');
 
-    if (!username.trim() || !newPassword || !confirmPassword) {
-      setError('All fields are required.');
-      return;
-    }
-    if (newPassword !== confirmPassword) {
-      setError('Passwords do not match.');
+    if (!email.trim()) {
+      setError('Please enter your email address.');
       return;
     }
 
     setLoading(true);
     try {
-      await forgotPassword(username.trim(), newPassword, confirmPassword);
-      navigate('/login', { state: { reset: true } });
+      await forgotPassword(email.trim());
+      setSent(true);
     } catch (err) {
-      setError(err.message || 'Password reset failed.');
+      setError(err.message || 'Request failed.');
     } finally {
       setLoading(false);
     }
@@ -50,84 +42,42 @@ export default function ForgotPasswordPage() {
             <GraduationCap className="w-7 h-7 text-white" />
           </div>
           <h1 className="text-xl font-bold text-slate-900">Forgot Password</h1>
-          <p className="text-sm text-slate-500 mt-1">Reset your password using your username</p>
+          <p className="text-sm text-slate-500 mt-1">We&rsquo;ll email you a reset link</p>
         </div>
 
         {error && <div className="alert alert-error show">{error}</div>}
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label htmlFor="username" className={labelClass}>Username</label>
-            <div className="relative">
-              <input
-                type="text"
-                id="username"
-                className={inputClass}
-                placeholder="Enter your username"
-                autoComplete="username"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-              />
-              <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
-            </div>
+        {sent ? (
+          <div className="alert alert-success show">
+            If that email exists, a reset link is on its way.
           </div>
-
-          <div>
-            <label htmlFor="newPassword" className={labelClass}>New Password</label>
-            <div className="relative">
-              <input
-                type={showPassword ? 'text' : 'password'}
-                id="newPassword"
-                className={inputClass}
-                placeholder="Enter new password"
-                autoComplete="new-password"
-                value={newPassword}
-                onChange={(e) => setNewPassword(e.target.value)}
-              />
-              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
-              <button
-                type="button"
-                className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-primary transition-colors"
-                aria-label={showPassword ? 'Hide password' : 'Show password'}
-                onClick={() => setShowPassword((s) => !s)}
-              >
-                {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-              </button>
+        ) : (
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <label htmlFor="email" className={labelClass}>Email</label>
+              <div className="relative">
+                <input
+                  type="email"
+                  id="email"
+                  className={inputClass}
+                  placeholder="Enter your email"
+                  autoComplete="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                />
+                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+              </div>
             </div>
-          </div>
 
-          <div>
-            <label htmlFor="confirmPassword" className={labelClass}>Confirm New Password</label>
-            <div className="relative">
-              <input
-                type={showConfirmPassword ? 'text' : 'password'}
-                id="confirmPassword"
-                className={inputClass}
-                placeholder="Confirm new password"
-                autoComplete="new-password"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-              />
-              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
-              <button
-                type="button"
-                className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-primary transition-colors"
-                aria-label={showConfirmPassword ? 'Hide password' : 'Show password'}
-                onClick={() => setShowConfirmPassword((s) => !s)}
-              >
-                {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-              </button>
-            </div>
-          </div>
-
-          <button
-            className="w-full py-3 bg-gradient-to-br from-primary to-primary text-white text-sm font-bold rounded-xl shadow-md hover:shadow-lg hover:from-primary hover:to-primary active:translate-y-0 disabled:opacity-70 disabled:cursor-not-allowed transition-all mt-2"
-            type="submit"
-            disabled={loading}
-          >
-            {loading ? 'Resetting...' : 'Reset Password'}
-          </button>
-        </form>
+            <button
+              className="w-full py-3 bg-gradient-to-br from-primary to-primary text-white text-sm font-bold rounded-xl shadow-md hover:shadow-lg hover:from-primary hover:to-primary active:translate-y-0 disabled:opacity-70 disabled:cursor-not-allowed transition-all mt-2"
+              type="submit"
+              disabled={loading}
+            >
+              {loading ? 'Sending...' : 'Send Reset Link'}
+            </button>
+          </form>
+        )}
 
         <div className="text-center mt-5 pt-5 border-t border-slate-200">
           <p className="text-xs text-slate-500 font-medium">

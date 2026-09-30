@@ -49,6 +49,22 @@ public class UserEntity {
     @Column(name = "password_reset_token", nullable = true)
     private String passwordResetToken;
 
+    /** P2 (L11): expiry for the hashed reset token. */
+    @Column(name = "password_reset_expires_at", nullable = true)
+    private java.time.LocalDateTime passwordResetExpiresAt;
+
+    /** P2 (L12): sessions older than this are rejected by SessionFreshnessFilter. */
+    @Column(name = "password_changed_at", nullable = true)
+    private java.time.LocalDateTime passwordChangedAt;
+
+    /** P2 (L20): consecutive failed sign-ins; reset on success. */
+    @Column(name = "failed_login_attempts", nullable = false)
+    private int failedLoginAttempts = 0;
+
+    /** P2 (L20): NULL when not locked; auto-unlock is checked lazily on next login. */
+    @Column(name = "locked_until", nullable = true)
+    private java.time.LocalDateTime lockedUntil;
+
     /** P0 (L5/L6): only super admins may grant/revoke ADMIN or act on admin accounts. */
     @Column(name = "super_admin", nullable = false)
     private Boolean superAdmin = false;
@@ -157,6 +173,18 @@ public class UserEntity {
 
     public String getPasswordResetToken() { return passwordResetToken; }
     public void setPasswordResetToken(String passwordResetToken) { this.passwordResetToken = passwordResetToken; }
+
+    public java.time.LocalDateTime getPasswordResetExpiresAt() { return passwordResetExpiresAt; }
+    public void setPasswordResetExpiresAt(java.time.LocalDateTime passwordResetExpiresAt) { this.passwordResetExpiresAt = passwordResetExpiresAt; }
+
+    public java.time.LocalDateTime getPasswordChangedAt() { return passwordChangedAt; }
+    public void setPasswordChangedAt(java.time.LocalDateTime passwordChangedAt) { this.passwordChangedAt = passwordChangedAt; }
+
+    public int getFailedLoginAttempts() { return failedLoginAttempts; }
+    public void setFailedLoginAttempts(int failedLoginAttempts) { this.failedLoginAttempts = failedLoginAttempts; }
+
+    public java.time.LocalDateTime getLockedUntil() { return lockedUntil; }
+    public void setLockedUntil(java.time.LocalDateTime lockedUntil) { this.lockedUntil = lockedUntil; }
 
     public Boolean getSuperAdmin() { return superAdmin; }
     public void setSuperAdmin(Boolean superAdmin) { this.superAdmin = superAdmin; }
