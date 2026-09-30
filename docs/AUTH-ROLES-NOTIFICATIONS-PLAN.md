@@ -1,6 +1,6 @@
 # Platform Plan: Auth UX, Roles & Notifications, the University–Company Placement Loop, and Responsive Particles
 
-Status: Ready for review · Date: 2026-09-29 · Branch base: `fred` @ `16c6d5f`
+Status: Ready for review · Date: 2026-09-29 · **Revised 2026-09-30**: SPA-only UI (R12), OAuth dropped (R13), first-login forced password change (R14), lockout + scoped reset/unlock (R15), email templates §8.3, decisions D9–D11 confirmed · Branch base: `fred` @ `16c6d5f`
 
 Every claim below carries a tag:
 
@@ -26,6 +26,10 @@ External facts (Resend) were taken from Resend's official API reference, pricing
 | R9 | If the company **offers the placement** → automatic **notification to the university** ("student placed, needs a supervisor"). University **reviews the place**; on acceptance → **student, company, and supervisor are all notified**; the student starts work knowing their supervisor. |
 | R10 | Login **particles scale with screen size** — desktop ≠ mobile count. |
 | R11 | Plan must **exploit/anticipate loopholes**, be **step-by-step**, **no guesswork**. |
+| R12 | **Thymeleaf is dropped** (confirmed 2026-09-30) — the React SPA is the only UI; server-side templates, form login and the Thymeleaf starter are removed. |
+| R13 | **Google/LinkedIn/X login is dropped** (confirmed 2026-09-30) — no OAuth2 client, no social buttons; accounts are username/password only. |
+| R14 | **First-login forced password change**: accounts created by admin/university/company carry a weak/shared initial credential and cannot reach any dashboard until a new password is set — enforced **server-side**, not just UI. |
+| R15 | **Rate limiting + account lockout** (5 failed logins → 15-min auto-unlock, D9); ADMIN resets/unlocks any account; universities reset/unlock their own people; companies reset/unlock their own field supervisors (L21). |
 
 ---
 
@@ -34,6 +38,7 @@ External facts (Resend) were taken from Resend's official API reference, pricing
 ### 2.1 Auth (from the executed auth analysis, this session)
 
 - Two parallel stacks: React SPA (`LoginPage.js`, `RegisterPage.js`, `ForgotPasswordPage.js`, `AuthContext.js`) → JSON API; Thymeleaf pages at the same paths on :8082. **[FACT]**
+- **2026-09-30 decision (R12/R13): the Thymeleaf stack and the Google/LinkedIn/X OAuth login are removed** — the React SPA is the only UI. Verified safe to delete: zero tests reference templates/OAuth/formLogin; the view-`@Controller`s are `AuthController`, `AdminController`, `AdminLoginController`, `DashboardController`, `HomeController`, `RegistrationController`, `StudentProfileController`, `DayDiaryController`, `CompanyWebController`; templates = 19 files under `src/main/resources/templates/`. **[FACT]**
 - `POST /api/login` takes an optional `role` param and **establishes the session before the role-mismatch check** — proven: 401 + working authenticated cookie. **[FACT, live]**
 - `POST /api/register` accepts **any `Role` incl. ADMIN** — proven live (created `proof-admin`, logged into `/admin/dashboard`). **[FACT, live]**
 - Registration **never stores `email`** (field collected, never read). **[FACT]** `AuthApiController.register`
@@ -50,7 +55,7 @@ External facts (Resend) were taken from Resend's official API reference, pricing
 |---|---|---|
 | Notification infra | **None** (only `StudentSetting.emailNotifications/smsNotifications` flags). No table, no endpoint, no bell data. | grep across backend: only StudentSetting hits |
 | Notification **UI hook** | **Exists**: `DashboardLayout` takes a `notifications = []` prop and forwards it to `Header`. | `DashboardLayout.js:34,75` |
-| Admin user management | **Exists**: `AdminUsersPage.js` + `/api/admin/users` CRUD (ADMIN only). Creates users with password `username + "123"`. | `AdminUserApiController` |
+| Admin user management | **Exists**: `AdminUsersPage.js` + `/api/admin/users` CRUD (ADMIN only). Creates users with password `username + "123"` — with R14 the forced first-login change finally makes this safe. | `AdminUserApiController` |
 | Placement model | **Exists**: `placements` = studentId, companyId, universityId, universitySupervisor(+Id), companySupervisor(+Id), `Status{PENDING, ASSIGNED, ACTIVE, COMPLETED, CANCELLED}`. Class authz ADMIN/SUPERVISOR (students via `/me`). | `Placement.java:16-55`, `PlacementController:26,81` |
 | Vacancy model ("placements a company shows") | **Exists**: `vacancies` = title, description, companyId, location, requirements, status, deadline. GETs need any login; writes ADMIN/SUPERVISOR/COMPANY. **No ownership scoping** (any company can PUT any vacancy and re-assign its companyId). | `VacancyController:50-80` |
 | Student search | Exists but **name-only** and unscoped: `GET /api/students/search?q=` (ADMIN/SUPERVISOR/COMPANY, no tenant filter). | `StudentController:374-381` |
@@ -72,9 +77,10 @@ External facts (Resend) were taken from Resend's official API reference, pricing
 
 ```
                        ┌──────────────────────────────────────────────┐
-                       │ React SPA (:3000)                            │
+                       │ React SPA (:3000) — the only UI              │
                        │  Login (no role) · Register (email+uni)      │
                        │  Reset-password?token=…  · Bell (Header)     │
+                       │  Change-password (mustChangePassword gate)   │
                        │  AuthContext ── polls /api/me (role)         │
                        │              └─ polls /api/notifications     │
                        └──────────────┬───────────────────────────────┘
@@ -83,7 +89,10 @@ External facts (Resend) were taken from Resend's official API reference, pricing
                        │ Spring Boot (:8082)                          │
                        │  AuthorityRefreshFilter  ← roles live-reload │
                        │  SessionFreshnessFilter  ← password kill     │
+                       │  MustChangePasswordFilter ← first-login gate │
+                       │  Account lockout: 5 fails → 15-min lock      │
                        │  /api/login /api/register /api/forgot-…      │
+                       │  /api/account/unlock /api/users/{id}/reset   │
                        │  /api/reset-password  /api/role-requests     │
                        │  /api/notifications   /api/users/{id}/role   │
                        │  /api/university/users  /api/companies/…     │
@@ -100,11 +109,11 @@ External facts (Resend) were taken from Resend's official API reference, pricing
 
 Design pillars:
 
-1. **Roles resolve server-side only** (R2/R3): delete role from login; force STUDENT at registration.
+1. **Roles resolve server-side only** (R2/R3): delete role from login; force STUDENT at registration. The React SPA is the **only** UI — the whole Thymeleaf stack (templates, view controllers, form login, Thymeleaf + OAuth2-client starters) is removed in P0 (R12/R13).
 2. **Everything approvable is a row** (`role_requests`) with notifications on both ends (R4).
 3. **Roles take effect live**: one filter refreshes session authorities from DB each request; `users.enabled=false` logs the session out on its next request (R4/R6 — no re-login needed, no session-eviction infrastructure required).
 4. **Notifications are server-generated only** (never client-supplied recipients) and delivered by polling (Phase 0), with SSE as a later upgrade.
-5. **Email is an interface** with two implementations, so tests/CI never need network or keys.
+5. **Email is an interface** with two implementations, so tests/CI never need network or keys. Configuration lives in env vars / `backend/.env`, loaded on every OS by `springboot4-dotenv`.
 
 ---
 
@@ -129,10 +138,12 @@ Status legend: **EXISTS TODAY** = current code is exploitable (verified); **PLAN
 | L13 | **Unlisted-university accounts get power** ("not there" path) | PLAN RISK | `university_id IS NULL` ⇒ user can hold only STUDENT; approval UIs cannot grant SUPERVISOR without a university (validated server-side); null-university registration raises an admin notification for manual linking (P1/P3). |
 | L14 | **Email squatting / takeover via registration email** (register with someone else's email → their reset mail; or block the rightful owner) | PLAN RISK | Unique-email enforcement (app-level 400 + DB unique — NULLs allowed so legacy rows unaffected); reset link only changes **that account's** password and the attacker never sees the mail. Residual: denial-of-squat → mitigated by [DECISION D3: verify email at signup — recommended, cheap once Resend lands; default OFF in first pass]. |
 | L15 | **Notification spoofing / phishing links** | PLAN RISK | Notifications created only server-side (no client POST of arbitrary notifications); `link` field populated from a whitelist of in-app routes; bell renders text only (no HTML) (P0). |
-| L16 | **Admin default password `username+123`** predictable | EXISTS [FACT] | Wire the dormant `mustChangePassword` flag: admin-created accounts must change password on first login (flag finally read in `/api/login` response + frontend route guard) (P4). Alternative: random password shown once — noted, more UX work. |
+| L16 | **Admin default password `username+123`** predictable | EXISTS [FACT] | **Server-enforced** forced change (R14, confirmed 2026-09-30): a `MustChangePasswordFilter` rejects every request from a `mustChangePassword=true` user except `/api/me/password`, `/api/me` and logout — a frontend route guard alone would be bypassed by calling the API directly (P2 builds `ChangePasswordPage` + `/api/me/password`; P4 wires the filter). |
 | L17 | **CORS `*` + credentials + CSRF off** | EXISTS [FACT] | Tighten `allowedOriginPatterns` to an env-configured list (`APP_ALLOWED_ORIGINS`, default `http://localhost:3000`) in P0 — one-line change, removes cross-origin read of session responses from arbitrary sites. Keep CSRF off (SPA uses SameSite+custom header? No — note residual: recommend enabling CSRF for cookie-unsafe methods in a later hardening pass; not in scope now). |
 | L18 | **Race**: approval lands after user changed/revoked (TOCTOU) | PLAN RISK | Approve/reject is transactional: `@Transactional` + row lock on the request (`SELECT … FOR UPDATE` via `@Lock`) + state guard (`PENDING` only) → double-approve impossible; role write and audit in same tx (P3). |
 | L19 | **Catalog-drift test breaks** when phases add tables/users | PLAN RISK | P-scope rule: seeders untouched; `MigrationCatalogCountTest` must stay 7 users / 50 universities / 51 schools; new tables aren't in its list (verified) → stays green by construction (each phase gate). |
+| L20 | **Brute-force / password spraying** on `/api/login`; account takeover by repeated guessing | EXISTS (no lockout, failed logins unaudited) | **R15/D9 (P2)**: per-account counter → locked **15 min after 5 fails**, auto-unlock (lazy check, no sweeper); correct-password-while-locked still rejected (no oracle); unknown usernames get no per-account lock (enumeration-safe) but per-IP throttling via the L10 limiter; generic `401 {error:"ACCOUNT_LOCKED", minutesRemaining}`; lock emails (D10); audit `LOGIN_FAILED`/`ACCOUNT_LOCKED`. |
+| L21 | **Weak shared initial credentials** for org-created accounts; unclear who may reset whom | PLAN RISK | **R14/R15 (P2/P4/P5/P6)**: forced first-login change (L16) closes the weak-credential window; managed reset `POST /api/users/{id}/reset` (temp password shown once, D11) — ADMIN: anyone; UNIVERSITY: own people only (never ADMIN/super_admin, 404 cross-uni); COMPANY: own field supervisors only; every reset audited + emails (D10). |
 
 ---
 
@@ -146,6 +157,10 @@ users
   + enabled              BOOLEAN NOT NULL DEFAULT true    (P0)
   + password_changed_at  TIMESTAMP NULL                (P2)
   + password_reset_expires_at TIMESTAMP NULL           (P2 — reuses existing password_reset_token column for the HASH)
+  + failed_login_attempts INT NOT NULL DEFAULT 0        (P2 lockout, L20)
+  + locked_until         TIMESTAMP NULL                 (P2 lockout, L20; NULL = not locked)
+  -- managed reset (L21): the temp password is generated server-side, BCrypt-hashed into `password`,
+  -- shown ONCE in the reset response — never stored or emailed in cleartext; sets mustChangePassword=true
 
 notifications                     (P0)
   id BIGINT PK · recipient_user_id BIGINT NOT NULL (idx) · type VARCHAR(64)
@@ -180,7 +195,7 @@ No seeder creates users (L19). The seeded `admin` gets `super_admin=true, enable
 ### 6.1 Auth core
 | Method | Path | Auth | Request → Response |
 |---|---|---|---|
-| ◆ POST | `/api/login` | public | `username,password` (**role param removed**; unknown params ignored) → `{username, role, redirect}` — plus **new** `mustChangePassword` boolean (feeds L16) |
+| ◆ POST | `/api/login` | public | `username,password` (**role param removed**; unknown params ignored) → `{username, role, redirect}` — plus **new** `mustChangePassword` boolean (feeds L16); on lock: 401 `{error:"ACCOUNT_LOCKED", minutesRemaining}` (D9); bad password and unknown username return the **same generic error** (L2/L20) |
 | ◆ POST | `/api/register` | public | `{username,email,password,confirmPassword,firstName,lastName,universityId?/null,registrationNumber?,degreeProgram?,yearOfStudy?,phoneNumber?,internshipCompany?,universitySupervisor?}` → **201**; server forces `role=STUDENT`, stores email, sets `users.university_id` + `students.university_id`; `universityId` absent ⇒ NULL + notification `REGISTRATION_UNLISTED_UNIVERSITY` to all admins (L13) |
 | ○ GET | `/api/roles` | public | unchanged (used by admin UI) |
 | ★ GET | `/api/universities/options` | **public** | `[{id, shortForm, fullName}]` — slim DTO, 50 rows (P1; does not touch ADMIN-only `/api/universities`) |
@@ -190,6 +205,7 @@ No seeder creates users (L19). The seeded `admin` gets `super_admin=true, enable
 |---|---|---|---|
 | ◆ POST | `/api/forgot-password` | public | **breaking change**: `{email}` → always `200 {message:"If that email exists, a reset link is on its way."}`. Side effects if found: token gen, hash stored, `expires_at=now+30m`, Resend send, audit `PASSWORD_RESET_REQUEST` (IP). Rate limits: 1/10min per user, 5/hour per IP. |
 | ★ POST | `/api/reset-password` | public | `{token,password,confirmPassword}` → 200 or 400 `RESET_LINK_INVALID_OR_EXPIRED`. On success: hash password (BCrypt), clear token+expiry, bump `password_changed_at`, audit `PASSWORD_RESET`. |
+| ★ POST | `/api/users/{id}/reset` | ADMIN (any) / UNIVERSITY (own uni) / COMPANY (own supervisors) | Managed reset (L21/D11): unlocks + clears the failed-attempt counter, generates a strong temp password (BCrypt-hashed), sets `mustChangePassword=true`, bumps `password_changed_at` (kills old sessions); **response `{tempPassword}` shown once**; 403/404 outside scope; audit `ACCOUNT_RESET` + emails per D10. |
 
 ### 6.3 Notifications (R4/R9)
 | Method | Path | Auth | Contract |
@@ -246,21 +262,23 @@ No seeder creates users (L19). The seeded `admin` gets `super_admin=true, enable
 
 | Screen / component | Change |
 |---|---|
-| `LoginPage.js` | **Delete the role `CustomSelect`** (R2). Submit `username+password` only. Handle new `mustChangePassword` flag → redirect `/change-password` (L16). |
+| `LoginPage.js` | **Delete the role `CustomSelect`** (R2). Submit `username+password` only. Handle `mustChangePassword` → redirect `/change-password` (L16) and `ACCOUNT_LOCKED` → inline "account locked — try again in N min or contact your administrator" notice (L20). Social-login buttons never existed in the SPA — OAuth is removed server-side only (R13). |
 | `RegisterPage.js` | Step 1: drop role select; **email becomes required + validated**; add **university `CustomSelect`** fed by the new public `/api/universities/options` (with "Not listed" option → null). Steps 2-3 unchanged. Submit without `role`. |
 | `ForgotPasswordPage.js` | **Email-only** form ("we'll send a link"). After success → same neutral message state. |
 | ★ `ResetPasswordPage.js` + `App.js` route `/reset-password` | Reads `?token=`, password + confirm client-validated (min 8 [DECISION — no server min exists today, see D5]), POST `/api/reset-password`, success → `/login {reset:true}`. |
+| ★ `ChangePasswordPage.jsx` + route `/change-password` | Current + new + confirm password; POST `/api/me/password`; rendered standalone (outside DashboardLayout) because a freshly-created account may hit it before any dashboard is reachable. |
 | `AuthContext.js` | Add: (a) `refreshUser()` polling `/api/me` every 10 s + on `focus` → if `role` changed ⇒ `navigate(homeFor(newRole))` (**R4 "dashboard changes automatically"**); (b) notifications polling every 15 s → `unreadCount` state. |
 | `DashboardLayout`/`Header` | Feed the existing `notifications` prop with real data: bell icon + dropdown (mark-read, mark-all, link navigation). No layout restructuring. |
 | ★ `RequestRoleSection.jsx` (per-dashboard, R4) | Available on student/company/supervisor dashboards: pick role (+ university/company context fields), submit → pending state shown from `/api/role-requests/mine` (add small GET mine endpoint) → "Pending approval" badge. |
 | ★ `AdminRoleRequestsPage.jsx` + nav (`nav.jsx` roles ADMIN) | Queue with approve/deny (confirm dialog shows role + context), fed by `/api/role-requests?status=PENDING`. |
-| `AdminUsersPage.js` | Add grant-revoke dropdown, enable/disable switch (super admin only — gate by `user.superAdmin` from `/api/me`). |
-| University dashboard (`UniversityDashboard.js` + Thymeleaf `/university/credentials` optionally) | New tab **"People"**: list users of my university, assign STUDENT/SUPERVISOR (create form), revoke within scope, disable within scope; existing stats/diary tabs = the "monitor activities" surface (M9 already scopes data). |
-| Company dashboard (`CompanyDashboard.js`) | Tabs: **My Placements** (vacancy CRUD, ownership-scoped), **Field Supervisors** (create + list), ★ **Student Lookup** (university select + student number → profile card → "Offer placement" button). |
+| `AdminUsersPage.js` | Add grant-revoke dropdown, enable/disable switch, and **Reset password / Unlock** action on every row (D11: temp password shown once in a copyable dialog) — gated by `user.superAdmin` from `/api/me`. |
+| University dashboard (`UniversityDashboard.js` + Thymeleaf `/university/credentials` optionally) | New tab **"People"**: list users of my university, assign STUDENT/SUPERVISOR (create form), revoke within scope, disable within scope, **reset password / unlock** own people (L21); existing stats/diary tabs = the "monitor activities" surface (M9 already scopes data). |
+| Company dashboard (`CompanyDashboard.js`) | Tabs: **My Placements** (vacancy CRUD, ownership-scoped), **Field Supervisors** (create + list + **reset/unlock** own supervisors, L21), ★ **Student Lookup** (university select + student number → profile card → "Offer placement" button). |
 | Admin dashboard (`AdminDashboard.js`) | New tabs: **Role Requests**, **Marketplace** (all vacancies across companies — R7 "automatically seen by admin"). |
 | Student dashboard | Placement card via existing `/api/placements/me` → "Offered / Approved — Supervisor: X" (R9 end state). |
-| `AuthShell.js` | Particle scaling (R10) — exact spec §8.3. |
-| Thymeleaf `login.html` | Update demo-users line (stale `student/student123`); keep native form login (works — proven). Optional: fix admin-login 500 by pointing its form to `/login` (P1 drive-by, one line). |
+| `AuthShell.js` | Particle scaling (R10) — exact spec §8.4. |
+
+**Deleted entirely (R12/R13, P0)**: all 19 Thymeleaf templates, the view-`@Controller`s listed in §2.1, `formLogin`/`loginPage` + success handler from `SecurityConfig.java`, `spring-boot-starter-thymeleaf` + `spring-boot-starter-oauth2-client` from `pom.xml`, OAuth2 client registrations from `application-*.properties`, `auth/OAuth2UserService.java`, and the 3 OAuth rows in `API_REFERENCE.md`. The `users.provider`/`provider_id` columns stay (harmless NULLs — ddl-auto never drops).
 
 ---
 
@@ -283,7 +301,7 @@ backend/src/main/java/com/example/demo/email/
   EmailConfig.java          // RestClient bean: baseUrl https://api.resend.com,
                             //   Authorization Bearer ${RESEND_API_KEY}, User-Agent ims-backend/1.0
 ```
-Config (env — `.env` already imported via `spring.config.import=optional:dotenv:.env`):
+Config — file `backend/.env` (untracked + gitignored since 2026-09-30; the three keys below are pre-staged there and in `backend/.env.example`). **Wiring (resolved 2026-09-30)**: loading now works on every OS and IDE via `me.paulschwarz:springboot4-dotenv:5.1.0` (added to `pom.xml`), which activates the previously-inert `spring.config.import=optional:dotenv:.env` line — real OS env vars still outrank `.env` values (standard Spring precedence). `backend/start.sh` additionally exports `.env` for shell runs (comment/CR-safe, quote-stripping, no shell evaluation):
 ```
 RESEND_API_KEY=re_…            # unset in dev/CI → ConsoleEmailSender → tests stay offline
 RESEND_FROM_EMAIL=ims@yourdomain.tld   # must be DNS-verified
@@ -293,7 +311,38 @@ Reset email: plain-text-first HTML, single button link, "expires in 30 minutes",
 Failure policy: send failure ⇒ 500 logged + generic 200 to user? **[DECISION: log WARN, still generic 200, token remains valid — avoids leaking whether email exists; retry not needed at this scale.]**
 Test strategy: unit test asserts token→hash→expiry behavior with `ConsoleEmailSender` captured (assert link format); one `@SpringBootTest` flow: forgot → extract token from console capture → reset → login with new password → old password 401. **No test touches Resend** (L19, keeps 41+green offline).
 
-### 8.3 Particles (R10) — exact spec
+### 8.3 Email templates (D10) — all transactional, inline-styled HTML + plain-text fallback, no external assets
+
+| Template | Trigger | Subject | Copy essentials |
+|---|---|---|---|
+| Reset link (R1) | self-service forgot-password | `Reset your IMS password` | Greeting by firstName (fallback “there”); “We received a request to reset the password for your IMS account (**{username}**)”; one primary button **Reset password** → `{APP_BASE_URL}/reset-password?token=…`; “This link expires in 30 minutes and can be used only once.”; “If you didn’t request a reset, you can safely ignore this email — your password will stay the same.”; footer: organization name + do-not-reply note. |
+| Account locked | lockout (L20/D10) | `Your IMS account was locked` | “We locked your account after too many failed sign-in attempts.”; “It will unlock automatically at **{time}** (15 minutes).”; button **Reset your password** → forgot-password page; “If this wasn’t you, contact your administrator immediately.” |
+| Password reset by admin | managed reset (L21) | `Your IMS password was reset` | “An administrator reset the password for your account.”; temp password **not** included (the resetting admin already received it, D11); “You will be asked to set a new password at your next sign-in.” |
+| Credentials issued | account created by admin/uni/company | `Your IMS account is ready` | Username + “Your temporary password was shared with you by your administrator.”; first-sign-in password change required; **Sign in** button. |
+
+Reference implementation (reset link — the others follow this exact layout):
+
+```html
+<div style="font-family:Arial,Helvetica,sans-serif;max-width:520px;margin:0 auto;color:#1f2937">
+  <h2 style="color:#111827">Reset your password</h2>
+  <p>Hi ${firstName},</p>
+  <p>We received a request to reset the password for your IMS account
+     (<strong>${username}</strong>). Click the button below to choose a new one:</p>
+  <p style="text-align:center;margin:28px 0">
+    <a href="${resetLink}" style="background:#2563eb;color:#ffffff;padding:12px 28px;
+       border-radius:6px;text-decoration:none;font-weight:bold">Reset password</a>
+  </p>
+  <p>This link expires in <strong>30 minutes</strong> and can be used only once.</p>
+  <p>If you didn’t request a reset, you can safely ignore this email —
+     your password will stay the same.</p>
+  <p style="color:#6b7280;font-size:12px">Internship Management System ·
+     This is an automated message — please do not reply.</p>
+</div>
+```
+
+Failure policy (all four): send failure ⇒ log WARN, never block the main flow, never echo delivery status to the end user (L2).
+
+### 8.4 Particles (R10) — exact spec
 In `AuthShell.js`:
 ```js
 const MIN_PARTICLES = 40, MAX_PARTICLES = 220;
@@ -325,8 +374,9 @@ Discipline per phase: branch `port/pN-…` off `fred`; implement; **full backend
 6. `CORS` origins → `${APP_ALLOWED_ORIGINS:http://localhost:3000}` (L17).
 7. `AuthContext`: `/api/me` polling (10 s + focus) + role-change redirect; notifications polling (15 s) feeding `Header` via `DashboardLayout.notifications`.
 8. Frontend: bell dropdown in `Header` (mark read / read all).
-9. **Tests**: `NotificationApiTest` (owner-scoped read, unread-count), `AuthorityRefreshFilterTest` (change role in repo → next request sees new authorities without re-login; disable → next request 401/redirect), `CorsTest` (origin echo only for allowed).
-   **Gate**: suite green, build green.
+9. **Remove the Thymeleaf + OAuth stacks (R12/R13)**: delete all 19 templates in `src/main/resources/templates/`, the view-`@Controller`s (`AuthController`, `AdminController`, `AdminLoginController`, `DashboardController`, `HomeController`, `RegistrationController`, `StudentProfileController`, `DayDiaryController`, `CompanyWebController`), `formLogin`/`loginPage` + success handler from `SecurityConfig.java`, `spring-boot-starter-thymeleaf` + `spring-boot-starter-oauth2-client` from `pom.xml`, the OAuth2 client registrations from `application-*.properties`, and `auth/OAuth2UserService.java`; drop the 3 OAuth rows from `API_REFERENCE.md`. Do NOT drop the `users.provider`/`provider_id` columns (ddl-auto=update never drops columns; they stay NULL). The `admin-login.html` 500 bug and the stale demo-users line die with the files — no drive-by needed.
+10. **Tests**: `NotificationApiTest` (owner-scoped read, unread-count), `AuthorityRefreshFilterTest` (change role in repo → next request sees new authorities without re-login; disable → next request 401/redirect), `CorsTest` (origin echo only for allowed).
+   **Gate**: suite green, build green, context loads with zero templates on the classpath and no `thymeleaf`/`oauth2-client` in `mvn dependency:tree`.
 
 ### P1 — Login & registration UX (R2, R3, R5-start, L3/L4)
 1. `LoginPage.js`: remove role select; remove `role` from api call.
@@ -334,17 +384,19 @@ Discipline per phase: branch `port/pN-…` off `fred`; implement; **full backend
 3. `AuthApiController.register`: ignore incoming role (force STUDENT); require + validate + store `email` (app-level uniqueness → 400); accept `universityId` → set `users.university_id` + `students.university_id` (fallback: NULL + admin notification `REGISTRATION_UNLISTED_UNIVERSITY`); trim rules documented: username/email trimmed, **password NOT trimmed anywhere from now on** (fixes the L-trim asymmetry by making login/register/reset consistent — decision D2: stop trimming passwords rather than trim at login, because trimming at login silently alters user intent).
 4. New `GET /api/universities/options` (public) → slim DTO.
 5. `RegisterPage.js`: drop role select; email required; university select (+ "Not listed").
-6. Drive-by: `admin-login.html` form action → `/login` (fixes the 500 door, proven in analysis).
+6. ~~Drive-by: `admin-login.html` form action → `/login`~~ — moot: the whole Thymeleaf stack (including `admin-login.html`) was deleted in P0 (R12).
 7. **Tests**: rewrite `AuthFlowIntegrationTest` — `registerIgnoresRoleFieldEvenWhenAdmin` (POST role=ADMIN → DB role STUDENT), `registerStoresEmailAndUniversity`, `registerRejectsDuplicateEmail`, `loginWithoutRoleParamRoutesByDbRole`, `loginIgnoresUnknownRoleParam` (no session leak); delete `loginRejectsSelectedRoleMismatch` (superseded) and re-point `registerRejectsInvalidRole` to the new behavior. University options endpoint anonymous-200 test.
    **Gate**: suite green (count unchanged), build green.
 
 ### P2 — Password reset via Resend (R1, L1/L2/L10-L12)
-1. `email/` package per §8.2 (interface + Resend + console + config + env docs).
+1. `email/` package per §8.2 (interface + Resend + console + config + env docs) + the four templates per §8.3.
 2. Token flow: SHA-256 hash into existing `password_reset_token` + `password_reset_expires_at`; `SecureRandom` 32 B; TTL 30 m; overwrite-on-request; single-use; rate limits (per-user 10 min, per-IP 5/h, in-memory).
 3. `POST /api/forgot-password` → `{email}`, generic 200; `POST /api/reset-password` new; **delete the old username+password body contract**.
 4. `password_changed_at` + freshness check in `SessionFreshnessFilter` (logout stale sessions on next request).
-5. UI: `ForgotPasswordPage` email-only; new `ResetPasswordPage` + route; update Thymeleaf `forgot-password.html` to the same API (email field) so both stacks behave identically.
-6. **Tests**: `PasswordResetFlowTest` (forgot→capture→reset→login new/old, expiry, reuse-rejected, unknown-email still 200, mismatch 400, rate-limit 429 after N), `SessionInvalidatedAfterResetTest` (pre-reset cookie dead after reset), Resend sender unit test with mocked `RestClient` asserting headers incl. User-Agent + payload shape.
+5. **Account lockout (L20/D9)**: `failed_login_attempts`/`locked_until`; counter increments on bad password (unknown username → no per-account counter, enumeration-safe), resets to 0 on success; at **5** failures → locked **15 min** (auto-unlock checked lazily on the next login attempt — no sweeper job); correct password while locked → still rejected (no oracle); 401 `{error:"ACCOUNT_LOCKED", minutesRemaining}`; per-IP failure throttling via the same in-memory limiter as L10; audit `LOGIN_FAILED` / `ACCOUNT_LOCKED`.
+6. **Managed reset (L21/D11)**: `POST /api/users/{id}/reset` — ADMIN scope in P2 (university scope lands P5, company scope P6); 16-char `SecureRandom` temp password, BCrypt-hashed, `mustChangePassword=true`, `password_changed_at` bumped (old sessions die), `{tempPassword}` in the response only, audit `ACCOUNT_RESET`, reset + lock emails per §8.3.
+7. UI: `ForgotPasswordPage` email-only; new `ResetPasswordPage` + route; new `ChangePasswordPage` + route (wired to the P4 server-side gate; built here to exercise `/api/me/password`).
+8. **Tests**: `PasswordResetFlowTest` (forgot→capture→reset→login new/old, expiry, reuse-rejected, unknown-email still 200, mismatch 400, rate-limit 429 after N), `AccountLockoutTest` (5 fails → locked with minutesRemaining; correct password while locked → still locked; after 15 min → auto-unlock; success resets counter; unknown-user attempts don’t lock accounts; no enumeration in messages), `ManagedResetTest` (admin path: temp password works once → forced change → old session dead; scope extensions tested again in P5/P6), `SessionInvalidatedAfterResetTest` (pre-reset cookie dead after reset), Resend sender unit test with mocked `RestClient` asserting headers incl. User-Agent + payload shape.
    **Gate**: suite green offline (console sender default), build green. Live smoke (manual, needs keys): one real email via curl against Resend + dashboard delivery check.
 
 ### P3 — Role requests + auto notifications + live dashboard switch (R4, L6/L18)
@@ -359,19 +411,19 @@ Discipline per phase: branch `port/pN-…` off `fred`; implement; **full backend
 ### P4 — Super admin powers: grant, revoke, disable (R6, L6/L7/L16)
 1. Endpoints §6.5 with `AuthorizationScopeService` (only place scope rules live).
 2. `AdminUsersPage`: role grant/revoke + enable/disable (super-admin-gated UI), with audit + notifications.
-3. Wire `mustChangePassword`: `/api/login` flag consumed by frontend → `/change-password` route (simple form → `PUT /api/me/password`? add endpoint `{currentPassword,newPassword}` — self-service change gated by the flag). *This finally makes the dormant column real (L16).*
+3. Wire `mustChangePassword` **server-side** (L16/R14): `POST /api/me/password` `{currentPassword,newPassword}` (min 8, BCrypt, bumps `password_changed_at`, clears the flag) + a `MustChangePasswordFilter`: any request from a flagged user except `/api/me/password`, `/api/me` and logout → 403 `{error:"PASSWORD_CHANGE_REQUIRED"}`; SPA handles the error (interceptor + route guard → `/change-password`, no dashboard navigation until cleared). A frontend-only guard would be trivially bypassed by calling the API directly, hence the filter. *This finally makes the dormant column real (L16).*
 4. **Tests**: `RevocationMatrixTest` (super admin can revoke anyone; ADMIN target only by super admin; disabled user's next request → 401; demoted user's next request → new authorities; notification delivered to target; audit row written).
    **Gate**: suite + build.
 
 ### P5 — University powers (R5, R6-scoped, L7)
-1. `GET /api/university/users` (own university), `POST /api/university/users` (create STUDENT/SUPERVISOR forced-scope), `POST /api/university/users/{id}/role` (STUDENT↔SUPERVISOR only, own uni only), `POST /api/university/users/{id}/enabled` (own uni, never ADMIN/super_admin).
+1. `GET /api/university/users` (own university), `POST /api/university/users` (create STUDENT/SUPERVISOR forced-scope), `POST /api/university/users/{id}/role` (STUDENT↔SUPERVISOR only, own uni only), `POST /api/university/users/{id}/enabled` (own uni, never ADMIN/super_admin); university **reset/unlock** of own people = the P2 `/api/users/{id}/reset` scoped to the caller’s university (L21).
 2. University dashboard **People** tab (list, create, assign, revoke, disable).
 3. Monitoring: existing M9 stats/diaries are already university-scoped — surface links from People tab; add `GET /api/university/activity` (audit rows scoped to university's students) if time allows [DECISION D6: include in P5 vs defer — recommend defer to keep P5 tight; dashboards already show activity].
 4. **Tests**: `UniversityScopeTest` (uni-A supervisor: 404 on uni-B student actions, 403 on ADMIN target, success within own uni, notification+audit fired; cross-uni create rejected).
    **Gate**: suite + build.
 
 ### P6 — Company powers (R7, L8/L9-partial)
-1. Field supervisors: endpoints §6.6 + Company dashboard tab.
+1. Field supervisors: endpoints §6.6 + Company dashboard tab (create + list + **reset/unlock** own supervisors via the scoped `/api/users/{id}/reset`, L21).
 2. Vacancy scoping fix: COMPANY ownership + forced companyId (writes), keep ADMIN/SUPERVISOR behavior intact for test compatibility; add ownership tests.
 3. Vacancy create → admin notification; Admin dashboard **Marketplace** tab (existing GET `/api/vacancies` feed).
 4. **Tests**: `VacancyOwnershipTest` (company A cannot PUT/DELETE B's → 403; forced companyId on create; admin can), `CompanySupervisorCreationTest` (user+industrial row linked, creds notification, login works).
@@ -394,7 +446,7 @@ Discipline per phase: branch `port/pN-…` off `fred`; implement; **full backend
    **Gate**: suite + build.
 
 ### P9 — Particles responsive (R10)
-1. §8.3 implementation in `AuthShell.js` (target formula, resize recompute, pointer gate, reduced-motion, visibility pause, optional DPR).
+1. §8.4 implementation in `AuthShell.js` (target formula, resize recompute, pointer gate, reduced-motion, visibility pause, optional DPR).
 2. Gate: build + visual matrix at 390/768/1920 widths; zero new ESLint warnings.
 
 After P9: final full verification on `fred` (suite + build), summary report. Push only on request (standing rule from the Chris port).
@@ -435,8 +487,8 @@ After P9: final full verification on `fred` (suite + build), summary report. Pus
 ## 12. Ops runbook (once, before P2 goes live)
 
 1. Create Resend account → add domain → DNS verify (SPF/DKIM per dashboard instructions) → API key.
-2. Set env: `RESEND_API_KEY`, `RESEND_FROM_EMAIL` (on verified domain), `APP_BASE_URL` (https in prod), `APP_ALLOWED_ORIGINS`.
-3. Send one test email via curl (exact shape from Resend docs) → confirm in Resend dashboard activity log.
+2. Set env — **your one manual step**: open `backend/.env`, paste your key after `RESEND_API_KEY=re_…`, and fill `RESEND_FROM_EMAIL` (address on the verified domain). `APP_BASE_URL` is pre-set (`https` in prod); `APP_ALLOWED_ORIGINS` goes in the same file. Teammates: copy `backend/.env.example`. Values reach Spring on every OS (Windows, macOS, Linux, IDE runs) via `springboot4-dotenv` in `pom.xml` (see §8.2); `backend/.env` is untracked + gitignored and must stay that way.
+3. Send one test email via curl (exact shape from Resend docs) → confirm in Resend dashboard activity log. **Testing note (2026-09-30)**: until a custom domain is verified, the sender is the sandbox address `onboarding@resend.dev`, which can deliver **only to the email of your own Resend account** — any other recipient gets a `403` (logged as WARN, user still sees the generic response). For smoke tests, use a test account whose email equals your Resend signup address; swap `RESEND_FROM_EMAIL` after domain verification.
 4. Watch free-tier caps: 100/day, 3,000/mo — resets only; no marketing mail ever (transactional `/emails` only).
 5. H2 dev vs MySQL prod: all DDL additive via `ddl-auto=update`; no `schema.sql` change (already stale/off classpath — standing decision from the port).
 6. Backups/rollout: each phase is one ff-merge → revert one merge commit to roll back a phase (same rollback model as the Chris port).
@@ -451,16 +503,19 @@ After P9: final full verification on `fred` (suite + build), summary report. Pus
 | D2 | Password trimming | **Stop trimming passwords everywhere** (register/reset/login consistent) | trim at login too (matches current stored style but silently mutates input) |
 | D3 | Verify email at signup (Resend confirmation code) | **Off in first pass**, add as P10 later | on from day one (blocks L14 fully) |
 | D4 | Lookup PII scope | Full academic profile + contact (email/phone) — internship office needs it; **every lookup audited** | academic-only until placement accepted, then release contact |
-| D5 | Password strength rule | add min 8 server-side in P2 (today: **no minimum anywhere**) | keep as-is (status quo) |
+| D5 | Password strength rule | **CONFIRMED 2026-09-30**: min 8 server-side everywhere (register / reset / change) | — |
 | D6 | University activity feed | defer (dashboards already monitor diaries/stats) | include `GET /api/university/activity` in P5 |
 | D7 | Requestable roles | SUPERVISOR, COMPANY, **ADMIN** (per your brief; ADMIN approvals loudly notified to all super admins) | exclude ADMIN from requestable set |
 | D8 | Notification transport | polling (15 s) in P0 — zero deps, robust | SSE `SseEmitter` push (upgrade later, same API surface) |
+| D9 | Lockout policy | **CONFIRMED 2026-09-30**: 5 failed attempts → 15-min lock → auto-unlock; managed reset always available earlier | — |
+| D10 | Lock & reset emails | **CONFIRMED 2026-09-30**: “account locked” and “password was reset” alerts via Resend (templates §8.3) | — |
+| D11 | Reset credential delivery | **CONFIRMED 2026-09-30**: server-generated temp password shown ONCE to the person resetting; never emailed in cleartext; forced change at first sign-in | — |
 
 ---
 
 ## 14. What deliberately does NOT change
 
-- Thymeleaf server-side login (works — proven) and its success handler.
+- ~~Thymeleaf server-side login (works — proven) and its success handler~~ — **removed in P0** (R12, confirmed 2026-09-30); the Google/LinkedIn/X OAuth stack is likewise removed (R13). `pom.xml` changes: delete the two starters, add one tiny dependency — `me.paulschwarz:springboot4-dotenv` (activates the dormant `spring.config.import=optional:dotenv:.env` on all OSes; confirmed 2026-09-30).
 - The4-role `Role` enum and bare-name authorities (every `@PreAuthorize` stays valid).
 - Session-based auth (no JWT), CSRF setting (documented residual L17 second step), `pom.xml` (no new dependency anywhere in this plan).
 - Existing seeders' row counts (L19) and the 9 pre-existing ESLint warnings.
