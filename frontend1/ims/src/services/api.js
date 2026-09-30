@@ -403,6 +403,45 @@ export async function setUserEnabled(id, enabled) {
   return parseResponse(response);
 }
 
+// --- University people (P5) ---
+
+export async function fetchUniversityPeople() {
+  const response = await fetch(`${API_ROOT}/api/university/users`, {
+    credentials: 'include',
+  });
+  return parseResponse(response);
+}
+
+export async function createUniversityPerson(payload) {
+  const response = await fetch(`${API_ROOT}/api/university/users`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+    body: JSON.stringify(payload),
+  });
+  return parseResponse(response);
+}
+
+export async function assignUniversityUserRole(id, role) {
+  const response = await fetch(`${API_ROOT}/api/university/users/${id}/role`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+    body: JSON.stringify({ role }),
+  });
+  return parseResponse(response);
+}
+
+export async function setUniversityUserEnabled(id, enabled) {
+  const response = await fetch(`${API_ROOT}/api/university/users/${id}/enabled`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+    body: JSON.stringify({ enabled }),
+  });
+  return parseResponse(response);
+}
+
 export async function resetUserPassword(id) {
   const response = await fetch(`${API_ROOT}/api/users/${id}/reset`, {
     method: 'POST',

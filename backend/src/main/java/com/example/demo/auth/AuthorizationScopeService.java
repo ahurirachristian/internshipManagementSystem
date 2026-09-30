@@ -32,4 +32,32 @@ public class AuthorizationScopeService {
             throw new IllegalArgumentException("You cannot perform this action on your own account.");
         }
     }
+
+    /** ADMIN (or super admin) — the broadest non-super scope. */
+    public boolean isAdminLike(UserEntity user) {
+        return isSuperAdmin(user) || "ADMIN".equals(user.getRole().name());
+    }
+
+    public boolean isUniversitySupervisor(UserEntity user) {
+        return "SUPERVISOR".equals(user.getRole().name());
+    }
+
+    /**
+     * P5 (L7): a university supervisor may only act within their own university,
+     * never on an ADMIN/super-admin target. Other-university targets are 404 (not
+     * 403) so the caller cannot probe which accounts exist elsewhere.
+     */
+    public void requireUniversityCanAct(UserEntity actor, UserEntity target) {
+        requireCanManage(actor, target);
+        if (isAdminLike(actor)) {
+            return;
+        }
+        if (!isUniversitySupervisor(actor)) {
+            throw new AccessDeniedException("You cannot manage this account.");
+        }
+        if (actor.getUniversityId() == null || target.getUniversityId() == null
+                || !actor.getUniversityId().equals(target.getUniversityId())) {
+            throw new java.util.NoSuchElementException("User not found.");
+        }
+    }
 }

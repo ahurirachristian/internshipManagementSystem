@@ -10,10 +10,12 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.example.demo.auth.AuthorizationScopeService;
 import com.example.demo.auth.ManagedResetService;
 import com.example.demo.auth.UserEntity;
 import com.example.demo.auth.UserRepository;
 import com.example.demo.auth.UserRoleService;
+import com.example.demo.university.UniversityPeopleService;
 
 /**
  * P2: managed account reset. ADMIN scope only for now — P5 adds university
@@ -26,18 +28,28 @@ public class UserManagementApiController {
     private final ManagedResetService managedResetService;
     private final UserRepository userRepository;
     private final UserRoleService userRoleService;
+    private final AuthorizationScopeService scopeService;
+    private final UniversityPeopleService universityPeopleService;
 
     public UserManagementApiController(ManagedResetService managedResetService,
-            UserRepository userRepository, UserRoleService userRoleService) {
+            UserRepository userRepository, UserRoleService userRoleService,
+            AuthorizationScopeService scopeService, UniversityPeopleService universityPeopleService) {
         this.managedResetService = managedResetService;
         this.userRepository = userRepository;
         this.userRoleService = userRoleService;
+        this.scopeService = scopeService;
+        this.universityPeopleService = universityPeopleService;
     }
 
+    /** P2/L21: ADMIN anywhere; P5 adds university supervisors within their own university. */
     @PostMapping("/{id}/reset")
-    @PreAuthorize("hasAuthority('ADMIN')")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'SUPERVISOR')")
     public ResponseEntity<?> resetPassword(@PathVariable Long id, Principal principal) {
         UserEntity actor = userRepository.findByUsername(principal.getName()).orElseThrow();
+        if (!scopeService.isAdminLike(actor)) {
+            // 404 across tenants, 403 for privileged targets, per L7.
+            universityPeopleService.requireTarget(actor, id);
+        }
         String tempPassword = managedResetService.resetPassword(id, actor);
         // D11: shown once, never stored or emailed.
         return ResponseEntity.ok(Map.of("tempPassword", tempPassword));

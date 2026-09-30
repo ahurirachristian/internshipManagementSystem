@@ -31,6 +31,7 @@ import StaffManagement from './components/dashboards/StaffManagement';
 import UnitCoursesManagement from './components/dashboards/UnitCoursesManagement';
 import RequestRolePage from './components/dashboards/RequestRolePage';
 import AdminRoleRequestsPage from './components/dashboards/AdminRoleRequestsPage';
+import UniversityPeoplePage from './components/dashboards/UniversityPeoplePage';
 import DashboardLayout from './components/DashboardLayout';
 import './App.css';
 
@@ -143,6 +144,14 @@ function AppRoutes() {
       <Route path="/forgot-password" element={<ForgotPasswordPage />} />
       <Route path="/reset-password" element={<ResetPasswordPage />} />
       <Route path="/change-password" element={<ChangePasswordPage />} />
+      <Route
+        path="/university/people"
+        element={
+          <ProtectedRoute roles={["SUPERVISOR", "ADMIN"]}>
+            <UniversityPeoplePage />
+          </ProtectedRoute>
+        }
+      />
       <Route
         path="/request-role"
         element={
