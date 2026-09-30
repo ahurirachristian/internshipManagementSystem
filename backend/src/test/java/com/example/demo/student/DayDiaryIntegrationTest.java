@@ -48,7 +48,10 @@ class DayDiaryIntegrationTest {
     private PasswordEncoder passwordEncoder;
 
     private UserEntity newUser(String username, Role role) {
-        return userRepository.save(new UserEntity(username, passwordEncoder.encode("Student@123"), role));
+        UserEntity user = new UserEntity(username, passwordEncoder.encode("Student@123"), role);
+        // P4: these fixtures act as their own principal, so they must not be gated.
+        user.setMustChangePassword(false);
+        return userRepository.save(user);
     }
 
     private Student newStudent(String username) {

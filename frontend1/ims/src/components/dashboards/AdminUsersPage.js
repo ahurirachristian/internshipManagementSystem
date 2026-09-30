@@ -1,6 +1,15 @@
 import { useEffect, useState } from 'react';
 import DashboardLayout from '../DashboardLayout';
-import { createUser, deleteUser, fetchUsers, updateUser } from '../../services/api';
+import { useAuth } from '../../context/AuthContext';
+import {
+  createUser,
+  deleteUser,
+  fetchUsers,
+  grantUserRole,
+  resetUserPassword,
+  setUserEnabled,
+  updateUser,
+} from '../../services/api';
 import {
   Users,
   Search,
@@ -31,6 +40,7 @@ const ROLE_BADGE_STYLES = {
 const initialForm = { username: '', role: 'STUDENT' };
 
 export default function AdminUsersPage() {
+  const { user: currentUser } = useAuth();
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -145,6 +155,55 @@ export default function AdminUsersPage() {
     }
   }
 
+  async function handleToggleEnabled(user) {
+    setError('');
+    setNotice('');
+    try {
+      await setUserEnabled(user.id, !user.enabled);
+      setNotice(user.enabled ? 'Account disabled.' : 'Account re-enabled.');
+      await refreshUsers();
+    } catch (err) {
+      setError(err.message || 'Unable to change account status.');
+    }
+  }
+
+  async function handleReset(user) {
+    if (!window.confirm(`Reset the password for ${user.username}? Old sessions will be signed out.`)) return;
+    setError('');
+    setNotice('');
+    try {
+      const { tempPassword } = await resetUserPassword(user.id);
+      window.prompt('Temporary password (shown once — give it to the user):', tempPassword);
+      setNotice(`Password reset for ${user.username}.`);
+    } catch (err) {
+      setError(err.message || 'Unable to reset the password.');
+    }
+  }
+
+  async function handleGrantRole(user) {
+    const role = window.prompt('Grant which role? STUDENT, SUPERVISOR, COMPANY or ADMIN', user.role);
+    if (!role) return;
+    const payload = { role: role.trim().toUpperCase() };
+    if (payload.role === 'SUPERVISOR') {
+      const universityId = window.prompt('University ID for this supervisor:');
+      if (!universityId) return;
+      payload.universityId = Number(universityId);
+    } else if (payload.role === 'COMPANY') {
+      const companyName = window.prompt('Company name for this account:');
+      if (!companyName) return;
+      payload.companyName = companyName;
+    }
+    setError('');
+    setNotice('');
+    try {
+      await grantUserRole(user.id, payload);
+      setNotice(`${user.username} is now ${payload.role}.`);
+      await refreshUsers();
+    } catch (err) {
+      setError(err.message || 'Unable to grant the role.');
+    }
+  }
+
   return (
     <DashboardLayout title="User Management" subtitle="Welcome,">
       <div className="space-y-6 max-w-7xl mx-auto">
@@ -249,6 +308,35 @@ export default function AdminUsersPage() {
                     </td>
                     <td className="px-5 py-3.5 text-right">
                       <div className="inline-flex items-center gap-1.5 justify-end">
+                        {currentUser?.superAdmin && (
+                          <>
+                            <button
+                              type="button"
+                              onClick={() => handleGrantRole(user)}
+                              title="Grant or revoke a role"
+                              className="p-1.5 rounded-lg bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 hover:bg-blue-100 border border-blue-200/60"
+                              aria-label="Grant role"
+                            >
+                              <Shield className="w-3.5 h-3.5" />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleToggleEnabled(user)}
+                              title={user.enabled ? 'Disable account' : 'Enable account'}
+                              className="px-2 py-1 rounded-lg text-[10px] font-bold border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"
+                            >
+                              {user.enabled ? 'Disable' : 'Enable'}
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleReset(user)}
+                              title="Reset password"
+                              className="px-2 py-1 rounded-lg text-[10px] font-bold border border-amber-200 text-amber-700 hover:bg-amber-50"
+                            >
+                              Reset
+                            </button>
+                          </>
+                        )}
                         <button
                           type="button"
                           onClick={() => openEdit(user)}

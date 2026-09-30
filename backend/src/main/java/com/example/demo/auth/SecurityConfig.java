@@ -30,14 +30,17 @@ public class SecurityConfig {
 
     private final AuthorityRefreshFilter authorityRefreshFilter;
     private final SessionFreshnessFilter sessionFreshnessFilter;
+    private final MustChangePasswordFilter mustChangePasswordFilter;
 
     @Value("${APP_ALLOWED_ORIGINS:http://localhost:3000}")
     private String allowedOrigins;
 
     public SecurityConfig(AuthorityRefreshFilter authorityRefreshFilter,
-            SessionFreshnessFilter sessionFreshnessFilter) {
+            SessionFreshnessFilter sessionFreshnessFilter,
+            MustChangePasswordFilter mustChangePasswordFilter) {
         this.authorityRefreshFilter = authorityRefreshFilter;
         this.sessionFreshnessFilter = sessionFreshnessFilter;
+        this.mustChangePasswordFilter = mustChangePasswordFilter;
     }
 
     @Bean
@@ -75,6 +78,9 @@ public class SecurityConfig {
             .addFilterBefore(sessionFreshnessFilter,
                     org.springframework.security.web.access.intercept.AuthorizationFilter.class)
             .addFilterBefore(authorityRefreshFilter,
+                    org.springframework.security.web.access.intercept.AuthorizationFilter.class)
+            // P4 (R14): first-login password change gate, after authentication.
+            .addFilterBefore(mustChangePasswordFilter,
                     org.springframework.security.web.access.intercept.AuthorizationFilter.class)
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers(

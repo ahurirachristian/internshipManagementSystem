@@ -260,7 +260,8 @@ public class AuthApiController {
 
     /** P2 (R14 helper): lets a user set their own password; used by the first-login gate in P4. */
     @PostMapping("/me/password")
-    public ResponseEntity<?> changeMyPassword(@RequestBody Map<String, String> body, Principal principal) {
+    public ResponseEntity<?> changeMyPassword(@RequestBody Map<String, String> body, Principal principal,
+            HttpServletRequest request) {
         String currentPassword = body.getOrDefault("currentPassword", "");
         String newPassword = body.getOrDefault("newPassword", "");
         if (currentPassword.isEmpty() || newPassword.isEmpty()) {
@@ -277,6 +278,9 @@ public class AuthApiController {
         user.setMustChangePassword(false);
         user.setPasswordChangedAt(LocalDateTime.now());
         userRepository.save(user);
+        // Keep the caller's own session alive (only OTHER sessions must die).
+        request.getSession(true).setAttribute(SessionFreshnessFilter.LOGIN_TIME_ATTRIBUTE,
+                System.currentTimeMillis());
         auditLogService.log(user.getUsername(), user.getRole().name(), "PASSWORD_CHANGE", "User",
                 "Password changed by the account owner", null);
         return ResponseEntity.ok(Map.of("message", "Password updated successfully."));

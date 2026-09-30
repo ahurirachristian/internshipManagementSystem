@@ -8,6 +8,9 @@ public class UserDto {
     private String email;
     private Long companyId;
     private Long universityId;
+    private Boolean enabled;
+    private Boolean superAdmin;
+    private Boolean mustChangePassword;
 
     public UserDto() {
     }
@@ -26,6 +29,15 @@ public class UserDto {
         this.companyId = companyId;
         this.universityId = universityId;
     }
+
+    public Boolean getEnabled() { return enabled; }
+    public void setEnabled(Boolean enabled) { this.enabled = enabled; }
+
+    public Boolean getSuperAdmin() { return superAdmin; }
+    public void setSuperAdmin(Boolean superAdmin) { this.superAdmin = superAdmin; }
+
+    public Boolean getMustChangePassword() { return mustChangePassword; }
+    public void setMustChangePassword(Boolean mustChangePassword) { this.mustChangePassword = mustChangePassword; }
 
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }

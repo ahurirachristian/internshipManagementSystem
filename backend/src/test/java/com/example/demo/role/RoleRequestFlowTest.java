@@ -133,8 +133,10 @@ class RoleRequestFlowTest {
 
     @Test
     void requestingTheRoleYouAlreadyHoldIsAConflict() throws Exception {
+        String username = "already" + System.currentTimeMillis();
+        register(username);
         mockMvc.perform(post("/api/role-requests")
-                        .with(asStudent("2400101003"))
+                        .with(asStudent(username))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"requestedRole\":\"STUDENT\"}"))
                 .andExpect(status().isConflict());

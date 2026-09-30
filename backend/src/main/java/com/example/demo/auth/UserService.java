@@ -36,8 +36,12 @@ public class UserService {
     }
 
     public UserDto toDto(UserEntity user) {
-        return new UserDto(user.getId(), user.getUsername(), user.getRole().name(),
+        UserDto dto = new UserDto(user.getId(), user.getUsername(), user.getRole().name(),
                 user.getEmail(), user.getCompanyId(), user.getUniversityId());
+        dto.setEnabled(Boolean.TRUE.equals(user.getEnabled()));
+        dto.setSuperAdmin(Boolean.TRUE.equals(user.getSuperAdmin()));
+        dto.setMustChangePassword(Boolean.TRUE.equals(user.getMustChangePassword()));
+        return dto;
     }
 
     public List<UserDto> getAllUsersDto() {

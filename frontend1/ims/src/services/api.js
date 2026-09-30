@@ -383,6 +383,34 @@ export async function deleteUser(id) {
   return parseResponse(response);
 }
 
+export async function grantUserRole(id, payload) {
+  const response = await fetch(`${API_ROOT}/api/users/${id}/role`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+    body: JSON.stringify(payload),
+  });
+  return parseResponse(response);
+}
+
+export async function setUserEnabled(id, enabled) {
+  const response = await fetch(`${API_ROOT}/api/users/${id}/enabled`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+    body: JSON.stringify({ enabled }),
+  });
+  return parseResponse(response);
+}
+
+export async function resetUserPassword(id) {
+  const response = await fetch(`${API_ROOT}/api/users/${id}/reset`, {
+    method: 'POST',
+    credentials: 'include',
+  });
+  return parseResponse(response);
+}
+
 export async function fetchUniversities() {
   const response = await fetch(`${API_ROOT}/api/universities`, {
     credentials: 'include',

@@ -38,7 +38,12 @@ export function AuthProvider({ children }) {
     const me = await fetchCurrentUser();
     setUser(me);
     if (me) {
-      if (roleRef.current && me.role !== roleRef.current) {
+      // P4 (R14): the server rejects flagged accounts everywhere else, so send
+      // them to the change-password page until the flag is cleared.
+      const publicPaths = ['/change-password', '/login', '/register', '/forgot-password', '/reset-password'];
+      if (me.mustChangePassword && !publicPaths.includes(window.location.pathname)) {
+        navigate('/change-password', { replace: true });
+      } else if (roleRef.current && me.role !== roleRef.current) {
         navigate(homeFor(me.role), { replace: true });
       }
       roleRef.current = me.role;
