@@ -683,6 +683,53 @@ export async function fetchMyUniversitySupervisor() {
   return parseResponse(response);
 }
 
+// --- Role requests (P3) ---
+
+export async function fetchMyRoleRequests() {
+  const response = await fetch(`${API_ROOT}/api/role-requests/mine`, {
+    credentials: 'include',
+  });
+  return parseResponse(response);
+}
+
+export async function createRoleRequest(payload) {
+  const response = await fetch(`${API_ROOT}/api/role-requests`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+    body: JSON.stringify(payload),
+  });
+  return parseResponse(response);
+}
+
+export async function fetchRoleRequests(status = 'PENDING') {
+  const url = status
+    ? `${API_ROOT}/api/role-requests?status=${encodeURIComponent(status)}`
+    : `${API_ROOT}/api/role-requests`;
+  const response = await fetch(url, { credentials: 'include' });
+  return parseResponse(response);
+}
+
+export async function approveRoleRequest(id, payload = {}) {
+  const response = await fetch(`${API_ROOT}/api/role-requests/${id}/approve`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+    body: JSON.stringify(payload),
+  });
+  return parseResponse(response);
+}
+
+export async function denyRoleRequest(id, comment) {
+  const response = await fetch(`${API_ROOT}/api/role-requests/${id}/deny`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+    body: JSON.stringify({ comment }),
+  });
+  return parseResponse(response);
+}
+
 // --- Notifications (P0) ---
 
 export async function fetchNotifications(unreadOnly = false, page = 0) {

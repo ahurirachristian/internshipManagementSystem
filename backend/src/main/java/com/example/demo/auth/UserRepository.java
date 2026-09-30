@@ -14,4 +14,6 @@ public interface UserRepository extends JpaRepository<UserEntity, Long> {
     Optional<UserEntity> findByPasswordResetToken(String passwordResetToken);
 
     List<UserEntity> findByRole(Role role);
+
+    List<UserEntity> findBySuperAdminTrue();
 }

@@ -28,6 +28,12 @@ public class GlobalExceptionHandler {
                 .body(Map.of("error", "Validation failed", "details", errors));
     }
 
+    @ExceptionHandler(com.example.demo.role.RoleRequestConflictException.class)
+    public ResponseEntity<Map<String, String>> handleConflict(
+            com.example.demo.role.RoleRequestConflictException ex) {
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("error", ex.getMessage()));
+    }
+
     @ExceptionHandler(NoSuchElementException.class)
     public ResponseEntity<Map<String, String>> handleNotFound(NoSuchElementException ex) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND)

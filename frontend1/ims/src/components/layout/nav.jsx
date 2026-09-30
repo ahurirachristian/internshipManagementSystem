@@ -11,6 +11,7 @@ import {
   FolderOpen,
   IdCard,
   BookMarked,
+  ShieldCheck,
 } from 'lucide-react';
 
 export const ROLE_LABELS = {
@@ -30,6 +31,7 @@ export const NAV_GROUPS = [
       { to: '/student/day-diaries', icon: BookMarked, label: 'Day Diaries', roles: ['STUDENT'] },
       { to: '/company/dashboard', icon: Building2, label: 'Company Area', roles: ['ADMIN', 'COMPANY'] },
       { to: '/university/dashboard', icon: LayoutDashboard, label: 'University Dashboard', roles: ['ADMIN', 'SUPERVISOR'] },
+      { to: '/request-role', icon: ShieldCheck, label: 'Request a Role', roles: ['STUDENT', 'SUPERVISOR', 'COMPANY'] },
     ],
   },
   {
@@ -39,6 +41,7 @@ export const NAV_GROUPS = [
       { to: '/company', icon: Building2, label: 'Companies', roles: ['ADMIN', 'SUPERVISOR'] },
       { to: '/admin/placements', icon: RectangleHorizontal, label: 'Internship Placement', roles: ['ADMIN'] },
       { to: '/admin/universities', icon: University, label: 'Universities', roles: ['ADMIN'] },
+      { to: '/admin/role-requests', icon: ShieldCheck, label: 'Role Requests', roles: ['ADMIN'] },
     ],
   },
   {
