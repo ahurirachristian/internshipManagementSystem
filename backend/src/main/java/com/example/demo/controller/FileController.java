@@ -6,6 +6,7 @@ import com.example.demo.document.FileStorageService;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.security.Principal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
@@ -31,6 +32,13 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 @RequestMapping("/api/files")
 @PreAuthorize("isAuthenticated()")
 public class FileController {
+
+    /**
+     * L7: reads stay open to any authenticated user, but the frontend already
+     * treats upload as an ADMIN/SUPERVISOR capability (FileManagement.jsx).
+     * Enforcing it here closes the direct-API bypass.
+     */
+    private static final String CAN_UPLOAD = "hasAnyAuthority('ADMIN','SUPERVISOR')";
 
     private final DocumentRepository documentRepository;
     private final FileStorageService fileStorageService;
@@ -61,7 +69,15 @@ public class FileController {
 
     @GetMapping("/view/{fileName}")
     public ResponseEntity<Resource> viewFile(@PathVariable String fileName) throws IOException {
-        Path filePath = fileStorageService.loadFile(fileName);
+        Path filePath;
+        try {
+            filePath = fileStorageService.loadFile(fileName);
+        } catch (IllegalArgumentException ex) {
+            return ResponseEntity.badRequest().body(null);
+        }
+        if (!Files.isReadable(filePath)) {
+            return ResponseEntity.notFound().build();
+        }
         Resource resource = new UrlResource(filePath.toUri());
 
         String contentType = Files.probeContentType(filePath);
@@ -76,9 +92,11 @@ public class FileController {
     }
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PreAuthorize(CAN_UPLOAD)
     public ResponseEntity<?> uploadFile(
             @RequestParam("file") MultipartFile file,
-            @RequestParam("category") String category) {
+            @RequestParam("category") String category,
+            Principal principal) {
         try {
             String storedFileName = fileStorageService.storeFile(file);
 
@@ -93,7 +111,7 @@ public class FileController {
             document.setContentType(file.getContentType());
             document.setFileSize(file.getSize());
             document.setCategory(category);
-            document.setUploadedBy("current-user");
+            document.setUploadedBy(principal == null ? null : principal.getName());
             document.setUploadDate(LocalDateTime.now());
             document.setFilePath(fileDownloadUri);
             document.setFileData(file.getBytes());
@@ -119,6 +137,7 @@ public class FileController {
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize(CAN_UPLOAD)
     public ResponseEntity<Void> deleteFile(@PathVariable Long id) {
         Document document = documentRepository.findById(id).orElse(null);
         if (document == null) {

@@ -8,6 +8,9 @@ DESIGN_PORT_PLAN.md
 backend/target/
 backend/*.log
 backend/.env
+backend/uploads/
+# Literal directory created by the old hardcoded Windows upload path
+backend/C:/
 
 # ---- Node / React ----
 frontend1/ims/node_modules/

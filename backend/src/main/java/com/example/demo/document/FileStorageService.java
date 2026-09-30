@@ -5,6 +5,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.UUID;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -13,13 +14,18 @@ public class FileStorageService {
 
     private final Path fileStorageLocation;
 
-    public FileStorageService() {
-        this.fileStorageLocation = Paths.get("C:/ims_uploads/").toAbsolutePath().normalize();
+    public FileStorageService(
+            @Value("${file.upload-dir:./uploads}") String uploadDir) {
+        this.fileStorageLocation = Paths.get(uploadDir).toAbsolutePath().normalize();
         try {
             Files.createDirectories(this.fileStorageLocation);
         } catch (IOException ex) {
             throw new RuntimeException("Could not create the upload directory.", ex);
         }
+    }
+
+    public Path getStorageLocation() {
+        return this.fileStorageLocation;
     }
 
     public String storeFile(MultipartFile file) {
@@ -29,7 +35,7 @@ public class FileStorageService {
             extension = originalFileName.substring(originalFileName.lastIndexOf('.'));
         }
         String storedFileName = UUID.randomUUID().toString() + extension;
-        Path targetLocation = this.fileStorageLocation.resolve(storedFileName);
+        Path targetLocation = resolveInsideStorage(storedFileName);
         try {
             Files.copy(file.getInputStream(), targetLocation);
         } catch (IOException ex) {
@@ -38,16 +44,32 @@ public class FileStorageService {
         return storedFileName;
     }
 
+    /**
+     * L7: a caller-supplied name must never escape the storage root. Resolving
+     * "../../etc/passwd" against the root yields a path outside it, so the
+     * normalized result is rejected unless it is still contained by the root.
+     */
     public Path loadFile(String fileName) {
-        return this.fileStorageLocation.resolve(fileName).normalize();
+        return resolveInsideStorage(fileName);
     }
 
     public boolean deleteFile(String fileName) {
         try {
             Path file = loadFile(fileName);
             return Files.deleteIfExists(file);
-        } catch (IOException ex) {
+        } catch (IOException | IllegalArgumentException ex) {
             return false;
         }
+    }
+
+    private Path resolveInsideStorage(String fileName) {
+        if (fileName == null || fileName.isBlank() || fileName.contains("\0")) {
+            throw new IllegalArgumentException("Invalid file name.");
+        }
+        Path resolved = this.fileStorageLocation.resolve(fileName).normalize();
+        if (!resolved.startsWith(this.fileStorageLocation)) {
+            throw new IllegalArgumentException("Invalid file name.");
+        }
+        return resolved;
     }
 }
