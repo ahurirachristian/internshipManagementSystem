@@ -1,5 +1,7 @@
 package com.example.demo.auth;
 
+import java.util.List;
+
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.core.annotation.Order;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -40,6 +42,21 @@ public class DataSeeder implements CommandLineRunner {
 
         // Admin
         ensureUser("admin", "admin123", Role.ADMIN, "admin@ims.ac.ug", null, null);
+
+        // Login fix: legacy rows never re-enter ensureUser's insert path, so a
+        // pre-existing database can hold seed accounts with a NULL flag (the column
+        // postdates some of the rows). Heal only that NULL case here — re-enabling
+        // disabled accounts on every boot would undo deliberate super-admin actions,
+        // so that repair lives in LegacyAccountHealRunner behind a one-time flag.
+        for (String username : List.of("2400101003", "STU-2026-001", "STU-2026-002",
+                "university", "kyu", "airtel", "admin")) {
+            userRepository.findByUsername(username).ifPresent(user -> {
+                if (user.getMustChangePassword() == null) {
+                    user.setMustChangePassword(user.getRole() == Role.STUDENT);
+                    userRepository.save(user);
+                }
+            });
+        }
 
         // P0 (L19-safe): mutate the existing admin row only — user count stays 7.
         // The super admin authorizes role requests and revocations (L6).
