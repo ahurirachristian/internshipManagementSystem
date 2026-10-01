@@ -97,11 +97,14 @@ Each row verified by reading the entity; the `Placement`/`Evaluation` field list
 | `DayDiary.status` is a free-text `String` | `DayDiary.java:39` `private String status = "PENDING"` | status vocabularies can drift (see §1.3.2) |
 
 `Placement.Status` declares six values (`Placement.java:16-23`): `PENDING, OFFERED, ASSIGNED,
-ACTIVE, COMPLETED, CANCELLED`. `PlacementPipelineService` only ever assigns three of them —
-`OFFERED` (`:73`), `ASSIGNED` (`:104`), `CANCELLED` (`:126`). So `ACTIVE`, `COMPLETED`, and
-`PENDING` are reachable only through the legacy admin path. **Do not build a funnel chart over six
-states until someone confirms the intended semantics of the three the pipeline never sets** — a
-chart over unreachable states looks broken and teaches users the wrong model.
+ACTIVE, COMPLETED, CANCELLED`. These are **not** vestigial — they are the intended lifecycle, and
+every surface in the product already assumes them (full evidence and the resulting defect in
+§1.3.4). The defect is the opposite of a stale enum: the **pipeline stops early**. It assigns only
+`OFFERED` (`:73`), `ASSIGNED` (`:104`) and `CANCELLED` (`:126`), and exposes exactly three
+transitions — `POST /api/placements` (company offer), `/{id}/approve`, `/{id}/reject`. Nothing can
+move a placement to `ACTIVE` or `COMPLETED` through normal flow, so "this intern is currently
+working" and "this intern finished" are states the application cannot express. That is the gap, and
+it gates PC8 — see §PC8a.
 
 ### 1.3 Live correctness bugs (all verified; none were in PC1–PC5 scope)
 
@@ -179,6 +182,24 @@ counters — still a violation, just a narrower one than it first appears. See �
 question of whether those diary-count thresholds are themselves justified.
 
 Directly violates the no-guesswork requirement.
+
+**1.3.4 — The university placement pie drops `OFFERED`, the state the pipeline actually creates.**
+Third instance of the same defect class as §1.3.2. `UniversityDashboardService.java:440-442`
+zero-fills **all six** statuses by iterating `Placement.Status.values()`, so `byStatus` carries a
+correct `OFFERED` count. But `UniversityDashboard.js:857` re-declares a hardcoded five:
+
+```js
+const statuses = ['ACTIVE', 'COMPLETED', 'PENDING', 'ASSIGNED', 'CANCELLED'];
+```
+
+and the "Placement Status" pie maps over that array. So `OFFERED` — set at
+`PlacementPipelineService.java:73`, i.e. the first state any real placement passes through — is
+counted by the backend and thrown away by the chart. Whenever any placement sits at `OFFERED`, the
+pie's total silently disagrees with the total number of placements.
+
+PC4 got this right: `CompanyDashboard.js:42-47` lists all six. So the fix is to derive the array
+from the payload (`Object.keys(byStatus)`) rather than restate it, which also stops the two charts
+drifting apart again.
 
 ### 1.4 A persona with no dashboard
 
@@ -297,7 +318,7 @@ is marked *blocked* with the phase that unblocks it.
 | Diary review mix | `DayDiary.status` | pie | **done but wrong** (§1.3.2) |
 | Mean evaluation scores | 7 × `Integer` | radar | **done but wrong scale** (§1.3.1) |
 | Which students have never been evaluated? | `Evaluation` per student | distribution | gap |
-| Is placement rate improving? | needs PC8 | line | **blocked → PC8** |
+| Is placement rate improving? | needs PC8a+PC8b | line | **blocked → PC8** |
 | How is each programme progressing? | `Student.programmeId` + placement | grouped bar | gap |
 
 `universityId` is `Long` in `UserEntity:40` and `Student:23`, `schoolId` and `programmeId` are
@@ -321,7 +342,8 @@ Entire persona is blocked on PC7. No chart can be specified honestly before the 
 | Offer pipeline | `Placement.status` | donut | **done PC4** |
 | Intern performance | `Evaluation` scores | radar | **done PC4** (same scale caveat) |
 | Applications per vacancy | needs `Application` | funnel | **blocked → PC9** |
-| Is placement pace improving? | needs PC8 | line | **blocked → PC8** |
+| Is placement pace improving? | needs PC8a+PC8b | line | **blocked → PC8** |
+| How many interns are active now vs finished? | `Placement.status` | KPI | **already answerable** — all six states render today; the transitions that reach them do not |
 
 ### 3.5 STUDENT — am I on track?
 
@@ -364,7 +386,7 @@ on a later phase. PC6 is genuinely independent of PC7–PC13 and can ship alone.
 
 ### PC6 — Truthfulness fixes
 
-Four unrelated one-line-class bugs. Touch disjoint files, so they can also be four separate
+Five unrelated small correctness bugs. Touch disjoint files, so they can also be five separate
 commits. **Nothing else in the plan should be bundled into PC6.**
 
 **PC6a — Evaluation scale → 0-10 (D2)**
@@ -393,6 +415,14 @@ commits. **Nothing else in the plan should be bundled into PC6.**
 **PC6d — Admin opens on Overview**
 - `AdminDashboard.js:56` `useState('students')` → `useState('overview')`.
 - **Tests**: landing render shows the PC5 chart; tab order unchanged.
+
+**PC6e — Show OFFERED on the university placement pie (fix 1.3.4)**
+- `UniversityDashboard.js:857`: derive the statuses array from `Object.keys(byStatus)` (or include
+  `OFFERED`) instead of the hardcoded five that drop `OFFERED`. This aligns it with the backend's
+  `Placement.Status.values()` zero-fill and with `CompanyDashboard.js` (all six). If the backend
+  ever adds states, the UI follows automatically.
+- **Tests**: a placement at `OFFERED` is rendered in the pie; pie total equals sum of all six
+  counts.
 
 *Do not merge PC6d with PC11 — PC6d is a one-line default; PC11 is the University Overview build.*
 
@@ -442,17 +472,42 @@ another company's students is refused (403); the enum script is idempotent when 
 
 ### PC8 — Placement timeline (D3, part 1)
 
-Add `createdAt, offeredAt, assignedAt, startedAt, completedAt` to `Placement`; add
-`PlacementStatusHistory`; add `Student.createdAt` and `UserEntity.lastLoginAt`. Matching
-`backend/migration/` script, idempotent.
+**PC8a must land before PC8b.** "Internship active duration" and "completed on time" are computed
+from timestamps that only the `ACTIVE`/`COMPLETED` transitions can set — and those transitions do
+not exist yet (§PC8a). Adding the columns first would produce two dashboards full of empty
+charts and an unbounded `OFFERED`/`ASSIGNED` pile-up that better analytics then "explain" as "these
+students are stuck". Close the lifecycle first.
+
+**PC8a — Complete the lifecycle (prerequisite).** Add the two missing transitions to
+`PlacementPipelineService`, following the existing `approve`/`reject` pattern exactly —
+`requirePlacement` → `requireUniversitySupervisor` (or the company-scoped equivalent) →
+`scopeServiceSafe` cross-university 404 → `setStatus` → `save` → `notify*` → `auditLogService.log`:
+
+| Endpoint | Guard | Transition | Action |
+|---|---|---|---|
+| `POST /{id}/start` | `COMPANY` owning the placement, or `ADMIN` | `ASSIGNED` → `ACTIVE` | `startedAt = now`; notify student + university supervisor |
+| `POST /{id}/complete` | `COMPANY` owning the placement, or `ADMIN` | `ACTIVE` → `COMPLETED` | `completedAt = now`; notify student + university supervisor |
+
+- Decide `PENDING` deliberately: it is the entity default and the legacy-create default, but the
+  pipeline never enters it (companies go straight to `OFFERED`). Either retire it from the
+  pipeline's vocabulary or add the `PENDING → OFFERED` step. Do not leave it half-used.
+- **Tests**: happy path for each; `ASSIGNED → complete` is rejected (illegal jump); a company
+  cannot start another company's placement; cross-university actor gets 404; audit rows written;
+  notifications sent to student + university supervisor.
+
+**PC8b — Add the timestamps and queries.** Add `createdAt, offeredAt, assignedAt, startedAt,
+completedAt` to `Placement`; add `PlacementStatusHistory`; add `Student.createdAt` and
+`UserEntity.lastLoginAt`. Matching `backend/migration/` script, idempotent. Every transition from
+PC8a sets its own timestamp.
 
 **Backfill policy: leave every new timestamp NULL. Never invent a date.** A fabricated `createdAt`
 would silently corrupt every time-series PC12 builds, which is the exact failure this plan exists
 to prevent. Queries must exclude nulls rather than coerce them to epoch.
 
 Queries: funnel-over-time, median time-to-placement, active duration.
-**Tests**: nulls excluded from averages; aggregates match a hand-computed fixture; the legacy
-`ACTIVE`/`COMPLETED`/`PENDING` states are not charted until §1.2 semantics are confirmed.
+**Tests**: nulls excluded from averages; aggregates match a hand-computed fixture; a placement
+walked through `start`/`complete` yields a positive non-null duration; a placement that never left
+`ASSIGNED` is excluded from duration averages rather than counted as zero.
 
 ### PC9 — Vacancy applications (D3, part 2)
 
@@ -481,7 +536,7 @@ The phase that satisfies the original request. Independent of PC7–PC10 and of 
 
 ### PC12 — New grounded charts
 
-One commit per chart. PC8/PC9-gated where noted; unblocked ones ship regardless.
+One commit per chart. PC8b/PC9-gated where noted; unblocked ones ship regardless.
 
 | Chart | Role | Needs | Source |
 |---|---|---|---|
@@ -492,7 +547,7 @@ One commit per chart. PC8/PC9-gated where noted; unblocked ones ship regardless.
 | Placement coverage bar | Admin | — | `Placement.status` |
 | Diary backlog by university | Admin | — | `DayDiary.status` |
 | Applications funnel | Company | PC9 | new `Application` |
-| Placement pace line | Company | PC8 | `Placement` timestamps |
+| Placement pace line | Company | PC8b | `Placement` timestamps |
 
 Every chart ships with all of: a real backend source (never a frontend constant), loading + error +
 empty states, `role="img"` with a factual description, PC1 dark-mode tokens, a legend when series
@@ -526,7 +581,9 @@ commit body or hand to the reviewer.
 | Enum `ALTER` on a locked column, hand-run with no migration tool | Idempotent script per `add_student_gender.sql`; startup check reports prior state; widening is non-destructive so no rollback needed |
 | Field-supervisor rows exist in production but not locally | §1.4 pre-flight is a documented manual step before first deploy; 7.1 re-checks every boot |
 | PC8/PC9 add schema to a live-shaped model | Backfill leaves timestamps NULL; nulls excluded from aggregates; each phase is one reversible commit |
-| New time-series charts read as broken because 3 of 6 `Placement` states are unreachable | §1.2: confirm state semantics before charting them |
+| Placement cannot express `ACTIVE`/`COMPLETED`, so every duration metric is undefined | §PC8a adds the two missing transitions **before** §PC8b adds the columns; `PENDING` retired or given a pipeline step. Recorded because the eight existing `CompanyAnalyticsTest` placements already treat `ACTIVE`/`COMPLETED` as real states |
+| PC8b lands without PC8a, yielding empty "active duration" charts and an `OFFERED`/`ASSIGNED` pile-up that analytics misreads as "students are stuck" | PC8a is an explicit hard prerequisite of PC8b, stated in the phase and in this register |
+| Chart restates the status vocabulary instead of reading it — already caused the dropped `OFFERED` (§1.3.4) and the dropped `REJECTED` (§1.3.2) | PC6b and PC6e both derive from the payload rather than a hardcoded list; grep review rejects new status arrays |
 | A chart ships answering a question nobody has | §0 labels + PC13 validation; §3 states answerability, never frequency |
 | Score scale drifts again after PC6a | Server-side `@Max(10)` + `@Valid` is the actual fix, not the input `max` |
 | `schema.sql` keeps producing divergent schemas | PC7.6 aligns it with the live enum |
