@@ -110,6 +110,78 @@ public class PlacementPipelineService {
         return saved;
     }
 
+    /**
+     * PC8a: a pending match enters the review pipeline — status
+     * {@code PENDING → OFFERED}. PENDING is the entity default and the
+     * legacy/admin create default, so without this step it was a dead end:
+     * {@link #requirePlacement} only ever accepted OFFERED, meaning a pending
+     * placement could never be reviewed. Same notification/audit shape as
+     * {@link #createOffer}.
+     */
+    @Transactional
+    public Placement offer(UserEntity actor, Long placementId) {
+        Placement placement = requirePlacementIn(placementId, Placement.Status.PENDING,
+                "Only PENDING placements can be offered.");
+        requireLifecycleScope(actor, placement);
+        requireCompanyOrAdmin(actor);
+        Student student = studentRepository.findById(placement.getStudentId()).orElse(null);
+
+        placement.setStatus(Placement.Status.OFFERED);
+        Placement saved = placementRepository.save(placement);
+
+        if (student != null) {
+            notifyUniversitySupervisorsAndAdmins(saved, student, saved.getCompanyId(), null);
+        }
+        auditLogService.log(actor.getUsername(), actor.getRole().name(), "PLACEMENT_OFFER", "Placement",
+                "Placement " + saved.getId() + " offered", null);
+        return saved;
+    }
+
+    /**
+     * PC8a: the internship has begun — status {@code ASSIGNED → ACTIVE}.
+     * Guard: the company owning the placement, or an admin. Notifies the
+     * student and the placement's university supervisor.
+     */
+    @Transactional
+    public Placement start(UserEntity actor, Long placementId) {
+        Placement placement = requirePlacementIn(placementId, Placement.Status.ASSIGNED,
+                "Only ASSIGNED placements can be started.");
+        // PC8a: scope before role so a cross-university actor gets 404 (L7,
+        // never a probing oracle) while an in-scope wrong role gets 403.
+        requireLifecycleScope(actor, placement);
+        requireCompanyOrAdmin(actor);
+        Student student = studentRepository.findById(placement.getStudentId()).orElse(null);
+
+        placement.setStatus(Placement.Status.ACTIVE);
+        Placement saved = placementRepository.save(placement);
+
+        notifyInternshipMilestone(saved, student, true);
+        auditLogService.log(actor.getUsername(), actor.getRole().name(), "PLACEMENT_STARTED", "Placement",
+                "Placement " + saved.getId() + " started", null);
+        return saved;
+    }
+
+    /**
+     * PC8a: the internship has finished — status {@code ACTIVE → COMPLETED}.
+     * Same guard and audiences as {@link #start}.
+     */
+    @Transactional
+    public Placement complete(UserEntity actor, Long placementId) {
+        Placement placement = requirePlacementIn(placementId, Placement.Status.ACTIVE,
+                "Only ACTIVE placements can be completed.");
+        requireLifecycleScope(actor, placement);
+        requireCompanyOrAdmin(actor);
+        Student student = studentRepository.findById(placement.getStudentId()).orElse(null);
+
+        placement.setStatus(Placement.Status.COMPLETED);
+        Placement saved = placementRepository.save(placement);
+
+        notifyInternshipMilestone(saved, student, false);
+        auditLogService.log(actor.getUsername(), actor.getRole().name(), "PLACEMENT_COMPLETED", "Placement",
+                "Placement " + saved.getId() + " completed", null);
+        return saved;
+    }
+
     /** R9: university rejects — status CANCELLED, student and company notified. */
     @Transactional
     public Placement reject(UserEntity actor, Long placementId) {
@@ -163,13 +235,102 @@ public class PlacementPipelineService {
         }
     }
 
+    /** PC8a: the company-scoped equivalent — only the owning company or an admin. */
+    private void requireCompanyOrAdmin(UserEntity actor) {
+        if (isAdminLike(actor)) {
+            return;
+        }
+        if (!"COMPANY".equals(actor.getRole().name())) {
+            throw new org.springframework.security.access.AccessDeniedException(
+                    "Only the placement's company can manage its internship.");
+        }
+    }
+
+    private boolean isAdminLike(UserEntity actor) {
+        return Boolean.TRUE.equals(actor.getSuperAdmin()) || "ADMIN".equals(actor.getRole().name());
+    }
+
+    /**
+     * PC8a: scope check for the lifecycle transitions. Admins pass;
+     * company-scoped actors must own the placement (generic 403, no details);
+     * everyone else is university-scoped and a mismatch is 404 — cross-university
+     * targets are never a probing oracle (L7), mirroring approve/reject.
+     */
+    private void requireLifecycleScope(UserEntity actor, Placement placement) {
+        if (isAdminLike(actor)) {
+            return;
+        }
+        if (actor.getCompanyId() != null || "COMPANY".equals(actor.getRole().name())) {
+            if (actor.getCompanyId() == null || !actor.getCompanyId().equals(placement.getCompanyId())) {
+                throw new PlacementScopeException();
+            }
+            return;
+        }
+        Long studentUniversity = placement.getUniversityId() != null
+                ? placement.getUniversityId()
+                : studentRepository.findById(placement.getStudentId()).map(Student::getUniversityId).orElse(null);
+        if (actor.getUniversityId() == null || studentUniversity == null
+                || !actor.getUniversityId().equals(studentUniversity)) {
+            throw new NoSuchElementException("Placement not found.");
+        }
+    }
+
     private Placement requirePlacement(Long placementId) {
+        return requirePlacementIn(placementId, Placement.Status.OFFERED,
+                "Only OFFERED placements can be reviewed.");
+    }
+
+    private Placement requirePlacementIn(Long placementId, Placement.Status expected, String message) {
         Placement placement = placementRepository.findById(placementId)
                 .orElseThrow(() -> new NoSuchElementException("Placement not found."));
-        if (placement.getStatus() != Placement.Status.OFFERED) {
-            throw new IllegalStateException("Only OFFERED placements can be reviewed.");
+        if (placement.getStatus() != expected) {
+            throw new IllegalStateException(message);
         }
         return placement;
+    }
+
+    /**
+     * PC8a: milestone notifications go to the student and the placement's
+     * university supervisor (assigned by id, falling back to the university's
+     * supervisors for legacy string-only rows).
+     */
+    private void notifyInternshipMilestone(Placement saved, Student student, boolean started) {
+        String type = started ? "PLACEMENT_STARTED" : "PLACEMENT_COMPLETED";
+        String company = companyRepository.findById(saved.getCompanyId())
+                .map(c -> c.getName() != null ? c.getName() : "a company").orElse("a company");
+        String studentName = student != null
+                ? student.getFirstName() + " " + student.getLastName()
+                : "A student";
+
+        if (student != null && student.getUserId() != null) {
+            notificationService.notify(List.of(student.getUserId()), type,
+                    started ? "Your internship has started" : "Your internship has finished",
+                    started ? "Your internship at " + company + " has started."
+                            : "Your internship at " + company + " has finished.",
+                    "/student/dashboard");
+        }
+        notificationService.notify(universitySupervisorRecipients(saved, student), type,
+                started ? "An internship has started" : "An internship has finished",
+                studentName + (started ? "'s internship at " + company + " has started."
+                        : "'s internship at " + company + " has finished."),
+                "/university/placements");
+    }
+
+    private List<Long> universitySupervisorRecipients(Placement saved, Student student) {
+        if (saved.getUniversitySupervisorId() != null) {
+            return universitySupervisorRepository.findById(saved.getUniversitySupervisorId())
+                    .map(s -> List.of(s.getUserId()))
+                    .orElse(List.of());
+        }
+        Long universityId = saved.getUniversityId() != null
+                ? saved.getUniversityId()
+                : (student != null ? student.getUniversityId() : null);
+        if (universityId == null) {
+            return List.of();
+        }
+        return universitySupervisorRepository.findByUniversityId(universityId).stream()
+                .map(UniversitySupervisor::getUserId)
+                .toList();
     }
 
     private void notifyUniversitySupervisorsAndAdmins(Placement saved, Student student, Long companyId,

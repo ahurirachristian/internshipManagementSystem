@@ -190,6 +190,35 @@ public class PlacementController {
         return ResponseEntity.ok(pipelineService.approve(actor, id, supervisorId));
     }
 
+    /**
+     * PC8a: a pending match enters the review pipeline — PENDING → OFFERED.
+     * Guard (scope + role) is enforced in PlacementPipelineService: scope is
+     * checked before role so a cross-university actor gets 404 (L7, no probing
+     * oracle) while an in-scope wrong role gets 403 — the same shape as the
+     * university-scoped approve/reject above.
+     */
+    @PostMapping("/{id}/offer")
+    public ResponseEntity<?> offerPendingPlacement(@PathVariable Long id, Principal principal) {
+        UserEntity actor = currentUser(principal);
+        return ResponseEntity.ok(pipelineService.offer(actor, id));
+    }
+
+    /** PC8a: ASSIGNED → ACTIVE — the company owning the placement, or an admin. */
+    @PostMapping("/{id}/start")
+    // PC8a: no narrower @PreAuthorize here on purpose — the service checks scope
+    // first (cross-university → 404) then role (COMPANY/ADMIN, else 403).
+    public ResponseEntity<?> startPlacement(@PathVariable Long id, Principal principal) {
+        UserEntity actor = currentUser(principal);
+        return ResponseEntity.ok(pipelineService.start(actor, id));
+    }
+
+    /** PC8a: ACTIVE → COMPLETED — same guard and audiences as /start. */
+    @PostMapping("/{id}/complete")
+    public ResponseEntity<?> completePlacement(@PathVariable Long id, Principal principal) {
+        UserEntity actor = currentUser(principal);
+        return ResponseEntity.ok(pipelineService.complete(actor, id));
+    }
+
     /** P7 (R9): university declines an offer — status CANCELLED. */
     @PostMapping("/{id}/reject")
     // PC7: same deliberate exclusion as /approve — review is a university persona.
