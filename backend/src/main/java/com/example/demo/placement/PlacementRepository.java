@@ -14,4 +14,12 @@ public interface PlacementRepository extends JpaRepository<Placement, Long> {
 
     @Query("SELECT p.status, COUNT(p) FROM Placement p WHERE p.universityId = :universityId GROUP BY p.status")
     List<Object[]> countByStatusGrouped(@Param("universityId") Long universityId);
+
+    /**
+     * Company-scoped counterpart of {@link #countByStatusGrouped}. The dashboard
+     * reads it for the caller's own company only, so a company cannot count
+     * another company's pipeline by guessing an id.
+     */
+    @Query("SELECT p.status, COUNT(p) FROM Placement p WHERE p.companyId = :companyId GROUP BY p.status")
+    List<Object[]> countByCompanyStatusGrouped(@Param("companyId") Long companyId);
 }

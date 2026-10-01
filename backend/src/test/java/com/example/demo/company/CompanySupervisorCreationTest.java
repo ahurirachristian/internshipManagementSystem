@@ -214,6 +214,63 @@ class CompanySupervisorCreationTest {
     }
 
     @Test
+    void companyUpdatesItsOwnSupervisorProfile() throws Exception {
+        Long companyId = companyId("Edit Co " + suffix());
+        RequestPostProcessor me = asCompanyUser("compedit" + suffix(), companyId);
+
+        String email = "edit" + suffix() + "@example.com";
+        mockMvc.perform(post("/api/companies/me/supervisors").with(me)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"firstName\":\"Ada\",\"lastName\":\"Okello\","
+                                + "\"email\":\"" + email + "\",\"phone\":\"+256700000002\","
+                                + "\"department\":\"Engineering\"}"))
+                .andExpect(status().isCreated());
+
+        UserEntity supervisor = userRepository.findByEmail(email).orElseThrow();
+
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders
+                        .patch("/api/companies/me/supervisors/" + supervisor.getId()).with(me)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"email\":\"" + email + "\",\"phone\":\"+256700000999\","
+                                + "\"department\":\"Operations\"}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(supervisor.getId()));
+
+        UserEntity after = userRepository.findById(supervisor.getId()).orElseThrow();
+        org.assertj.core.api.Assertions.assertThat(after.getUsername())
+                .as("username is derived at creation and must not drift when the profile is edited")
+                .isEqualTo(supervisor.getUsername());
+        org.assertj.core.api.Assertions.assertThat(
+                industrialSupervisorRepository.findByUserId(supervisor.getId()).orElseThrow().getDepartment())
+                .isEqualTo("Operations");
+        org.assertj.core.api.Assertions.assertThat(
+                industrialSupervisorRepository.findByUserId(supervisor.getId()).orElseThrow().getPhoneNumber())
+                .isEqualTo("+256700000999");
+    }
+
+    @Test
+    void companyCannotEditAnotherCompanysSupervisor() throws Exception {
+        Long mine = companyId("Owner Co " + suffix());
+        Long theirs = companyId("Rival Co " + suffix());
+        RequestPostProcessor me = asCompanyUser("compedit2" + suffix(), mine);
+
+        UserEntity theirSupervisor = new UserEntity("rivalsup" + suffix(), "hash", com.example.demo.auth.Role.SUPERVISOR);
+        theirSupervisor.setCompanyId(theirs);
+        theirSupervisor.setMustChangePassword(false);
+        userRepository.save(theirSupervisor);
+
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders
+                        .patch("/api/companies/me/supervisors/" + theirSupervisor.getId()).with(me)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"department\":\"Hijacked\"}"))
+                .andExpect(status().isForbidden());
+
+        org.assertj.core.api.Assertions.assertThat(
+                industrialSupervisorRepository.findByUserId(theirSupervisor.getId()))
+                .isEmpty();
+    }
+
+    @Test
     void studentCannotUseCompanyEndpoints() throws Exception {
         UserEntity student = new UserEntity("compstudent" + suffix(), "hash",
                 com.example.demo.auth.Role.STUDENT);

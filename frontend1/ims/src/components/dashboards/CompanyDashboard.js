@@ -1,6 +1,10 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import DashboardLayout from '../DashboardLayout';
 import CompanyEditModal from '../CompanyEditModal';
+import CompanySupervisorModal from '../CompanySupervisorModal';
+import { DonutChart } from '../../charts/ProgressCharts';
+import { chartColor } from '../../charts/colors';
+import { useTheme } from '../../context/ThemeContext';
 import { useAuth } from '../../context/AuthContext';
 import {
   fetchCompany,
@@ -8,6 +12,8 @@ import {
   updateCompany,
   fetchCompanySupervisors,
   createCompanySupervisor,
+  updateCompanySupervisor,
+  fetchCompanyAnalytics,
   resetUserPassword,
   fetchUniversityOptions,
   studentLookup,
@@ -22,11 +28,37 @@ import {
   CheckCircle,
   Users,
   Search,
+  LayoutDashboard,
+  Star,
+  CalendarCheck,
 } from 'lucide-react';
+
+/**
+ * PC4: the six placement statuses, in pipeline order. The backend always returns
+ * all six so the donut never has a missing segment; this is only the display
+ * order and label casing.
+ */
+const PLACEMENT_STATUSES = [
+  { key: 'PENDING', label: 'Pending', tone: 0 },
+  { key: 'OFFERED', label: 'Offered', tone: 1 },
+  { key: 'ASSIGNED', label: 'Assigned', tone: 2 },
+  { key: 'ACTIVE', label: 'Active', tone: 3 },
+  { key: 'COMPLETED', label: 'Completed', tone: 4 },
+  { key: 'CANCELLED', label: 'Cancelled', tone: 5 },
+];
+
+const EMPTY_ANALYTICS = {
+  offers: {},
+  interns: [],
+  internCount: 0,
+  avgEvaluation: null,
+  evaluationCount: 0,
+};
 
 export default function CompanyDashboard() {
   const { user } = useAuth();
-  const [activeTab, setActiveTab] = useState('profile');
+  const { isDark } = useTheme();
+  const [activeTab, setActiveTab] = useState('overview');
   const [company, setCompany] = useState(null);
   const [companyLoading, setCompanyLoading] = useState(true);
   const [interns, setInterns] = useState([]);
@@ -35,7 +67,10 @@ export default function CompanyDashboard() {
   const [editOpen, setEditOpen] = useState(false);
   const [refresh, setRefresh] = useState(0);
   const [supervisors, setSupervisors] = useState([]);
-  const [supForm, setSupForm] = useState({ firstName: '', lastName: '', email: '', phone: '', department: '' });
+  const [supModal, setSupModal] = useState(null);
+  const [analytics, setAnalytics] = useState(null);
+  const [analyticsLoading, setAnalyticsLoading] = useState(true);
+  const [analyticsError, setAnalyticsError] = useState('');
   const [universities, setUniversities] = useState([]);
   const [lookupForm, setLookupForm] = useState({ universityId: '', studentNumber: '' });
   const [lookupResult, setLookupResult] = useState(null);
@@ -79,24 +114,43 @@ export default function CompanyDashboard() {
     }
   }
 
-  async function handleSupervisorCreate(event) {
-    event.preventDefault();
+  const loadAnalytics = useCallback(async () => {
+    if (user.companyId == null) {
+      setAnalytics(null);
+      setAnalyticsLoading(false);
+      return;
+    }
+    setAnalyticsLoading(true);
+    setAnalyticsError('');
+    try {
+      setAnalytics(await fetchCompanyAnalytics());
+    } catch (err) {
+      setAnalyticsError(err.message || 'Unable to load company analytics.');
+    } finally {
+      setAnalyticsLoading(false);
+    }
+  }, [user.companyId]);
+
+  async function handleSupervisorSubmit(payload) {
     setError('');
     setNotice('');
-    try {
-      const created = await createCompanySupervisor({
-        firstName: supForm.firstName.trim(),
-        lastName: supForm.lastName.trim(),
-        email: supForm.email.trim(),
-        phone: supForm.phone.trim(),
-        department: supForm.department.trim(),
+    // The modal closes itself on success and renders its own error on failure, so
+    // the target is captured rather than cleared here.
+    const target = supModal;
+
+    if (target?.mode === 'edit') {
+      // Names are not editable: the login username is derived from them.
+      const updated = await updateCompanySupervisor(target.supervisor.id, {
+        email: payload.email,
+        phone: payload.phone,
+        department: payload.department,
       });
+      setNotice(`Updated field supervisor ${updated.username}.`);
+    } else {
+      const created = await createCompanySupervisor(payload);
       setNotice(`Created field supervisor ${created.username}. Their temporary password is ${created.username}123 — they must change it at first sign-in.`);
-      setSupForm({ firstName: '', lastName: '', email: '', phone: '', department: '' });
-      loadSupervisors();
-    } catch (err) {
-      setError(err.message || 'Unable to create the field supervisor.');
     }
+    await loadSupervisors();
   }
 
   async function handleSupervisorReset(person) {
@@ -114,6 +168,8 @@ export default function CompanyDashboard() {
     if (user.companyId == null) {
       setCompany(null);
       setCompanyLoading(false);
+      setAnalytics(null);
+      setAnalyticsLoading(false);
       return;
     }
     setCompanyLoading(true);
@@ -134,6 +190,13 @@ export default function CompanyDashboard() {
     };
   }, [user.companyId, refresh]);
 
+  // PC4: the Overview tab is the landing tab, so analytics load with the dashboard
+  // rather than on first click. Cached across refreshes of the other tabs.
+  useEffect(() => {
+    if (user.companyId == null || analytics !== null) return;
+    loadAnalytics();
+  }, [user.companyId, analytics, loadAnalytics]);
+
   async function loadInterns() {
     setError('');
     try {
@@ -147,6 +210,217 @@ export default function CompanyDashboard() {
     await updateCompany(user.companyId, payload);
     setNotice('Company profile updated successfully.');
     setRefresh((value) => value + 1);
+  }
+
+  function KpiTile({ label, value, sub, icon: Icon, iconCls }) {
+    return (
+      // Labelled so the tile reads as one unit to a screen reader instead of
+      // three unconnected fragments of text.
+      <div
+        role="group"
+        aria-label={`${label}: ${value}`}
+        className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-4 shadow-xs"
+      >
+        <div className="flex items-center gap-3">
+          <div className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 ${iconCls}`}>
+            <Icon className="w-4.5 h-4.5" aria-hidden="true" />
+          </div>
+          <div className="min-w-0">
+            <div className="text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">{label}</div>
+            <div className="text-xl font-extrabold text-slate-900 dark:text-slate-100">{value}</div>
+          </div>
+        </div>
+        {sub && <div className="text-[11px] text-slate-500 dark:text-slate-400 mt-2">{sub}</div>}
+      </div>
+    );
+  }
+
+  /** The developer's renderProgress concept, kept list-first as the plan requires. */
+  function InternProgressRow({ intern }) {
+    const facts = [
+      { done: intern.started, label: intern.started ? `Started ${formatDay(intern.startDate)}` : 'Start date not set' },
+      { done: intern.evaluated, label: intern.evaluated ? `Evaluated (${intern.averageGrade}%)` : 'Not yet evaluated' },
+    ];
+    return (
+      <li className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-4 shadow-xs">
+        <div className="flex items-center justify-between gap-3 mb-2.5 flex-wrap">
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="w-9 h-9 rounded-lg bg-blue-50 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800 flex items-center justify-center shrink-0">
+              <GraduationCap className="w-4 h-4" aria-hidden="true" />
+            </div>
+            <div className="min-w-0">
+              <div className="text-sm font-bold text-slate-900 dark:text-slate-100 truncate">
+                {intern.firstName} {intern.lastName}
+              </div>
+              <div className="text-[11px] text-slate-500 dark:text-slate-400 truncate">
+                {intern.degreeProgram || 'Intern'}
+                {intern.placementStatus ? ` · ${intern.placementStatus}` : ''}
+              </div>
+            </div>
+          </div>
+          <div className="text-lg font-bold text-teal-700 dark:text-teal-400">{intern.progressPercent}%</div>
+        </div>
+        <div className="h-2 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+          <div className="h-full bg-teal-600 dark:bg-teal-500 rounded-full transition-all duration-500" style={{ width: `${intern.progressPercent}%` }} />
+        </div>
+        <div className="flex flex-wrap gap-4 mt-3 text-[11px] text-slate-600 dark:text-slate-400">
+          {facts.map((fact) => (
+            <span key={fact.label} className="flex items-center gap-1.5">
+              <span className={`w-2 h-2 rounded-full ${fact.done ? 'bg-teal-600 dark:bg-teal-400' : 'bg-slate-300 dark:bg-slate-600'}`} aria-hidden="true" />
+              {fact.label}
+            </span>
+          ))}
+          {intern.endDate && (
+            <span className="flex items-center gap-1.5">
+              <CalendarCheck className="w-3 h-3" aria-hidden="true" />
+              Ends {formatDay(intern.endDate)}
+            </span>
+          )}
+        </div>
+      </li>
+    );
+  }
+
+  function formatDay(value) {
+    if (!value) return '—';
+    const date = new Date(value);
+    return Number.isNaN(date.getTime()) ? String(value) : date.toLocaleDateString();
+  }
+
+  function renderOverview() {
+    if (user.companyId == null) {
+      return (
+        <section className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 shadow-xs">
+          <div className="flex flex-col items-center text-center py-4">
+            <div className="w-12 h-12 rounded-full bg-amber-50 border border-amber-200 flex items-center justify-center text-amber-600 mb-3">
+              <AlertCircle className="w-6 h-6" />
+            </div>
+            <h3 className="text-base font-bold text-slate-800 dark:text-slate-200">No company linked</h3>
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-sm">Your account is not linked to a company, so there is nothing to summarise yet.</p>
+          </div>
+        </section>
+      );
+    }
+
+    if (analyticsError) {
+      return (
+        <div role="alert" className="p-3.5 bg-rose-50 border border-rose-200 rounded-xl flex items-center justify-between gap-3 text-rose-900 text-sm">
+          <span className="font-medium flex items-center gap-2">
+            <AlertCircle className="w-5 h-5 text-rose-600 shrink-0" />
+            {analyticsError}
+          </span>
+          <button type="button" onClick={() => loadAnalytics()} className="px-3 py-1.5 rounded-lg bg-white border border-rose-200 text-rose-700 text-xs font-bold hover:bg-rose-100">
+            Retry
+          </button>
+        </div>
+      );
+    }
+
+    const data = analytics || EMPTY_ANALYTICS;
+    const offers = data.offers || {};
+    const offerEntries = PLACEMENT_STATUSES.map((status) => ({
+      key: status.label,
+      value: offers[status.key] ?? 0,
+      color: chartColor(status.tone, isDark),
+    }));
+    const pipelineTotal = offerEntries
+      .filter((entry) => entry.key !== 'Cancelled')
+      .reduce((sum, entry) => sum + entry.value, 0);
+
+    const kpis = [
+      {
+        label: 'Pipeline',
+        value: pipelineTotal,
+        sub: 'Placements not cancelled',
+        icon: LayoutDashboard,
+        iconCls: 'bg-teal-50 dark:bg-teal-900/40 text-teal-700 dark:text-teal-300 border border-teal-200 dark:border-teal-800',
+      },
+      {
+        label: 'Interns',
+        value: data.internCount ?? 0,
+        sub: `${(data.interns || []).filter((i) => i.evaluated).length} evaluated so far`,
+        icon: Users,
+        iconCls: 'bg-blue-50 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800',
+      },
+      {
+        label: 'Avg Evaluation',
+        value: data.avgEvaluation == null ? '—' : `${data.avgEvaluation}%`,
+        sub: `${data.evaluationCount ?? 0} evaluation${data.evaluationCount === 1 ? '' : 's'} recorded`,
+        icon: Star,
+        iconCls: 'bg-amber-50 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800',
+      },
+      {
+        label: 'Offers Made',
+        value: (offers.OFFERED ?? 0) + (offers.ACTIVE ?? 0) + (offers.COMPLETED ?? 0),
+        sub: 'Offered, active or completed',
+        icon: CalendarCheck,
+        iconCls: 'bg-emerald-50 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800',
+      },
+    ];
+
+    const interns = data.interns || [];
+
+    return (
+      <div className="space-y-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+          {kpis.map((kpi) => (
+            <KpiTile key={kpi.label} {...kpi} />
+          ))}
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
+          <section className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 shadow-xs">
+            <div className="flex items-center gap-3 mb-2">
+              <div className="w-10 h-10 rounded-xl bg-teal-50 dark:bg-teal-900/40 border border-teal-200 dark:border-teal-800 flex items-center justify-center text-teal-700 dark:text-teal-300">
+                <LayoutDashboard className="w-5 h-5" aria-hidden="true" />
+              </div>
+              <div>
+                <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100">Offers Pipeline</h3>
+                <p className="text-[11px] text-slate-500 dark:text-slate-400">Where your placements stand right now</p>
+              </div>
+            </div>
+            {analyticsLoading ? (
+              <div className="h-64 animate-pulse rounded-2xl bg-slate-100 dark:bg-slate-800/60" aria-hidden="true" />
+            ) : (
+              <DonutChart
+                entries={offerEntries}
+                centerLabel="placements"
+                isDark={isDark}
+              />
+            )}
+          </section>
+
+          <section className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 shadow-xs">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-900/40 border border-blue-200 dark:border-blue-800 flex items-center justify-center text-blue-700 dark:text-blue-300">
+                <GraduationCap className="w-5 h-5" aria-hidden="true" />
+              </div>
+              <div>
+                <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100">Intern Onboarding</h3>
+                <p className="text-[11px] text-slate-500 dark:text-slate-400">Start date recorded and evaluation filed</p>
+              </div>
+            </div>
+            {analyticsLoading ? (
+              <div className="space-y-3">
+                {[0, 1, 2].map((i) => (
+                  <div key={i} className="h-24 animate-pulse rounded-2xl bg-slate-100 dark:bg-slate-800/60" aria-hidden="true" />
+                ))}
+              </div>
+            ) : interns.length === 0 ? (
+              <p className="text-sm text-slate-500 dark:text-slate-400 py-8 text-center">
+                No interns placed at your company yet.
+              </p>
+            ) : (
+              <ul className="space-y-3">
+                {interns.map((intern) => (
+                  <InternProgressRow key={intern.studentId} intern={intern} />
+                ))}
+              </ul>
+            )}
+          </section>
+        </div>
+      </div>
+    );
   }
 
   function renderProfile() {
@@ -380,36 +654,29 @@ export default function CompanyDashboard() {
   }
 
   function renderSupervisors() {
-    const inputClass = 'w-full bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-slate-100 text-sm rounded-xl border-2 border-slate-200 dark:border-slate-700 px-3.5 py-2.5 focus:border-primary focus:outline-none transition-all font-medium';
     return (
       <div className="space-y-6">
         <section className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5">
-          <div className="flex items-center gap-3 mb-3">
-            <div className="w-10 h-10 rounded-xl bg-teal-50 border border-teal-200 flex items-center justify-center text-teal-700">
-              <Users className="w-5 h-5" />
+          <div className="flex items-center justify-between gap-4 flex-wrap">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-teal-50 dark:bg-teal-900/40 border border-teal-200 dark:border-teal-800 flex items-center justify-center text-teal-700 dark:text-teal-300">
+                <Users className="w-5 h-5" aria-hidden="true" />
+              </div>
+              <div>
+                <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100">Field supervisors</h3>
+                <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                  They get a temporary password <code>username123</code> and must change it at first sign-in.
+                </p>
+              </div>
             </div>
-            <div>
-              <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100">Add a field supervisor</h3>
-              <p className="text-[11px] text-slate-500 dark:text-slate-400">
-                They get a temporary password <code>username123</code> and must change it at first sign-in.
-              </p>
-            </div>
-          </div>
-          <form onSubmit={handleSupervisorCreate} className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            <input className={inputClass} placeholder="First name" value={supForm.firstName}
-              onChange={(e) => setSupForm({ ...supForm, firstName: e.target.value })} />
-            <input className={inputClass} placeholder="Last name" value={supForm.lastName}
-              onChange={(e) => setSupForm({ ...supForm, lastName: e.target.value })} />
-            <input className={inputClass} type="email" placeholder="Email" value={supForm.email}
-              onChange={(e) => setSupForm({ ...supForm, email: e.target.value })} />
-            <input className={inputClass} placeholder="Phone (optional)" value={supForm.phone}
-              onChange={(e) => setSupForm({ ...supForm, phone: e.target.value })} />
-            <input className={inputClass} placeholder="Department (optional)" value={supForm.department}
-              onChange={(e) => setSupForm({ ...supForm, department: e.target.value })} />
-            <button type="submit" className="px-4 py-2.5 rounded-xl bg-primary text-white text-xs font-bold">
-              Create supervisor
+            <button
+              type="button"
+              onClick={() => setSupModal({ mode: 'create', supervisor: null })}
+              className="px-4 py-2.5 rounded-xl bg-primary text-white text-xs font-bold hover:opacity-90 focus-visible:ring-2 focus-visible:ring-teal-600 focus-visible:outline-none"
+            >
+              Add field supervisor
             </button>
-          </form>
+          </div>
         </section>
 
         <section className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden">
@@ -438,12 +705,19 @@ export default function CompanyDashboard() {
                         {person.enabled ? 'Active' : 'Disabled'}
                       </span>
                     </td>
-                    <td className="px-5 py-3 text-right">
-                      <button type="button"
-                        className="px-2 py-1 rounded-lg border border-amber-200 text-amber-700"
-                        onClick={() => handleSupervisorReset(person)}>
-                        Reset
-                      </button>
+                    <td className="px-5 py-3">
+                      <div className="flex justify-end gap-2">
+                        <button type="button" aria-label={`Edit ${person.username}`}
+                          className="px-2 py-1 rounded-lg border border-slate-300 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"
+                          onClick={() => setSupModal({ mode: 'edit', supervisor: person })}>
+                          Edit
+                        </button>
+                        <button type="button"
+                          className="px-2 py-1 rounded-lg border border-amber-200 text-amber-700"
+                          onClick={() => handleSupervisorReset(person)}>
+                          Reset
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -465,6 +739,7 @@ export default function CompanyDashboard() {
       title="Company Dashboard"
       subtitle="Welcome,"
       tabs={[
+        { id: 'overview', label: 'Overview' },
         { id: 'profile', label: 'Profile' },
         { id: 'interns', label: 'Interns' },
         { id: 'offers', label: 'Offers' },
@@ -512,11 +787,21 @@ export default function CompanyDashboard() {
           </div>
         )}
 
+        {activeTab === 'overview' && renderOverview()}
         {activeTab === 'profile' && renderProfile()}
         {activeTab === 'interns' && renderInterns()}
         {activeTab === 'offers' && renderOffers()}
         {activeTab === 'supervisors' && renderSupervisors()}
       </div>
+
+      {supModal && (
+        <CompanySupervisorModal
+          supervisor={supModal.supervisor}
+          title={supModal.mode === 'edit' ? `Edit ${supModal.supervisor.username}` : 'Add Field Supervisor'}
+          onClose={() => setSupModal(null)}
+          onSubmit={handleSupervisorSubmit}
+        />
+      )}
 
       {editOpen && company && (
         <CompanyEditModal

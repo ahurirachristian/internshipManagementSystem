@@ -327,30 +327,52 @@ real API" when the real API has none of the fields the UI already renders.
 **Gates** (each sub-phase): build ≤9 warnings; full backend suite green; manual smoke: upload →
 progress → appears in category → download bumps count → share copies link → other company 404s.
 
-### PC4 — Company dashboard analytics + supervisor modal convergence  ·  branch `port/pc4-company-analytics`
+### PC4 — Company dashboard analytics + supervisor modal convergence  ·  branch `port/pc4-company-analytics` — **DONE**
 **Decision**: fred's P6 `/api/companies/me/supervisors` stays the canonical supervisor API
 (company-scoped by construction, L7/L21-compliant, tested by `CompanySupervisorCreationTest`).
-Cherry-pick **concepts**, not the parallel backend.
-1. Port `CompanySupervisorModal.js` adapted to our P6 endpoint. Its real field set is **7**
-   (`sup-first`, `sup-last`, `sup-email`, `sup-username`, `sup-role`, `sup-contact`, `sup-dept`),
-   not the 5 previously assumed — reconcile against the P6 `CompanySupervisor` entity and keep
-   whichever fields P6 actually persists. Wire as create/edit in the Field Supervisors tab.
-2. Skip `GET /departments` for now; `CompanyDepartmentRepository.findByCompanyIdOrderByDepartmentNameAsc`
-   already exists if a dropdown is later wanted.
-3. New `GET /api/companies/me/analytics` (COMPANY own scope only):
-   `{ offers: {PENDING, OFFERED, ASSIGNED, ACTIVE, COMPLETED, CANCELLED}, interns, avgEvaluation }`.
-   **New queries required** — today only university-scoped aggregates exist
-   (`PlacementRepository.countByStatusGrouped(@Param universityId)` and
-   `EvaluationRepository.averageScores(universityId)`), both filtered by university.
-   `PlacementRepository.findByCompanyId` exists and can serve counts; the evaluation average needs
-   a new company-scoped query. Cover all six statuses, matching
-   `UniversityDashboardService.java:391`. Test in `CompanyAnalyticsTest` (company A cannot read B).
-4. New **Overview tab** as the first tab (today: profile, interns, offers, supervisors): KPI cards
-   + **offers funnel donut** from `src/charts/ProgressCharts.jsx` (DonutChart generalized to N
-   segments) + per-intern progress rows adopting the `renderProgress` concept — list-first,
-   chart-second.
-5. **Gates**: full suite green incl. new `CompanyAnalyticsTest`; build ≤9 warnings; smoke as the
-   seeded company user (`airtel`) with seeded placements.
+Cherry-picked **concepts**, not the parallel backend; developer's `CompanyDashboard.js` and
+`CompanySupervisorController` were read only.
+1. **The modal's 7 fields reconciled to 5 against P6, and the two dropped fields are the
+   interesting part.** The reference had `sup-username` and `sup-role` inputs. P6 does not
+   accept either: `CompanyPeopleService.createFieldSupervisor` *derives* the username from the
+   name with a uniqueness loop, and hardcodes `Role.SUPERVISOR` with the company id set. Keeping
+   those inputs would have collected values the server silently discards — and the free-text
+   "Role / Job Title" field in particular reads like an access control while setting nothing.
+   The shipped form has exactly the five fields P6 persists, and explains the derived username
+   in helper text rather than pretending to collect it.
+2. `GET /departments` skipped as planned; `CompanyDepartmentRepository` was not touched.
+3. `GET /api/companies/me/analytics` added, taking **no company id on the request** — the
+   authenticated user is the only source of scope, so there is nothing to tamper with. Two new
+   queries, both genuinely required:
+   - `PlacementRepository.countByCompanyStatusGrouped(companyId)` — the only existing status
+     aggregate was university-filtered.
+   - `EvaluationRepository.averageOverallGradeByCompanyId(companyId)`, which **joins through
+     `Placement`**. `Evaluation` has no `companyId`, so the company-scoped average cannot be
+     written against its own columns; filtering on `e.universityId` would have pulled in
+     evaluations recorded against *other* companies' placements. `CompanyAnalyticsTest` pins this
+     by giving company B a perfect score and asserting A's average stays at its own 90.
+   - Returned shape: all **six** statuses always present (zero-filled, so the donut has no gaps),
+     plus `interns`, `internCount`, `avgEvaluation`, `evaluationCount`.
+4. **Overview tab** added as the landing tab. Four KPI tiles, the offers donut from
+   `src/charts/ProgressCharts.jsx`, and per-intern onboarding rows adopting the reference's
+   `renderProgress` concept — list-first, as §1 requires. The developer's version computed the
+   percentage from two booleans in the browser; the two facts behind it (start date recorded,
+   evaluation filed) now come from the same scoped service, and the percentage is derived on one
+   side only.
+   Two judgement calls worth recording: **cancelled placements are shown as a donut segment but
+   excluded from the "Pipeline" headline**, because a cancelled placement is not progress; and an
+   **absent evaluation average renders as `—`, never `0%`**, since zero would read as a real score.
+5. Progress rows are **one per intern, not per placement** — a student can hold several
+   placements at one company, and "how is this person doing" has one answer. The row reports the
+   furthest non-cancelled status. Evaluations load in one batched query rather than N+1.
+6. `PATCH /api/companies/me/supervisors/{id}` added so the modal's edit path is real rather than
+   a second account created under the same name. Scoped through the existing
+   `requireOwnSupervisor`, so another company's supervisor is forbidden. Names are deliberately
+   **not** editable: the login username is derived from them, and changing one without the other
+   would desynchronise the pair.
+7. **Verified gates**: backend **179 green** (170 + 7 `CompanyAnalyticsTest` + 2
+   `CompanySupervisorCreationTest`); frontend **7 suites / 45 tests** (10 new in
+   `CompanyDashboard.test.js`); build **9 warnings, unchanged**; eslint clean on all touched files.
    **Commit**: `feat(company): overview analytics tab and supervisor modal (PC4)`
 
 ### PC5 — Role dashboards that answer real questions  ·  branch `port/pc5-role-dashboards`

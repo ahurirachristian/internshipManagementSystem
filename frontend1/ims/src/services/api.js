@@ -452,9 +452,26 @@ export async function resetUserPassword(id) {
 
 // --- Company field supervisors (P6) ---
 
+export async function fetchCompanyAnalytics() {
+  const response = await fetch(`${API_ROOT}/api/companies/me/analytics`, {
+    credentials: 'include',
+  });
+  return parseResponse(response);
+}
+
 export async function fetchCompanySupervisors() {
   const response = await fetch(`${API_ROOT}/api/companies/me/supervisors`, {
     credentials: 'include',
+  });
+  return parseResponse(response);
+}
+
+export async function updateCompanySupervisor(id, payload) {
+  const response = await fetch(`${API_ROOT}/api/companies/me/supervisors/${id}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+    body: JSON.stringify(payload),
   });
   return parseResponse(response);
 }

@@ -2,6 +2,7 @@ package com.example.demo.company;
 
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.access.AccessDeniedException;
@@ -110,6 +111,39 @@ public class CompanyPeopleService {
         auditLogService.log(actor.getUsername(), actor.getRole().name(), "FIELD_SUPERVISOR_CREATED",
                 "User", "Created field supervisor account " + username, null);
         return user;
+    }
+
+    /**
+     * PC4: update the editable profile fields of one of the caller's own field
+     * supervisors. Names are deliberately not editable here — the login username is
+     * derived from them, so changing one without the other would desynchronise the
+     * two. Scoped by {@link #requireOwnSupervisor}, so another company's supervisor
+     * is out of reach.
+     */
+    @Transactional
+    public UserEntity updateFieldSupervisor(UserEntity actor, Long targetId, String email, String phone,
+            String department) {
+        UserEntity target = requireOwnSupervisor(actor, targetId);
+
+        String emailTrimmed = text(email);
+        if (!emailTrimmed.isEmpty()) {
+            Optional<UserEntity> clash = userRepository.findByEmail(emailTrimmed);
+            if (clash.isPresent() && !clash.get().getId().equals(target.getId())) {
+                throw new RoleRequestConflictException("A user with that email already exists.");
+            }
+            target.setEmail(emailTrimmed);
+            userRepository.save(target);
+        }
+
+        industrialSupervisorRepository.findByUserId(targetId).ifPresent(supervisor -> {
+            supervisor.setPhoneNumber(text(phone));
+            supervisor.setDepartment(text(department));
+            industrialSupervisorRepository.save(supervisor);
+        });
+
+        auditLogService.log(actor.getUsername(), actor.getRole().name(), "FIELD_SUPERVISOR_UPDATED",
+                "User", "Updated field supervisor profile " + target.getUsername(), null);
+        return target;
     }
 
     /** Reset/unlock a supervisor of the caller's own company (L21). */
