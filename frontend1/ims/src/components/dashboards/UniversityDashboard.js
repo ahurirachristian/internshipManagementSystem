@@ -854,7 +854,12 @@ export default function UniversityDashboard() {
   function renderCompaniesAndPlacements() {
     const companies = stats?.companies?.companies || [];
     const byStatus = stats?.placements?.byStatus || {};
-    const statuses = ['ACTIVE', 'COMPLETED', 'PENDING', 'ASSIGNED', 'CANCELLED'];
+    // PC6e: derive the row order from the payload instead of restating the
+    // status vocabulary. The hardcoded five here dropped OFFERED — the first
+    // state the offer pipeline sets — so the pie's total silently disagreed
+    // with the placement count. The backend zero-fills all six states, so this
+    // also keeps the two charts aligned if states are ever added.
+    const statuses = Object.keys(byStatus);
     return (
       <div className="space-y-6">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
