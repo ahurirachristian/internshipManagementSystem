@@ -75,7 +75,7 @@ const FULL_ANALYTICS = {
       endDate: '2026-05-05',
       started: true,
       evaluated: true,
-      averageGrade: 88,
+      averageGrade: 9,
       progressPercent: 100,
     },
     {
@@ -94,7 +94,7 @@ const FULL_ANALYTICS = {
     },
   ],
   internCount: 2,
-  avgEvaluation: 88,
+  avgEvaluation: 9,
   evaluationCount: 1,
 };
 
@@ -118,7 +118,8 @@ describe('CompanyDashboard overview', () => {
       expect(screen.getByText(label)).toBeInTheDocument();
     }
     expect(screen.getByText('Avg Evaluation')).toBeInTheDocument();
-    expect(screen.getByText('88%')).toBeInTheDocument();
+    // 0-10 scale per the stored convention (backend test pins avgEvaluation 9.0).
+    expect(screen.getByText('9/10')).toBeInTheDocument();
   });
 
   it('counts a cancelled placement out of the pipeline total but still shows the segment', async () => {
@@ -143,7 +144,7 @@ describe('CompanyDashboard overview', () => {
     await screen.findByText('Intern Onboarding');
 
     expect(screen.getByText('Ada Lovelace')).toBeInTheDocument();
-    expect(screen.getByText('Evaluated (88%)')).toBeInTheDocument();
+    expect(screen.getByText('Evaluated (9/10)')).toBeInTheDocument();
     expect(screen.getByText('Start date not set')).toBeInTheDocument();
     expect(screen.getByText('Not yet evaluated')).toBeInTheDocument();
   });

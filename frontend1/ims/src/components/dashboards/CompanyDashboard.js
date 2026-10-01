@@ -239,7 +239,7 @@ export default function CompanyDashboard() {
   function InternProgressRow({ intern }) {
     const facts = [
       { done: intern.started, label: intern.started ? `Started ${formatDay(intern.startDate)}` : 'Start date not set' },
-      { done: intern.evaluated, label: intern.evaluated ? `Evaluated (${intern.averageGrade}%)` : 'Not yet evaluated' },
+      { done: intern.evaluated, label: intern.evaluated ? `Evaluated (${intern.averageGrade}/10)` : 'Not yet evaluated' },
     ];
     return (
       <li className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-4 shadow-xs">
@@ -344,7 +344,7 @@ export default function CompanyDashboard() {
       },
       {
         label: 'Avg Evaluation',
-        value: data.avgEvaluation == null ? '—' : `${data.avgEvaluation}%`,
+        value: data.avgEvaluation == null ? '—' : `${data.avgEvaluation}/10`,
         sub: `${data.evaluationCount ?? 0} evaluation${data.evaluationCount === 1 ? '' : 's'} recorded`,
         icon: Star,
         iconCls: 'bg-amber-50 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800',
