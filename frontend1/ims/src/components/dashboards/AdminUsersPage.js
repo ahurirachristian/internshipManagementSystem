@@ -28,12 +28,13 @@ import { Avatar } from '../ui/Avatar';
 import { EmptyState } from '../ui/EmptyState';
 import { Modal } from '../ui/Modal';
 
-const ROLES = ['STUDENT', 'SUPERVISOR', 'COMPANY', 'ADMIN'];
+const ROLES = ['STUDENT', 'SUPERVISOR', 'INDUSTRIAL_SUPERVISOR', 'COMPANY', 'ADMIN'];
 
 const ROLE_BADGE_STYLES = {
   ADMIN: 'bg-teal-50 text-teal-700 border border-teal-200',
   STUDENT: 'bg-emerald-50 text-emerald-700 border border-emerald-200',
   SUPERVISOR: 'bg-blue-50 text-blue-700 border border-blue-200',
+  INDUSTRIAL_SUPERVISOR: 'bg-indigo-50 text-indigo-700 border border-indigo-200',
   COMPANY: 'bg-amber-50 text-amber-700 border border-amber-200',
 };
 
@@ -181,14 +182,14 @@ export default function AdminUsersPage() {
   }
 
   async function handleGrantRole(user) {
-    const role = window.prompt('Grant which role? STUDENT, SUPERVISOR, COMPANY or ADMIN', user.role);
+    const role = window.prompt('Grant which role? STUDENT, SUPERVISOR, INDUSTRIAL_SUPERVISOR, COMPANY or ADMIN', user.role);
     if (!role) return;
     const payload = { role: role.trim().toUpperCase() };
     if (payload.role === 'SUPERVISOR') {
       const universityId = window.prompt('University ID for this supervisor:');
       if (!universityId) return;
       payload.universityId = Number(universityId);
-    } else if (payload.role === 'COMPANY') {
+    } else if (payload.role === 'INDUSTRIAL_SUPERVISOR' || payload.role === 'COMPANY') {
       const companyName = window.prompt('Company name for this account:');
       if (!companyName) return;
       payload.companyName = companyName;

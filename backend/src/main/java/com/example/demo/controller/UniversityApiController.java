@@ -28,7 +28,7 @@ public class UniversityApiController {
      * supervisor's own university (resolved from the logged-in user).
      */
     @GetMapping("/stats")
-    @PreAuthorize("hasAnyAuthority('ADMIN', 'SUPERVISOR')")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'SUPERVISOR')") // PC7: university analytics stay university-scoped
     public ResponseEntity<?> stats(Principal principal) {
         if (principal == null) {
             return ResponseEntity.status(401).body(Map.of("error", "Not authenticated"));

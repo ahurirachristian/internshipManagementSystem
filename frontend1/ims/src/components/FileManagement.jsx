@@ -1106,7 +1106,7 @@ function DocumentPreviewModal({ document: doc, onClose, onDownload }) {
 export default function FileManagement() {
   const { user } = useAuth();
   const { isDark } = useTheme();
-  const canUpload = user?.role === 'ADMIN' || user?.role === 'SUPERVISOR';
+  const canUpload = user?.role === 'ADMIN' || user?.role === 'SUPERVISOR' || user?.role === 'INDUSTRIAL_SUPERVISOR';
 
   const [documents, setDocuments] = useState([]);
   const [usage, setUsage] = useState(null);

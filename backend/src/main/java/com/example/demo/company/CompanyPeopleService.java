@@ -25,8 +25,9 @@ import com.example.demo.supervisor.IndustrialSupervisorRepository;
 
 /**
  * P6 (R7/L9): a company manages only the field supervisors of its own
- * company. Field supervisors are SUPERVISOR users with the company's id set
- * so they land inside the company's scope, not a university's.
+ * company. Since PC7 (D1) field supervisors are INDUSTRIAL_SUPERVISOR users
+ * with the company's id set, so they land inside the company's scope, not a
+ * university's.
  */
 @Service
 public class CompanyPeopleService {
@@ -87,7 +88,10 @@ public class CompanyPeopleService {
         String username = uniqueUsername(first, last);
         // L16: weak initial credential, forced change at first sign-in.
         String tempPassword = username + "123";
-        UserEntity user = new UserEntity(username, passwordEncoder.encode(tempPassword), Role.SUPERVISOR);
+        // PC7 (D1): field supervisors are their own role. Legacy rows created
+        // before this change keep the SUPERVISOR role and are surfaced by
+        // LegacyFieldSupervisorCheck on boot; they are still manageable here.
+        UserEntity user = new UserEntity(username, passwordEncoder.encode(tempPassword), Role.INDUSTRIAL_SUPERVISOR);
         user.setCompanyId(companyId);
         user.setEmail(emailTrimmed);
         user.setMustChangePassword(true);
@@ -151,7 +155,10 @@ public class CompanyPeopleService {
         UserEntity target = userRepository.findById(targetId)
                 .orElseThrow(() -> new NoSuchElementException("User not found."));
         scope.requireCanManage(actor, target);
-        if (!"SUPERVISOR".equals(target.getRole().name())
+        // PC7: accept both the canonical role and the legacy pre-migration shape.
+        boolean fieldSupervisor = Role.INDUSTRIAL_SUPERVISOR.equals(target.getRole())
+                || (Role.SUPERVISOR.equals(target.getRole()) && target.getCompanyId() != null);
+        if (!fieldSupervisor
                 || actor.getCompanyId() == null
                 || !actor.getCompanyId().equals(target.getCompanyId())) {
             throw new AccessDeniedException("You can only manage your own field supervisors.");

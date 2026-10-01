@@ -12,6 +12,7 @@ import StudentProfile from './components/StudentProfile';
 import DayDiariesPage from './components/dashboards/DayDiariesPage';
 import UniversityDashboard from './components/dashboards/UniversityDashboard';
 import CompanyDashboard from './components/dashboards/CompanyDashboard';
+import IndustrialSupervisorDashboard from './components/dashboards/IndustrialSupervisorDashboard';
 import AdminDashboard from './components/dashboards/AdminDashboard';
 import AdminUsersPage from './components/dashboards/AdminUsersPage';
 import AdminStudentArea from './components/dashboards/AdminStudentArea';
@@ -234,6 +235,14 @@ function AppRoutes() {
         }
       />
       <Route
+        path="/industrial/dashboard"
+        element={
+          <ProtectedRoute roles={["ADMIN", "INDUSTRIAL_SUPERVISOR"]}>
+            <IndustrialSupervisorDashboard />
+          </ProtectedRoute>
+        }
+      />
+      <Route
         path="/company"
         element={
           <ProtectedRoute roles={['ADMIN', 'SUPERVISOR']}>
@@ -356,7 +365,7 @@ function AppRoutes() {
       <Route
         path="/file-management"
         element={
-          <ProtectedRoute roles={['ADMIN', 'SUPERVISOR', 'STUDENT', 'COMPANY']}>
+          <ProtectedRoute roles={['ADMIN', 'SUPERVISOR', 'INDUSTRIAL_SUPERVISOR', 'STUDENT', 'COMPANY']}>
             <FileManagement />
           </ProtectedRoute>
         }

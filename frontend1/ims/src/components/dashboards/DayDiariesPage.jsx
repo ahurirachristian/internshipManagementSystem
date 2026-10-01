@@ -30,6 +30,8 @@ export default function DayDiariesPage() {
   const [submitting, setSubmitting] = useState(false);
   const [commentMsg, setCommentMsg] = useState('');
 
+  // PC7: the day-diaries page is a STUDENT surface; feedback stays a supervisor
+  // capability but the persona check keeps its own boundary per role.
   const canComment = user?.role === 'ADMIN' || user?.role === 'SUPERVISOR';
   const selectedDiary = useMemo(
     () => diaries.find((entry) => String(entry.id) === String(commentForId)),

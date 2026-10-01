@@ -45,6 +45,8 @@ public class DayDiaryApiController {
         this.auditLogService = auditLogService;
     }
 
+    // PC7: the /me family is student self-service. An INDUSTRIAL_SUPERVISOR has
+    // no student row, so these stay closed to them (they would 404 anyway).
     @GetMapping("/me")
     @PreAuthorize("hasAnyAuthority('STUDENT', 'ADMIN', 'SUPERVISOR')")
     public List<Map<String, Object>> getMyDiaries(Principal principal) {
@@ -58,7 +60,7 @@ public class DayDiaryApiController {
     }
 
     @GetMapping
-    @PreAuthorize("hasAnyAuthority('ADMIN', 'SUPERVISOR')")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'SUPERVISOR', 'INDUSTRIAL_SUPERVISOR')")
     public List<Map<String, Object>> getAllDiaries() {
         return dayDiaryRepository.findAll().stream()
                 .map(this::toView)
@@ -66,7 +68,7 @@ public class DayDiaryApiController {
     }
 
     @GetMapping("/export/csv")
-    @PreAuthorize("hasAnyAuthority('ADMIN', 'SUPERVISOR')")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'SUPERVISOR', 'INDUSTRIAL_SUPERVISOR')")
     public ResponseEntity<String> exportDiariesCsv() {
         List<Map<String, Object>> diaries = dayDiaryRepository.findAll().stream()
                 .map(this::toView)
@@ -92,7 +94,7 @@ public class DayDiaryApiController {
     }
 
     @GetMapping("/student/{studentId}")
-    @PreAuthorize("hasAnyAuthority('ADMIN', 'SUPERVISOR', 'STUDENT')")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'SUPERVISOR', 'INDUSTRIAL_SUPERVISOR', 'STUDENT')")
     public ResponseEntity<List<Map<String, Object>>> getDiariesByStudent(@PathVariable Long studentId,
             Principal principal) {
         if (isStudent(principal)) {
@@ -107,7 +109,7 @@ public class DayDiaryApiController {
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasAnyAuthority('ADMIN', 'SUPERVISOR', 'STUDENT')")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'SUPERVISOR', 'INDUSTRIAL_SUPERVISOR', 'STUDENT')")
     public ResponseEntity<Map<String, Object>> getDiaryById(@PathVariable Long id) {
         return dayDiaryRepository.findById(id)
                 .map(this::toView)
@@ -132,6 +134,8 @@ public class DayDiaryApiController {
     }
 
     @PutMapping("/{id}")
+    // PC7: content edits belong to the owner or the university; feedback is the
+    // field supervisor's channel (POST /{id}/feedback).
     @PreAuthorize("hasAnyAuthority('STUDENT', 'ADMIN', 'SUPERVISOR')")
     public ResponseEntity<?> updateDiary(@PathVariable Long id, @RequestBody DayDiary updates, Principal principal) {
         DayDiary diary = dayDiaryRepository.findById(id).orElse(null);
@@ -139,6 +143,8 @@ public class DayDiaryApiController {
             return ResponseEntity.notFound().build();
         }
         boolean isOwner = isOwner(diary, principal.getName());
+        // PC7: edits are owner or university supervisor only; the field
+        // supervisor's channel is POST /{id}/feedback.
         boolean isAdminOrSupervisor = hasAuthority(principal, "ADMIN") || hasAuthority(principal, "SUPERVISOR");
         if (!isOwner && !isAdminOrSupervisor) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
@@ -163,7 +169,7 @@ public class DayDiaryApiController {
     }
 
     @PostMapping("/{id}/feedback")
-    @PreAuthorize("hasAnyAuthority('ADMIN', 'SUPERVISOR')")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'SUPERVISOR', 'INDUSTRIAL_SUPERVISOR')")
     public ResponseEntity<?> submitFeedback(@PathVariable Long id, @RequestBody Map<String, String> body) {
         DayDiary diary = dayDiaryRepository.findById(id).orElse(null);
         if (diary == null) {
@@ -191,6 +197,7 @@ public class DayDiaryApiController {
     }
 
     @DeleteMapping("/{id}")
+    // PC7: deletion stays out of the field supervisor's reach (L21: destructive).
     @PreAuthorize("hasAnyAuthority('ADMIN', 'SUPERVISOR', 'STUDENT')")
     public ResponseEntity<Void> deleteDiary(@PathVariable Long id, Principal principal) {
         DayDiary diary = dayDiaryRepository.findById(id).orElse(null);

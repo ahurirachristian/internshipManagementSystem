@@ -42,7 +42,7 @@ public class FileController {
      * treats upload as an ADMIN/SUPERVISOR capability (FileManagement.jsx).
      * Enforcing it here closes the direct-API bypass.
      */
-    private static final String CAN_UPLOAD = "hasAnyAuthority('ADMIN','SUPERVISOR')";
+    private static final String CAN_UPLOAD = "hasAnyAuthority('ADMIN','SUPERVISOR','INDUSTRIAL_SUPERVISOR')";
 
     private final DocumentRepository documentRepository;
     private final FileStorageService fileStorageService;

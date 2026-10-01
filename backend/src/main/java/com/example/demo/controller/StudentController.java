@@ -65,6 +65,7 @@ public class StudentController {
     private final UniversitySupervisorRepository universitySupervisorRepository;
     private final IndustrialSupervisorRepository industrialSupervisorRepository;
     private final StudentSettingRepository studentSettingRepository;
+    private final com.example.demo.auth.AuthorizationScopeService scopeService;
 
     public StudentController(StudentRepository studentRepository,
             UserRepository userRepository,
@@ -76,7 +77,8 @@ public class StudentController {
             InternshipCompanyRepository internshipCompanyRepository,
             UniversitySupervisorRepository universitySupervisorRepository,
             IndustrialSupervisorRepository industrialSupervisorRepository,
-            StudentSettingRepository studentSettingRepository) {
+            StudentSettingRepository studentSettingRepository,
+            com.example.demo.auth.AuthorizationScopeService scopeService) {
         this.studentRepository = studentRepository;
         this.userRepository = userRepository;
         this.dayDiaryRepository = dayDiaryRepository;
@@ -88,8 +90,11 @@ public class StudentController {
         this.universitySupervisorRepository = universitySupervisorRepository;
         this.industrialSupervisorRepository = industrialSupervisorRepository;
         this.studentSettingRepository = studentSettingRepository;
+        this.scopeService = scopeService;
     }
 
+    // PC7: the /me family is student self-service. An INDUSTRIAL_SUPERVISOR has
+    // no student row, so it stays closed to them (they would 404 anyway).
     @GetMapping("/me")
     @PreAuthorize("hasAnyAuthority('STUDENT', 'ADMIN', 'SUPERVISOR')")
     public ResponseEntity<StudentDto> getMyProfile(Principal principal) {
@@ -101,6 +106,7 @@ public class StudentController {
     }
 
     @GetMapping("/me/progress")
+    // PC7: /me family — student self-service (see getMyProfile).
     @PreAuthorize("hasAnyAuthority('STUDENT', 'ADMIN', 'SUPERVISOR')")
     public ResponseEntity<?> getMyProgress(Principal principal) {
         Student student = currentStudent(principal);
@@ -119,6 +125,7 @@ public class StudentController {
     }
 
     @GetMapping("/me/learning-institute")
+    // PC7: /me family — student self-service (see getMyProfile).
     @PreAuthorize("hasAnyAuthority('STUDENT', 'ADMIN', 'SUPERVISOR')")
     public ResponseEntity<?> getMyLearningInstitute(Principal principal) {
         Student student = currentStudent(principal);
@@ -142,6 +149,7 @@ public class StudentController {
     }
 
     @GetMapping("/me/company")
+    // PC7: /me family — student self-service (see getMyProfile).
     @PreAuthorize("hasAnyAuthority('STUDENT', 'ADMIN', 'SUPERVISOR')")
     public ResponseEntity<?> getMyCompany(Principal principal) {
         Student student = currentStudent(principal);
@@ -166,6 +174,7 @@ public class StudentController {
     }
 
     @GetMapping("/me/industrial-supervisor")
+    // PC7: /me family — student self-service (see getMyProfile).
     @PreAuthorize("hasAnyAuthority('STUDENT', 'ADMIN', 'SUPERVISOR')")
     public ResponseEntity<?> getMyIndustrialSupervisor(Principal principal) {
         Student student = currentStudent(principal);
@@ -191,6 +200,7 @@ public class StudentController {
     }
 
     @GetMapping("/me/university-supervisor")
+    // PC7: /me family — student self-service (see getMyProfile).
     @PreAuthorize("hasAnyAuthority('STUDENT', 'ADMIN', 'SUPERVISOR')")
     public ResponseEntity<?> getMyUniversitySupervisor(Principal principal) {
         Student student = currentStudent(principal);
@@ -217,6 +227,7 @@ public class StudentController {
     }
 
     @GetMapping("/me/settings")
+    // PC7: /me family — student self-service (see getMyProfile).
     @PreAuthorize("hasAnyAuthority('STUDENT', 'ADMIN', 'SUPERVISOR')")
     public ResponseEntity<?> getMySettings(Principal principal) {
         Student student = currentStudent(principal);
@@ -243,6 +254,7 @@ public class StudentController {
     }
 
     @PutMapping("/me/settings")
+    // PC7: /me family — student self-service (see getMyProfile).
     @PreAuthorize("hasAnyAuthority('STUDENT', 'ADMIN', 'SUPERVISOR')")
     public ResponseEntity<?> updateMySettings(@RequestBody StudentSettingsDto dto, Principal principal) {
         Student student = currentStudent(principal);
@@ -280,12 +292,15 @@ public class StudentController {
     }
 
     @GetMapping
+    // PC7: full-roster reads stay a university/admin capability; field
+    // supervisors see their company's interns through /company/{companyId}.
     @PreAuthorize("hasAnyAuthority('ADMIN', 'SUPERVISOR', 'COMPANY')")
     public List<StudentDto> getAllStudents() {
         return studentRepository.findAll().stream().map(this::toDto).collect(Collectors.toList());
     }
 
     @GetMapping("/university")
+    // PC7: university-scoped reads stay a university persona.
     @PreAuthorize("hasAnyAuthority('ADMIN', 'SUPERVISOR')")
     public ResponseEntity<?> getUniversityStudents(Principal principal) {
         Long universityId = resolveUniversityId(principal);
@@ -299,6 +314,7 @@ public class StudentController {
     }
 
     @GetMapping("/university/profile")
+    // PC7: university-scoped reads stay a university persona.
     @PreAuthorize("hasAnyAuthority('ADMIN', 'SUPERVISOR')")
     public ResponseEntity<?> getUniversityProfile(Principal principal) {
         Long universityId = resolveUniversityId(principal);
@@ -312,6 +328,7 @@ public class StudentController {
     }
 
     @PostMapping
+    // PC7: student CRUD stays a university persona; P5 scoping already bounds it.
     @PreAuthorize("hasAnyAuthority('ADMIN', 'SUPERVISOR')")
     public ResponseEntity<?> createStudent(@RequestBody StudentDto dto, Principal principal) {
         UserEntity user = resolveLinkedUser(dto);
@@ -339,6 +356,7 @@ public class StudentController {
     }
 
     @GetMapping("/export/csv")
+    // PC7: bulk export stays a university/admin capability (L21 data mass).
     @PreAuthorize("hasAnyAuthority('ADMIN', 'SUPERVISOR', 'COMPANY')")
     public ResponseEntity<String> exportStudentsCsv() {
         String csv = studentRepository.findAll().stream()
@@ -364,14 +382,27 @@ public class StudentController {
     }
 
     @GetMapping("/company/{companyId}")
-    @PreAuthorize("hasAnyAuthority('ADMIN', 'SUPERVISOR', 'COMPANY')")
-    public List<StudentDto> getStudentsByCompany(@PathVariable Long companyId) {
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'SUPERVISOR', 'INDUSTRIAL_SUPERVISOR', 'COMPANY')")
+    public List<StudentDto> getStudentsByCompany(@PathVariable Long companyId, Principal principal) {
+        // PC7.7: previously any COMPANY user could pass any companyId and read
+        // another company's roster. Non-admins are now scoped to their own
+        // company; university supervisors keep university scope semantics.
+        UserEntity actor = userRepository.findByUsername(principal.getName()).orElseThrow();
+        boolean isAdmin = scopeService.isAdminLike(actor);
+        if (!isAdmin) {
+            Long own = actor.getCompanyId() != null ? actor.getCompanyId() : actor.getUniversityId();
+            if (own == null || !own.equals(companyId)) {
+                throw new org.springframework.security.access.AccessDeniedException(
+                        "You can only view students of your own company.");
+            }
+        }
         // M3: exact FK lookup replaces the old substring matcher.
         return studentRepository.findByInternshipCompanyId(companyId).stream()
                 .map(this::toDto).collect(Collectors.toList());
     }
 
     @GetMapping("/search")
+    // PC7: unscoped name search stays with university/admin/company personas.
     @PreAuthorize("hasAnyAuthority('ADMIN', 'SUPERVISOR', 'COMPANY')")
     public List<StudentDto> searchStudents(@RequestParam String q) {
         return studentRepository
@@ -380,6 +411,8 @@ public class StudentController {
     }
 
     @GetMapping("/{id}")
+    // PC7: an unscoped single-student read would let a field supervisor probe
+    // any id, so they use their scoped /company/{companyId} view instead.
     @PreAuthorize("hasAnyAuthority('ADMIN', 'SUPERVISOR', 'COMPANY', 'STUDENT')")
     public ResponseEntity<StudentDto> getStudentById(@PathVariable Long id) {
         return studentRepository.findById(id)
@@ -389,6 +422,7 @@ public class StudentController {
     }
 
     @PutMapping("/{id}")
+    // PC7: student CRUD stays a university persona (P5 scoping bounds it).
     @PreAuthorize("hasAnyAuthority('ADMIN', 'SUPERVISOR')")
     public ResponseEntity<StudentDto> updateStudent(@PathVariable Long id,
             @RequestBody StudentDto dto, Principal principal) {
@@ -404,6 +438,7 @@ public class StudentController {
     }
 
     @DeleteMapping("/{id}")
+    // PC7: destructive CRUD stays a university persona (L21).
     @PreAuthorize("hasAnyAuthority('ADMIN', 'SUPERVISOR')")
     public ResponseEntity<Void> deleteStudent(@PathVariable Long id, Principal principal) {
         Student student = studentRepository.findById(id).orElse(null);

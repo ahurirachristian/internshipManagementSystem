@@ -473,6 +473,7 @@ public class AuthApiController {
         return switch (role) {
             case "ADMIN" -> "/admin/dashboard";
             case "SUPERVISOR" -> "/university/dashboard";
+            case "INDUSTRIAL_SUPERVISOR" -> "/industrial/dashboard";
             case "COMPANY" -> "/company/dashboard";
             default -> "/student/dashboard";
         };

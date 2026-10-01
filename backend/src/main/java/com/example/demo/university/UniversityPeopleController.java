@@ -20,7 +20,7 @@ import com.example.demo.dto.UserDto;
 /** P5 people management (plan §6.5) — SUPERVISOR own university, ADMIN broad. */
 @RestController
 @RequestMapping("/api/university")
-@PreAuthorize("hasAnyAuthority('ADMIN', 'SUPERVISOR')")
+@PreAuthorize("hasAnyAuthority('ADMIN', 'SUPERVISOR')") // PC7: managing university people is a university persona
 public class UniversityPeopleController {
 
     private final UniversityPeopleService peopleService;

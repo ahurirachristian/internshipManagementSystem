@@ -12,7 +12,7 @@ import { User, X } from 'lucide-react';
  *       uniqueness server-side; letting the browser pick it would reintroduce
  *       the collision the service already resolves.</li>
  *   <li>`role` — not an input. P6 creates every field supervisor as a
- *       SUPERVISOR user scoped to the company. A free-text "Role / Job Title"
+ *       INDUSTRIAL_SUPERVISOR user scoped to the company. A free-text "Role / Job Title"
  *       field would look like it sets the access role and silently not.</li>
  * </ul>
  *

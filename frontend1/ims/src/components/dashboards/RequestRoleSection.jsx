@@ -6,7 +6,7 @@ import {
   fetchUniversityOptions,
 } from '../../services/api';
 
-const REQUESTABLE = ['SUPERVISOR', 'COMPANY', 'ADMIN'];
+const REQUESTABLE = ['SUPERVISOR', 'INDUSTRIAL_SUPERVISOR', 'COMPANY', 'ADMIN'];
 
 export default function RequestRoleSection() {
   const [requests, setRequests] = useState([]);
@@ -37,7 +37,7 @@ export default function RequestRoleSection() {
       await createRoleRequest({
         requestedRole: role,
         universityId: role === 'SUPERVISOR' && universityId ? Number(universityId) : null,
-        companyName: role === 'COMPANY' ? companyName.trim() : null,
+        companyName: role === 'INDUSTRIAL_SUPERVISOR' || role === 'COMPANY' ? companyName.trim() : null,
         comment: comment.trim() || null,
       });
       setMessage('Request submitted. An administrator will review it.');
@@ -107,7 +107,7 @@ export default function RequestRoleSection() {
           </div>
         )}
 
-        {role === 'COMPANY' && (
+        {(role === 'INDUSTRIAL_SUPERVISOR' || role === 'COMPANY') && (
           <div>
             <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5" htmlFor="request-company">
               Company

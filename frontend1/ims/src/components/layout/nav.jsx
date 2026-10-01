@@ -19,6 +19,7 @@ export const ROLE_LABELS = {
   STUDENT: 'Student',
   COMPANY: 'Company',
   SUPERVISOR: 'Supervisor',
+  INDUSTRIAL_SUPERVISOR: 'Field Supervisor',
 };
 
 export const NAV_GROUPS = [
@@ -30,8 +31,9 @@ export const NAV_GROUPS = [
       { to: '/student/profile', icon: IdCard, label: 'Student Profile', roles: ['STUDENT'] },
       { to: '/student/day-diaries', icon: BookMarked, label: 'Day Diaries', roles: ['STUDENT'] },
       { to: '/company/dashboard', icon: Building2, label: 'Company Area', roles: ['ADMIN', 'COMPANY'] },
+      { to: '/industrial/dashboard', icon: Building2, label: 'Field Supervisor Area', roles: ['ADMIN', 'INDUSTRIAL_SUPERVISOR'] },
       { to: '/university/dashboard', icon: LayoutDashboard, label: 'University Dashboard', roles: ['ADMIN', 'SUPERVISOR'] },
-      { to: '/request-role', icon: ShieldCheck, label: 'Request a Role', roles: ['STUDENT', 'SUPERVISOR', 'COMPANY'] },
+      { to: '/request-role', icon: ShieldCheck, label: 'Request a Role', roles: ['STUDENT', 'SUPERVISOR', 'INDUSTRIAL_SUPERVISOR', 'COMPANY'] },
     ],
   },
   {

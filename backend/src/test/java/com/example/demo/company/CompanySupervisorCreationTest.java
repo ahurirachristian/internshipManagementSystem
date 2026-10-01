@@ -92,7 +92,9 @@ class CompanySupervisorCreationTest {
                                 + "\"email\":\"" + email + "\",\"phone\":\"+256700000001\","
                                 + "\"department\":\"Engineering\"}"))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.role").value("SUPERVISOR"))
+                // PC7: field supervisors are their own role now, not SUPERVISOR
+                // wearing a company id.
+                .andExpect(jsonPath("$.role").value("INDUSTRIAL_SUPERVISOR"))
                 .andExpect(jsonPath("$.companyId").value(companyId))
                 .andExpect(jsonPath("$.mustChangePassword").value(true))
                 .andReturn();

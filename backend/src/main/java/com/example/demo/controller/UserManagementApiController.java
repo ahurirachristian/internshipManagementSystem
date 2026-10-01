@@ -45,9 +45,9 @@ public class UserManagementApiController {
         this.companyPeopleService = companyPeopleService;
     }
 
-    /** P2/L21: ADMIN anywhere; P5 university supervisors within their own university; P6 companies for their own field supervisors. */
+    /** P2/L21: ADMIN anywhere; P5 university supervisors within their own university; P6/PC7 companies for their own field supervisors. */
     @PostMapping("/{id}/reset")
-    @PreAuthorize("hasAnyAuthority('ADMIN', 'SUPERVISOR', 'COMPANY')")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'SUPERVISOR', 'INDUSTRIAL_SUPERVISOR', 'COMPANY')")
     public ResponseEntity<?> resetPassword(@PathVariable Long id, Principal principal) {
         UserEntity actor = userRepository.findByUsername(principal.getName()).orElseThrow();
         if (scopeService.isAdminLike(actor)) {

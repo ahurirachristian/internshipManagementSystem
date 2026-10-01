@@ -26,7 +26,7 @@ import com.example.demo.school.SchoolRepository;
 
 @RestController
 @RequestMapping("/api/university/programmes")
-@PreAuthorize("hasAuthority('SUPERVISOR')")
+@PreAuthorize("hasAuthority('SUPERVISOR')") // PC7: university-scope only; field supervisors have no programme mandate
 public class ProgrammeController {
 
     private final ProgrammeRepository programmeRepository;

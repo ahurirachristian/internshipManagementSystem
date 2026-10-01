@@ -8,6 +8,7 @@ const PATH_META = [
   { path: '/student/dashboard', section: 'Student', page: 'Student Area', home: '/student/dashboard' },
   { path: '/student/profile', section: 'Student', page: 'Student Profile', home: '/student/dashboard' },
   { path: '/company/dashboard', section: 'Company', page: 'Company Area', home: '/company/dashboard' },
+  { path: '/industrial/dashboard', section: 'Field Supervision', page: 'Field Supervisor Dashboard', home: '/industrial/dashboard' },
   { path: '/university/dashboard', section: 'University', page: 'Dashboard', home: '/university/dashboard' },
   { path: '/university/students', section: 'University', page: 'Students', home: '/university/dashboard' },
   { path: '/university/schools', section: 'University', page: 'Schools', home: '/university/dashboard' },
@@ -29,6 +30,7 @@ const ROLE_HOME = {
   ADMIN: '/admin/dashboard',
   STUDENT: '/student/dashboard',
   SUPERVISOR: '/university/dashboard',
+  INDUSTRIAL_SUPERVISOR: '/industrial/dashboard',
   COMPANY: '/company/dashboard',
 };
 

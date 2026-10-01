@@ -31,7 +31,7 @@ import java.security.Principal;
  */
 @RestController
 @RequestMapping("/api/courses")
-@PreAuthorize("hasAnyAuthority('ADMIN', 'SUPERVISOR')")
+@PreAuthorize("hasAnyAuthority('ADMIN', 'SUPERVISOR')") // PC7: INDUSTRIAL_SUPERVISOR deliberately excluded — course units are a university asset
 public class CourseController {
 
     private final CourseRepository courseRepository;

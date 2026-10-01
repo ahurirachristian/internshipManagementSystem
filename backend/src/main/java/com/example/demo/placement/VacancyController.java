@@ -68,7 +68,7 @@ public class VacancyController {
     }
 
     @PostMapping
-    @PreAuthorize("hasAnyAuthority('ADMIN', 'SUPERVISOR', 'COMPANY')")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'SUPERVISOR', 'INDUSTRIAL_SUPERVISOR', 'COMPANY')")
     public ResponseEntity<Vacancy> createVacancy(@Valid @RequestBody Vacancy vacancy, Principal principal) {
         UserEntity actor = currentUser(principal);
         if (actor != null && isCompany(actor)) {
@@ -82,7 +82,7 @@ public class VacancyController {
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasAnyAuthority('ADMIN', 'SUPERVISOR', 'COMPANY')")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'SUPERVISOR', 'INDUSTRIAL_SUPERVISOR', 'COMPANY')")
     public ResponseEntity<Vacancy> updateVacancy(@PathVariable Long id, @Valid @RequestBody Vacancy vacancy,
             Principal principal) {
         UserEntity actor = currentUser(principal);
@@ -107,7 +107,7 @@ public class VacancyController {
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasAnyAuthority('ADMIN', 'SUPERVISOR', 'COMPANY')")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'SUPERVISOR', 'INDUSTRIAL_SUPERVISOR', 'COMPANY')")
     public ResponseEntity<Void> deleteVacancy(@PathVariable Long id, Principal principal) {
         UserEntity actor = currentUser(principal);
         if (vacancyService.findById(id).isEmpty()) {

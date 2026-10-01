@@ -55,8 +55,89 @@ const EMPTY_ANALYTICS = {
   evaluationCount: 0,
 };
 
-export default function CompanyDashboard() {
-  const { user } = useAuth();
+/**
+ * PC4 KPI tile, exported so PC7's field-supervisor dashboard reuses it instead
+ * of duplicating the markup. Purely prop-driven.
+ */
+export function KpiTile({ label, value, sub, icon: Icon, iconCls }) {
+  return (
+    // Labelled so the tile reads as one unit to a screen reader instead of
+    // three unconnected fragments of text.
+    <div
+      role="group"
+      aria-label={`${label}: ${value}`}
+      className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-4 shadow-xs"
+    >
+      <div className="flex items-center gap-3">
+        <div className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 ${iconCls}`}>
+          <Icon className="w-4.5 h-4.5" aria-hidden="true" />
+        </div>
+        <div className="min-w-0">
+          <div className="text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">{label}</div>
+          <div className="text-xl font-extrabold text-slate-900 dark:text-slate-100">{value}</div>
+        </div>
+      </div>
+      {sub && <div className="text-[11px] text-slate-500 dark:text-slate-400 mt-2">{sub}</div>}
+    </div>
+  );
+}
+
+/**
+ * PC4 intern progress row, exported for the same reason. The developer's
+ * renderProgress concept, kept list-first as the plan requires.
+ */
+export function InternProgressRow({ intern }) {
+  const facts = [
+    { done: intern.started, label: intern.started ? `Started ${formatDay(intern.startDate)}` : 'Start date not set' },
+    { done: intern.evaluated, label: intern.evaluated ? `Evaluated (${intern.averageGrade}/10)` : 'Not yet evaluated' },
+  ];
+  return (
+    <li className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-4 shadow-xs">
+      <div className="flex items-center justify-between gap-3 mb-2.5 flex-wrap">
+        <div className="flex items-center gap-3 min-w-0">
+          <div className="w-9 h-9 rounded-lg bg-blue-50 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800 flex items-center justify-center shrink-0">
+            <GraduationCap className="w-4 h-4" aria-hidden="true" />
+          </div>
+          <div className="min-w-0">
+            <div className="text-sm font-bold text-slate-900 dark:text-slate-100 truncate">
+              {intern.firstName} {intern.lastName}
+            </div>
+            <div className="text-[11px] text-slate-500 dark:text-slate-400 truncate">
+              {intern.degreeProgram || 'Intern'}
+              {intern.placementStatus ? ` · ${intern.placementStatus}` : ''}
+            </div>
+          </div>
+        </div>
+        <div className="text-lg font-bold text-teal-700 dark:text-teal-400">{intern.progressPercent}%</div>
+      </div>
+      <div className="h-2 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+        <div className="h-full bg-teal-600 dark:bg-teal-500 rounded-full transition-all duration-500" style={{ width: `${intern.progressPercent}%` }} />
+      </div>
+      <div className="flex flex-wrap gap-4 mt-3 text-[11px] text-slate-600 dark:text-slate-400">
+        {facts.map((fact) => (
+          <span key={fact.label} className="flex items-center gap-1.5">
+            <span className={`w-2 h-2 rounded-full ${fact.done ? 'bg-teal-600 dark:bg-teal-400' : 'bg-slate-300 dark:bg-slate-600'}`} aria-hidden="true" />
+            {fact.label}
+          </span>
+        ))}
+        {intern.endDate && (
+          <span className="flex items-center gap-1.5">
+            <CalendarCheck className="w-3 h-3" aria-hidden="true" />
+            Ends {formatDay(intern.endDate)}
+          </span>
+        )}
+      </div>
+    </li>
+  );
+}
+
+function formatDay(value) {
+  if (!value) return '—';
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? String(value) : date.toLocaleDateString();
+}
+
+export default function CompanyDashboard() {  const { user } = useAuth();
   const { isDark } = useTheme();
   const [activeTab, setActiveTab] = useState('overview');
   const [company, setCompany] = useState(null);
@@ -212,80 +293,7 @@ export default function CompanyDashboard() {
     setRefresh((value) => value + 1);
   }
 
-  function KpiTile({ label, value, sub, icon: Icon, iconCls }) {
-    return (
-      // Labelled so the tile reads as one unit to a screen reader instead of
-      // three unconnected fragments of text.
-      <div
-        role="group"
-        aria-label={`${label}: ${value}`}
-        className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-4 shadow-xs"
-      >
-        <div className="flex items-center gap-3">
-          <div className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 ${iconCls}`}>
-            <Icon className="w-4.5 h-4.5" aria-hidden="true" />
-          </div>
-          <div className="min-w-0">
-            <div className="text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">{label}</div>
-            <div className="text-xl font-extrabold text-slate-900 dark:text-slate-100">{value}</div>
-          </div>
-        </div>
-        {sub && <div className="text-[11px] text-slate-500 dark:text-slate-400 mt-2">{sub}</div>}
-      </div>
-    );
-  }
-
   /** The developer's renderProgress concept, kept list-first as the plan requires. */
-  function InternProgressRow({ intern }) {
-    const facts = [
-      { done: intern.started, label: intern.started ? `Started ${formatDay(intern.startDate)}` : 'Start date not set' },
-      { done: intern.evaluated, label: intern.evaluated ? `Evaluated (${intern.averageGrade}/10)` : 'Not yet evaluated' },
-    ];
-    return (
-      <li className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-4 shadow-xs">
-        <div className="flex items-center justify-between gap-3 mb-2.5 flex-wrap">
-          <div className="flex items-center gap-3 min-w-0">
-            <div className="w-9 h-9 rounded-lg bg-blue-50 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800 flex items-center justify-center shrink-0">
-              <GraduationCap className="w-4 h-4" aria-hidden="true" />
-            </div>
-            <div className="min-w-0">
-              <div className="text-sm font-bold text-slate-900 dark:text-slate-100 truncate">
-                {intern.firstName} {intern.lastName}
-              </div>
-              <div className="text-[11px] text-slate-500 dark:text-slate-400 truncate">
-                {intern.degreeProgram || 'Intern'}
-                {intern.placementStatus ? ` · ${intern.placementStatus}` : ''}
-              </div>
-            </div>
-          </div>
-          <div className="text-lg font-bold text-teal-700 dark:text-teal-400">{intern.progressPercent}%</div>
-        </div>
-        <div className="h-2 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
-          <div className="h-full bg-teal-600 dark:bg-teal-500 rounded-full transition-all duration-500" style={{ width: `${intern.progressPercent}%` }} />
-        </div>
-        <div className="flex flex-wrap gap-4 mt-3 text-[11px] text-slate-600 dark:text-slate-400">
-          {facts.map((fact) => (
-            <span key={fact.label} className="flex items-center gap-1.5">
-              <span className={`w-2 h-2 rounded-full ${fact.done ? 'bg-teal-600 dark:bg-teal-400' : 'bg-slate-300 dark:bg-slate-600'}`} aria-hidden="true" />
-              {fact.label}
-            </span>
-          ))}
-          {intern.endDate && (
-            <span className="flex items-center gap-1.5">
-              <CalendarCheck className="w-3 h-3" aria-hidden="true" />
-              Ends {formatDay(intern.endDate)}
-            </span>
-          )}
-        </div>
-      </li>
-    );
-  }
-
-  function formatDay(value) {
-    if (!value) return '—';
-    const date = new Date(value);
-    return Number.isNaN(date.getTime()) ? String(value) : date.toLocaleDateString();
-  }
 
   function renderOverview() {
     if (user.companyId == null) {

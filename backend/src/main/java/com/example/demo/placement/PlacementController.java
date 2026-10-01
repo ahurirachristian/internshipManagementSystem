@@ -25,7 +25,7 @@ import com.example.demo.student.Student;
 
 @RestController
 @RequestMapping("/api/placements")
-@PreAuthorize("hasAnyAuthority('ADMIN', 'SUPERVISOR', 'COMPANY')")
+@PreAuthorize("hasAnyAuthority('ADMIN', 'SUPERVISOR', 'INDUSTRIAL_SUPERVISOR', 'COMPANY')")
 public class PlacementController {
 
     private final PlacementService placementService;
@@ -84,7 +84,7 @@ public class PlacementController {
     }
 
     @GetMapping("/me")
-    @PreAuthorize("hasAnyAuthority('STUDENT', 'ADMIN', 'SUPERVISOR')")
+    @PreAuthorize("hasAnyAuthority('STUDENT', 'ADMIN')")
     public ResponseEntity<Placement> getMyPlacement(Principal principal) {
         Student student = currentStudent(principal);
         if (student == null) {
@@ -177,6 +177,8 @@ public class PlacementController {
 
     /** P7 (R9): university approves an offer — status ASSIGNED + 3 notifications. */
     @PostMapping("/{id}/approve")
+    // PC7: offer review is enforced as a university persona inside
+    // PlacementPipelineService; INDUSTRIAL_SUPERVISOR is deliberately excluded.
     @PreAuthorize("hasAnyAuthority('SUPERVISOR', 'ADMIN')")
     public ResponseEntity<?> approvePlacement(@PathVariable Long id, @RequestBody Map<String, Object> body,
             Principal principal) {
@@ -190,6 +192,7 @@ public class PlacementController {
 
     /** P7 (R9): university declines an offer — status CANCELLED. */
     @PostMapping("/{id}/reject")
+    // PC7: same deliberate exclusion as /approve — review is a university persona.
     @PreAuthorize("hasAnyAuthority('SUPERVISOR', 'ADMIN')")
     public ResponseEntity<?> rejectPlacement(@PathVariable Long id, Principal principal) {
         UserEntity actor = currentUser(principal);

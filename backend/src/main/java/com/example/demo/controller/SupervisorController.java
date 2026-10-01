@@ -35,7 +35,10 @@ public class SupervisorController {
 
     @GetMapping
     public List<Map<String, Object>> getSupervisors(@RequestParam(required = false) String type) {
-        List<UserEntity> supervisors = userRepository.findByRole(Role.SUPERVISOR);
+        // PC7: both supervisor personas feed placement-assignment selects — a
+        // field supervisor created after the role split must not vanish here.
+        List<UserEntity> supervisors = userRepository
+                .findByRoleIn(java.util.List.of(Role.SUPERVISOR, Role.INDUSTRIAL_SUPERVISOR));
         if (type != null && !type.isBlank()) {
             String upperType = type.trim().toUpperCase();
             supervisors = supervisors.stream()
@@ -55,7 +58,7 @@ public class SupervisorController {
 
     /** M5: Model-B supervisor rows for placement assignment selects. */
     @GetMapping("/university")
-    @PreAuthorize("hasAnyAuthority('ADMIN', 'SUPERVISOR', 'COMPANY')")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'SUPERVISOR', 'INDUSTRIAL_SUPERVISOR', 'COMPANY')")
     public List<Map<String, Object>> getUniversitySupervisors() {
         return universitySupervisorRepository.findAll().stream()
                 .map(sup -> Map.<String, Object>of(
@@ -68,7 +71,7 @@ public class SupervisorController {
 
     /** M5: Model-B industrial supervisor rows for placement assignment selects. */
     @GetMapping("/industrial")
-    @PreAuthorize("hasAnyAuthority('ADMIN', 'SUPERVISOR', 'COMPANY')")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'SUPERVISOR', 'INDUSTRIAL_SUPERVISOR', 'COMPANY')")
     public List<Map<String, Object>> getIndustrialSupervisors() {
         return industrialSupervisorRepository.findAll().stream()
                 .map(sup -> Map.<String, Object>of(

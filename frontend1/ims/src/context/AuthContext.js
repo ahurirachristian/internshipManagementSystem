@@ -13,6 +13,7 @@ import {
 const ROLE_HOME = {
   STUDENT: '/student/dashboard',
   SUPERVISOR: '/university/dashboard',
+  INDUSTRIAL_SUPERVISOR: '/industrial/dashboard',
   COMPANY: '/company/dashboard',
   ADMIN: '/admin/dashboard',
 };

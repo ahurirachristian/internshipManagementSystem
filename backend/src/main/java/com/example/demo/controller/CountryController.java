@@ -20,7 +20,7 @@ public class CountryController {
     }
 
     @GetMapping("/search")
-    @PreAuthorize("hasAnyAuthority('STUDENT', 'SUPERVISOR', 'ADMIN', 'COMPANY')")
+    @PreAuthorize("hasAnyAuthority('STUDENT', 'SUPERVISOR', 'INDUSTRIAL_SUPERVISOR', 'ADMIN', 'COMPANY')")
     public List<CountryDto> searchCountries(@RequestParam("q") String query) {
         return countryService.searchByName(query).stream()
                 .map(country -> new CountryDto(country.getId(), country.getName()))

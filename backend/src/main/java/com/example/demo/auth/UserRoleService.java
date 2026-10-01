@@ -66,6 +66,14 @@ public class UserRoleService {
                 }
                 target.setCompanyId(resolveOrCreateCompany(companyName.trim()));
             }
+            case INDUSTRIAL_SUPERVISOR -> {
+                // PC7 (D1): a field supervisor without a company would repeat the
+                // §1.4 routing defect for the new role, so the company is required.
+                if (companyName == null || companyName.isBlank()) {
+                    throw new IllegalArgumentException("A company is required to grant the INDUSTRIAL_SUPERVISOR role.");
+                }
+                target.setCompanyId(resolveOrCreateCompany(companyName.trim()));
+            }
             default -> { /* STUDENT / ADMIN need no context */ }
         }
         target.setRole(parsed);
@@ -122,6 +130,7 @@ public class UserRoleService {
         return switch (role) {
             case "ADMIN" -> "/admin/dashboard";
             case "SUPERVISOR" -> "/university/dashboard";
+            case "INDUSTRIAL_SUPERVISOR" -> "/industrial/dashboard";
             case "COMPANY" -> "/company/dashboard";
             default -> "/student/dashboard";
         };

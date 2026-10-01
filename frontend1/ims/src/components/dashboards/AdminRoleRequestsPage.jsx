@@ -20,11 +20,14 @@ export default function AdminRoleRequestsPage() {
   }, []);
 
   async function approve(request) {
+    // PC7: a field-supervisor request carries the company it is scoped to.
     const context = request.requestedRole === 'SUPERVISOR'
       ? ` (university #${request.contextUniversityId ?? '—'})`
-      : request.requestedRole === 'COMPANY'
-        ? ` (${request.contextCompanyName ?? '—'})`
-        : '';
+      : request.requestedRole === 'INDUSTRIAL_SUPERVISOR'
+        ? ` (company: ${request.contextCompanyName ?? '—'})`
+        : request.requestedRole === 'COMPANY'
+          ? ` (${request.contextCompanyName ?? '—'})`
+          : '';
     if (!window.confirm(`Approve the ${request.requestedRole}${context} request?`)) return;
     setError('');
     try {

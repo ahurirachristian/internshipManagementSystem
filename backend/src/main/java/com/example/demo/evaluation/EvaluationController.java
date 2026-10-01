@@ -21,7 +21,7 @@ import com.example.demo.student.StudentRepository;
 
 @RestController
 @RequestMapping("/api/evaluations")
-@PreAuthorize("hasAnyAuthority('ADMIN', 'SUPERVISOR', 'COMPANY')")
+@PreAuthorize("hasAnyAuthority('ADMIN', 'SUPERVISOR', 'INDUSTRIAL_SUPERVISOR', 'COMPANY')")
 public class EvaluationController {
 
     private final EvaluationService evaluationService;
@@ -47,7 +47,7 @@ public class EvaluationController {
     }
 
     @GetMapping("/me")
-    @PreAuthorize("hasAnyAuthority('STUDENT', 'ADMIN', 'SUPERVISOR', 'COMPANY')")
+    @PreAuthorize("hasAnyAuthority('STUDENT', 'ADMIN', 'SUPERVISOR', 'INDUSTRIAL_SUPERVISOR', 'COMPANY')")
     public ResponseEntity<List<Evaluation>> getMyEvaluations(Principal principal) {
         Student student = currentStudent(principal);
         if (student == null) {

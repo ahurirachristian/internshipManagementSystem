@@ -44,7 +44,7 @@ public class StudentLookupController {
     }
 
     @PostMapping("/student-lookup")
-    @PreAuthorize("hasAnyAuthority('COMPANY', 'ADMIN', 'SUPERVISOR')")
+    @PreAuthorize("hasAnyAuthority('COMPANY', 'ADMIN', 'SUPERVISOR', 'INDUSTRIAL_SUPERVISOR')")
     public ResponseEntity<?> studentLookup(@RequestBody Map<String, Object> body, Principal principal,
             HttpServletRequest request) {
         UserEntity actor = userRepository.findByUsername(principal.getName()).orElseThrow();
@@ -53,9 +53,14 @@ public class StudentLookupController {
         }
         Long universityId = longValue(body.get("universityId"));
         String studentNumber = body.get("studentNumber") == null ? null : body.get("studentNumber").toString();
-        // L9: a university supervisor may only look inside their own university.
-        if ("SUPERVISOR".equals(actor.getRole().name()) && universityId != null
-                && !universityId.equals(actor.getUniversityId()) && !scopeService.isAdminLike(actor)) {
+        // L9/PC7: a university supervisor may only look inside their own
+        // university. A company-scoped field supervisor has no university and
+        // names one explicitly, exactly like a COMPANY caller — coercing their
+        // null universityId here would have made every lookup a 400.
+        if ("SUPERVISOR".equals(actor.getRole().name())
+                && universityId != null
+                && !scopeService.isAdminLike(actor)
+                && !universityId.equals(actor.getUniversityId())) {
             universityId = actor.getUniversityId();
         }
         String ip = request.getRemoteAddr();

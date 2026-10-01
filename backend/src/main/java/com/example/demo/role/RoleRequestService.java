@@ -24,7 +24,8 @@ import com.example.demo.university.UniversityRepository;
 @Service
 public class RoleRequestService {
 
-    private static final Set<String> REQUESTABLE = Set.of("STUDENT", "SUPERVISOR", "ADMIN", "COMPANY");
+    private static final Set<String> REQUESTABLE = Set.of("STUDENT", "SUPERVISOR", "ADMIN", "COMPANY",
+            "INDUSTRIAL_SUPERVISOR");
 
     private final RoleRequestRepository roleRequestRepository;
     private final UserRepository userRepository;
@@ -122,6 +123,15 @@ public class RoleRequestService {
                 target.setRole(Role.COMPANY);
                 target.setCompanyId(resolveOrCreateCompany(resolvedCompany));
             }
+            case "INDUSTRIAL_SUPERVISOR" -> {
+                // PC7 (D1): a field supervisor without a company would repeat the
+                // §1.4 routing defect for the new role, so the company is required.
+                if (resolvedCompany == null || resolvedCompany.isBlank()) {
+                    throw new IllegalArgumentException("A company is required to grant the INDUSTRIAL_SUPERVISOR role.");
+                }
+                target.setRole(Role.INDUSTRIAL_SUPERVISOR);
+                target.setCompanyId(resolveOrCreateCompany(resolvedCompany));
+            }
             default -> target.setRole(Role.valueOf(role));
         }
         userRepository.save(target);
@@ -184,6 +194,7 @@ public class RoleRequestService {
         return switch (role) {
             case "ADMIN" -> "/admin/dashboard";
             case "SUPERVISOR" -> "/university/dashboard";
+            case "INDUSTRIAL_SUPERVISOR" -> "/industrial/dashboard";
             case "COMPANY" -> "/company/dashboard";
             default -> "/student/dashboard";
         };

@@ -69,8 +69,9 @@ class AuthFlowIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0]").value("STUDENT"))
                 .andExpect(jsonPath("$[1]").value("SUPERVISOR"))
-                .andExpect(jsonPath("$[2]").value("ADMIN"))
-                .andExpect(jsonPath("$[3]").value("COMPANY"));
+                .andExpect(jsonPath("$[2]").value("INDUSTRIAL_SUPERVISOR"))
+                .andExpect(jsonPath("$[3]").value("ADMIN"))
+                .andExpect(jsonPath("$[4]").value("COMPANY"));
     }
 
     @Test

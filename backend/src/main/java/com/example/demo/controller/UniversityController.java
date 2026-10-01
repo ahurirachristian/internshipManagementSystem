@@ -21,7 +21,7 @@ public class UniversityController {
     }
 
     @GetMapping("/universities/search")
-    @PreAuthorize("hasAnyAuthority('STUDENT', 'SUPERVISOR', 'ADMIN')")
+    @PreAuthorize("hasAnyAuthority('STUDENT', 'SUPERVISOR', 'INDUSTRIAL_SUPERVISOR', 'ADMIN')")
     @ResponseBody
     public List<UniversityDto> searchUniversities(
             @RequestParam("q") String query) {

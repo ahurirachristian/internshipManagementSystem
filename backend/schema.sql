@@ -253,7 +253,7 @@
         provider varchar(255),
         provider_id varchar(255),
         username varchar(255) not null,
-        role enum ('ADMIN','COMPANY','STUDENT','SUPERVISOR') not null,
+        role enum ('ADMIN','COMPANY','STUDENT','SUPERVISOR','INDUSTRIAL_SUPERVISOR') not null,
         primary key (id)
     ) engine=InnoDB;
 

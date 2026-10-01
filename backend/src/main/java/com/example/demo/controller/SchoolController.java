@@ -28,7 +28,7 @@ import com.example.demo.school.SchoolRepository;
 
 @RestController
 @RequestMapping("/api/university/schools")
-@PreAuthorize("hasAuthority('SUPERVISOR')")
+@PreAuthorize("hasAuthority('SUPERVISOR')") // PC7: university-scope only; field supervisors have no school mandate
 public class SchoolController {
 
     private static final List<String> VALID_TYPES = List.of("COLLEGE", "SCHOOL", "DIRECTORATE");

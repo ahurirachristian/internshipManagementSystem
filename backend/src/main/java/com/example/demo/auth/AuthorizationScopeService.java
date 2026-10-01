@@ -42,6 +42,11 @@ public class AuthorizationScopeService {
         return "SUPERVISOR".equals(user.getRole().name());
     }
 
+    /** PC7 (D1): field supervisors are their own persona, company-scoped. */
+    public boolean isIndustrialSupervisor(UserEntity user) {
+        return "INDUSTRIAL_SUPERVISOR".equals(user.getRole().name());
+    }
+
     /**
      * P5 (L7): a university supervisor may only act within their own university,
      * never on an ADMIN/super-admin target. Other-university targets are 404 (not
@@ -51,6 +56,11 @@ public class AuthorizationScopeService {
         requireCanManage(actor, target);
         if (isAdminLike(actor)) {
             return;
+        }
+        // PC7: a company-scoped field supervisor is not a university persona and
+        // must never manage university people (the old role name said SUPERVISOR).
+        if (isIndustrialSupervisor(actor)) {
+            throw new AccessDeniedException("You cannot manage this account.");
         }
         if (!isUniversitySupervisor(actor)) {
             throw new AccessDeniedException("You cannot manage this account.");
