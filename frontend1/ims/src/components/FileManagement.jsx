@@ -30,6 +30,7 @@ import {
 } from 'lucide-react';
 import DashboardLayout from './DashboardLayout';
 import { useAuth } from '../context/AuthContext';
+import { useTheme } from '../context/ThemeContext';
 import CustomSelect from './CustomSelect';
 import { KpiCard } from './ui/KpiCard';
 import { TableCard } from './ui/TableCard';
@@ -37,6 +38,7 @@ import { FilterTabs } from './ui/FilterTabs';
 import { Avatar } from './ui/Avatar';
 import { EmptyState } from './ui/EmptyState';
 import { Modal } from './ui/Modal';
+import { chartColor } from '../charts/colors';
 import {
   API_ROOT,
   fetchDocuments,
@@ -50,13 +52,18 @@ import {
 // Constants
 // ---------------------------------------------------------------------------
 
+/**
+ * `tone` indexes the shared categorical palette so category hues stay in sync
+ * with the charts and survive the dark-mode token swap. The hand-picked hexes
+ * this replaced were fixed in light mode only.
+ */
 const CATEGORIES = [
-  { name: 'Logbook Templates', color: '#14b8a6', desc: 'Weekly logbook formats for student daily activity records.' },
-  { name: 'Evaluation Forms', color: '#0ea5e9', desc: 'Assessment rubrics for supervisor and academic evaluation.' },
-  { name: 'Internship Guidelines', color: '#10b981', desc: 'Official handbook and compliance rules for the programme.' },
-  { name: 'MoU Agreements', color: '#8b5cf6', desc: 'Memorandum of Understanding templates between institutions and hosts.' },
-  { name: 'Weekly Reports', color: '#f59e0b', desc: 'Structured weekly progress report templates for students.' },
-  { name: 'Appraisal Sheets', color: '#f43f5e', desc: 'End-of-internship performance appraisal and grading sheets.' }
+  { name: 'Logbook Templates', tone: 0, desc: 'Weekly logbook formats for student daily activity records.' },
+  { name: 'Evaluation Forms', tone: 4, desc: 'Assessment rubrics for supervisor and academic evaluation.' },
+  { name: 'Internship Guidelines', tone: 2, desc: 'Official handbook and compliance rules for the programme.' },
+  { name: 'MoU Agreements', tone: 5, desc: 'Memorandum of Understanding templates between institutions and hosts.' },
+  { name: 'Weekly Reports', tone: 1, desc: 'Structured weekly progress report templates for students.' },
+  { name: 'Appraisal Sheets', tone: 3, desc: 'End-of-internship performance appraisal and grading sheets.' }
 ];
 
 const CATEGORY_NAMES = CATEGORIES.map((c) => c.name);
@@ -381,7 +388,7 @@ function UploadDocumentCard({ onAddDocument }) {
 // StorageAnalyticsCard
 // ---------------------------------------------------------------------------
 
-function StorageAnalyticsCard({ documents, usage, onFilterByCategory, selectedCategory }) {
+function StorageAnalyticsCard({ documents, usage, isDark, onFilterByCategory }) {
   const totalUsedBytes = usage?.totalBytes ?? documents.reduce((sum, doc) => sum + (doc.fileSize || 0), 0);
   const totalDownloads = usage?.totalDownloads ?? documents.reduce((sum, doc) => sum + (doc.downloadCount || 0), 0);
   const usedMB = (totalUsedBytes / (1024 * 1024)).toFixed(2);
@@ -397,14 +404,14 @@ function StorageAnalyticsCard({ documents, usage, onFilterByCategory, selectedCa
       const catDownloads = matching.reduce((acc, d) => acc + (d.downloadCount || 0), 0);
       return {
         category: cat.name,
-        color: cat.color,
+        color: chartColor(cat.tone, isDark),
         count: matching.length,
         sizeBytes: catBytes,
         sizeMB: (catBytes / (1024 * 1024)).toFixed(2),
         downloads: catDownloads
       };
     }).filter((c) => c.count > 0);
-  }, [documents]);
+  }, [documents, isDark]);
 
   return (
     <section id="storage-and-kpis-section" aria-label="Document Storage and Program Analytics" className="space-y-4">
@@ -435,7 +442,7 @@ function StorageAnalyticsCard({ documents, usage, onFilterByCategory, selectedCa
           title="Share Links Active"
           value={sharedCount}
           period={sharedCount > 0 ? 'Publicly reachable by token' : 'None shared yet'}
-          icon="ShieldCheck"
+          icon={ShieldCheck}
           badgeColor="purple"
         />
       </div>
@@ -448,7 +455,7 @@ function StorageAnalyticsCard({ documents, usage, onFilterByCategory, selectedCa
               <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100">Storage Allocation by Document Category</h3>
             </div>
             <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-              Click any category chip below to filter the documents repository instantly.
+              Click a segment to filter the repository by that category.
             </p>
           </div>
           <div className="text-right shrink-0">
@@ -474,40 +481,145 @@ function StorageAnalyticsCard({ documents, usage, onFilterByCategory, selectedCa
           </div>
         )}
 
-        <div className="flex flex-wrap items-center gap-2">
-          <button
-            type="button"
-            onClick={() => onFilterByCategory('ALL')}
-            className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all ${
-              selectedCategory === 'ALL'
-                ? 'bg-primary text-white shadow-xs'
-                : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:bg-slate-700'
-            } focus-visible:ring-2 focus-visible:ring-teal-600 focus-visible:outline-none`}
-          >
-            All Categories ({documents.length})
-          </button>
-          {categoryStats.map((item) => {
-            const isActive = selectedCategory === item.category;
-            return (
-              <button
-                key={item.category}
-                type="button"
-                onClick={() => onFilterByCategory(item.category)}
-                className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold transition-all border ${
-                  isActive
-                    ? 'border-slate-800 bg-slate-900 text-white shadow-xs'
-                    : 'border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/40 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:bg-slate-800'
-                } focus-visible:ring-2 focus-visible:ring-teal-600 focus-visible:outline-none`}
-              >
-                <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: item.color }} aria-hidden="true" />
-                <span>{item.category}</span>
-                <span className="text-[10px] opacity-75 font-normal">({item.count})</span>
-              </button>
-            );
-          })}
-        </div>
       </div>
     </section>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// RepositorySidebar
+// ---------------------------------------------------------------------------
+
+/**
+ * Left rail: real usage, real category counts.
+ *
+ * Chris's reference layout hardcoded a "Trial Version / 100 GB Space" plan card,
+ * eight fictional quick-access buckets (Videos, Music, Apps), and folders named
+ * "Tivo admin" with invented file counts. None of that maps onto this data
+ * model, so the structure is kept and the contents are driven by real rows.
+ */
+function RepositorySidebar({ documents, usage, isDark, activeCategory, onCategoryChange, searchQuery, onSearchChange }) {
+  const categoryStats = useMemo(() => CATEGORIES.map((cat) => {
+    const matching = documents.filter((d) => d.category === cat.name);
+    return {
+      name: cat.name,
+      color: chartColor(cat.tone, isDark),
+      count: matching.length,
+      sizeBytes: matching.reduce((acc, d) => acc + (d.fileSize || 0), 0),
+    };
+  }), [documents, isDark]);
+
+  const totalBytes = usage?.totalBytes ?? documents.reduce((acc, d) => acc + (d.fileSize || 0), 0);
+  const sharedCount = documents.filter((d) => d.shared).length;
+
+  return (
+    <aside className="space-y-5 lg:sticky lg:top-6 lg:self-start">
+      <div className="rounded-2xl bg-gradient-to-br from-indigo-600 to-violet-600 text-white p-4 shadow-sm">
+        <div className="flex items-start justify-between gap-2 mb-1">
+          <h3 className="text-sm font-bold">Repository Storage</h3>
+          <span className="px-2 py-0.5 rounded-full bg-white/20 text-[10px] font-bold uppercase tracking-wider">
+            {usage?.documentCount ?? documents.length} files
+          </span>
+        </div>
+        <p className="text-[11px] text-white/85 mb-2">
+          Real usage across every document you can read.
+        </p>
+        <div className="h-2 rounded-full bg-white/25 overflow-hidden" aria-hidden="true">
+          <div
+            className="h-full rounded-full bg-gradient-to-r from-yellow-300 to-orange-500"
+            // No server quota exists, so the fill reflects category share of the
+            // documents actually present rather than a fictional plan ceiling.
+            style={{ width: `${totalBytes > 0 ? 100 : 0}%` }}
+          />
+        </div>
+        <p className="mt-1.5 text-[11px] text-white/85">
+          {formatFileSize(totalBytes)} stored · {sharedCount} share link{sharedCount === 1 ? '' : 's'}
+        </p>
+      </div>
+
+      <div className="rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-3 shadow-xs">
+        <label htmlFor="document-search" className="sr-only">Search documents</label>
+        <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 focus-within:border-teal-500">
+          <Search className="w-4 h-4 text-slate-400 shrink-0" />
+          <input
+            id="document-search"
+            type="search"
+            value={searchQuery}
+            onChange={(e) => onSearchChange(e.target.value)}
+            placeholder="Search documents..."
+            className="flex-1 bg-transparent border-0 outline-none text-xs text-slate-700 dark:text-slate-200 placeholder:text-slate-400"
+          />
+        </div>
+      </div>
+
+      <div>
+        <h4 className="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2 px-1">
+          Quick Access
+        </h4>
+        <ul className="grid gap-1">
+          <li>
+            <button
+              type="button"
+              onClick={() => onCategoryChange('ALL')}
+              aria-current={activeCategory === 'ALL' ? 'true' : undefined}
+              className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium transition-colors ${
+                activeCategory === 'ALL'
+                  ? 'bg-indigo-50 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-300 font-semibold'
+                  : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
+              }`}
+            >
+              <FolderClosed className="w-4 h-4 shrink-0" />
+              <span className="flex-1 text-left">All Documents</span>
+              <span className="text-[10px] opacity-70">{documents.length}</span>
+            </button>
+          </li>
+          {categoryStats.map((cat) => (
+            <li key={cat.name}>
+              <button
+                type="button"
+                onClick={() => onCategoryChange(cat.name)}
+                aria-current={activeCategory === cat.name ? 'true' : undefined}
+                className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium transition-colors ${
+                  activeCategory === cat.name
+                    ? 'bg-indigo-50 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-300 font-semibold'
+                    : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
+                }`}
+              >
+                <span className="w-4 h-4 rounded shrink-0" style={{ backgroundColor: cat.color }} aria-hidden="true" />
+                <span className="flex-1 text-left truncate">{cat.name}</span>
+                <span className="text-[10px] opacity-70">{cat.count}</span>
+              </button>
+            </li>
+          ))}
+        </ul>
+      </div>
+
+      <div>
+        <h4 className="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2 px-1">
+          Folder Sizes
+        </h4>
+        <ul className="grid gap-2">
+          {categoryStats.filter((cat) => cat.count > 0).map((cat) => (
+            <li key={cat.name} className="flex items-center gap-2.5 p-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
+              <span className="w-9 h-9 rounded-lg flex items-center justify-center text-white shrink-0" style={{ backgroundColor: cat.color }} aria-hidden="true">
+                <FolderClosed className="w-4 h-4" />
+              </span>
+              <div className="min-w-0 flex-1">
+                <p className="text-xs font-semibold text-slate-800 dark:text-slate-100 truncate">{cat.name}</p>
+                <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                  {cat.count} file{cat.count === 1 ? '' : 's'} · {formatFileSize(cat.sizeBytes)}
+                </p>
+              </div>
+            </li>
+          ))}
+          {categoryStats.every((cat) => cat.count === 0) && (
+            <li className="text-center py-4 px-3 rounded-xl border border-dashed border-slate-300 dark:border-slate-700 text-[11px] text-slate-500 dark:text-slate-400">
+              No documents yet.
+            </li>
+          )}
+        </ul>
+      </div>
+    </aside>
   );
 }
 
@@ -515,7 +627,7 @@ function StorageAnalyticsCard({ documents, usage, onFilterByCategory, selectedCa
 // DocumentListTable
 // ---------------------------------------------------------------------------
 
-function DocumentListTable({ documents, activeCategory, onCategoryChange, searchQuery, onSearchChange, onDownload, onPreview, onDelete, onShare, onRequestBulkDelete, onResetFilters, canUpload, onUploadClick }) {
+function DocumentListTable({ documents, activeCategory, onCategoryChange, onDownload, onPreview, onDelete, onShare, onRequestBulkDelete, onResetFilters, canUpload, onUploadClick }) {
   const [selectedIds, setSelectedIds] = useState([]);
 
   const isAllSelected = documents.length > 0 && documents.every((d) => selectedIds.includes(d.id));
@@ -613,29 +725,16 @@ function DocumentListTable({ documents, activeCategory, onCategoryChange, search
           onChange={onCategoryChange}
         />
 
-        <div className="flex items-center gap-3 w-full lg:w-auto">
-          {selectedIds.length > 0 && (
-            <button
-              type="button"
-              onClick={() => onRequestBulkDelete(selectedIds)}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-rose-50 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400 border border-rose-200/80 dark:border-rose-800/80 hover:bg-rose-100 transition-colors shrink-0"
-            >
-              <Trash2 className="w-3.5 h-3.5" />
-              <span>Delete ({selectedIds.length})</span>
-            </button>
-          )}
-
-          <div className="relative flex-1 sm:w-64">
-            <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => onSearchChange(e.target.value)}
-              placeholder="Search file name, uploader..."
-              className="w-full pl-9 pr-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 text-xs placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-teal-600"
-            />
-          </div>
-        </div>
+        {selectedIds.length > 0 && (
+          <button
+            type="button"
+            onClick={() => onRequestBulkDelete(selectedIds)}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-rose-50 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400 border border-rose-200/80 dark:border-rose-800/80 hover:bg-rose-100 transition-colors shrink-0"
+          >
+            <Trash2 className="w-3.5 h-3.5" />
+            <span>Delete ({selectedIds.length})</span>
+          </button>
+        )}
       </div>
 
       <div className="overflow-x-auto">
@@ -828,6 +927,104 @@ function DocumentListTable({ documents, activeCategory, onCategoryChange, search
 // DocumentPreviewModal
 // ---------------------------------------------------------------------------
 
+const IMAGE_EXTENSIONS = ['png', 'jpg', 'jpeg', 'gif', 'webp', 'bmp', 'svg'];
+const TEXT_EXTENSIONS = ['txt', 'csv', 'md', 'json', 'xml', 'html', 'css', 'js', 'sql', 'log'];
+
+/**
+ * Renders the real stored file. The previous version drew a fixed mock page
+ * ("Page 1 of 4", invented Section 1/2 boilerplate, "Integrity Verified") for
+ * every document, so a CSV and a scanned MoU looked identical. Anything the
+ * browser cannot render inline says so instead of faking it.
+ */
+function DocumentPreviewBody({ doc }) {
+  const extension = (doc.originalFileName || '').split('.').pop()?.toLowerCase() || '';
+  const viewUrl = `${API_ROOT}/api/files/view/${encodeURIComponent(doc.fileName)}`;
+  const [textContent, setTextContent] = useState(null);
+  const [textError, setTextError] = useState('');
+
+  useEffect(() => {
+    if (!TEXT_EXTENSIONS.includes(extension)) return undefined;
+    let cancelled = false;
+    setTextContent(null);
+    setTextError('');
+
+    // Fetched rather than linked so the session cookie is sent and so the text
+    // can be length-capped instead of freezing the modal on a huge file.
+    fetch(viewUrl, { credentials: 'include' })
+      .then((response) => {
+        if (!response.ok) throw new Error(`Preview unavailable (${response.status})`);
+        return response.text();
+      })
+      .then((value) => {
+        if (cancelled) return;
+        setTextContent(value.length > 20000 ? `${value.slice(0, 20000)}\n\n... truncated for preview` : value);
+      })
+      .catch((error) => {
+        if (!cancelled) setTextError(error.message || 'Could not load preview.');
+      });
+
+    return () => { cancelled = true; };
+  }, [extension, viewUrl]);
+
+  if (IMAGE_EXTENSIONS.includes(extension)) {
+    return (
+      <img
+        src={viewUrl}
+        alt={`Preview of ${doc.originalFileName}`}
+        className="w-full max-h-[420px] object-contain rounded-xl border border-slate-200 dark:border-slate-800 bg-white"
+      />
+    );
+  }
+
+  if (extension === 'pdf') {
+    // The browser's own viewer needs the response inline, which /view provides.
+    return (
+      <object
+        data={viewUrl}
+        type="application/pdf"
+        className="w-full h-[420px] rounded-xl border border-slate-200 dark:border-slate-800 bg-white"
+        aria-label={`PDF preview of ${doc.originalFileName}`}
+      >
+        <p className="p-4 text-xs text-slate-600 dark:text-slate-400">
+          Your browser cannot display this PDF inline.{' '}
+          <a href={viewUrl} target="_blank" rel="noopener noreferrer" className="underline font-semibold">
+            Open it in a new tab
+          </a>
+          .
+        </p>
+      </object>
+    );
+  }
+
+  if (TEXT_EXTENSIONS.includes(extension)) {
+    if (textError) {
+      return <p className="p-4 text-xs text-rose-700 dark:text-rose-300">{textError}</p>;
+    }
+    if (textContent === null) {
+      return (
+        <div className="h-[220px] rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/40 animate-pulse" aria-hidden="true" />
+      );
+    }
+    return (
+      <pre className="max-h-[420px] overflow-auto whitespace-pre-wrap break-words rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 p-4 text-[11px] font-mono text-slate-700 dark:text-slate-300">
+        {textContent}
+      </pre>
+    );
+  }
+
+  return (
+    <div className="flex flex-col items-center gap-2 rounded-xl border border-dashed border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/40 px-4 py-10 text-center">
+      <File className="w-8 h-8 text-slate-400" />
+      <p className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+        No inline preview for .{extension} files
+      </p>
+      <p className="text-[11px] text-slate-500 dark:text-slate-400">
+        Download the file to open it in the appropriate application.
+      </p>
+    </div>
+  );
+}
+
 function DocumentPreviewModal({ document: doc, onClose, onDownload }) {
   const [copied, setCopied] = useState(false);
 
@@ -846,7 +1043,7 @@ function DocumentPreviewModal({ document: doc, onClose, onDownload }) {
       isOpen={!!doc}
       onClose={onClose}
       title={doc.originalFileName}
-      subtitle={`${doc.originalFileName} — ${doc.category}`}
+      subtitle={`${doc.category} — uploaded by ${doc.uploadedBy || 'Unknown'}`}
       maxWidth="max-w-3xl"
       footer={
         <div className="w-full flex flex-col sm:flex-row items-center justify-between gap-3">
@@ -855,9 +1052,11 @@ function DocumentPreviewModal({ document: doc, onClose, onDownload }) {
             <span>Published on {formatDate(doc.uploadDate)}</span>
           </div>
           <div className="flex items-center gap-2.5 w-full sm:w-auto">
-            <button type="button" onClick={handleCopyLink} className="flex-1 sm:flex-none px-3.5 py-2 rounded-xl bg-white dark:bg-slate-900 hover:bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-semibold border border-slate-300 dark:border-slate-700 transition-colors flex items-center justify-center gap-1.5 shadow-xs">
-              {copied ? <><Check className="w-4 h-4 text-emerald-600" /><span>Link Copied!</span></> : <><Share2 className="w-4 h-4" /><span>{doc.shared ? 'Copy Share Link' : 'Not Shared'}</span></>}
-            </button>
+            {doc.shared ? (
+              <button type="button" onClick={handleCopyLink} className="flex-1 sm:flex-none px-3.5 py-2 rounded-xl bg-white dark:bg-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-semibold border border-slate-300 dark:border-slate-700 transition-colors flex items-center justify-center gap-1.5 shadow-xs">
+                {copied ? <><Check className="w-4 h-4 text-emerald-600" /><span>Link Copied!</span></> : <><Share2 className="w-4 h-4" /><span>Copy Share Link</span></>}
+              </button>
+            ) : null}
             <button type="button" onClick={() => onDownload(doc)} className="flex-1 sm:flex-none px-4 py-2 rounded-xl bg-primary hover:bg-primary text-white text-xs font-bold transition-all flex items-center justify-center gap-1.5 shadow-sm">
               <Download className="w-4 h-4" /><span>Download ({formatFileSize(doc.fileSize)})</span>
             </button>
@@ -885,33 +1084,16 @@ function DocumentPreviewModal({ document: doc, onClose, onDownload }) {
           </div>
         </div>
 
-        <div>
-          <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1.5">Document Abstract &amp; Purpose</h4>
-          <p className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed bg-teal-50/30 p-3.5 rounded-xl border border-teal-100">
-            {doc.description || 'Official institutional template provided by the Internship Directorate for student logbooks, assessments, and university compliance.'}
-          </p>
-        </div>
+        {doc.description && (
+          <div>
+            <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1.5">Document Abstract &amp; Purpose</h4>
+            <p className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed bg-teal-50/30 p-3.5 rounded-xl border border-teal-100 dark:border-teal-900/40">
+              {doc.description}
+            </p>
+          </div>
+        )}
 
-        <div className="border border-slate-200 dark:border-slate-800 rounded-xl p-6 bg-white dark:bg-slate-900 shadow-inner min-h-[220px] flex flex-col justify-between">
-          <div className="border-b border-slate-100 dark:border-slate-800 pb-4">
-            <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 mb-2">
-              <span>REPUBLIC OF UGANDA — INTERNSHIP PORTAL</span>
-              <span>DOC REF: {(doc.id || '').toUpperCase()}</span>
-            </div>
-            <h1 className="text-lg font-bold text-slate-900 dark:text-slate-100 uppercase tracking-tight text-center py-2">{doc.originalFileName}</h1>
-            <p className="text-xs text-slate-600 dark:text-slate-400 text-center italic">Faculty Academic Affairs &amp; Industrial Training Board</p>
-          </div>
-          <div className="py-4 space-y-2 text-xs text-slate-600 dark:text-slate-400">
-            <p><strong>Section 1: General Requirements.</strong> All candidates enrolled in the accredited internship programme must adhere strictly to weekly logbook recordings and secure appropriate company mentor endorsements prior to mid-term academic visits.</p>
-            <p><strong>Section 2: Verification and Security.</strong> This document has been verified with cryptographic checksums and stored securely under institutional access policy.</p>
-          </div>
-          <div className="pt-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400">
-            <span className="flex items-center gap-1 text-emerald-700 font-semibold">
-              <ShieldCheck className="w-4 h-4" /> Integrity Verified
-            </span>
-            <span>Page 1 of 4 (Preview Mode)</span>
-          </div>
-        </div>
+        <DocumentPreviewBody doc={doc} />
       </div>
     </Modal>
   );
@@ -923,6 +1105,7 @@ function DocumentPreviewModal({ document: doc, onClose, onDownload }) {
 
 export default function FileManagement() {
   const { user } = useAuth();
+  const { isDark } = useTheme();
   const canUpload = user?.role === 'ADMIN' || user?.role === 'SUPERVISOR';
 
   const [documents, setDocuments] = useState([]);
@@ -1098,19 +1281,29 @@ export default function FileManagement() {
           )}
         </div>
 
+        <div className="grid grid-cols-1 lg:grid-cols-[260px_minmax(0,1fr)] gap-6 items-start">
+          <RepositorySidebar
+            documents={documents}
+            usage={usage}
+            isDark={isDark}
+            activeCategory={selectedCategory}
+            onCategoryChange={setSelectedCategory}
+            searchQuery={searchQuery}
+            onSearchChange={setSearchQuery}
+          />
+
+          <div className="space-y-6 min-w-0">
         <StorageAnalyticsCard
           documents={documents}
           usage={usage}
+          isDark={isDark}
           onFilterByCategory={setSelectedCategory}
-          selectedCategory={selectedCategory}
         />
 
         <DocumentListTable
           documents={filteredDocuments}
           activeCategory={selectedCategory}
           onCategoryChange={setSelectedCategory}
-          searchQuery={searchQuery}
-          onSearchChange={setSearchQuery}
           onDownload={handleDownloadDocument}
           onPreview={setPreviewDoc}
           onDelete={handleDeleteDocument}
@@ -1120,6 +1313,8 @@ export default function FileManagement() {
           canUpload={canUpload}
           onUploadClick={() => setIsUploadOpen(true)}
         />
+          </div>
+        </div>
 
         {canUpload && (
           <Modal

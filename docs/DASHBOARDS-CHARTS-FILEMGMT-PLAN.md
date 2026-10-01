@@ -284,21 +284,45 @@ real API" when the real API has none of the fields the UI already renders.
    "Encrypted — Secured in browser (Base64)" against a hardcoded `maxStorageBytes`; neither was
    real. Usage now comes from the endpoint and the bar is proportional to actual documents. The
    "Load Official Templates" button, which fabricated six fake rows client-side, is gone. The
-   fabricated preview document body ("Page 1 of 4", fixed Section 1/2 boilerplate, "Integrity
-   Verified") is left to PC3c, which is where the preview becomes real bytes.
+   fabricated preview document body is still outstanding here and is closed in PC3c.
    `Document.normalizeCounters()` (`@PostLoad`) keeps `downloadCount` non-null on rows that
    `ddl-auto=update` created as NULL.
 7. Preserved: upload, download, count bump, share-link copy, search, category filter, audience
    badges. `FileApiTest` (17) and `documentApi.test.js` (8) added. Backend **170 green**;
    frontend **5 suites / 28 tests**; build **9 warnings, unchanged**.
 
-**PC3c — Layout** · branch `port/pc3c-file-layout`
-7. Port `.file-management*` / `.storage-bar` CSS from `origin/Chris:App.css` onto tokens + dark
-   mode. Structure: left rail = real usage card, Quick Access = real categories with live counts,
-   folder rail = categories, main panel = existing document table.
-8. Replace `fa-*` icons with `lucide-react` equivalents; icon-tile colors from `CHART` tokens; keep
-   existing aria/toast behavior.
-**Commit**: `feat(files): redesign file management with sidebar layout on real data (PC3c)`
+**PC3c — Layout** · branch `port/pc3c-file-layout` — **DONE**
+7. Chris's `.file-management*` / `.storage-bar` CSS was **not ported**. That stylesheet is a
+   class-based skin with no dark mode and hand-picked light-mode hexes; fred's
+   `FileManagement.jsx` is Tailwind, exactly as with the PC1 chart CSS. The structure was taken,
+   the CSS was not: `RepositorySidebar` is a 260px Tailwind rail
+   (`grid-cols-1 lg:grid-cols-[260px_minmax(0,1fr)]`), with the analytics card and document table
+   in the main column. No `.file-management*` rules exist in fred's `App.css`, so the
+   previously-dead selectors stay dead rather than being resurrected.
+8. **`fa-*` icons replaced with `lucide-react`** as planned, but the reference's *contents* had no
+   mapping onto this data model and were not copied: Chris's rail hardcoded a "Trial Version /
+   100 GB Space" plan card, eight fictional quick-access buckets (Videos, Music, Apps), and
+   folders named "Tivo admin" / "Viho admin" with invented counts. Quick Access is now the six
+   real categories with live counts from `GET /api/files`; the folder rail shows real per-category
+   file counts and byte totals.
+9. Category hues now index the shared categorical palette via `chartColor(cat.tone, isDark)`, so
+   they follow the dark-mode token swap instead of being fixed light-mode hexes. Fixed a silent
+   bug found on the way: `KpiCard`'s string `icon` prop only resolves a fixed `ICON_MAP`, so
+   `icon="ShieldCheck"` was rendering `DollarSign`; it now passes the component.
+10. Duplicate controls removed rather than shipped twice. The category filter existed as both
+    sidebar links and an analytics-card chip row bound to one state; the search box existed in both
+    the sidebar and the table toolbar. The sidebar owns both now, and the analytics bar segments
+    remain clickable so the two views stay in sync.
+11. **The preview-modal fiction is gone.** It previously drew a fixed mock page for every
+    document — "REPUBLIC OF UGANDA — INTERNSHIP PORTAL", "Section 1: General Requirements",
+    "Page 1 of 4", "Integrity Verified" — so a CSV and a scanned MoU rendered identically, and
+    the claimed verification was never performed. `DocumentPreviewBody` now renders real bytes:
+    images via `<img>`, PDFs via the browser viewer on the inline `/view` response, text formats
+    fetched and length-capped, and anything else says plainly that it has no inline preview. A
+    failed preview load reports the error rather than rendering an empty page, and a blank
+    description no longer falls back to invented prose.
+    `FileManagement.test.js` (7) asserts the fabricated copy is gone and the real path works.
+    Backend **170 green, untouched**; frontend **6 suites / 35 tests**; build **9 warnings**.
 
 **Gates** (each sub-phase): build ≤9 warnings; full backend suite green; manual smoke: upload →
 progress → appears in category → download bumps count → share copies link → other company 404s.
