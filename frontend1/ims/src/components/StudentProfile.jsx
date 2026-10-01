@@ -1073,7 +1073,7 @@ export function StudentProfile({ defaultEditing = false }) {
                         {ev.supervisorType || 'Evaluation'}:
                       </span>
                       <span className="text-slate-600 dark:text-slate-300">
-                        {ev.overallGrade != null ? `${ev.overallGrade}%` : DASH}
+                        {ev.overallGrade != null ? `${ev.overallGrade}/10` : DASH}
                       </span>
                     </div>
                   ))}
