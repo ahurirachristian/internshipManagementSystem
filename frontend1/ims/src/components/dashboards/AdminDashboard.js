@@ -53,7 +53,9 @@ export default function AdminDashboard() {
   // phone that width would eat the whole plot. Truncate instead of shrinking the bars.
   const compact = useMediaQuery('(max-width: 640px)');
 
-  const [activeTab, setActiveTab] = useState('students');
+  // PC6d: the Overview tab (with the PC5 chart) is first in the array; land on it
+  // instead of the second tab so the admin's oversight chart is visible on login.
+  const [activeTab, setActiveTab] = useState('overview');
   const [students, setStudents] = useState([]);
   const [diaries, setDiaries] = useState([]);
   const [vacancies, setVacancies] = useState([]);
