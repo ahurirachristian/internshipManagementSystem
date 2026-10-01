@@ -226,6 +226,13 @@ export async function fetchUniversityStats() {
   return parseResponse(response);
 }
 
+export async function fetchAdminStudentsPerUniversity() {
+  const response = await fetch(`${API_ROOT}/api/admin/analytics/students-per-university`, {
+    credentials: 'include',
+  });
+  return parseResponse(response);
+}
+
 export async function createStudent(student) {
   const response = await fetch(`${API_ROOT}/api/students`, {
     method: 'POST',

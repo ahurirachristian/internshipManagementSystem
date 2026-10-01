@@ -17,6 +17,15 @@ public interface StudentRepository extends JpaRepository<Student, Long> {
 
     Optional<Student> findByUniversityIdAndStudentNumber(Long universityId, String studentNumber);
 
+    /**
+     * PC5: student headcount per university for the admin bar. Grouped in the
+     * database rather than by loading every student, so the cost does not grow
+     * with roster size. Returns [universityId, count]; null universityId groups
+     * students with no university, which the caller reports separately.
+     */
+    @Query("SELECT s.universityId, COUNT(s) FROM Student s GROUP BY s.universityId")
+    List<Object[]> countGroupedByUniversity();
+
     List<Student> findByInternshipCompanyId(Long internshipCompanyId);
 
     List<Student> findByUniversityId(Long universityId);

@@ -39,6 +39,7 @@ import {
   ClipboardCheck,
   FileText,
   Briefcase,
+  AlertTriangle,
 } from 'lucide-react';
 import {
   ResponsiveContainer,
@@ -247,8 +248,9 @@ export default function UniversityDashboard() {
   );
 
   const filteredStudents = useMemo(() => {
-    if (!includedUnitIds) return students;
-    return students.filter((s) => includedUnitIds.has(String(s.schoolId)));
+    const base = Array.isArray(students) ? students : [];
+    if (!includedUnitIds) return base;
+    return base.filter((s) => includedUnitIds.has(String(s.schoolId)));
   }, [students, includedUnitIds]);
 
   const studentsByUnit = useMemo(() => {
@@ -967,17 +969,33 @@ export default function UniversityDashboard() {
     const chartLabelStyle = { color: theme.text };
     const chartLegendStyle = { color: theme.label };
 
-    const card = (title, subtitle, children) => (
+    // PC5: a chart is a picture as far as assistive tech is concerned, so each one
+    // carries the sentence a sighted user reads off the axes. Without it the SVG
+    // surfaces as an unlabelled graphic and the numbers are unreachable. The
+    // surrounding section keeps its heading, so the label describes the visual
+    // rather than replacing the title.
+    const card = (title, subtitle, children, summary) => (
       <section className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs p-5">
         <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100 mb-0.5">{title}</h3>
         <p className="text-[11px] text-slate-500 dark:text-slate-400 mb-4">{subtitle}</p>
-        {children}
+        {/* No summary means there is nothing plotted, so the empty state's own text
+            is left readable rather than hidden behind an image role. */}
+        {summary ? (
+          <div role="img" aria-label={summary}>{children}</div>
+        ) : (
+          children
+        )}
       </section>
     );
 
     const empty = (msg) => (
       <div className="h-48 flex items-center justify-center text-xs text-slate-400">{msg}</div>
     );
+
+    // Shared by the chart labels above so each sentence names its largest segment
+    // rather than only listing values.
+    const sumOf = (rows, key) => rows.reduce((t, r) => t + (Number(r[key]) || 0), 0);
+    const topOf = (rows, key) => (rows.length ? rows.reduce((a, b) => (b[key] > a[key] ? b : a))[key] : '—');
 
     return (
       <div className="space-y-6">
@@ -994,7 +1012,11 @@ export default function UniversityDashboard() {
                 </BarChart>
               </ResponsiveContainer>
             ) : empty('No student data yet')
-          ))}
+          ), byYear.length
+            ? `${byYear.length} academic ${byYear.length === 1 ? 'year' : 'years'}: ${byYear
+              .map((d) => `${d.year} ${d.count}`)
+              .join(', ')}. Largest is ${topOf(byYear, 'year')}.`
+            : null)}
 
           {card('Gender Breakdown', 'Male / female split of your interns', (
             byGender.length ? (
@@ -1008,7 +1030,11 @@ export default function UniversityDashboard() {
                 </PieChart>
               </ResponsiveContainer>
             ) : empty('No gender data yet')
-          ))}
+          ), byGender.length
+            ? `${sumOf(byGender, 'count')} students by gender: ${byGender
+              .map((d) => `${d.gender} ${d.count}`)
+              .join(', ')}. Largest group is ${topOf(byGender, 'gender')}.`
+            : null)}
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -1026,7 +1052,11 @@ export default function UniversityDashboard() {
                 </BarChart>
               </ResponsiveContainer>
             ) : empty('No school data yet')
-          ))}
+          ), bySchool.length
+            ? `${bySchool.length} ${bySchool.length === 1 ? 'school' : 'schools'}: ${bySchool
+              .map((d) => `${d.name} ${d.count} total, ${d.assigned} placed`)
+              .join('; ')}. Largest is ${topOf(bySchool, 'name')}.`
+            : null)}
 
           {card('Students by Programme', 'Headcount per programme', (
             byProgramme.length ? (
@@ -1040,7 +1070,11 @@ export default function UniversityDashboard() {
                 </BarChart>
               </ResponsiveContainer>
             ) : empty('No programme data yet')
-          ))}
+          ), byProgramme.length
+            ? `${byProgramme.length} ${byProgramme.length === 1 ? 'programme' : 'programmes'}: ${byProgramme
+              .map((d) => `${d.programme} ${d.count}`)
+              .join(', ')}. Largest is ${topOf(byProgramme, 'programme')}.`
+            : null)}
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -1056,7 +1090,11 @@ export default function UniversityDashboard() {
                 </BarChart>
               </ResponsiveContainer>
             ) : empty('No company data yet')
-          ))}
+          ), byCompany.length
+            ? `${byCompany.length} hosting ${byCompany.length === 1 ? 'company' : 'companies'}: ${byCompany
+              .map((d) => `${d.company} ${d.interns}`)
+              .join(', ')}. Largest is ${topOf(byCompany, 'company')}.`
+            : null)}
 
           {card('Placement Status', 'Internship lifecycle distribution', (
             placementPie.length ? (
@@ -1070,7 +1108,11 @@ export default function UniversityDashboard() {
                 </PieChart>
               </ResponsiveContainer>
             ) : empty('No placement data yet')
-          ))}
+          ), placementPie.length
+            ? `Placement lifecycle: ${placementPie
+              .map((d) => `${d.name} ${d.value}`)
+              .join(', ')}. Largest is ${placementPie[0].name} with ${placementPie[0].value}.`
+            : null)}
 
           {card('Diary Review Status', 'Logbook entries by review state', (
             diaryPie.length ? (
@@ -1084,7 +1126,11 @@ export default function UniversityDashboard() {
                 </PieChart>
               </ResponsiveContainer>
             ) : empty('No diary data yet')
-          ))}
+          ), diaryPie.length
+            ? `Diary review state: ${diaryPie
+              .map((d) => `${d.name} ${d.value}`)
+              .join(', ')}. Largest is ${diaryPie[0].name} with ${diaryPie[0].value}.`
+            : null)}
         </div>
 
         {card('Average Evaluation Scores', 'Mean scores across evaluation criteria (0-10)', (
@@ -1099,12 +1145,17 @@ export default function UniversityDashboard() {
               </RadarChart>
             </ResponsiveContainer>
           ) : empty('No evaluation scores yet')
-        ))}
+        ), hasScores
+          ? `Mean evaluation scores out of 10: ${scoreRadar
+            .map((d) => `${d.metric} ${d.value}`)
+            .join(', ')}.`
+          : null)}
       </div>
     );
   }
 
   function renderDiaries() {    const d = stats?.diaries || { totalEntries: 0, pendingReview: 0, reviewed: 0, recent: [] };
+    const attention = stats?.attention || { windowHours: 48, sinceDate: null, total: 0, neverFiled: 0, students: [] };
     const statCards = [
       ['Total Entries', d.totalEntries],
       ['Pending Review', d.pendingReview],
@@ -1112,6 +1163,66 @@ export default function UniversityDashboard() {
     ];
     return (
       <div className="space-y-6">
+        <section
+          className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs overflow-hidden"
+          aria-labelledby="diary-attention-heading"
+        >
+          <div className="px-5 py-4 border-b border-slate-200 dark:border-slate-800">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-amber-50 border border-amber-200 flex items-center justify-center text-amber-700">
+                <AlertTriangle className="w-5 h-5" aria-hidden="true" />
+              </div>
+              <div>
+                <h3 id="diary-attention-heading" className="text-sm font-bold text-slate-900 dark:text-slate-100">
+                  Needs Diary Attention
+                </h3>
+                <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                  {attention.windowHours >= 48
+                    ? `${Math.round(attention.windowHours / 24)}-day window`
+                    : `${attention.windowHours}-hour window`}
+                  {attention.sinceDate ? `, since ${attention.sinceDate}` : ''}
+                </p>
+              </div>
+              <span className="ml-auto text-2xl font-extrabold text-slate-900 dark:text-slate-100">
+                {attention.total}
+              </span>
+            </div>
+          </div>
+
+          {attention.students.length > 0 ? (
+            <>
+              <p className="px-5 pt-4 text-[11px] text-slate-500 dark:text-slate-400">
+                {attention.neverFiled} {attention.neverFiled === 1 ? 'student has' : 'students have'} never filed an entry.
+                Chase these first; a stalled logbook blocks the final report.
+              </p>
+              <ul className="divide-y divide-slate-100 dark:divide-slate-800">
+                {attention.students.map((s) => (
+                  <li key={s.studentId} className="flex items-center gap-3 px-5 py-3">
+                    <div className="min-w-0">
+                      <div className="text-xs font-bold text-slate-900 dark:text-slate-100 truncate">
+                        {`${s.firstName || ''} ${s.lastName || ''}`.trim() || 'Unnamed student'}
+                      </div>
+                      <div className="text-[11px] text-slate-500 dark:text-slate-400">{s.studentNumber}</div>
+                    </div>
+                    <span className="ml-auto shrink-0 inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-rose-50 text-rose-700">
+                      {s.neverFiled
+                        ? 'Never filed'
+                        : `${s.daysSinceLastEntry} ${s.daysSinceLastEntry === 1 ? 'day' : 'days'} ago`}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </>
+          ) : (
+            <div className="px-5 py-10 text-center">
+              <p className="text-xs font-bold text-emerald-700">Every student has a current entry</p>
+              <p className="mt-1 text-[11px] text-slate-500 dark:text-slate-400">
+                No one is outside the {Math.round((attention.windowHours || 48) / 24)}-day window.
+              </p>
+            </div>
+          )}
+        </section>
+
         <div className="grid grid-cols-3 gap-4">
           {statCards.map(([label, value]) => (
             <div key={label} className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 shadow-xs">

@@ -5,7 +5,19 @@ import ExportButton from '../ExportButton';
 import DiaryReviewModal from '../DiaryReviewModal';
 import StudentEditModal from '../StudentEditModal';
 import { Modal } from '../ui/Modal';
-import { fetchDiaries, fetchStudents, updateStudent, deleteStudent, fetchVacancies, fetchCompanies } from '../../services/api';
+import { useTheme } from '../../context/ThemeContext';
+import { fetchDiaries, fetchStudents, updateStudent, deleteStudent, fetchVacancies, fetchCompanies, fetchAdminStudentsPerUniversity } from '../../services/api';
+import { chartTheme, seriesColor } from '../../charts/colors';
+import { useMediaQuery } from '../../hooks/useMediaQuery';
+import {
+  ResponsiveContainer,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+} from 'recharts';
 import {
   GraduationCap,
   BookOpen,
@@ -36,6 +48,11 @@ function formatDate(dateString) {
 }
 
 export default function AdminDashboard() {
+  const { isDark } = useTheme();
+  // Long university names need a wide y-axis to stay readable, but on a 390px
+  // phone that width would eat the whole plot. Truncate instead of shrinking the bars.
+  const compact = useMediaQuery('(max-width: 640px)');
+
   const [activeTab, setActiveTab] = useState('students');
   const [students, setStudents] = useState([]);
   const [diaries, setDiaries] = useState([]);
@@ -47,6 +64,8 @@ export default function AdminDashboard() {
   const [reviewDiary, setReviewDiary] = useState(null);
   const [editStudent, setEditStudent] = useState(null);
   const [viewStudent, setViewStudent] = useState(null);
+  const [uniAnalytics, setUniAnalytics] = useState(null);
+  const [uniAnalyticsError, setUniAnalyticsError] = useState('');
 
   useEffect(() => {
     let cancelled = false;
@@ -64,6 +83,15 @@ export default function AdminDashboard() {
       .finally(() => {
         if (!cancelled) setLoading(false);
       });
+    // Loaded separately: a 403 or outage here must not blank the student roster.
+    fetchAdminStudentsPerUniversity()
+      .then((data) => {
+        if (!cancelled) setUniAnalytics(data);
+      })
+      .catch((err) => {
+        if (!cancelled) setUniAnalyticsError(err.message || 'Unable to load university distribution.');
+      });
+
     return () => {
       cancelled = true;
     };
@@ -172,6 +200,129 @@ export default function AdminDashboard() {
         >
           Delete
         </button>
+      </div>
+    );
+  }
+
+  function renderOverview() {
+    const rows = uniAnalytics?.studentsPerUniversity || [];
+    const unassigned = uniAnalytics?.unassignedCount || 0;
+    const total = uniAnalytics?.totalStudents || 0;
+
+    // Long university names make a vertical axis unreadable, so bars run horizontally.
+    const chartData = rows.map((r) => ({
+      name: r.name,
+      count: r.count,
+    }));
+    const maxCount = chartData.reduce((m, r) => Math.max(m, r.count), 0);
+    const summary =
+      chartData.length === 0
+        ? `No students are registered${unassigned > 0 ? ' yet' : ''}.`
+        : `${total} ${total === 1 ? 'student' : 'students'} across ${chartData.length} ${
+            chartData.length === 1 ? 'university' : 'universities'
+          }. ${rows[0].name} has the most (${maxCount}).` +
+          (unassigned > 0 ? ` ${unassigned} ${unassigned === 1 ? 'is' : 'are'} not yet assigned to a university.` : '');
+
+    const theme = chartTheme(isDark);
+    const chartTooltipStyle = {
+      backgroundColor: theme.surface,
+      border: `1px solid ${theme.track}`,
+      color: theme.text,
+      borderRadius: '8px',
+      fontSize: '12px',
+    };
+
+    return (
+      <div className="space-y-6">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          {[
+            ['Total Students', total],
+            ['Universities', rows.length],
+            ['Unassigned', unassigned],
+          ].map(([label, value]) => (
+            <div key={label} className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 shadow-xs">
+              <div className="text-2xl font-extrabold text-slate-900 dark:text-slate-100">{value}</div>
+              <div className="text-xs font-semibold text-slate-500 dark:text-slate-400">{label}</div>
+            </div>
+          ))}
+        </div>
+
+        <section className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs p-5">
+          <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100 mb-0.5">Students by University</h3>
+          <p className="text-[11px] text-slate-500 dark:text-slate-400 mb-4">
+            Where the student body actually sits, largest first
+          </p>
+
+          {uniAnalyticsError ? (
+            <div role="alert" className="h-48 flex items-center justify-center text-xs text-rose-600">
+              {uniAnalyticsError}
+            </div>
+          ) : chartData.length === 0 ? (
+            <div className="h-48 flex items-center justify-center text-xs text-slate-400">
+              No students registered yet
+            </div>
+          ) : (
+            <div
+              role="img"
+              aria-label={`Students by university, largest first. ${summary}`}
+              // The bars are not individually readable by screen reader, and a long
+              // label list would be noise, so the chart carries one summary label and
+              // the table below carries the exact figures.
+            >
+              <ResponsiveContainer width="100%" height={Math.max(200, chartData.length * 40)}>
+                <BarChart data={chartData} layout="vertical" margin={{ top: 5, right: 20, left: 8, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke={theme.track} horizontal={false} />
+                  <XAxis type="number" allowDecimals={false} fontSize={12} fill={theme.muted} />
+                  <YAxis
+                    type="category"
+                    dataKey="name"
+                    width={compact ? 92 : 150}
+                    fontSize={compact ? 10 : 11}
+                    tickFormatter={(name) => (compact && name.length > 14 ? `${name.slice(0, 13)}…` : name)}
+                    fill={theme.muted}
+                  />
+                  <Tooltip contentStyle={chartTooltipStyle} labelStyle={{ color: theme.text }} cursor={{ fill: theme.track, opacity: 0.25 }} />
+                  <Bar dataKey="count" fill={seriesColor('primary', isDark)} radius={[0, 6, 6, 0]} barSize={20} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          )}
+
+          {chartData.length > 0 && (
+            <div className="overflow-x-auto custom-scrollbar mt-5">
+            <table className="w-full text-left border-collapse" style={{ minWidth: '420px' }} aria-label="Students by university">
+              <caption className="sr-only">Student count per university, largest first</caption>
+              <thead>
+                <tr className="border-b border-slate-200 dark:border-slate-800 text-[11px] font-bold tracking-wider text-slate-800 dark:text-slate-200">
+                  <th scope="col" className="py-2 px-3">University</th>
+                  <th scope="col" className="py-2 px-3 text-right">Students</th>
+                  <th scope="col" className="py-2 px-3 text-right">Share</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100 dark:divide-slate-800 text-sm">
+                {chartData.map((r) => (
+                  <tr key={r.universityId ?? r.name}>
+                    <td className="py-2.5 px-3 text-xs font-semibold text-slate-900 dark:text-slate-100">{r.name}</td>
+                    <td className="py-2.5 px-3 text-xs text-right text-slate-700 dark:text-slate-300">{r.count}</td>
+                    <td className="py-2.5 px-3 text-xs text-right text-slate-600 dark:text-slate-400">
+                      {total > 0 ? `${Math.round((r.count / total) * 100)}%` : '—'}
+                    </td>
+                  </tr>
+                ))}
+                {unassigned > 0 && (
+                  <tr>
+                    <td className="py-2.5 px-3 text-xs font-semibold text-slate-500 dark:text-slate-400">Not yet assigned</td>
+                    <td className="py-2.5 px-3 text-xs text-right text-slate-500 dark:text-slate-400">{unassigned}</td>
+                    <td className="py-2.5 px-3 text-xs text-right text-slate-500 dark:text-slate-400">
+                      {total > 0 ? `${Math.round((unassigned / total) * 100)}%` : '—'}
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+            </div>
+          )}
+        </section>
       </div>
     );
   }
@@ -496,6 +647,10 @@ export default function AdminDashboard() {
       subtitle="Monitor registered students and review all submitted day diary logs"
       tabs={[
         {
+          id: 'overview',
+          label: 'Overview',
+        },
+        {
           id: 'students',
           label: 'Students',
           icon: 'fa-user-graduate',
@@ -589,6 +744,7 @@ export default function AdminDashboard() {
               </div>
             </div>
 
+            {activeTab === 'overview' && renderOverview()}
             {activeTab === 'students' && renderStudents()}
             {activeTab === 'diaries' && renderDiaries()}
             {activeTab === 'marketplace' && renderMarketplace()}

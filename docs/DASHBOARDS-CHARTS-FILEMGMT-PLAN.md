@@ -375,20 +375,64 @@ Cherry-picked **concepts**, not the parallel backend; developer's `CompanyDashbo
    `CompanyDashboard.test.js`); build **9 warnings, unchanged**; eslint clean on all touched files.
    **Commit**: `feat(company): overview analytics tab and supervisor modal (PC4)`
 
-### PC5 — Role dashboards that answer real questions  ·  branch `port/pc5-role-dashboards`
-1. **University dashboard**: the placement-status pie already exists and already includes
-   `PENDING`; only the token rewire from PC1 applies. **Supervisor attention list** — students
-   with no diary entry in 48h — needs a **new** query: `DayDiaryRepository` has only
-   `findTop10ByUniversityIdOrderByDateDesc` and `countByUniversityIdAndStatus`, neither of which can
-   express "no recent entry". List-first card in the University dashboard or `UniversityStudents`.
-2. **Admin dashboard**: students-per-university bar needs a **new** query — grep for
-   `studentsPerUniversity` / `perUniversity` returns zero hits in both backend and frontend, and
-   `AdminDashboard.js` contains no chart at all. Add a grouped-count endpoint scoped to ADMIN,
-   then the bar. P6 Marketplace/System tabs unchanged.
-3. **Accessibility pass** on all charts: `role="img"` + descriptive `aria-label` (started in PC1),
-   text contrast in dark mode, keyboard-reachable tab panels, no `title`-only tooltips.
-4. **Gates**: full backend suite green; build ≤9 warnings; visual matrix 390/768/1920 per role.
+### PC5 — Role dashboards that answer real questions  ·  branch `port/pc5-role-dashboards` — **DONE**
+1. **University diary attention** — `GET /api/university/stats` gained an `attention` block, and the
+   Diaries tab leads with a list-first card. Two queries were genuinely required, and the
+   **never-filed case is the reason both exist**:
+   - `DayDiaryRepository.findStudentsWithoutDiarySince(universityId, since)` uses **`NOT EXISTS`**
+     over `DayDiary`. An inner join on "latest entry" cannot express this: it returns rows only for
+     students who have filed, so the students who never filed at all — the worst case — would be
+     invisible. A `daysSince > 2` filter on an existing list has the same blind spot.
+   - `DayDiaryRepository.findLatestDiaryDatePerStudent(universityId)` supplies each student's real
+     last date in one query rather than N+1.
+   The window is **48 hours expressed as `LocalDate.now().minusDays(2)`**: `DayDiary.date` is a
+   `LocalDate` with no time component, so an exact 48-hour cutoff is not expressible and two days
+   back is the closest honest reading. `neverFiled` is a **separate boolean, not `daysSinceLastEntry
+   === null`**, and `daysSinceLastEntry` stays `null` for those students — rendering them as
+   "0 days ago" would invert their meaning. `DiaryAttentionTest` pins all of this, including the
+   boundary (an entry exactly two days old is **not** stale) and cross-university isolation.
+2. **Admin students-per-university** — new `AdminAnalyticsService` +
+   `GET /api/admin/analytics/students-per-university`, ADMIN-only, taking **no university id on the
+   request** so there is nothing to tamper with. Backed by one grouped count,
+   `StudentRepository.countGroupedByUniversity()`, sorted largest-first.
+   Two response details that the chart depends on:
+   - **Unassigned students are reported separately** (`unassignedCount`), not folded into a
+     synthetic "Unknown" bar. They are real students; a bar labelled *University* that silently
+     contains non-university rows would misstate every other bar's share.
+   - **`totalStudents` is the endpoint's own figure and the UI never recomputes it.** The frontend
+     re-aggregating from `students` would disagree with the server the moment a row was filtered,
+     so `AdminStudentsPerUniversityTest` runs against a seeded database and asserts **deltas** —
+     absolute counts would be testing the seeder, not this code.
+   Rendered as a new **Overview** tab: KPI tiles, a horizontal bar chart, and a table carrying the
+   exact figures with shares.
+3. **Accessibility pass**:
+   - **Tab strip rewritten to the WAI-ARIA tabs pattern** in `DashboardLayout.js` — `role="tablist"`
+     / `tab` / `tabpanel`, roving `tabindex`, arrow-key movement that wraps, Home/End, and focus
+     following selection. Previously these were plain buttons, so with the university dashboard's
+     six tabs a keyboard user spent most of the tab order on navigation to reach the panel at all.
+   - **Every university analytics chart now carries its figures**, not just its title: the `card()`
+     helper wraps each plot in `role="img"` with a sentence naming the values and the largest
+     segment. An **empty chart renders no image role at all**, so its "No gender data yet" message
+     stays readable text rather than being swallowed by a label describing nothing.
+   - The admin bar follows the same rule and is backed by a table, so the exact numbers are
+     reachable without reading the chart.
+   - **`useMediaQuery` extracted to `src/hooks/useMediaQuery.js`** and shared with
+     `DashboardLayout`. Recharts needs a *number* to size and truncate axis labels, which CSS alone
+     cannot supply, so the university bar switches to a narrower, truncating axis at ≤640px — at a
+     fixed 150px the y-axis would claim 40% of a 390px screen.
+   - No `title`-only tooltips were introduced; the `title` attributes that exist sit alongside
+     `aria-label` on icon buttons, which is the correct pairing.
+4. **Verified gates**: backend **189 green** (179 + 5 `DiaryAttentionTest` + 5
+   `AdminStudentsPerUniversityTest`); frontend **9 suites / 62 tests** (17 new across
+   `RoleAnalytics.test.js` and `DashboardLayout.test.js`); build **9 warnings, unchanged**; eslint
+   clean on all touched files. Responsive behaviour is covered at 390px by the narrow-axis test and
+   by the layout tests, not by screenshots — no browser driver is installed in this repo.
    **Commit**: `feat(dashboards): role-specific analytics and accessibility pass (PC5)`
+
+**Left open on purpose**: `GET /api/students/company/{companyId}` lets a `COMPANY` pass an
+arbitrary company id and read another company's students. That is a real scoping gap, but it is
+pre-existing, unrelated to PC5's analytics, and fixing it would widen this commit's blast radius
+into P6 territory. It is recorded here so it is not lost.
 
 ### Final — full verification on `fred`
 `backend/start.sh clean test` (136 + new green) · `CI=false npx react-scripts test --watchAll=false`

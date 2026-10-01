@@ -1,5 +1,7 @@
 package com.example.demo.service;
 
+import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -110,7 +112,54 @@ public class UniversityDashboardService {
         stats.put("evaluations", evaluations(students, studentsById, universityId));
         stats.put("placements", placements(studentsById, universityId));
         stats.put("analytics", analytics(students, universityId));
+        stats.put("attention", diaryAttention(universityId));
         return stats;
+    }
+
+    /**
+     * PC5: students who have stopped filing day diaries.
+     *
+     * <p>A supervisor's real question is "who has gone quiet", so this is keyed on
+     * absence rather than on activity. It deliberately counts a student who has
+     * never filed at all — an empty result and a full result are both informative,
+     * and a "latest entry" query that inner-joins would drop the never-filed case.
+     */
+    private Map<String, Object> diaryAttention(Long universityId) {
+        // 48 hours, measured in days because DayDiary.date is a LocalDate with no
+        // time component; two days back is the closest honest expression.
+        LocalDate since = LocalDate.now().minusDays(2);
+
+        Map<Long, LocalDate> latestByStudent = new HashMap<>();
+        for (Object[] row : dayDiaryRepository.findLatestDiaryDatePerStudent(universityId)) {
+            if (row[0] instanceof Number id && row[1] instanceof LocalDate date) {
+                latestByStudent.put(id.longValue(), date);
+            }
+        }
+
+        List<Map<String, Object>> rows = new ArrayList<>();
+        for (Object[] row : dayDiaryRepository.findStudentsWithoutDiarySince(universityId, since)) {
+            Map<String, Object> item = new LinkedHashMap<>();
+            item.put("studentId", ((Number) row[0]).longValue());
+            item.put("firstName", row[1]);
+            item.put("lastName", row[2]);
+            item.put("studentNumber", row[3]);
+            LocalDate latest = latestByStudent.get(((Number) row[0]).longValue());
+            item.put("lastEntryDate", latest);
+            // null means never filed, which is a worse state than a stale entry and
+            // must not be rendered as "0 days ago".
+            item.put("daysSinceLastEntry", latest == null ? null
+                    : ChronoUnit.DAYS.between(latest, LocalDate.now()));
+            item.put("neverFiled", latest == null);
+            rows.add(item);
+        }
+
+        Map<String, Object> out = new LinkedHashMap<>();
+        out.put("windowHours", 48);
+        out.put("sinceDate", since);
+        out.put("total", (long) rows.size());
+        out.put("neverFiled", rows.stream().filter(r -> Boolean.TRUE.equals(r.get("neverFiled"))).count());
+        out.put("students", rows);
+        return out;
     }
 
     /**
