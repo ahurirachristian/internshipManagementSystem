@@ -263,15 +263,25 @@ public class UniversityDashboardService {
         return (Map<String, Object>) placements(new HashMap<>(), universityId).get("byStatus");
     }
 
+    /**
+     * PC6b: the review UI (DayDiaryReviewModal) offers PENDING, APPROVED,
+     * NEEDS_REVISION and REJECTED. REJECTED was previously discarded here, so a
+     * rejected diary was recorded but invisible in the pie and the pie's total
+     * disagreed with the diary count. DayDiary.status is a free-text column, so
+     * the aggregate seeds the known review vocabulary and appends any other
+     * status string it finds rather than dropping it — an unexpected value
+     * surfaces as its own slice instead of vanishing.
+     */
     private Map<String, Object> diaryStatus(Long universityId) {
         Map<String, Long> statuses = new LinkedHashMap<>();
         statuses.put("PENDING", 0L);
         statuses.put("APPROVED", 0L);
         statuses.put("NEEDS_REVISION", 0L);
+        statuses.put("REJECTED", 0L);
         for (Object[] row : dayDiaryRepository.countByStatusGrouped(universityId)) {
             String status = (String) row[0];
-            if (status != null && statuses.containsKey(status)) {
-                statuses.put(status, (Long) row[1]);
+            if (status != null) {
+                statuses.merge(status, (Long) row[1], Long::sum);
             }
         }
         Map<String, Object> out = new LinkedHashMap<>();
