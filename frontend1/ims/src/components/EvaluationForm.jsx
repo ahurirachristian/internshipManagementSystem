@@ -201,10 +201,12 @@ export default function EvaluationFormModal({ placement, onClose, onSaved }) {
                     id="punctuality"
                     type="number"
                     min="0"
-                    max="100"
+                    max="10"
+                    step="1"
                     value={companyForm.punctuality}
                     onChange={(e) => setCompanyForm({ ...companyForm, punctuality: e.target.value })}
                     className={inputClass}
+                    aria-describedby="scale-help"
                   />
                 </div>
                 <div>
@@ -213,10 +215,12 @@ export default function EvaluationFormModal({ placement, onClose, onSaved }) {
                     id="practicalWorkEthics"
                     type="number"
                     min="0"
-                    max="100"
+                    max="10"
+                    step="1"
                     value={companyForm.practicalWorkEthics}
                     onChange={(e) => setCompanyForm({ ...companyForm, practicalWorkEthics: e.target.value })}
                     className={inputClass}
+                    aria-describedby="scale-help"
                   />
                 </div>
                 <div>
@@ -225,10 +229,12 @@ export default function EvaluationFormModal({ placement, onClose, onSaved }) {
                     id="attendance"
                     type="number"
                     min="0"
-                    max="100"
+                    max="10"
+                    step="1"
                     value={companyForm.attendance}
                     onChange={(e) => setCompanyForm({ ...companyForm, attendance: e.target.value })}
                     className={inputClass}
+                    aria-describedby="scale-help"
                   />
                 </div>
                 <div>
@@ -237,10 +243,12 @@ export default function EvaluationFormModal({ placement, onClose, onSaved }) {
                     id="workplacePerformance"
                     type="number"
                     min="0"
-                    max="100"
+                    max="10"
+                    step="1"
                     value={companyForm.workplacePerformance}
                     onChange={(e) => setCompanyForm({ ...companyForm, workplacePerformance: e.target.value })}
                     className={inputClass}
+                    aria-describedby="scale-help"
                   />
                 </div>
 
@@ -257,6 +265,12 @@ export default function EvaluationFormModal({ placement, onClose, onSaved }) {
 
               {/* University Evaluation */}
               <form onSubmit={handleUniversitySubmit} className="space-y-4">
+                <p
+                  id="scale-help"
+                  className="text-xs text-slate-500 dark:text-slate-400"
+                >
+                  Score each criterion from 0 (poor) to 10 (excellent).
+                </p>
                 <div className="flex items-center gap-2 mb-2">
                   <div className="w-8 h-8 rounded-lg bg-violet-50 border border-violet-200 flex items-center justify-center text-violet-800">
                     <GraduationCap className="w-4 h-4" />
@@ -270,10 +284,12 @@ export default function EvaluationFormModal({ placement, onClose, onSaved }) {
                     id="logbookQuality"
                     type="number"
                     min="0"
-                    max="100"
+                    max="10"
+                    step="1"
                     value={universityForm.logbookQuality}
                     onChange={(e) => setUniversityForm({ ...universityForm, logbookQuality: e.target.value })}
                     className={inputClass}
+                    aria-describedby="scale-help"
                   />
                 </div>
                 <div>
@@ -282,10 +298,12 @@ export default function EvaluationFormModal({ placement, onClose, onSaved }) {
                     id="academicReport"
                     type="number"
                     min="0"
-                    max="100"
+                    max="10"
+                    step="1"
                     value={universityForm.academicReport}
                     onChange={(e) => setUniversityForm({ ...universityForm, academicReport: e.target.value })}
                     className={inputClass}
+                    aria-describedby="scale-help"
                   />
                 </div>
                 <div>
@@ -294,10 +312,12 @@ export default function EvaluationFormModal({ placement, onClose, onSaved }) {
                     id="presentation"
                     type="number"
                     min="0"
-                    max="100"
+                    max="10"
+                    step="1"
                     value={universityForm.presentation}
                     onChange={(e) => setUniversityForm({ ...universityForm, presentation: e.target.value })}
                     className={inputClass}
+                    aria-describedby="scale-help"
                   />
                 </div>
                 <div>
@@ -306,10 +326,12 @@ export default function EvaluationFormModal({ placement, onClose, onSaved }) {
                     id="overallGrade"
                     type="number"
                     min="0"
-                    max="100"
+                    max="10"
+                    step="1"
                     value={universityForm.overallGrade}
                     onChange={(e) => setUniversityForm({ ...universityForm, overallGrade: e.target.value })}
                     className={inputClass}
+                    aria-describedby="scale-help"
                   />
                 </div>
 

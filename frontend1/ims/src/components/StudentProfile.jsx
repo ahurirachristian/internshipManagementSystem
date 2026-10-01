@@ -983,8 +983,11 @@ export function StudentProfile({ defaultEditing = false }) {
                           </td>
                           <td className="py-3.5 px-4">
                             {ev.overallGrade != null ? (
-                              <span className="inline-flex items-center justify-center text-xs font-bold text-white px-2 py-0.5 rounded bg-teal-600 min-w-[26px]">
-                                {ev.overallGrade}%
+                              <span
+                                className="inline-flex items-center justify-center text-xs font-bold text-white px-2 py-0.5 rounded bg-teal-600 min-w-[26px]"
+                                aria-label={`Overall grade ${ev.overallGrade} out of 10`}
+                              >
+                                {ev.overallGrade}/10
                               </span>
                             ) : (
                               <span className="text-slate-400">{DASH}</span>

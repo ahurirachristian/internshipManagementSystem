@@ -3,6 +3,7 @@ package com.example.demo.evaluation;
 import java.util.List;
 import java.util.Map;
 import java.security.Principal;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -62,7 +63,7 @@ public class EvaluationController {
     }
 
     @PostMapping
-    public ResponseEntity<Evaluation> createEvaluation(@RequestBody Evaluation evaluation) {
+    public ResponseEntity<Evaluation> createEvaluation(@Valid @RequestBody Evaluation evaluation) {
         // M5 bridge: derive the typed supervisor user id from the legacy string.
         if (evaluation.getSupervisorUserId() == null && evaluation.getSupervisorUsername() != null) {
             userRepository.findByUsername(evaluation.getSupervisorUsername())
@@ -74,7 +75,7 @@ public class EvaluationController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Evaluation> updateEvaluation(@PathVariable Long id, @RequestBody Evaluation evaluation) {
+    public ResponseEntity<Evaluation> updateEvaluation(@PathVariable Long id, @Valid @RequestBody Evaluation evaluation) {
         Evaluation updated = evaluationService.update(id, evaluation);
         if (updated == null) {
             return ResponseEntity.notFound().build();

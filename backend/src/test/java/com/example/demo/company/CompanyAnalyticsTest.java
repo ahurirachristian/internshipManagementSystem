@@ -148,21 +148,22 @@ class CompanyAnalyticsTest {
         Student theirIntern = student("Eval", "Theirs", theirs, LocalDate.of(2026, 1, 5));
         Placement theirPlacement = placement(theirIntern.getId(), theirs, Placement.Status.COMPLETED);
 
+        // Scores are on the 0-10 scale enforced by @Max(10) on Evaluation.
         Evaluation mineEval = new Evaluation(myIntern.getId(), myPlacement.getId(), "INDUSTRIAL",
-                "co.sup", 90, 90, 90, 90, 90, 90, 90, 90);
+                "co.sup", 9, 9, 9, 9, 9, 9, 9, 9);
         evaluationRepository.save(mineEval);
 
         // A perfect score at another company must not lift this company's average.
         Evaluation theirEval = new Evaluation(theirIntern.getId(), theirPlacement.getId(), "INDUSTRIAL",
-                "co.sup", 100, 100, 100, 100, 100, 100, 100, 100);
+                "co.sup", 10, 10, 10, 10, 10, 10, 10, 10);
         evaluationRepository.save(theirEval);
 
         mockMvc.perform(get("/api/companies/me/analytics").with(asCompanyUser("compC", mine)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.avgEvaluation").value(90.0))
+                .andExpect(jsonPath("$.avgEvaluation").value(9.0))
                 .andExpect(jsonPath("$.evaluationCount").value(1))
                 .andExpect(jsonPath("$.interns[0].evaluated").value(true))
-                .andExpect(jsonPath("$.interns[0].averageGrade").value(90.0));
+                .andExpect(jsonPath("$.interns[0].averageGrade").value(9.0));
     }
 
     @Test

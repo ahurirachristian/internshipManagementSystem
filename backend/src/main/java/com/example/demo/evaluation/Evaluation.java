@@ -6,6 +6,8 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 
 @Entity
 @Table(name = "evaluations")
@@ -37,27 +39,47 @@ public class Evaluation {
     @Column(nullable = true)
     private Long supervisorUserId;
 
+    // Scores are on a 0-10 scale. The stored convention is single digits
+    // (EvaluationDataSeeder writes 8, 7, 9) and UniversityDashboard plots the
+    // radar on domain [0, 10], so the bound is enforced here rather than only
+    // in the form.
+    @Min(0)
+    @Max(10)
     @Column(nullable = false)
     private Integer punctuality;
 
+    @Min(0)
+    @Max(10)
     @Column(nullable = false)
     private Integer practicalWorkEthics;
 
+    @Min(0)
+    @Max(10)
     @Column(nullable = false)
     private Integer attendance;
 
+    @Min(0)
+    @Max(10)
     @Column(nullable = false)
     private Integer workplacePerformance;
 
+    @Min(0)
+    @Max(10)
     @Column(nullable = true)
     private Integer logbookQuality;
 
+    @Min(0)
+    @Max(10)
     @Column(nullable = true)
     private Integer academicReport;
 
+    @Min(0)
+    @Max(10)
     @Column(nullable = true)
     private Integer presentation;
 
+    @Min(0)
+    @Max(10)
     @Column(nullable = true)
     private Integer overallGrade;
 
