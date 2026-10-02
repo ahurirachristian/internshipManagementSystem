@@ -8,6 +8,7 @@ import StudentDataProvider from '../../context/StudentDataContext';
 import OverviewSection from './OverviewSection';
 import EvaluationScoresChart from './EvaluationScoresChart';
 import DiaryCadenceChart from './DiaryCadenceChart';
+import { CONTROL_CLASS } from '../ui/formControls';
 import SettingsSection from './SettingsSection';
 import LearningInstituteSection from './LearningInstituteSection';
 import CompaniesSection from './CompaniesSection';
@@ -312,7 +313,7 @@ export default function StudentDashboard() {
                   type="date"
                   value={diaryForm.date}
                   onChange={(e) => setDiaryForm({ ...diaryForm, date: e.target.value })}
-                  className={inputClass}
+                  className={CONTROL_CLASS}
                 />
               </div>
               <div>

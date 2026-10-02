@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { UserCog, X } from 'lucide-react';
 import CustomSelect from './CustomSelect';
+import { CONTROL_CLASS } from './ui/formControls';
 
 const emptyForm = {
   firstName: '',
@@ -245,11 +246,11 @@ export default function StudentEditModal({ student, title, onClose, onSubmit }) 
               </div>
               <div>
                 <label htmlFor="edit-startDate" className={labelClass}>Start Date</label>
-                <input id="edit-startDate" type="date" value={form.startDate} onChange={(e) => setField('startDate', e.target.value)} className={inputClass} />
+                <input id="edit-startDate" type="date" value={form.startDate} onChange={(e) => setField('startDate', e.target.value)} className={CONTROL_CLASS} />
               </div>
               <div>
                 <label htmlFor="edit-endDate" className={labelClass}>End Date</label>
-                <input id="edit-endDate" type="date" value={form.endDate} onChange={(e) => setField('endDate', e.target.value)} className={inputClass} />
+                <input id="edit-endDate" type="date" value={form.endDate} onChange={(e) => setField('endDate', e.target.value)} className={CONTROL_CLASS} />
               </div>
             </div>
           )}
