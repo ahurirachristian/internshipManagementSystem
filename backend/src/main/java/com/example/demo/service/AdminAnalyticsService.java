@@ -11,6 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.example.demo.placement.Placement;
 import com.example.demo.placement.PlacementRepository;
+import com.example.demo.student.DayDiaryRepository;
 import com.example.demo.student.StudentRepository;
 import com.example.demo.university.University;
 import com.example.demo.university.UniversityRepository;
@@ -29,13 +30,16 @@ public class AdminAnalyticsService {
     private final StudentRepository studentRepository;
     private final UniversityRepository universityRepository;
     private final PlacementRepository placementRepository;
+    private final DayDiaryRepository dayDiaryRepository;
 
     public AdminAnalyticsService(StudentRepository studentRepository,
             UniversityRepository universityRepository,
-            PlacementRepository placementRepository) {
+            PlacementRepository placementRepository,
+            DayDiaryRepository dayDiaryRepository) {
         this.studentRepository = studentRepository;
         this.universityRepository = universityRepository;
         this.placementRepository = placementRepository;
+        this.dayDiaryRepository = dayDiaryRepository;
     }
 
     /**
@@ -58,8 +62,72 @@ public class AdminAnalyticsService {
      * <p>All counts are aggregated in the database. Nothing here loads student or
      * placement rows to count them, so the endpoint stays flat as rosters grow.
      */
-    @Transactional(readOnly = true)
-    public Map<String, Object> placementCoverage() {
+/**
+ * PC12: diary review backlog per university.
+ *
+ * <p>Answers the plan's "where is the diary backlog concentrated", and is a
+ * deviation from the column the plan names. See
+ * {@link DayDiaryRepository#countDiaryBacklogGroupedByUniversity()} for why
+ * grouping by {@code DayDiary.status} would be wrong: the column is legacy and
+ * constant, and the canonical Reviewed / Awaiting review split comes from the
+ * presence of a supervisor comment. The backlog therefore matches what each
+ * supervisor already sees on their own tab, which is the only way an
+ * institution-wide figure can be reconciled with the local one.
+ *
+ * <p>Universities with no diaries at all are omitted. A 0-day backlog for a
+ * university that has not started filing is not the same finding as a cleared
+ * backlog, and the chart says nothing about them rather than showing an
+ * indistinguishable zero.
+ */
+@Transactional(readOnly = true)
+public Map<String, Object> diaryBacklogByUniversity() {
+    Map<Long, String> namesById = new LinkedHashMap<>();
+    for (University university : universityRepository.findAll()) {
+        namesById.put(university.getId().longValue(), university.getFullName());
+    }
+
+    List<Map<String, Object>> rows = new ArrayList<>();
+    long unattributedEntries = 0;
+    long totalAwaitingReview = 0;
+    long totalReviewed = 0;
+
+    for (Object[] row : dayDiaryRepository.countDiaryBacklogGroupedByUniversity()) {
+        if (!(row[0] instanceof Number idNumber)) {
+            // The join through Student cannot produce a null university, but if it
+            // ever did the entries are counted rather than dropped.
+            unattributedEntries += ((Number) row[2]).longValue();
+            continue;
+        }
+        Long universityId = idNumber.longValue();
+        long reviewed = ((Number) row[1]).longValue();
+        long total = ((Number) row[2]).longValue();
+        long awaiting = Math.max(0, total - reviewed);
+        totalAwaitingReview += awaiting;
+        totalReviewed += reviewed;
+
+        Map<String, Object> item = new LinkedHashMap<>();
+        item.put("universityId", universityId);
+        item.put("name", namesById.getOrDefault(universityId, "University " + universityId));
+        item.put("total", total);
+        item.put("reviewed", reviewed);
+        item.put("awaitingReview", awaiting);
+        item.put("reviewedPct", total == 0 ? 0L : Math.round(100.0 * reviewed / total));
+        rows.add(item);
+    }
+
+    // Heaviest backlog first: the chart's purpose is locating the pressure.
+    rows.sort(Comparator.comparingLong(r -> -((Number) r.get("awaitingReview")).longValue()));
+
+    Map<String, Object> out = new LinkedHashMap<>();
+    out.put("byUniversity", rows);
+    out.put("unattributedEntries", unattributedEntries);
+    out.put("totalAwaitingReview", totalAwaitingReview);
+    out.put("totalReviewed", totalReviewed);
+    return out;
+}
+
+@Transactional(readOnly = true)
+public Map<String, Object> placementCoverage() {
         Map<Long, String> namesById = new LinkedHashMap<>();
         List<University> universities = universityRepository.findAll();
         for (University university : universities) {

@@ -21,6 +21,7 @@ jest.mock('../../services/api', () => ({
   fetchCompanies: jest.fn(),
   fetchAdminStudentsPerUniversity: jest.fn(),
   fetchAdminPlacementCoverage: jest.fn(),
+  fetchAdminDiaryBacklog: jest.fn(),
   updateStudent: jest.fn().mockResolvedValue({}),
   deleteStudent: jest.fn().mockResolvedValue({}),
 }));
@@ -33,6 +34,7 @@ const {
   fetchCompanies,
   fetchAdminStudentsPerUniversity,
   fetchAdminPlacementCoverage,
+  fetchAdminDiaryBacklog,
 } = require('../../services/api');
 
 beforeEach(() => {
@@ -58,6 +60,12 @@ beforeEach(() => {
     overCoveredTotal: 0,
     totalStudents: 0,
     totalPlacements: 0,
+  });
+  fetchAdminDiaryBacklog.mockResolvedValue({
+    byUniversity: [],
+    unattributedEntries: 0,
+    totalAwaitingReview: 0,
+    totalReviewed: 0,
   });
 });
 

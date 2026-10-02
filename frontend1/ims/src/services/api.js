@@ -234,6 +234,17 @@ export async function fetchAdminStudentsPerUniversity() {
 }
 
 /**
+ * PC12 chart 6: diary review backlog per university. Admin-only and system-wide,
+ * like the rest of the admin analytics, so no scoping parameter is sent.
+ */
+export async function fetchAdminDiaryBacklog() {
+  const response = await fetch(`${API_ROOT}/api/admin/analytics/diary-backlog`, {
+    credentials: 'include',
+  });
+  return parseResponse(response);
+}
+
+/**
  * PC12 chart 5: placement coverage per university. Admin-only, and system-wide
  * by definition — there is no university to scope to, so the caller sends no
  * parameter that could leak one institution's figures to another reader.

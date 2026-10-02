@@ -43,4 +43,16 @@ public class AdminAnalyticsController {
     public Map<String, Object> placementCoverage() {
         return adminAnalyticsService.placementCoverage();
     }
+
+    /**
+     * PC12 chart 6: diary review backlog per university.
+     *
+     * <p>Global for the same reason as the rest of this controller — an admin's
+     * oversight question spans every university, so the ADMIN authority is the
+     * only boundary and there is nothing to scope to.
+     */
+    @GetMapping("/diary-backlog")
+    public Map<String, Object> diaryBacklog() {
+        return adminAnalyticsService.diaryBacklogByUniversity();
+    }
 }

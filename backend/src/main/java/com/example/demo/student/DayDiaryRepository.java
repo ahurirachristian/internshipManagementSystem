@@ -50,4 +50,59 @@ public interface DayDiaryRepository extends JpaRepository<DayDiary, Long> {
      */
     @Query("SELECT d.studentId, COUNT(d) FROM DayDiary d GROUP BY d.studentId")
     List<Object[]> countByStudentIdGrouped();
+
+    /**
+     * PC12: diary review backlog per university, for the admin chart.
+     *
+     * <p>Deliberately <em>not</em> grouped by {@code d.status}, although the plan
+     * names that column. The app's canonical vocabulary is Reviewed /
+     * Awaiting review, and PC6a established that it is derived from whether a
+     * university supervisor left a comment — see {@code isReviewed} in
+     * StudentDataContext. The {@code status} column is legacy: the seeder writes
+     * "PENDING" to every row and never touches it again, so grouping by it
+     * yields a single bucket that is both constant and meaningless. A chart
+     * built on it would report every diary in the system as one status and
+     * disagree with the figure each supervisor already sees on their own tab.
+     *
+     * <p>The university comes from {@code Student} rather than
+     * {@code DayDiary.universityId}, matching the PC11 diary-count query. The
+     * student's own record is the authority on which university they belong to;
+     * a denormalised copy on the diary can be stale after a transfer.
+     *
+     * <p>Whitespace-only comments do not count as reviewed, matching isReviewed,
+     * which trims before testing length.
+     *
+     * <p>This is the one native query in the codebase. The supervisor comment is
+     * a CLOB, and Hibernate rejects {@code trim()} on a CLOB argument because it
+     * validates that argument is a STRING — so the blank-vs-empty distinction
+     * cannot be expressed in JPQL at all. Dropping the trim here would make this
+     * chart disagree with the supervisor's own tab for any entry whose comment is
+     * whitespace, which is precisely the class of drift the canonical two-value
+     * status was introduced to prevent.
+     *
+     * <p>Four nested TRIMs rather than one: SQL's {@code TRIM} removes spaces
+     * only, while the frontend's {@code String.prototype.trim} removes every kind
+     * of whitespace. A comment of {@code "\n  "} is length 0 in JavaScript and
+     * length 1 to a single {@code TRIM}, so one TRIM would report a blank entry
+     * as reviewed.
+     *
+     * <p>The non-space characters are passed as {@code CHAR(10)}, {@code CHAR(9)}
+     * and {@code CHAR(13)} rather than as {@code '\n'} and friends. Backslash
+     * escapes are not standard SQL: the H2 test datasource reads {@code '\n'} as
+     * a literal backslash and an "n", so the TRIM silently strips the wrong
+     * characters and blank comments get counted as reviewed. {@code CHAR(n)} means
+     * the same thing in MySQL and in H2.
+     *
+     * @return rows of {@code [universityId, reviewedCount, totalCount]}
+     */
+    @Query(value = "SELECT st.university_id AS university_id, "
+            + "SUM(CASE WHEN d.university_supervisor_comment IS NOT NULL AND CHAR_LENGTH("
+            + "TRIM(BOTH CHAR(10) FROM TRIM(BOTH CHAR(9) FROM TRIM(BOTH CHAR(13) FROM "
+            + "TRIM(d.university_supervisor_comment))))"
+            + ") > 0 THEN 1 ELSE 0 END) AS reviewed_count, "
+            + "COUNT(*) AS total_count "
+            + "FROM day_diaries d JOIN students st ON st.id = d.student_id "
+            + "GROUP BY st.university_id",
+            nativeQuery = true)
+    List<Object[]> countDiaryBacklogGroupedByUniversity();
 }
