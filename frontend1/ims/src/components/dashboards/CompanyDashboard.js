@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import DashboardLayout from '../DashboardLayout';
 import CompanyEditModal from '../CompanyEditModal';
 import CompanySupervisorModal from '../CompanySupervisorModal';
+import ApplicationsFunnelChart from './ApplicationsFunnelChart';
 import { DonutChart } from '../../charts/ProgressCharts';
 import { chartColor } from '../../charts/colors';
 import { useTheme } from '../../context/ThemeContext';
@@ -773,6 +774,10 @@ export default function CompanyDashboard() {  const { user } = useAuth();
     }
 
     return (
+      <div className="space-y-6">
+        {/* PC12 chart 7: derived from the applications this tab already loaded. */}
+        <ApplicationsFunnelChart applications={applications} error="" />
+
       <section className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs overflow-hidden">
         <div className="px-5 py-4 border-b border-slate-200 dark:border-slate-800">
           <div className="flex items-center gap-3">
@@ -869,6 +874,7 @@ export default function CompanyDashboard() {  const { user } = useAuth();
           </div>
         )}
       </section>
+      </div>
     );
   }
 
