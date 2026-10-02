@@ -43,6 +43,15 @@ public class UniversityDashboardService {
     private static final long MID_TERM_DIARIES = 5;
     private static final long FINAL_REPORT_DIARIES = 10;
 
+    /**
+     * PC12: the widest "evaluations so far" bucket charted. Beyond this the exact
+     * count stops being the question a supervisor asks — nobody asks how many
+     * students have eleven evaluations, they ask who has none — so students past
+     * the cap are folded into the final bucket rather than extending the axis
+     * without bound.
+     */
+    private static final int MAX_EVALUATIONS_PER_STUDENT = 4;
+
     private final StudentRepository studentRepository;
     private final UniversityRepository universityRepository;
     private final SchoolRepository schoolRepository;
@@ -452,6 +461,48 @@ public class UniversityDashboardService {
             byStudent.add(row);
         }
         out.put("byStudent", byStudent);
+
+        // PC12: how many students sit in each "evaluations so far" bucket.
+        // Derived from the same evalsPerStudent map the by-student rows above
+        // use, so this adds no query — the alternative, a second grouped count,
+        // would duplicate work PC11 already did.
+        //
+        // Every bucket is emitted, including the zero ones, so a chart can plot
+        // the shape of the cohort rather than only the buckets that happen to
+        // have members. studentsWithNoEvaluation is derived from the student list
+        // rather than from the map so that students in neither the map nor the
+        // list still reconcile: evaluatedStudents + studentsWithNoEvaluation
+        // always equals the cohort size.
+        List<Map<String, Object>> evalDistribution = new ArrayList<>();
+        long noEvaluations = 0;
+        for (int n = 0; n <= MAX_EVALUATIONS_PER_STUDENT; n++) {
+            final long count = n;
+            long inBucket = evalsPerStudent.values().stream()
+                    .filter(v -> v == count)
+                    .count();
+            if (count == 0) {
+                noEvaluations = students.stream()
+                        .filter(s -> !evalsPerStudent.containsKey(s.getId()))
+                        .count();
+                inBucket = noEvaluations;
+            } else if (count == MAX_EVALUATIONS_PER_STUDENT) {
+                // The top bucket is "this many or more", so a student with nine
+                // evaluations is counted here rather than falling out of the
+                // chart entirely.
+                inBucket += evalsPerStudent.values().stream()
+                        .filter(v -> v > count)
+                        .count();
+            }
+            Map<String, Object> bucket = new LinkedHashMap<>();
+            bucket.put("evaluationCount", (long) n);
+            bucket.put("students", inBucket);
+            if (count == MAX_EVALUATIONS_PER_STUDENT) {
+                bucket.put("label", n + "+");
+            }
+            evalDistribution.add(bucket);
+        }
+        out.put("byEvaluationCount", evalDistribution);
+        out.put("studentsWithNoEvaluation", noEvaluations);
         return out;
     }
 
