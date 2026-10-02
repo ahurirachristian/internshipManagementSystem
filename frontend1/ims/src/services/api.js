@@ -516,6 +516,13 @@ export async function applyToVacancy(vacancyId, note) {
   return parseResponse(response);
 }
 
+export async function fetchPlacementTimeline() {
+  const response = await fetch(`${API_ROOT}/api/placements/timeline`, {
+    credentials: 'include',
+  });
+  return parseResponse(response);
+}
+
 export async function fetchApplications() {
   const response = await fetch(`${API_ROOT}/api/applications`, {
     credentials: 'include',

@@ -3,6 +3,7 @@ import DashboardLayout from '../DashboardLayout';
 import CompanyEditModal from '../CompanyEditModal';
 import CompanySupervisorModal from '../CompanySupervisorModal';
 import ApplicationsFunnelChart from './ApplicationsFunnelChart';
+import PlacementPaceChart from './PlacementPaceChart';
 import { DonutChart } from '../../charts/ProgressCharts';
 import { chartColor } from '../../charts/colors';
 import { useTheme } from '../../context/ThemeContext';
@@ -20,6 +21,7 @@ import {
   studentLookup,
   offerPlacement,
   fetchApplications,
+  fetchPlacementTimeline,
   transitionApplication,
 } from '../../services/api';
 import {
@@ -220,6 +222,8 @@ export default function CompanyDashboard() {  const { user } = useAuth();
   const [lookupResult, setLookupResult] = useState(null);
   const [offerNote, setOfferNote] = useState('');
   const [applications, setApplications] = useState([]);
+  const [timeline, setTimeline] = useState(null);
+  const [timelineError, setTimelineError] = useState('');
   const [applicationsLoading, setApplicationsLoading] = useState(false);
 
   async function loadSupervisors() {
@@ -343,12 +347,34 @@ export default function CompanyDashboard() {  const { user } = useAuth();
     loadAnalytics();
   }, [user.companyId, analytics, loadAnalytics]);
 
+  // PC12: pace loads with the dashboard for the same reason analytics does — it
+  // is on the landing tab. Not cached across refreshes, so a new placement shows
+  // up without a manual reload.
+  useEffect(() => {
+    if (user.companyId == null) return;
+    loadTimeline();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user.companyId]);
+
   async function loadInterns() {
     setError('');
     try {
       setInterns(await fetchStudentsByCompany(user.companyId));
     } catch (err) {
       setError(err.message || 'Unable to load interns.');
+    }
+  }
+
+  // PC12: the timeline is a separate endpoint from the company analytics, so it
+  // carries its own error rather than blanking the Overview if it fails.
+  async function loadTimeline() {
+    setTimelineError('');
+    try {
+      const data = await fetchPlacementTimeline();
+      setTimeline(data || null);
+    } catch (err) {
+      setTimelineError(err.message || 'Unable to load placement pace.');
+      setTimeline(null);
     }
   }
 
@@ -470,6 +496,9 @@ export default function CompanyDashboard() {  const { user } = useAuth();
             <KpiTile key={kpi.label} {...kpi} />
           ))}
         </div>
+
+        {/* PC12 chart 8: month-by-month stage counts from PC8b's timeline. */}
+        <PlacementPaceChart timeline={timeline} error={timelineError} />
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
           <section className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 shadow-xs">
