@@ -31,4 +31,16 @@ public class AdminAnalyticsController {
     public Map<String, Object> studentsPerUniversity() {
         return adminAnalyticsService.studentsPerUniversity();
     }
+
+    /**
+     * PC12 chart 5: placement coverage per university.
+     *
+     * <p>Global by definition — an admin's oversight question spans every
+     * university, so there is no tenant to scope to and the ADMIN guard on this
+     * controller is the only boundary.
+     */
+    @GetMapping("/placement-coverage")
+    public Map<String, Object> placementCoverage() {
+        return adminAnalyticsService.placementCoverage();
+    }
 }

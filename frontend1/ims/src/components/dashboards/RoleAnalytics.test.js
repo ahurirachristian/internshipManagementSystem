@@ -18,6 +18,7 @@ jest.mock('../../services/api', () => ({
   fetchDiaries: jest.fn(),
   fetchVacancies: jest.fn(),
   fetchAdminStudentsPerUniversity: jest.fn(),
+  fetchAdminPlacementCoverage: jest.fn(),
   fetchUniversityStudents: jest.fn(),
   fetchUniversityStats: jest.fn(),
   fetchUniversityProfile: jest.fn(),
@@ -40,6 +41,7 @@ const {
   fetchVacancies,
   fetchCompanies,
   fetchAdminStudentsPerUniversity,
+  fetchAdminPlacementCoverage,
   fetchUniversityStudents,
   fetchUniversityStats,
   fetchUniversityProfile,
@@ -115,6 +117,17 @@ beforeEach(() => {
   fetchUniversitySupervisors.mockResolvedValue([]);
   fetchIndustrialSupervisors.mockResolvedValue([]);
   fetchUniversityStats.mockResolvedValue(BASE_STATS);
+  // PC12 chart 5 fetches its own endpoint, so it needs its own resolved promise.
+  // Left unmocked the mock returns undefined and the chart's .then() throws,
+  // taking the whole Overview tab down with it.
+  fetchAdminPlacementCoverage.mockResolvedValue({
+    byUniversity: [],
+    placementsByStatus: [],
+    unattributedStudents: 0,
+    overCoveredTotal: 0,
+    totalStudents: 0,
+    totalPlacements: 0,
+  });
 });
 
 describe('admin students-per-university', () => {

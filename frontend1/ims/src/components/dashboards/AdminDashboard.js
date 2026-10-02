@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import DashboardLayout from '../DashboardLayout';
 import ExportButton from '../ExportButton';
 import DiaryReviewModal from '../DiaryReviewModal';
+import PlacementCoverageChart from './PlacementCoverageChart';
 import StudentEditModal from '../StudentEditModal';
 import { Modal } from '../ui/Modal';
 import { useTheme } from '../../context/ThemeContext';
@@ -325,6 +326,13 @@ export default function AdminDashboard() {
             </div>
           )}
         </section>
+
+        {/* PC12 chart 5. Fetches its own payload so it cannot inherit the
+            students-per-university fetch's error state and render a confident
+            empty chart because of someone else's failure. */}
+        <div className="mt-5">
+          <PlacementCoverageChart />
+        </div>
       </div>
     );
   }

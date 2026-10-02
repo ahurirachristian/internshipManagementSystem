@@ -20,6 +20,7 @@ jest.mock('../../services/api', () => ({
   fetchVacancies: jest.fn(),
   fetchCompanies: jest.fn(),
   fetchAdminStudentsPerUniversity: jest.fn(),
+  fetchAdminPlacementCoverage: jest.fn(),
   updateStudent: jest.fn().mockResolvedValue({}),
   deleteStudent: jest.fn().mockResolvedValue({}),
 }));
@@ -31,6 +32,7 @@ const {
   fetchVacancies,
   fetchCompanies,
   fetchAdminStudentsPerUniversity,
+  fetchAdminPlacementCoverage,
 } = require('../../services/api');
 
 beforeEach(() => {
@@ -45,6 +47,17 @@ beforeEach(() => {
     ],
     unassignedCount: 0,
     totalStudents: 5,
+  });
+  // PC12 chart 5 has its own endpoint. Unmocked, the jest.fn() returns undefined
+  // and the chart's .then() throws, failing every Overview test for a reason
+  // that has nothing to do with what they assert.
+  fetchAdminPlacementCoverage.mockResolvedValue({
+    byUniversity: [],
+    placementsByStatus: [],
+    unattributedStudents: 0,
+    overCoveredTotal: 0,
+    totalStudents: 0,
+    totalPlacements: 0,
   });
 });
 

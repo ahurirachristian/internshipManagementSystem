@@ -22,4 +22,25 @@ public interface PlacementRepository extends JpaRepository<Placement, Long> {
      */
     @Query("SELECT p.status, COUNT(p) FROM Placement p WHERE p.companyId = :companyId GROUP BY p.status")
     List<Object[]> countByCompanyStatusGrouped(@Param("companyId") Long companyId);
+
+    /**
+     * PC12: distinct students per university holding at least one placement
+     * whose status is not {@code excluded}, for the admin coverage chart.
+     *
+     * <p>Counts DISTINCT students rather than placement rows, because a student
+     * can legitimately hold several — a cancelled attempt and a later offer, say.
+     * Counting rows would report one student as two and report universities as
+     * more covered than they have students.
+     *
+     * <p>Excluding one status rather than listing the positive statuses is what
+     * makes this survive the lifecycle gaining states: a new status is treated
+     * as coverage by default, which is the safe direction to fail.
+     */
+    @Query("SELECT p.universityId, COUNT(DISTINCT p.studentId) FROM Placement p "
+            + "WHERE p.status <> :excluded GROUP BY p.universityId")
+    List<Object[]> countDistinctStudentsWithPlacementExcluding(@Param("excluded") Placement.Status excluded);
+
+    /** PC12: placement records per status, system-wide, for the coverage breakdown. */
+    @Query("SELECT p.status, COUNT(p) FROM Placement p GROUP BY p.status")
+    List<Object[]> countGroupedByStatus();
 }

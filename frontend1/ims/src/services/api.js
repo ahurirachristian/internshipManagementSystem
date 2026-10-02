@@ -233,6 +233,18 @@ export async function fetchAdminStudentsPerUniversity() {
   return parseResponse(response);
 }
 
+/**
+ * PC12 chart 5: placement coverage per university. Admin-only, and system-wide
+ * by definition — there is no university to scope to, so the caller sends no
+ * parameter that could leak one institution's figures to another reader.
+ */
+export async function fetchAdminPlacementCoverage() {
+  const response = await fetch(`${API_ROOT}/api/admin/analytics/placement-coverage`, {
+    credentials: 'include',
+  });
+  return parseResponse(response);
+}
+
 export async function createStudent(student) {
   const response = await fetch(`${API_ROOT}/api/students`, {
     method: 'POST',
