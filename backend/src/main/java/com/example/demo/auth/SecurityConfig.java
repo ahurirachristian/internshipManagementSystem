@@ -2,6 +2,8 @@ package com.example.demo.auth;
 
 import java.util.List;
 
+import jakarta.servlet.http.HttpServletResponse;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -94,8 +96,17 @@ public class SecurityConfig {
                 .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/files/share/*").permitAll()
                 .anyRequest().authenticated()
             )
+            // Logout is called by XHR (api.js logoutSession), never by a browser navigation,
+            // so a redirect cannot be consumed here. The old 302 pointed at
+            // "/login?logout" — an SPA route with no server handler, since P0 removed the
+            // Thymeleaf stack — and fetch followed it to a 404. The client read that as a
+            // failed logout even though LogoutFilter had already invalidated the session,
+            // so every logout raised "Logout failed.". 204 reports the same outcome in a
+            // form response.ok accepts. CorsFilter runs first in the chain, so the header
+            // the browser needs in order to read the status is still sent.
             .logout(logout -> logout
-                .logoutSuccessUrl("/login?logout")
+                .logoutSuccessHandler((request, response, authentication) ->
+                    response.setStatus(HttpServletResponse.SC_NO_CONTENT))
                 .permitAll()
             )
             // SPA expects a machine-readable 401 (no server-rendered login page anymore)

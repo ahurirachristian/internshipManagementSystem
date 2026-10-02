@@ -104,6 +104,12 @@ export function AuthProvider({ children }) {
   const logout = useCallback(async () => {
     try {
       await logoutSession();
+    } catch {
+      // Signing out must never reject. The desired end state is "not authenticated",
+      // which the state clear below achieves regardless, and a rejection here escapes
+      // as an unhandled promise error while also skipping the caller's navigate().
+      // logoutSession still throws, so a real failure is not hidden from its other
+      // callers; this path deliberately ignores it rather than reporting it.
     } finally {
       setUser(null);
       setNotifications([]);

@@ -79,8 +79,13 @@ export function Header({
 
   async function handleLogout() {
     setIsUserMenuOpen(false);
-    await logout();
-    navigate('/login', { replace: true });
+    // navigate() in a finally so signing out always returns to /login, even if the
+    // request fails outright — otherwise the user is left on a now-unauthorised page.
+    try {
+      await logout();
+    } finally {
+      navigate('/login', { replace: true });
+    }
   }
 
   function goToProfile() {
