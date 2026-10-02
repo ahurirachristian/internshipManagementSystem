@@ -8,6 +8,7 @@ import {
   fetchSchools,
 } from '../../services/api';
 import ExportButton from '../ExportButton';
+import { CONTROL_CLASS } from '../ui/formControls';
 import Pagination from '../Pagination';
 
 const ITEMS_PER_PAGE = 10;
@@ -213,7 +214,7 @@ export default function DepartmentsManagement() {
               <div>
                 <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">School *</label>
                 <select required value={form.schoolId} onChange={(e) => setForm({ ...form, schoolId: e.target.value })}
-                  className="w-full px-3 py-2 text-sm border rounded-lg">
+                  className={CONTROL_CLASS}>
                   <option value="">Select school...</option>
                   {schools.map((s) => <option key={s.schoolId} value={s.schoolId}>{s.schoolName}</option>)}
                 </select>

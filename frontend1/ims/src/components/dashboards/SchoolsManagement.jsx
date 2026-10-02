@@ -6,6 +6,7 @@ import {
   updateSchool,
   deleteSchool,
 } from '../../services/api';
+import { CONTROL_CLASS } from '../ui/formControls';
 import ExportButton from '../ExportButton';
 import Pagination from '../Pagination';
 
@@ -227,7 +228,7 @@ export default function SchoolsManagement() {
                 <div>
                   <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Type</label>
                   <select value={form.type} onChange={(e) => setForm({ ...form, type: e.target.value })}
-                    className="w-full px-3 py-2 text-sm border rounded-lg">
+                    className={CONTROL_CLASS}>
                     <option value="">—</option>
                     {TYPES.map((t) => <option key={t} value={t}>{t}</option>)}
                   </select>
