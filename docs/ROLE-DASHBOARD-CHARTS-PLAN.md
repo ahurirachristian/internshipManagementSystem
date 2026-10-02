@@ -4,9 +4,12 @@
 question that the database can actually answer. Fix the honesty bugs that make existing charts
 mislead. Add only the schema needed to answer the questions we cannot answer today.
 
-**Status**: plan only. No phase below has been implemented. Every measurement quoted here was
-produced by running the command or query named next to it on 2026-10-01 against `fred` @ `3d6141b`
-and the local MySQL profile. Nothing is carried over from an earlier document on trust.
+**Status**: implemented. PC6–PC13 are all merged into `fred`, latest `43846ca`. The measurements
+quoted in §1 and in the phase descriptions were produced on 2026-10-01 against `fred` @ `3d6141b`
+and are kept as written, because they are the evidence those decisions rested on; the current gate
+numbers are re-measured at the end of PC13. Nothing below is carried over from an earlier document
+on trust. Deviations from this plan, and the gates PC12 did not satisfy, are recorded in the PC13
+result rather than edited away here.
 
 **Relationship to `DASHBOARDS-CHARTS-FILEMGMT-PLAN.md`**: that document owns PC1–PC5 and they are
 done and merged. This document does not reopen them. It records what PC1–PC5 built (§1.1) so no
@@ -557,6 +560,84 @@ count warrants it, and a 390/768/1920 check. `Long`/`int` casting for `universit
 
 Record which §0 [HYPOTHESIS] items exist, and what interview question or product event would
 confirm each. Until then no [HYPOTHESIS] justifies a chart's existence on its own.
+
+#### PC13 result
+
+**No §0–§4 statement carries the [HYPOTHESIS] label.** Before this section was written the label
+appeared four times in the whole document, and all four were the machinery rather than a
+finding: the definition itself (`:52`), the rule that frequency is never claimed (`:56`), and this
+section's own instruction (`:561`, `:562`). A reader can re-check it — `grep -n '\[HYPOTHESIS\]'`
+returns those four plus the mentions in this subsection, and no statement anywhere in the question
+map or phase plan carries the tag. That is the intended outcome, not a gap: §3 was written as
+answerability rather than demand precisely so that nothing needed the [HYPOTHESIS] label to ship.
+
+The label being empty does **not** mean the charts are validated. It means the *demand* half is
+untested in every case, because source code cannot establish it. §3 establishes that each
+question is answerable from real columns; nothing establishes that anybody asks it. Every chart
+below is therefore grounded and unvalidated at the same time, and that is the honest state.
+
+#### Confirmation method per chart
+
+None of these charts is justified by a validated need. Each row is the question that would
+settle it. They are ordered by how cheap the answer is to get, since a chart nobody opens is
+worth less than its build cost and this is the cheapest way to find out.
+
+| Chart | Role | Unvalidated assumption | What would confirm or kill it |
+|---|---|---|---|
+| My evaluation scores | Student | A student wants to see which criterion is weakest | Post to the cohort: "which score would you most want broken down?" A request for per-criterion detail on one evaluation is the same signal, and free |
+| Diary filing cadence | Student | Weekly filing volume is the thing a student monitors | Ask whether they check their own history, or only submit. If submission is the only use, this is dead weight and the two existing charts carry the tab |
+| Students by evaluations so far | University | A supervisor's first question on landing is "who do I chase" | Session the first 60 seconds of the landing tab. If it opens the roster table, this is the wrong chart in first position |
+| Placement rate by programme | University | Programme is the cut a placement officer thinks in | Ask whether programme, school or cohort is the grouping they reason about. School already has a rate on the same tab, so if school wins this chart is redundant |
+| Placement coverage by university | Admin | An admin's intervention is aimed at the worst-covered institution | Ask what an admin does after opening the tab. This chart assumes "reassign or pressure the university"; if the answer is "nothing, we only record", it is a reporting artefact |
+| Diary review backlog | Admin | Backlog size indicates where to apply review pressure | Compare against actual review latency per university. If the backlog does not predict delay, the bar measures filing volume, not review debt |
+| Applications by status | Company | A company wants a status mix rather than a pipeline | Ask whether they are deciding "who needs chasing" (status mix answers it) or "how many to expect" (a forecast answers it). These need different charts |
+| Placement pace | Company | Month-over-month stage arrival is the trend a company watches | Ask what they compare the current month against. If the answer is a target or a seasonal prior, the cumulative line is the wrong baseline |
+
+Two of these are cheap enough to be worth asking before the next dashboard change, and both
+concern the same assumption in different guises: `Students by evaluations so far` and `Placement
+coverage by university` both assume the reader arrives wanting to identify who is behind. That is
+the single most load-bearing unvalidated assumption in PC12, and it is unvalidated in both
+directions — nobody has confirmed a supervisor or an admin thinks in those terms.
+
+#### Deviations from this plan, recorded rather than absorbed
+
+Three PC12 charts were delivered against a different data source than the table above names. The
+source column was wrong, not the implementation.
+
+| Chart | Plan names | Delivered against | Why |
+|---|---|---|---|
+| Placement rate by programme (4) | `Student.programmeId` + `Placement` | `Student.programmeId` + `Student.internshipCompanyId` | The plan's own note "current state only" applies to `Placement.status`. Using it here would put a second placement rate on the same tab, computed by different rules, beside the headline `placementRatePct`. Matching the headline definition is worth more than matching the column name |
+| Diary backlog by university (6) | `DayDiary.status` | `DayDiary.universitySupervisorComment` | `status` is legacy and constant: the seeder writes `PENDING` to every row and never updates it, so grouping by it returns one bucket describing the entire system. The canonical Reviewed / Awaiting review split is comment-derived (PC6a), so the comment is the only field carrying the signal |
+| Applications by status (7) | `Application`, as a funnel | `Application.status`, as a by-status mix | The available endpoint reports the status of each application's latest record. That is a current-state snapshot, not cumulative progression through a funnel, so labelling it a funnel would misdescribe the data to the reader |
+
+#### Gates not satisfied by PC12
+
+- **Manual 390 / 768 / 1920 pass: not performed.** The risk register anticipated this ("no
+  browser driver, so chart layout regressions go unnoticed") and committed only to recording the
+  result rather than claiming it. The honest record is that it did not happen. Chrome is present
+  on this machine, but every dashboard needs an authenticated session against a running backend,
+  so a headless screenshot would have verified a harness rather than the product. No automated
+  visual claim is made for any chart.
+- **`loading` state: missing from all eight charts until the final PC12 commit.** The plan
+  requires "loading + error + empty" per chart. Chart 7 was also handed a hardcoded `error=""`,
+  and `UniversityDashboard` swallowed its stats failures into `console.error`, leaving charts 3
+  and 4 with no error state to render. Both are fixed in `67a10a1`. This was reported as met
+  before it was; the correction is recorded here so the gap is visible in the history rather than
+  only in the diff.
+
+#### Re-measured gates on `fred` @ `43846ca`
+
+Run for this record, not copied forward:
+
+| Gate | Command | Result | Plan baseline |
+|---|---|---|---|
+| Backend | `backend/start.sh clean test` | **280 tests, 0 failures**, `BUILD SUCCESS` | 189 |
+| Frontend tests | `cd frontend1/ims && CI=false npx react-scripts test --watchAll=false` | **23 suites, 151 tests, all pass** | 9 suites / 65 tests |
+| Frontend build | `cd frontend1/ims && CI=false npm run build` | `Compiled with warnings` | unchanged budget |
+| ESLint | `cd frontend1/ims && npx eslint src --ext .js,.jsx` | **0 errors, 9 warnings** | 0 errors / 9 warnings |
+
+Test counts grew from 189 to 280 and from 65 to 151. The plan's baselines predate PC6, and no
+test was deleted to reach these numbers.
 
 ---
 
