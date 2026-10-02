@@ -24,6 +24,10 @@
         primary key (id)
     ) engine=InnoDB;
 
+    create index idx_audit_logs_timestamp on audit_logs (timestamp);
+
+    create index idx_audit_logs_entity_user on audit_logs (target_entity, username);
+
     create table company (
         created_at datetime(6),
         id bigint not null auto_increment,
