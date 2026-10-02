@@ -108,3 +108,33 @@ button {
 .custom-scrollbar::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 3px; }
 .custom-scrollbar::-webkit-scrollbar-thumb { background: #94a3b8; border-radius: 3px; }
 .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #64748b; }
+
+/* --- Native form controls: the parts utility classes cannot reach --- */
+
+/* A <select>'s expanded option list and a date input's calendar are drawn by the
+   browser, not by the page, so their colours come from these rules instead of a
+   className. Kept in step with CONTROL_CLASS (ui/formControls.js): white/slate-900
+   in light mode, slate-900/slate-100 in dark. */
+select option {
+  background-color: #ffffff;
+  color: #0f172a;
+}
+
+.dark select option {
+  background-color: #0f172a;
+  color: #f1f5f9;
+}
+
+/* :root pins color-scheme to light so form controls keep their light defaults,
+   but that also left the date picker's icon and both native popups light while
+   the rest of the UI was dark. Opting these two control types back into dark
+   makes the browser draw them with the dark palette. Scoped to them, so scrollbars
+   and any future input are unaffected. */
+.dark select,
+.dark input[type='date'],
+.dark input[type='datetime-local'],
+.dark input[type='time'],
+.dark input[type='month'],
+.dark input[type='week'] {
+  color-scheme: dark;
+}
