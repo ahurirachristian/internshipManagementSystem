@@ -4,7 +4,8 @@ import DashboardLayout from '../DashboardLayout';
 import StudentEditModal from '../StudentEditModal';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
-import { chartColor, chartTheme, seriesColor } from '../../charts/colors';
+import { chartColor, seriesColor } from '../../charts/colors';
+import { ChartCard, ChartEmpty, chartThemeFor } from '../../charts/ChartCard';
 import {
   deleteStudent,
   fetchUniversityStudents,
@@ -1047,42 +1048,24 @@ export default function UniversityDashboard() {
     ];
     const hasScores = scoreRadar.some((d) => d.value > 0);
 
-    const theme = chartTheme(isDark);
-    const chartGrid = theme.track;
-    const chartTick = theme.muted;
-    const chartTickProps = { fontSize: 12, fill: chartTick };
-    const chartTooltipStyle = {
-      backgroundColor: theme.surface,
-      border: `1px solid ${theme.track}`,
-      color: theme.text,
-      borderRadius: '8px',
-      fontSize: '12px',
-    };
-    const chartLabelStyle = { color: theme.text };
-    const chartLegendStyle = { color: theme.label };
+    // PC12: the theme object is derived once here rather than restated in every
+    // chart, so a chart cannot forget to honour the dark-mode tokens.
+    const {
+      tick: chartTick,
+      grid: chartGrid,
+      tickProps: chartTickProps,
+      tooltipStyle: chartTooltipStyle,
+      labelStyle: chartLabelStyle,
+      legendStyle: chartLegendStyle,
+    } = chartThemeFor(isDark);
 
-    // PC5: a chart is a picture as far as assistive tech is concerned, so each one
-    // carries the sentence a sighted user reads off the axes. Without it the SVG
-    // surfaces as an unlabelled graphic and the numbers are unreachable. The
-    // surrounding section keeps its heading, so the label describes the visual
-    // rather than replacing the title.
+    // PC12: Card and Empty now live in src/charts/ChartCard so the eight PC12
+    // charts share one accessibility contract instead of copying this one.
     const card = (title, subtitle, children, summary) => (
-      <section className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs p-5">
-        <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100 mb-0.5">{title}</h3>
-        <p className="text-[11px] text-slate-500 dark:text-slate-400 mb-4">{subtitle}</p>
-        {/* No summary means there is nothing plotted, so the empty state's own text
-            is left readable rather than hidden behind an image role. */}
-        {summary ? (
-          <div role="img" aria-label={summary}>{children}</div>
-        ) : (
-          children
-        )}
-      </section>
+      <ChartCard title={title} subtitle={subtitle} summary={summary}>{children}</ChartCard>
     );
 
-    const empty = (msg) => (
-      <div className="h-48 flex items-center justify-center text-xs text-slate-400">{msg}</div>
-    );
+    const empty = (msg) => <ChartEmpty message={msg} />;
 
     // Shared by the chart labels above so each sentence names its largest segment
     // rather than only listing values.
