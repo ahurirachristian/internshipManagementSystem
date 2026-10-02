@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import { fetchMySettings, updateMySettings } from '../../services/api';
-
-const inputClass = "w-full bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 text-xs rounded-xl border border-slate-300 dark:border-slate-700 px-3.5 py-2.5 focus:border-teal-600 focus:ring-2 focus:ring-teal-600/20 focus:outline-none transition-all shadow-xs font-medium";
+import { CONTROL_CLASS } from '../ui/formControls';
 
 export default function SettingsSection() {
   const [settings, setSettings] = useState(null);
@@ -122,7 +121,7 @@ export default function SettingsSection() {
             id="language"
             value={settings.language || 'en'}
             onChange={(e) => setSettings({ ...settings, language: e.target.value })}
-            className={inputClass}
+            className={CONTROL_CLASS}
           >
             <option value="en">English</option>
           </select>

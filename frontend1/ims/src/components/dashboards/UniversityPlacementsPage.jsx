@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import DashboardLayout from '../DashboardLayout';
+import { COMPACT_CONTROL_CLASS } from '../ui/formControls';
 import { useAuth } from '../../context/AuthContext';
 import {
   fetchPlacements,
@@ -125,7 +126,7 @@ export default function UniversityPlacementsPage() {
                       <td className="px-4 py-3 text-slate-600 dark:text-slate-300">Offered</td>
                       <td className="px-4 py-3">
                         <select
-                          className="w-full bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-slate-100 rounded-lg border border-slate-200 dark:border-slate-700 px-2 py-1.5 text-xs"
+                          className={COMPACT_CONTROL_CLASS}
                           value={selectedSupervisor[placement.id] || ''}
                           onChange={(e) =>
                             setSelectedSupervisor({ ...selectedSupervisor, [placement.id]: e.target.value })

@@ -9,6 +9,7 @@ import {
   FileText,
 } from 'lucide-react';
 import CustomSelect from '../CustomSelect';
+import { CONTROL_CLASS } from '../ui/formControls';
 
 function formatDate(dateString) {
   if (!dateString) return '—';
@@ -192,7 +193,7 @@ export default function AuditLogs() {
                     type="date"
                     value={startDate}
                     onChange={(e) => setStartDate(e.target.value)}
-                    className="w-full bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 text-xs rounded-xl border border-slate-300 dark:border-slate-700 px-3.5 py-2.5 focus:border-teal-600 focus:ring-2 focus:ring-teal-600/20 focus:outline-none transition-all shadow-xs font-medium"
+                    className={CONTROL_CLASS}
                   />
                 </div>
                 <div className="flex-1 min-w-[160px]">
@@ -204,7 +205,7 @@ export default function AuditLogs() {
                     type="date"
                     value={endDate}
                     onChange={(e) => setEndDate(e.target.value)}
-                    className="w-full bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 text-xs rounded-xl border border-slate-300 dark:border-slate-700 px-3.5 py-2.5 focus:border-teal-600 focus:ring-2 focus:ring-teal-600/20 focus:outline-none transition-all shadow-xs font-medium"
+                    className={CONTROL_CLASS}
                   />
                 </div>
               </div>

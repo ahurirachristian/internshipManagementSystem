@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import DashboardLayout from '../DashboardLayout';
 import StudentEditModal from '../StudentEditModal';
+import { CONTROL_CLASS } from '../ui/formControls';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
 import { chartColor, seriesColor } from '../../charts/colors';
@@ -618,7 +619,6 @@ export default function UniversityDashboard() {
   }
 
   function renderCredentials() {
-    const selectClass = "w-full bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 text-xs rounded-xl border border-slate-300 dark:border-slate-700 px-3.5 py-2.5 focus:border-teal-600 focus:ring-2 focus:ring-teal-600/20 focus:outline-none transition-all shadow-xs font-medium";
     return (
       <section className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 shadow-xs">
         <div className="flex items-center gap-3 mb-4">
@@ -644,7 +644,7 @@ export default function UniversityDashboard() {
                 value={assignForm.studentId}
                 onChange={(e) => setAssignForm({ ...assignForm, studentId: e.target.value })}
                 required
-                className={selectClass}
+                className={CONTROL_CLASS}
               >
                 <option value="">Select student…</option>
                 {allStudents.map((st) => (
@@ -662,7 +662,7 @@ export default function UniversityDashboard() {
                 id="assign-company"
                 value={assignForm.internshipCompanyId}
                 onChange={(e) => setAssignForm({ ...assignForm, internshipCompanyId: e.target.value })}
-                className={selectClass}
+                className={CONTROL_CLASS}
               >
                 <option value="">None (pending)</option>
                 {companies.map((c) => (
@@ -678,7 +678,7 @@ export default function UniversityDashboard() {
                 id="assign-uni-supervisor"
                 value={assignForm.uniSupervisorId}
                 onChange={(e) => setAssignForm({ ...assignForm, uniSupervisorId: e.target.value })}
-                className={selectClass}
+                className={CONTROL_CLASS}
               >
                 <option value="">None</option>
                 {uniSupervisorRows.map((sup) => (
@@ -694,7 +694,7 @@ export default function UniversityDashboard() {
                 id="assign-ind-supervisor"
                 value={assignForm.indSupervisorId}
                 onChange={(e) => setAssignForm({ ...assignForm, indSupervisorId: e.target.value })}
-                className={selectClass}
+                className={CONTROL_CLASS}
               >
                 <option value="">None</option>
                 {indSupervisorRows.map((sup) => (
@@ -1579,7 +1579,7 @@ export default function UniversityDashboard() {
               <select
                 value={reviewForm.status}
                 onChange={(e) => setReviewForm({ ...reviewForm, status: e.target.value })}
-                className="w-full bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 text-xs rounded-xl border border-slate-300 dark:border-slate-700 px-3.5 py-2.5 focus:border-teal-600 focus:ring-2 focus:ring-teal-600/20 focus:outline-none transition-all shadow-xs font-medium"
+                className={CONTROL_CLASS}
               >
                 <option value="APPROVED">Approved</option>
                 <option value="NEEDS_REVISION">Needs Revision</option>

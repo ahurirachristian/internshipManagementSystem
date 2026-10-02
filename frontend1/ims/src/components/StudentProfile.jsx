@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import DashboardLayout from './DashboardLayout';
+import { CONTROL_CLASS } from './ui/formControls';
 import {
   User,
   BookOpen,
@@ -456,7 +457,7 @@ export function StudentProfile({ defaultEditing = false }) {
                     <select
                       value={editFormData.yearOfStudy}
                       onChange={(e) => setEditFormData({ ...editFormData, yearOfStudy: e.target.value })}
-                      className={inputClass}
+                      className={CONTROL_CLASS}
                     >
                       <option value="">Select year</option>
                       {[1, 2, 3, 4, 5, 6, 7].map((y) => (
@@ -472,7 +473,7 @@ export function StudentProfile({ defaultEditing = false }) {
                     <select
                       value={editFormData.gender}
                       onChange={(e) => setEditFormData({ ...editFormData, gender: e.target.value })}
-                      className={inputClass}
+                      className={CONTROL_CLASS}
                     >
                       <option value="Male">Male</option>
                       <option value="Female">Female</option>
