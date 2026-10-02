@@ -19,6 +19,7 @@ import com.example.demo.department.DepartmentRepository;
 import com.example.demo.evaluation.EvaluationRepository;
 import com.example.demo.placement.Placement;
 import com.example.demo.placement.PlacementRepository;
+import com.example.demo.programme.Programme;
 import com.example.demo.programme.ProgrammeRepository;
 import com.example.demo.school.SchoolRepository;
 import com.example.demo.student.DayDiary;
@@ -114,6 +115,8 @@ public class UniversityDashboardService {
         rosters.put("programmesCount", (long) programmeRepository.findByUniversityId(universityId.intValue()).size());
         rosters.put("uniSupervisorCount", (long) universitySupervisorRepository.findByUniversityId(universityId).size());
         rosters.put("studentsBySchool", studentsBySchool(students, universityId));
+        // PC12: per-programme placement rate for the chart on the Overview tab.
+        rosters.put("programmePlacementRates", programmePlacementRates(students, universityId));
         stats.put("rosters", rosters);
 
         stats.put("companies", companies(students, universityId));
@@ -315,6 +318,57 @@ public class UniversityDashboardService {
             return row;
         }
         return (Object[]) row[0];
+    }
+
+    /**
+     * PC12: placement rate per programme, for the programme chart.
+     *
+     * <p>Computed over the student list the endpoint already loaded, in the same
+     * shape as {@link #studentsBySchool}, so it costs no query. "Placed" means
+     * {@code internshipCompanyId != null} — deliberately the same definition the
+     * headline placementRatePct and the per-school rows already use. Deriving a
+     * second notion from Placement.status would make this chart disagree with
+     * the rate printed directly above it, and two placement rates on one screen
+     * is worse than none.
+     */
+    private List<Map<String, Object>> programmePlacementRates(List<Student> students, Long universityId) {
+        Map<Long, long[]> counts = new LinkedHashMap<>();
+        for (Student s : students) {
+            if (s.getProgrammeId() == null) {
+                continue;
+            }
+            long[] tally = counts.computeIfAbsent(s.getProgrammeId(), k -> new long[2]);
+            tally[0]++;
+            if (s.getInternshipCompanyId() != null) {
+                tally[1]++;
+            }
+        }
+
+        List<Map<String, Object>> rows = new ArrayList<>();
+        for (Programme p : programmeRepository.findByUniversityId(universityId.intValue())) {
+            long[] tally = counts.get((long) p.getProgrammeId());
+            if (tally == null || tally[0] == 0) {
+                // A programme with no students in this university has no rate.
+                // Emitting 0% would read as "everyone here failed to get placed".
+                continue;
+            }
+            Map<String, Object> row = new LinkedHashMap<>();
+            row.put("programmeId", p.getProgrammeId());
+            row.put("programmeName", p.getProgrammeName());
+            row.put("programmeCode", p.getProgrammeCode());
+            row.put("total", tally[0]);
+            row.put("placed", tally[1]);
+            row.put("placementRatePct", Math.round(100.0 * tally[1] / tally[0]));
+            rows.add(row);
+        }
+        // Highest rate first, then by name so equal rates have a stable order
+        // and the chart does not reshuffle between loads.
+        rows.sort((a, b) -> {
+            int byRate = Long.compare((Long) b.get("placementRatePct"), (Long) a.get("placementRatePct"));
+            return byRate != 0 ? byRate
+                    : String.valueOf(a.get("programmeName")).compareTo(String.valueOf(b.get("programmeName")));
+        });
+        return rows;
     }
 
     private Map<String, Object> universityInfo(Long universityId) {

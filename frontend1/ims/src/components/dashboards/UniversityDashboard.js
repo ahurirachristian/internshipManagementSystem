@@ -6,6 +6,7 @@ import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
 import { chartColor, seriesColor } from '../../charts/colors';
 import { ChartCard, ChartEmpty, chartThemeFor } from '../../charts/ChartCard';
+import ProgrammePlacementRateChart from './ProgrammePlacementRateChart';
 import UnevaluatedDistributionChart from './UnevaluatedDistributionChart';
 import {
   deleteStudent,
@@ -986,6 +987,11 @@ export default function UniversityDashboard() {
 
         {/* PC12 chart 3: derived from the by-student evaluation counts PC11
             already fetched, so no new request. */}
+        <ProgrammePlacementRateChart
+          rates={stats?.rosters?.programmePlacementRates}
+          error=""
+        />
+
         <UnevaluatedDistributionChart
           buckets={stats?.evaluations?.byEvaluationCount}
           totalStudents={rosters.totalStudents ?? 0}
