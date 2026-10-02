@@ -2,6 +2,16 @@
 -- Do not edit by hand; regenerate per docs/MIGRATION-MODELB-LOG.md.
 
 
+    create table applications (
+        company_id bigint not null,
+        created_at datetime(6),
+        id bigint not null auto_increment,
+        status enum ('SUBMITTED','REVIEWING','SHORTLISTED','ACCEPTED','REJECTED','WITHDRAWN') not null,
+        student_id bigint not null,
+        vacancy_id bigint not null,
+        primary key (id)
+    ) engine=InnoDB;
+
     create table audit_logs (
         id bigint not null auto_increment,
         timestamp datetime(6) not null,

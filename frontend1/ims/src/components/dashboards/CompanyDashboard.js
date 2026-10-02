@@ -18,6 +18,8 @@ import {
   fetchUniversityOptions,
   studentLookup,
   offerPlacement,
+  fetchApplications,
+  transitionApplication,
 } from '../../services/api';
 import {
   Building2,
@@ -54,6 +56,66 @@ const EMPTY_ANALYTICS = {
   avgEvaluation: null,
   evaluationCount: 0,
 };
+
+/**
+ * PC9: button tones for the application actions below.
+ */
+const APPLICATION_ACTION_TONE =
+  'px-2.5 py-1 rounded-lg bg-primary text-white text-[11px] font-bold hover:opacity-90';
+const APPLICATION_REJECT_TONE =
+  'px-2.5 py-1 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 text-[11px] font-bold hover:bg-slate-50 dark:hover:bg-slate-800';
+
+/**
+ * PC9: the same six statuses the server enforces, with the company's side of
+ * the lifecycle attached.
+ *
+ * <p>This list is DISPLAY ONLY — it is deliberately not the source of truth.
+ * The server owns the transition table (ApplicationService.ALLOWED) and answers
+ * an illegal jump with 409, so a stale or wrong row here can never corrupt the
+ * data; it can only cost the user a click. Withdrawn is absent on purpose: only
+ * the applicant may withdraw.
+ */
+const APPLICATION_ACTIONS = {
+  SUBMITTED: [
+    { status: 'REVIEWING', label: 'Review', tone: APPLICATION_ACTION_TONE },
+    { status: 'REJECTED', label: 'Reject', tone: APPLICATION_REJECT_TONE },
+  ],
+  REVIEWING: [
+    { status: 'SHORTLISTED', label: 'Shortlist', tone: APPLICATION_ACTION_TONE },
+    { status: 'REJECTED', label: 'Reject', tone: APPLICATION_REJECT_TONE },
+  ],
+  SHORTLISTED: [
+    { status: 'ACCEPTED', label: 'Accept', tone: APPLICATION_ACTION_TONE },
+    { status: 'REJECTED', label: 'Reject', tone: APPLICATION_REJECT_TONE },
+  ],
+  // Terminal on both ends — the row is finished, so no buttons are offered.
+  ACCEPTED: [],
+  REJECTED: [],
+  WITHDRAWN: [],
+};
+
+function nextActionsFor(status) {
+  return APPLICATION_ACTIONS[status] || [];
+}
+
+/** Tones keyed by status so the badge reads at a glance. */
+const APPLICATION_STATUS_TONE = {
+  SUBMITTED: 'bg-blue-50 border-blue-200 text-blue-700',
+  REVIEWING: 'bg-amber-50 border-amber-200 text-amber-700',
+  SHORTLISTED: 'bg-violet-50 border-violet-200 text-violet-700',
+  ACCEPTED: 'bg-emerald-50 border-emerald-200 text-emerald-700',
+  REJECTED: 'bg-rose-50 border-rose-200 text-rose-700',
+  WITHDRAWN: 'bg-slate-100 border-slate-200 text-slate-600',
+};
+
+function ApplicationStatusBadge({ status }) {
+  const tone = APPLICATION_STATUS_TONE[status] || APPLICATION_STATUS_TONE.SUBMITTED;
+  return (
+    <span className={`inline-block px-2 py-0.5 rounded-full border text-[11px] font-bold ${tone}`}>
+      {(status || '').charAt(0) + (status || '').slice(1).toLowerCase()}
+    </span>
+  );
+}
 
 /**
  * PC4 KPI tile, exported so PC7's field-supervisor dashboard reuses it instead
@@ -156,6 +218,8 @@ export default function CompanyDashboard() {  const { user } = useAuth();
   const [lookupForm, setLookupForm] = useState({ universityId: '', studentNumber: '' });
   const [lookupResult, setLookupResult] = useState(null);
   const [offerNote, setOfferNote] = useState('');
+  const [applications, setApplications] = useState([]);
+  const [applicationsLoading, setApplicationsLoading] = useState(false);
 
   async function loadSupervisors() {
     setError('');
@@ -284,6 +348,36 @@ export default function CompanyDashboard() {  const { user } = useAuth();
       setInterns(await fetchStudentsByCompany(user.companyId));
     } catch (err) {
       setError(err.message || 'Unable to load interns.');
+    }
+  }
+
+  async function loadApplications() {
+    setApplicationsLoading(true);
+    setError('');
+    try {
+      const list = await fetchApplications();
+      setApplications(Array.isArray(list) ? list : []);
+    } catch (err) {
+      setError(err.message || 'Unable to load applications.');
+    } finally {
+      setApplicationsLoading(false);
+    }
+  }
+
+  /**
+   * PC9: one lifecycle move. The server refuses illegal jumps (409) and hides
+   * anything outside this company (404), so the table just re-reads on success
+   * and surfaces the server's message otherwise.
+   */
+  async function handleTransition(applicationId, status) {
+    setError('');
+    setNotice('');
+    try {
+      await transitionApplication(applicationId, status);
+      setNotice(`Application marked ${status.toLowerCase()}.`);
+      await loadApplications();
+    } catch (err) {
+      setError(err.message || 'Unable to update this application.');
     }
   }
 
@@ -661,6 +755,123 @@ export default function CompanyDashboard() {  const { user } = useAuth();
     );
   }
 
+  function renderApplications() {
+    if (user.companyId == null) {
+      return (
+        <section className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 shadow-xs">
+          <div className="flex flex-col items-center text-center py-4">
+            <div className="w-12 h-12 rounded-full bg-amber-50 border border-amber-200 flex items-center justify-center text-amber-600 mb-3">
+              <AlertCircle className="w-6 h-6" />
+            </div>
+            <h3 className="text-base font-bold text-slate-800 dark:text-slate-200">No company linked</h3>
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-sm">
+              Your account is not linked to a company, so no applications can be listed.
+            </p>
+          </div>
+        </section>
+      );
+    }
+
+    return (
+      <section className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs overflow-hidden">
+        <div className="px-5 py-4 border-b border-slate-200 dark:border-slate-800">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-blue-50 border border-blue-200 flex items-center justify-center text-blue-700">
+              <Users className="w-5 h-5" />
+            </div>
+            <div>
+              <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100">Applications</h3>
+              <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                Students who applied to your vacancies — you only ever see your own.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {applicationsLoading ? (
+          <div className="px-5 py-6 text-xs text-slate-500 dark:text-slate-400" role="status">
+            Loading applications…
+          </div>
+        ) : applications.length === 0 ? (
+          <div className="px-5 py-8 text-center">
+            <p className="text-sm font-bold text-slate-700 dark:text-slate-300">No applications yet</p>
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+              When a student applies to one of your vacancies, they appear here.
+            </p>
+          </div>
+        ) : (
+          <div className="overflow-x-auto custom-scrollbar">
+            <table
+              className="w-full text-left border-collapse"
+              style={{ minWidth: '750px' }}
+              aria-label="Applications"
+            >
+              <thead>
+                <tr className="border-b border-slate-200 dark:border-slate-800 bg-slate-50/90 dark:bg-slate-800/60 text-[11px] font-bold tracking-wider text-slate-800 dark:text-slate-200">
+                  <th className="px-5 py-3">Applicant</th>
+                  <th className="px-5 py-3">Student number</th>
+                  <th className="px-5 py-3">Programme</th>
+                  <th className="px-5 py-3">Vacancy</th>
+                  <th className="px-5 py-3">Applied</th>
+                  <th className="px-5 py-3">Status</th>
+                  <th className="px-5 py-3">Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {applications.map((application) => (
+                  <tr
+                    key={application.id}
+                    className="border-b border-slate-100 dark:border-slate-800 last:border-0 hover:bg-slate-50/70 dark:hover:bg-slate-800/40 transition-colors"
+                  >
+                    <td className="px-5 py-3">
+                      <div className="text-xs font-bold text-slate-900 dark:text-slate-100">
+                        {[application.firstName, application.lastName]
+                          .filter(Boolean)
+                          .join(' ') || 'Unnamed applicant'}
+                      </div>
+                      <div className="text-[11px] text-slate-500 dark:text-slate-400">
+                        {application.email || '—'}
+                      </div>
+                    </td>
+                    <td className="px-5 py-3 text-xs text-slate-700 dark:text-slate-300">
+                      {application.studentNumber || '—'}
+                    </td>
+                    <td className="px-5 py-3 text-xs text-slate-700 dark:text-slate-300">
+                      {application.degreeProgram || '—'}
+                    </td>
+                    <td className="px-5 py-3 text-xs text-slate-700 dark:text-slate-300">
+                      {application.vacancyTitle || '—'}
+                    </td>
+                    <td className="px-5 py-3 text-xs text-slate-700 dark:text-slate-300">
+                      {formatDay(application.createdAt)}
+                    </td>
+                    <td className="px-5 py-3">
+                      <ApplicationStatusBadge status={application.status} />
+                    </td>
+                    <td className="px-5 py-3">
+                      <div className="flex items-center gap-2">
+                        {nextActionsFor(application.status).map((action) => (
+                          <button
+                            key={action.status}
+                            type="button"
+                            onClick={() => handleTransition(application.id, action.status)}
+                            className={action.tone}
+                          >
+                            {action.label}
+                          </button>
+                        ))}
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </section>
+    );
+  }
+
   function renderSupervisors() {
     return (
       <div className="space-y-6">
@@ -751,6 +962,7 @@ export default function CompanyDashboard() {  const { user } = useAuth();
         { id: 'profile', label: 'Profile' },
         { id: 'interns', label: 'Interns' },
         { id: 'offers', label: 'Offers' },
+        { id: 'applications', label: 'Applications' },
         { id: 'supervisors', label: 'Field Supervisors' },
       ]}
       activeTab={activeTab}
@@ -761,6 +973,9 @@ export default function CompanyDashboard() {  const { user } = useAuth();
         }
         if (tab === 'supervisors') {
           loadSupervisors();
+        }
+        if (tab === 'applications') {
+          loadApplications();
         }
         if (tab === 'offers' && universities.length === 0) {
           fetchUniversityOptions().then((list) => setUniversities(Array.isArray(list) ? list : [])).catch(() => {});
@@ -799,6 +1014,7 @@ export default function CompanyDashboard() {  const { user } = useAuth();
         {activeTab === 'profile' && renderProfile()}
         {activeTab === 'interns' && renderInterns()}
         {activeTab === 'offers' && renderOffers()}
+        {activeTab === 'applications' && renderApplications()}
         {activeTab === 'supervisors' && renderSupervisors()}
       </div>
 

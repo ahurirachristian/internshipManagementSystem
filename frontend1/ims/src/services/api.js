@@ -502,6 +502,45 @@ export async function fetchVacancies() {
   return parseResponse(response);
 }
 
+// --- Vacancy applications (PC9) ---
+// Everything here is scoped by the server from the session: a company only
+// ever receives its own applicants, a student only their own applications.
+
+export async function applyToVacancy(vacancyId, note) {
+  const response = await fetch(`${API_ROOT}/api/applications`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+    body: JSON.stringify({ vacancyId, note }),
+  });
+  return parseResponse(response);
+}
+
+export async function fetchApplications() {
+  const response = await fetch(`${API_ROOT}/api/applications`, {
+    credentials: 'include',
+  });
+  return parseResponse(response);
+}
+
+// Zero-filled counts over the full status vocabulary + a reconciling total.
+export async function fetchApplicationFunnel() {
+  const response = await fetch(`${API_ROOT}/api/applications/funnel`, {
+    credentials: 'include',
+  });
+  return parseResponse(response);
+}
+
+export async function transitionApplication(id, status) {
+  const response = await fetch(`${API_ROOT}/api/applications/${id}/transition`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+    body: JSON.stringify({ status }),
+  });
+  return parseResponse(response);
+}
+
 // --- Placement pipeline (P7) ---
 
 export async function studentLookup(universityId, studentNumber) {

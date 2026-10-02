@@ -24,6 +24,8 @@ jest.mock('../../services/api', () => ({
   fetchUniversityOptions: jest.fn().mockResolvedValue([]),
   studentLookup: jest.fn().mockResolvedValue(null),
   offerPlacement: jest.fn().mockResolvedValue({}),
+  fetchApplications: jest.fn().mockResolvedValue([]),
+  transitionApplication: jest.fn().mockResolvedValue({}),
 }));
 
 // Imported after the mock so the jest.fn()s above are the ones under test.
@@ -31,6 +33,8 @@ const {
   fetchCompanyAnalytics,
   fetchCompany,
   fetchCompanySupervisors,
+  fetchApplications,
+  transitionApplication,
 } = require('../../services/api');
 
 jest.mock('../../context/AuthContext', () => ({
@@ -173,6 +177,140 @@ describe('CompanyDashboard overview', () => {
     expect(await screen.findByText('Service unavailable')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Retry' })).toBeInTheDocument();
     expect(screen.queryByText('Offers Pipeline')).not.toBeInTheDocument();
+  });
+});
+
+describe('CompanyDashboard applications (PC9)', () => {
+  beforeEach(() => {
+    fetchApplications.mockResolvedValue([]);
+    transitionApplication.mockResolvedValue({});
+  });
+
+  it('lists only what the server sends, with a real empty state', async () => {
+    fetchApplications.mockResolvedValue([]);
+    render(<CompanyDashboard />);
+    await screen.findByText('Offers Pipeline');
+
+    fireEvent.click(screen.getByRole('tab', { name: 'Applications' }));
+
+    // An empty response is an empty state, not invented rows.
+    expect(await screen.findByText('No applications yet')).toBeInTheDocument();
+    expect(fetchApplications).toHaveBeenCalled();
+    expect(screen.queryByRole('table')).not.toBeInTheDocument();
+  });
+
+  it('renders the applicant PII and the server-side status verbatim', async () => {
+    fetchApplications.mockResolvedValue([
+      {
+        id: 5,
+        vacancyId: 2,
+        vacancyTitle: 'Backend Engineer',
+        companyId: 7,
+        studentId: 11,
+        status: 'SUBMITTED',
+        createdAt: '2026-02-14T10:15:00',
+        firstName: 'Ada',
+        lastName: 'Applicant',
+        studentNumber: 'S1024',
+        registrationNumber: 'REG1024',
+        degreeProgram: 'BSc CS',
+        email: 'ada@example.com',
+      },
+    ]);
+    render(<CompanyDashboard />);
+    await screen.findByText('Offers Pipeline');
+
+    fireEvent.click(screen.getByRole('tab', { name: 'Applications' }));
+
+    expect(await screen.findByRole('table', { name: 'Applications' })).toBeInTheDocument();
+    expect(screen.getByText('Ada Applicant')).toBeInTheDocument();
+    expect(screen.getByText('ada@example.com')).toBeInTheDocument();
+    expect(screen.getByText('S1024')).toBeInTheDocument();
+    expect(screen.getByText('BSc CS')).toBeInTheDocument();
+    expect(screen.getByText('Backend Engineer')).toBeInTheDocument();
+    // Badge text is derived from the enum name, not a client-side guess.
+    expect(screen.getByText('Submitted')).toBeInTheDocument();
+  });
+
+  async function openApplications(rows) {
+    fetchApplications.mockResolvedValue(rows);
+    render(<CompanyDashboard />);
+    await screen.findByText('Offers Pipeline');
+    fireEvent.click(screen.getByRole('tab', { name: 'Applications' }));
+    await screen.findByRole('table', { name: 'Applications' });
+  }
+
+  it('offers only the legal next moves from SUBMITTED', async () => {
+    await openApplications([
+      { id: 1, status: 'SUBMITTED', firstName: 'A', lastName: 'One', vacancyTitle: 'V' },
+    ]);
+
+    // A submitted application can be reviewed or rejected, but not accepted —
+    // it has not been shortlisted yet.
+    expect(screen.getByRole('button', { name: 'Review' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Reject' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Accept' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Shortlist' })).not.toBeInTheDocument();
+  });
+
+  it('offers Accept only from SHORTLISTED', async () => {
+    await openApplications([
+      { id: 2, status: 'SHORTLISTED', firstName: 'B', lastName: 'Two', vacancyTitle: 'V' },
+    ]);
+
+    expect(screen.getByRole('button', { name: 'Accept' })).toBeInTheDocument();
+    // It is already shortlisted, so that step is behind it.
+    expect(screen.queryByRole('button', { name: 'Shortlist' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Review' })).not.toBeInTheDocument();
+  });
+
+  it('offers no action at all once terminal', async () => {
+    await openApplications([
+      { id: 3, status: 'ACCEPTED', firstName: 'C', lastName: 'Three', vacancyTitle: 'V' },
+      { id: 4, status: 'REJECTED', firstName: 'D', lastName: 'Four', vacancyTitle: 'V' },
+      { id: 5, status: 'WITHDRAWN', firstName: 'E', lastName: 'Five', vacancyTitle: 'V' },
+    ]);
+
+    // Terminal rows must not offer a way back in; the server would 409 anyway.
+    expect(screen.queryAllByRole('button')).toHaveLength(0);
+    expect(screen.getByText('Accepted')).toBeInTheDocument();
+    expect(screen.getByText('Rejected')).toBeInTheDocument();
+    expect(screen.getByText('Withdrawn')).toBeInTheDocument();
+  });
+
+  it('drives a transition and reloads the list', async () => {
+    fetchApplications.mockResolvedValue([
+      { id: 9, status: 'SUBMITTED', firstName: 'Ada', lastName: 'Applicant', vacancyTitle: 'V' },
+    ]);
+    render(<CompanyDashboard />);
+    await screen.findByText('Offers Pipeline');
+
+    fireEvent.click(screen.getByRole('tab', { name: 'Applications' }));
+    fireEvent.click(await screen.findByRole('button', { name: 'Review' }));
+
+    await waitFor(() => expect(transitionApplication).toHaveBeenCalledWith(9, 'REVIEWING'));
+    // The list is re-read so the badge reflects the server's new state.
+    await waitFor(() => expect(fetchApplications).toHaveBeenCalledTimes(2));
+    expect(await screen.findByText('Application marked reviewing.')).toBeInTheDocument();
+  });
+
+  it('surfaces a 409 from an illegal transition instead of optimistically updating', async () => {
+    fetchApplications.mockResolvedValue([
+      { id: 9, status: 'SUBMITTED', firstName: 'Ada', lastName: 'Applicant', vacancyTitle: 'V' },
+    ]);
+    transitionApplication.mockRejectedValue(
+      Object.assign(new Error('An application in SUBMITTED cannot move to ACCEPTED.'), { status: 409 }),
+    );
+    render(<CompanyDashboard />);
+    await screen.findByText('Offers Pipeline');
+
+    fireEvent.click(screen.getByRole('tab', { name: 'Applications' }));
+    fireEvent.click(await screen.findByRole('button', { name: 'Review' }));
+
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      'An application in SUBMITTED cannot move to ACCEPTED.',
+    );
+    expect(screen.queryByText(/Application marked/)).not.toBeInTheDocument();
   });
 });
 

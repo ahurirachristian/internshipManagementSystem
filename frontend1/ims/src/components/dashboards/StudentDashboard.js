@@ -11,6 +11,7 @@ import LearningInstituteSection from './LearningInstituteSection';
 import CompaniesSection from './CompaniesSection';
 import IndustrialSupervisorSection from './IndustrialSupervisorSection';
 import UniversitySupervisorSection from './UniversitySupervisorSection';
+import VacanciesSection from './VacanciesSection';
 import {
   createDiary,
   deleteDiary,
@@ -470,6 +471,7 @@ export default function StudentDashboard() {
         { id: 'overview', label: 'Overview' },
         { id: 'profile', label: 'Profile' },
         { id: 'learning-institute', label: 'Learning Institute' },
+        { id: 'vacancies', label: 'Vacancies' },
         { id: 'companies', label: 'Companies' },
         { id: 'industrial-supervisor', label: 'Industrial Supervisor' },
         { id: 'university-supervisor', label: 'University Supervisor' },
@@ -536,6 +538,7 @@ export default function StudentDashboard() {
       )}
       {activeTab === 'profile' && renderProfile()}
       {activeTab === 'learning-institute' && <LearningInstituteSection />}
+      {activeTab === 'vacancies' && <VacanciesSection />}
       {activeTab === 'companies' && <CompaniesSection />}
       {activeTab === 'industrial-supervisor' && <IndustrialSupervisorSection />}
       {activeTab === 'university-supervisor' && <UniversitySupervisorSection />}
