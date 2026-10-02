@@ -7,6 +7,7 @@ import {
   updateCourse,
   deleteCourse,
 } from '../../services/api';
+import { CONTROL_CLASS } from '../ui/formControls';
 
 /**
  * P8: course units per programme — now backed by the real /api/courses
@@ -133,7 +134,7 @@ export default function UnitCoursesManagement() {
         </div>
         <form onSubmit={handleSubmit} className="grid grid-cols-1 sm:grid-cols-5 gap-3">
           <select
-            className={inputClass}
+            className={CONTROL_CLASS}
             value={form.programmeId}
             onChange={(e) => setForm({ ...form, programmeId: e.target.value })}
             required
@@ -158,7 +159,7 @@ export default function UnitCoursesManagement() {
             required
           />
           <select
-            className={inputClass}
+            className={CONTROL_CLASS}
             value={form.yearOfStudy}
             onChange={(e) => setForm({ ...form, yearOfStudy: e.target.value })}
           >

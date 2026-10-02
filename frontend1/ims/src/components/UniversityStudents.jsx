@@ -26,6 +26,7 @@ import StudentEditModal from './StudentEditModal';
 import { FilterTabs } from './ui/FilterTabs';
 import { KpiCard } from './ui/KpiCard';
 import { EmptyState } from './ui/EmptyState';
+import { CONTROL_CLASS } from './ui/formControls';
 import ExportButton from './ExportButton';
 
 const emptyStudentForm = {
@@ -411,7 +412,7 @@ export default function UniversityStudents() {
               <select
                 value={addForm.unitId}
                 onChange={(e) => setAddForm({ ...addForm, unitId: e.target.value })}
-                className="w-full text-xs rounded-xl border border-slate-300 px-3 py-2 focus:border-teal-600 focus:ring-2 focus:ring-teal-600/20 focus:outline-none"
+                className={CONTROL_CLASS}
               >
                 <option value="">Select unit...</option>
                 {schools.map((u) => (
@@ -425,7 +426,7 @@ export default function UniversityStudents() {
                 type="date"
                 value={addForm.startDate}
                 onChange={(e) => setAddForm({ ...addForm, startDate: e.target.value })}
-                className="w-full text-xs rounded-xl border border-slate-300 px-3 py-2 focus:border-teal-600 focus:ring-2 focus:ring-teal-600/20 focus:outline-none"
+                className={CONTROL_CLASS}
               />
             </div>
             <div>
@@ -434,7 +435,7 @@ export default function UniversityStudents() {
                 type="date"
                 value={addForm.endDate}
                 onChange={(e) => setAddForm({ ...addForm, endDate: e.target.value })}
-                className="w-full text-xs rounded-xl border border-slate-300 px-3 py-2 focus:border-teal-600 focus:ring-2 focus:ring-teal-600/20 focus:outline-none"
+                className={CONTROL_CLASS}
               />
             </div>
           </div>

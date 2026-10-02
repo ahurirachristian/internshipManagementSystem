@@ -5,6 +5,7 @@ import {
   fetchMyRoleRequests,
   fetchUniversityOptions,
 } from '../../services/api';
+import { CONTROL_CLASS } from '../ui/formControls';
 
 const REQUESTABLE = ['SUPERVISOR', 'INDUSTRIAL_SUPERVISOR', 'COMPANY', 'ADMIN'];
 
@@ -81,7 +82,7 @@ export default function RequestRoleSection() {
           <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5" htmlFor="request-role">
             Role
           </label>
-          <select id="request-role" className={inputClass} value={role} onChange={(e) => setRole(e.target.value)}>
+          <select id="request-role" className={CONTROL_CLASS} value={role} onChange={(e) => setRole(e.target.value)}>
             {REQUESTABLE.map((r) => (
               <option key={r} value={r}>{r}</option>
             ))}
@@ -95,7 +96,7 @@ export default function RequestRoleSection() {
             </label>
             <select
               id="request-university"
-              className={inputClass}
+              className={CONTROL_CLASS}
               value={universityId}
               onChange={(e) => setUniversityId(e.target.value)}
             >

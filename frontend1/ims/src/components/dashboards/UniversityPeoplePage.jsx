@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import DashboardLayout from '../DashboardLayout';
+import { CONTROL_CLASS } from '../ui/formControls';
 import {
   assignUniversityUserRole,
   createUniversityPerson,
@@ -91,7 +92,7 @@ export default function UniversityPeoplePage() {
               value={username}
               onChange={(e) => setUsername(e.target.value)}
             />
-            <select className={inputClass} value={role} onChange={(e) => setRole(e.target.value)}>
+            <select className={CONTROL_CLASS} value={role} onChange={(e) => setRole(e.target.value)}>
               <option value="STUDENT">STUDENT</option>
               <option value="SUPERVISOR">SUPERVISOR</option>
             </select>

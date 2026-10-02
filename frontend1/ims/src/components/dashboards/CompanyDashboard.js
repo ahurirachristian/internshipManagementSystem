@@ -3,6 +3,7 @@ import DashboardLayout from '../DashboardLayout';
 import CompanyEditModal from '../CompanyEditModal';
 import CompanySupervisorModal from '../CompanySupervisorModal';
 import ApplicationsFunnelChart from './ApplicationsFunnelChart';
+import { CONTROL_CLASS } from '../ui/formControls';
 import PlacementPaceChart from './PlacementPaceChart';
 import { DonutChart } from '../../charts/ProgressCharts';
 import { chartColor } from '../../charts/colors';
@@ -739,7 +740,7 @@ export default function CompanyDashboard() {  const { user } = useAuth();
           </div>
           <form onSubmit={handleLookup} className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <select
-              className={inputClass}
+              className={CONTROL_CLASS}
               value={lookupForm.universityId}
               onChange={(e) => setLookupForm({ ...lookupForm, universityId: e.target.value })}
             >
