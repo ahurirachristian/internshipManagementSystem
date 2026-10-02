@@ -35,4 +35,19 @@ public interface DayDiaryRepository extends JpaRepository<DayDiary, Long> {
     @Query("SELECT d.studentId, MAX(d.date) FROM DayDiary d " +
            "WHERE d.universityId = :universityId GROUP BY d.studentId")
     List<Object[]> findLatestDiaryDatePerStudent(@Param("universityId") Long universityId);
+
+    /**
+     * PC11: diary count per student in one round trip. Replaces the per-student
+     * {@code findByStudentIdOrderByDateDesc(...).size()} that the dashboard ran
+     * twice per student (once for mid-term readiness, once for the by-student
+     * rows) — the same 2N shape the plan flags for evaluations.
+     *
+     * <p>Deliberately NOT filtered by university. The method it replaces counted
+     * every diary a student had, regardless of which university filed it, so
+     * scoping this query would silently change the readiness numbers on any
+     * database where a student has cross-university rows. Kept exactly as-is:
+     * a student absent from the map reads as zero.
+     */
+    @Query("SELECT d.studentId, COUNT(d) FROM DayDiary d GROUP BY d.studentId")
+    List<Object[]> countByStudentIdGrouped();
 }

@@ -407,10 +407,21 @@ public class UniversityDashboardService {
     private Map<String, Object> evaluations(List<Student> students, Map<Long, Student> studentsById, Long universityId) {
         Map<String, Object> out = new LinkedHashMap<>();
         long total = evaluationRepository.countByUniversityId(universityId);
+
+        // PC11: two grouped queries replace the two per-student loops below.
+        // See the repository javadoc for why the university predicate differs
+        // between them — it mirrors the filters this method always applied.
+        Map<Long, Long> evalsPerStudent = new HashMap<>();
+        for (Object[] row : evaluationRepository.countByStudentIdGrouped(universityId)) {
+            evalsPerStudent.put((Long) row[0], (Long) row[1]);
+        }
+        Map<Long, Long> diariesPerStudent = new HashMap<>();
+        for (Object[] row : dayDiaryRepository.countByStudentIdGrouped()) {
+            diariesPerStudent.put((Long) row[0], (Long) row[1]);
+        }
+
         long evaluated = students.stream()
-                .filter(s -> evaluationRepository.findByStudentId(s.getId()).stream()
-                        .anyMatch(e -> e.getUniversityId() != null
-                                && e.getUniversityId().equals(universityId)))
+                .filter(s -> evalsPerStudent.getOrDefault(s.getId(), 0L) > 0)
                 .count();
         out.put("totalEvaluations", total);
         out.put("evaluatedStudents", evaluated);
@@ -418,24 +429,23 @@ public class UniversityDashboardService {
         Object[] avg = unwrapRow(evaluationRepository.averageScores(universityId));
         out.put("averageScores", avgScores(avg));
 
-        long midTerm = students.stream().filter(s -> diaryCount(studentsById, s) >= MID_TERM_DIARIES).count();
-        long finalReport = students.stream().filter(s -> diaryCount(studentsById, s) >= FINAL_REPORT_DIARIES).count();
+        long midTerm = students.stream()
+                .filter(s -> diariesPerStudent.getOrDefault(s.getId(), 0L) >= MID_TERM_DIARIES).count();
+        long finalReport = students.stream()
+                .filter(s -> diariesPerStudent.getOrDefault(s.getId(), 0L) >= FINAL_REPORT_DIARIES).count();
         out.put("midTermReady", midTerm);
         out.put("finalReportReady", finalReport);
 
         List<Map<String, Object>> byStudent = new ArrayList<>();
         for (Student s : students) {
-            List<com.example.demo.evaluation.Evaluation> evals =
-                    evaluationRepository.findByStudentId(s.getId()).stream()
-                            .filter(e -> e.getUniversityId() != null && e.getUniversityId().equals(universityId))
-                            .collect(Collectors.toList());
-            long diaryCount = diaryCount(studentsById, s);
+            long evaluationCount = evalsPerStudent.getOrDefault(s.getId(), 0L);
+            long diaryCount = diariesPerStudent.getOrDefault(s.getId(), 0L);
             Map<String, Object> row = new LinkedHashMap<>();
             row.put("studentId", s.getId());
             row.put("studentName", s.getFirstName() + " " + s.getLastName());
             row.put("studentNo", s.getStudentNumber());
-            row.put("evaluated", !evals.isEmpty());
-            row.put("evaluationCount", (long) evals.size());
+            row.put("evaluated", evaluationCount > 0);
+            row.put("evaluationCount", evaluationCount);
             row.put("diaryCount", diaryCount);
             row.put("midTermReady", diaryCount >= MID_TERM_DIARIES);
             row.put("finalReportReady", diaryCount >= FINAL_REPORT_DIARIES);
@@ -475,9 +485,5 @@ public class UniversityDashboardService {
             return null;
         }
         return Math.round(((Number) v).doubleValue() * 10.0) / 10.0;
-    }
-
-    private long diaryCount(Map<Long, Student> studentsById, Student s) {
-        return dayDiaryRepository.findByStudentIdOrderByDateDesc(s.getId()).size();
     }
 }

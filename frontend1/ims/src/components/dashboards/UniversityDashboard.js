@@ -70,7 +70,8 @@ const emptyAssignForm = {
 export default function UniversityDashboard() {
   const { user } = useAuth();
   const { isDark } = useTheme();
-  const [activeTab, setActiveTab] = useState('students');
+  // PC11: land on Overview rather than the raw student table.
+  const [activeTab, setActiveTab] = useState('overview');
   const [allStudents, setAllStudents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -935,6 +936,92 @@ export default function UniversityDashboard() {
     );
   }
 
+  // PC11: the landing tab. It deliberately ships NO new chart — the eight
+  // charts are the ones Analytics already renders, mounted here unchanged by
+  // delegating to renderAnalytics(). Adding a second implementation would mean
+  // two sets of labels and empty states to keep in step, and the plan's whole
+  // argument is that finished charts were hidden one click away.
+  //
+  // What Overview adds over Analytics is the diary-attention count, because
+  // that is the one number a supervisor is expected to act on before looking at
+  // any chart: students who have gone quiet and need chasing.
+  function renderOverview() {
+    const rosters = stats?.rosters || {};
+    const d = stats?.diaries || {};
+    const attention = stats?.attention || {};
+    const ev = stats?.analytics?.evaluations || {};
+
+    const kpis = [
+      ['Students', rosters.totalStudents ?? 0, `${rosters.pending ?? 0} awaiting a company`],
+      ['Assigned', rosters.assigned ?? 0, `${rosters.totalStudents ?? 0} total students`],
+      ['Diary attention', attention.total ?? 0,
+        `No diary filed in ${attention.windowHours ? `${Math.round(attention.windowHours / 24)} days` : 'the window'}`],
+      ['Awaiting review', d.pendingReview ?? 0, `${d.totalEntries ?? 0} diary entries filed`],
+    ];
+
+    return (
+      <div className="space-y-6">
+        <section aria-labelledby="overview-heading">
+          <h2 id="overview-heading" className="sr-only">Overview</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+            {kpis.map(([label, value, sub]) => (
+              <div
+                key={label}
+                // Named as a group so each figure is reachable as one unit by
+                // assistive tech, instead of three loose numbers that read
+                // without knowing which is which.
+                role="group"
+                aria-label={`${label}: ${value}`}
+                className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs p-5"
+              >
+                <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">{label}</p>
+                <p className="mt-1 text-2xl font-extrabold text-slate-900 dark:text-slate-100">{value}</p>
+                <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">{sub}</p>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* Evaluation readiness, read from the same analytics block the charts
+            below consume rather than from a second source. */}
+        <section
+          className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs p-5"
+          aria-labelledby="overview-readiness-heading"
+        >
+          <h3 id="overview-readiness-heading" className="text-sm font-bold text-slate-900 dark:text-slate-100">
+            Evaluation readiness
+          </h3>
+          <p className="text-[11px] text-slate-500 dark:text-slate-400 mb-4">
+            Students with enough diary entries to be assessed, and how many have an evaluation
+          </p>
+          <dl className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+            {[
+              ['Mid-term ready', ev.midTermReady ?? 0],
+              ['Final report ready', ev.finalReportReady ?? 0],
+              ['Evaluated students', ev.evaluatedStudents ?? 0],
+              ['Total evaluations', ev.totalEvaluations ?? 0],
+            ].map(([label, value]) => (
+              <div key={label}>
+                <dt className="text-xs font-semibold text-slate-500 dark:text-slate-400">{label}</dt>
+                <dd className="mt-0.5 text-lg font-extrabold text-slate-900 dark:text-slate-100">{value}</dd>
+              </div>
+            ))}
+          </dl>
+        </section>
+
+        <div>
+          <h2 className="text-sm font-bold text-slate-900 dark:text-slate-100">
+            Analytics
+          </h2>
+          <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5 mb-3">
+            The same charts as the Analytics tab
+          </p>
+          {renderAnalytics()}
+        </div>
+      </div>
+    );
+  }
+
   function renderAnalytics() {
     const a = stats?.analytics || {};
     const byYear = a.byYearOfStudy || [];
@@ -1375,6 +1462,10 @@ export default function UniversityDashboard() {
       title="University Dashboard"
       subtitle={university ? `Welcome, ${university.fullName}` : 'Welcome,'}
       tabs={[
+        // PC11: Overview first, and the default tab below. Overview mounts the
+        // existing eight charts, so this only changes what is visible on landing
+        // — it adds no new chart and no new backend query.
+        { id: 'overview', label: 'Overview' },
         { id: 'students', label: 'Students' },
         { id: 'analytics', label: 'Analytics' },
         { id: 'placements', label: 'Placements & Companies' },
@@ -1433,6 +1524,7 @@ export default function UniversityDashboard() {
           </section>
         )}
 
+        {activeTab === 'overview' && renderOverview()}
         {activeTab === 'students' && renderStudents()}
         {activeTab === 'analytics' && renderAnalytics()}
         {activeTab === 'placements' && (<>

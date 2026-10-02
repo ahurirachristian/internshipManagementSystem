@@ -12,6 +12,23 @@ public interface EvaluationRepository extends JpaRepository<Evaluation, Long> {
 
     long countByUniversityId(Long universityId);
 
+    /**
+     * PC11: evaluation count per student, scoped to one university, in a single
+     * round trip. The dashboard previously called {@code findByStudentId} once
+     * per student (twice — once to count "evaluated" students and again to build
+     * the by-student rows), which is the 2N+1 the plan flags: harmless on two
+     * dev students, a production-grade latency cliff on hundreds.
+     *
+     * <p>The {@code universityId} predicate reproduces the exact in-memory
+     * filter this replaces ({@code e.universityId != null &&
+     * .equals(universityId)}), including rows whose university is null, which
+     * are excluded rather than counted. A student with no row here simply is
+     * absent from the map, and the caller reads that as a count of zero.
+     */
+    @Query("SELECT e.studentId, COUNT(e) FROM Evaluation e " +
+           "WHERE e.universityId = :universityId GROUP BY e.studentId")
+    List<Object[]> countByStudentIdGrouped(@Param("universityId") Long universityId);
+
     @Query("SELECT AVG(e.punctuality), AVG(e.practicalWorkEthics), AVG(e.attendance), AVG(e.workplacePerformance) " +
            "FROM Evaluation e WHERE e.universityId = :universityId")
     Object[] averageScores(@Param("universityId") Long universityId);
