@@ -30,7 +30,7 @@ import { fetchAdminDiaryBacklog } from '../../services/api';
 
 export default function DiaryBacklogChart() {
   const { isDark } = useTheme();
-  const { grid, tickProps, tooltipStyle, labelStyle } = chartThemeFor(isDark);
+  const { grid, tickProps, tooltipStyle, labelStyle, labelFill } = chartThemeFor(isDark);
   const [stats, setStats] = useState(null);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
@@ -120,7 +120,7 @@ export default function DiaryBacklogChart() {
               <LabelList
                 dataKey="awaiting"
                 position="right"
-                fill={isDark ? '#cbd5e1' : '#475569'}
+                fill={labelFill}
                 fontSize={12}
               />
             </Bar>

@@ -29,7 +29,7 @@ import { ChartCard, ChartEmpty, chartThemeFor } from '../../charts/ChartCard';
 
 export default function ProgrammePlacementRateChart({ rates, error, loading }) {
   const { isDark } = useTheme();
-  const { grid, tickProps, tooltipStyle, labelStyle } = chartThemeFor(isDark);
+  const { grid, tickProps, tooltipStyle, labelStyle, labelFill } = chartThemeFor(isDark);
 
   if (error) {
     return (
@@ -96,7 +96,7 @@ export default function ProgrammePlacementRateChart({ rates, error, loading }) {
                 dataKey="rate"
                 position="right"
                 formatter={(v) => `${v}%`}
-                fill={isDark ? '#cbd5e1' : '#475569'}
+                fill={labelFill}
                 fontSize={12}
               />
             </Bar>
