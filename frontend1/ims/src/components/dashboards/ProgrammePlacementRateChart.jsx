@@ -27,7 +27,7 @@ import {
 import { seriesColor } from '../../charts/colors';
 import { ChartCard, ChartEmpty, chartThemeFor } from '../../charts/ChartCard';
 
-export default function ProgrammePlacementRateChart({ rates, error }) {
+export default function ProgrammePlacementRateChart({ rates, error, loading }) {
   const { isDark } = useTheme();
   const { grid, tickProps, tooltipStyle, labelStyle } = chartThemeFor(isDark);
 
@@ -65,6 +65,7 @@ export default function ProgrammePlacementRateChart({ rates, error }) {
       title="Placement Rate by Programme"
       subtitle="Where placements are landing, and where they are not"
       summary={summary}
+      loading={loading}
     >
       {withStudents.length ? (
         <ResponsiveContainer width="100%" height={Math.max(240, withStudents.length * 38)}>

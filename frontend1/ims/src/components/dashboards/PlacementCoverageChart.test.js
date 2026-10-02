@@ -97,6 +97,16 @@ describe('PlacementCoverageChart', () => {
     expect(await screen.findByText('No placement data yet')).toBeInTheDocument();
   });
 
+test('announces a pending request instead of reporting no placement data', async () => {
+    // Never resolves, so the card stays in its pending state.
+    fetchAdminPlacementCoverage.mockReturnValue(new Promise(() => {}));
+    render(<PlacementCoverageChart />);
+
+    // "No placement data yet" would read as a finding about the system.
+    expect(screen.queryByText('No placement data yet')).not.toBeInTheDocument();
+    expect(await screen.findByRole('status')).toHaveTextContent(/loading placement coverage by university/i);
+  });
+
   test('surfaces a load failure', async () => {
     fetchAdminPlacementCoverage.mockRejectedValue(new Error('Unable to load placement coverage.'));
     render(<PlacementCoverageChart />);

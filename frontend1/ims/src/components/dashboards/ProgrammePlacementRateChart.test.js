@@ -70,6 +70,13 @@ describe('ProgrammePlacementRateChart', () => {
     expect(screen.getByText('No programme data yet')).toBeInTheDocument();
   });
 
+test('shows a loading state instead of an empty rate list while in flight', () => {
+    render(<ProgrammePlacementRateChart rates={[]} error="" loading />);
+
+    expect(screen.queryByText('No programme data yet')).not.toBeInTheDocument();
+    expect(screen.getByRole('status')).toHaveTextContent(/loading placement rate by programme/i);
+  });
+
   test('surfaces a load failure', () => {
     render(<ProgrammePlacementRateChart rates={[]} error="Unable to load stats." />);
 

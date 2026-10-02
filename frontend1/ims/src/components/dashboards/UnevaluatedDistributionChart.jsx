@@ -25,7 +25,7 @@ import {
 import { seriesColor } from '../../charts/colors';
 import { ChartCard, ChartEmpty, chartThemeFor } from '../../charts/ChartCard';
 
-export default function UnevaluatedDistributionChart({ buckets, totalStudents, error }) {
+export default function UnevaluatedDistributionChart({ buckets, totalStudents, error, loading }) {
   const { isDark } = useTheme();
   const { grid, tickProps, tooltipStyle, labelStyle } = chartThemeFor(isDark);
 
@@ -67,6 +67,7 @@ export default function UnevaluatedDistributionChart({ buckets, totalStudents, e
       title="Students by Evaluations So Far"
       subtitle="Who still needs evaluating"
       summary={summary}
+      loading={loading}
     >
       {rows.length && bucketed ? (
         <ResponsiveContainer width="100%" height={240}>

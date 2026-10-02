@@ -16,20 +16,47 @@ import { chartTheme } from './colors';
  *
  * <p>The surrounding section keeps its heading, so the label describes the
  * visual rather than replacing the title.
+ *
+ * <p>`loading` is handled here rather than in each chart. Before it existed the
+ * eight PC12 charts all shared a defect: with data still in flight they rendered
+ * their empty state, so a slow request asserted "No students yet" — a confident
+ * claim about the data — when the truth was simply that nobody had asked yet.
+ * An empty state and a loading state look identical in the DOM, and only one of
+ * them is a statement about reality.
  */
-export function ChartCard({ title, subtitle, summary, children }) {
+export function ChartCard({ title, subtitle, summary, loading, children }) {
   return (
     <section className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs p-5">
       <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100 mb-0.5">{title}</h3>
       <p className="text-[11px] text-slate-500 dark:text-slate-400 mb-4">{subtitle}</p>
-      {/* No summary means there is nothing plotted, so the empty state's own text
-          is left readable rather than hidden behind an image role. */}
-      {summary ? (
-        <div role="img" aria-label={summary}>{children}</div>
+      {loading ? (
+        <ChartLoading label={title} />
       ) : (
-        children
+        // No summary means there is nothing plotted, so the empty state's own text
+        // is left readable rather than hidden behind an image role.
+        summary ? (
+          <div role="img" aria-label={summary}>{children}</div>
+        ) : (
+          children
+        )
       )}
     </section>
+  );
+}
+
+/**
+ * The "still asking" state. Distinct from both the empty state and zero: it
+ * claims nothing about the data, so it never has to be taken back.
+ */
+export function ChartLoading({ label }) {
+  return (
+    <div
+      role="status"
+      aria-live="polite"
+      className="h-48 flex items-center justify-center text-xs text-slate-400"
+    >
+      Loading {label ? `${label.toLowerCase()}` : 'chart'}…
+    </div>
   );
 }
 

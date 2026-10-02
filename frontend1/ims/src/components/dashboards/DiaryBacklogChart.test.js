@@ -79,6 +79,14 @@ describe('DiaryBacklogChart', () => {
     expect(await screen.findByText('No diaries filed yet')).toBeInTheDocument();
   });
 
+test('announces a pending request instead of reporting no diaries filed', async () => {
+    fetchAdminDiaryBacklog.mockReturnValue(new Promise(() => {}));
+    render(<DiaryBacklogChart />);
+
+    expect(screen.queryByText('No diaries filed yet')).not.toBeInTheDocument();
+    expect(await screen.findByRole('status')).toHaveTextContent(/loading diary review backlog/i);
+  });
+
   test('surfaces a load failure', async () => {
     fetchAdminDiaryBacklog.mockRejectedValue(new Error('Unable to load the diary backlog.'));
     render(<DiaryBacklogChart />);

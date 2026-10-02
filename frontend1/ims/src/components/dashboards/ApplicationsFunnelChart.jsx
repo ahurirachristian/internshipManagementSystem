@@ -44,7 +44,7 @@ const LABELS = {
   WITHDRAWN: 'Withdrawn',
 };
 
-export default function ApplicationsFunnelChart({ applications, error }) {
+export default function ApplicationsFunnelChart({ applications, error, loading }) {
   const { isDark } = useTheme();
   const { grid, tickProps, tooltipStyle, labelStyle } = chartThemeFor(isDark);
   if (error) {
@@ -87,6 +87,7 @@ export default function ApplicationsFunnelChart({ applications, error }) {
       title="Applications by Status"
       subtitle="Every application you can see, by current status"
       summary={summary}
+      loading={loading}
     >
       {total ? (
         <ResponsiveContainer width="100%" height={260}>
@@ -106,7 +107,7 @@ export default function ApplicationsFunnelChart({ applications, error }) {
           </BarChart>
         </ResponsiveContainer>
       ) : (
-        <ChartEmpty message="No applications yet" />
+        <ChartEmpty message="Nothing to chart by status yet" />
       )}
     </ChartCard>
   );

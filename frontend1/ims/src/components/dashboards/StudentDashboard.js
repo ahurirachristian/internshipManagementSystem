@@ -59,6 +59,7 @@ export default function StudentDashboard() {
   const [placement, setPlacement] = useState(null);
   const [evaluations, setEvaluations] = useState([]);
   const [evaluationsError, setEvaluationsError] = useState('');
+  const [evaluationsLoading, setEvaluationsLoading] = useState(true);
 
   const loadDiaries = useCallback(async function loadDiaries() {
     setDiaryLoading(true);
@@ -113,6 +114,7 @@ export default function StudentDashboard() {
   // the chart stays a pure renderer and the tab keeps one loading story.
   async function loadEvaluations() {
     setEvaluationsError('');
+    setEvaluationsLoading(true);
     try {
       const data = await fetchMyEvaluations();
       setEvaluations(Array.isArray(data) ? data : []);
@@ -121,6 +123,8 @@ export default function StudentDashboard() {
       // to the card that needs it.
       setEvaluationsError(err.message || 'Unable to load your evaluation scores.');
       setEvaluations([]);
+    } finally {
+      setEvaluationsLoading(false);
     }
   }
 
@@ -557,10 +561,14 @@ export default function StudentDashboard() {
           </StudentDataProvider>
 
           {/* PC12 chart 1: own scores, from /api/evaluations/me. */}
-          <EvaluationScoresChart evaluations={evaluations} error={evaluationsError} />
+          <EvaluationScoresChart
+            evaluations={evaluations}
+            error={evaluationsError}
+            loading={evaluationsLoading}
+          />
 
           {/* PC12 chart 2: own diaries, from the state the diary tab already loads. */}
-          <DiaryCadenceChart diaries={diaries} error={diaryError} />
+          <DiaryCadenceChart diaries={diaries} error={diaryError} loading={diaryLoading} />
         </>
       )}
       {activeTab === 'profile' && renderProfile()}

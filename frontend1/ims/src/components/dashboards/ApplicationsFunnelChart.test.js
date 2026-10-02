@@ -61,7 +61,7 @@ describe('ApplicationsFunnelChart', () => {
     render(<ApplicationsFunnelChart error="" applications={[]} />);
 
     expect(screen.queryByRole('img')).not.toBeInTheDocument();
-    expect(screen.getByText('No applications yet')).toBeInTheDocument();
+    expect(screen.getByText('Nothing to chart by status yet')).toBeInTheDocument();
   });
 
   test('does not drop a status outside the expected set silently', () => {

@@ -47,7 +47,7 @@ function isoWeek(dateStr) {
   };
 }
 
-export default function DiaryCadenceChart({ diaries, error }) {
+export default function DiaryCadenceChart({ diaries, error, loading }) {
   const { isDark } = useTheme();
   const { grid, tickProps, tooltipStyle, labelStyle } = chartThemeFor(isDark);
 
@@ -92,6 +92,7 @@ export default function DiaryCadenceChart({ diaries, error }) {
       title="Diary Filing Cadence"
       subtitle="Entries per week (weeks start Monday)"
       summary={summary}
+      loading={loading}
     >
       {rows.length ? (
         <ResponsiveContainer width="100%" height={240}>

@@ -224,7 +224,13 @@ export default function CompanyDashboard() {  const { user } = useAuth();
   const [applications, setApplications] = useState([]);
   const [timeline, setTimeline] = useState(null);
   const [timelineError, setTimelineError] = useState('');
+  const [timelineLoading, setTimelineLoading] = useState(true);
   const [applicationsLoading, setApplicationsLoading] = useState(false);
+  // PC12: the applications chart used to be handed error="". A failed
+  // applications fetch therefore rendered as a confident "no applications",
+  // which is the opposite of what a failed request means. Scoped so it cannot
+  // blank the whole tab the way the shared error state does.
+  const [applicationsError, setApplicationsError] = useState('');
 
   async function loadSupervisors() {
     setError('');
@@ -369,22 +375,27 @@ export default function CompanyDashboard() {  const { user } = useAuth();
   // carries its own error rather than blanking the Overview if it fails.
   async function loadTimeline() {
     setTimelineError('');
+    setTimelineLoading(true);
     try {
       const data = await fetchPlacementTimeline();
       setTimeline(data || null);
     } catch (err) {
       setTimelineError(err.message || 'Unable to load placement pace.');
       setTimeline(null);
+    } finally {
+      setTimelineLoading(false);
     }
   }
 
   async function loadApplications() {
     setApplicationsLoading(true);
+    setApplicationsError('');
     setError('');
     try {
       const list = await fetchApplications();
       setApplications(Array.isArray(list) ? list : []);
     } catch (err) {
+      setApplicationsError(err.message || 'Unable to load applications.');
       setError(err.message || 'Unable to load applications.');
     } finally {
       setApplicationsLoading(false);
@@ -498,7 +509,7 @@ export default function CompanyDashboard() {  const { user } = useAuth();
         </div>
 
         {/* PC12 chart 8: month-by-month stage counts from PC8b's timeline. */}
-        <PlacementPaceChart timeline={timeline} error={timelineError} />
+        <PlacementPaceChart timeline={timeline} error={timelineError} loading={timelineLoading} />
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
           <section className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 shadow-xs">
@@ -805,7 +816,11 @@ export default function CompanyDashboard() {  const { user } = useAuth();
     return (
       <div className="space-y-6">
         {/* PC12 chart 7: derived from the applications this tab already loaded. */}
-        <ApplicationsFunnelChart applications={applications} error="" />
+        <ApplicationsFunnelChart
+          applications={applications}
+          error={applicationsError}
+          loading={applicationsLoading}
+        />
 
       <section className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs overflow-hidden">
         <div className="px-5 py-4 border-b border-slate-200 dark:border-slate-800">

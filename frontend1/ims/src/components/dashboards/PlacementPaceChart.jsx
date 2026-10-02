@@ -74,7 +74,7 @@ function fillMonths(funnel) {
   return rows;
 }
 
-export default function PlacementPaceChart({ timeline, error }) {
+export default function PlacementPaceChart({ timeline, error, loading }) {
   const { isDark } = useTheme();
   const { grid, tickProps, tooltipStyle, labelStyle, legendStyle } = chartThemeFor(isDark);
 
@@ -112,6 +112,7 @@ export default function PlacementPaceChart({ timeline, error }) {
       title="Placement Pace"
       subtitle="Placements reaching each stage, by month (cumulative per stage)"
       summary={summary}
+      loading={loading}
     >
       {hasEvents ? (
         <ResponsiveContainer width="100%" height={280}>

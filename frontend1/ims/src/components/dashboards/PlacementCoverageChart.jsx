@@ -34,14 +34,21 @@ export default function PlacementCoverageChart() {
   const { grid, tickProps, tooltipStyle, labelStyle } = chartThemeFor(isDark);
   const [stats, setStats] = useState(null);
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     let live = true;
     fetchAdminPlacementCoverage()
       .then((data) => {
-        if (live) setStats(data);
+        if (live) {
+          setStats(data);
+          setLoading(false);
+        }
       })
       .catch((e) => {
+        if (live) {
+          setLoading(false);
+        }
         if (live) setError(e.message || 'Unable to load placement coverage.');
       });
     return () => {
@@ -102,6 +109,7 @@ export default function PlacementCoverageChart() {
       title="Placement Coverage by University"
       subtitle="Who still needs a placement"
       summary={summary}
+      loading={loading}
     >
       {rows.length ? (
         <ResponsiveContainer width="100%" height={Math.max(240, rows.length * 34)}>

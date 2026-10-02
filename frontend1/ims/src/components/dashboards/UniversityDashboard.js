@@ -95,6 +95,11 @@ export default function UniversityDashboard() {
   const [searchParams] = useSearchParams();
   const selectedUnitId = searchParams.get('unitId');
   const [stats, setStats] = useState(null);
+  // PC12: charts 3 and 4 read this block. It previously logged failures to the
+  // console and carried no state, so both charts had to render an empty state
+  // that read as a finding about the cohort rather than a request still in flight.
+  const [statsLoading, setStatsLoading] = useState(true);
+  const [statsError, setStatsError] = useState('');
   const [reviewDiary, setReviewDiary] = useState(null);
   const [reviewForm, setReviewForm] = useState({ status: 'APPROVED', feedback: '' });
 
@@ -112,10 +117,14 @@ export default function UniversityDashboard() {
   }, []);
 
   async function loadStats() {
+    setStatsLoading(true);
+    setStatsError('');
     try {
       setStats(await fetchUniversityStats());
     } catch (err) {
-      console.error('Failed to load university stats', err);
+      setStatsError(err.message || 'Unable to load university statistics.');
+    } finally {
+      setStatsLoading(false);
     }
   }
 
@@ -989,13 +998,15 @@ export default function UniversityDashboard() {
             already fetched, so no new request. */}
         <ProgrammePlacementRateChart
           rates={stats?.rosters?.programmePlacementRates}
-          error=""
+          error={statsError}
+          loading={statsLoading && !stats}
         />
 
         <UnevaluatedDistributionChart
           buckets={stats?.evaluations?.byEvaluationCount}
           totalStudents={rosters.totalStudents ?? 0}
-          error=""
+          error={statsError}
+          loading={statsLoading && !stats}
         />
 
         {/* Evaluation readiness, read from the same analytics block the charts

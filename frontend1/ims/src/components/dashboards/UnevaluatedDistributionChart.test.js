@@ -71,6 +71,15 @@ describe('UnevaluatedDistributionChart', () => {
     expect(screen.getByText('No students yet')).toBeInTheDocument();
   });
 
+test('shows a loading state instead of an empty cohort while the request is in flight', () => {
+    render(<UnevaluatedDistributionChart buckets={[]} totalStudents={0} error="" loading />);
+
+    // Before the shared loading state this rendered "No students yet", which is
+    // a finding about the university rather than a statement about the request.
+    expect(screen.queryByText('No students yet')).not.toBeInTheDocument();
+    expect(screen.getByRole('status')).toHaveTextContent(/loading students by evaluations so far/i);
+  });
+
   test('surfaces a load failure', () => {
     render(<UnevaluatedDistributionChart buckets={[]} totalStudents={0} error="Unable to load stats." />);
 

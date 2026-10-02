@@ -35,7 +35,7 @@ const CRITERIA = [
   ['presentation', 'Presentation'],
 ];
 
-export default function EvaluationScoresChart({ evaluations, error }) {
+export default function EvaluationScoresChart({ evaluations, error, loading }) {
   const { isDark } = useTheme();
   const { grid, tickProps, tooltipStyle, labelStyle } = chartThemeFor(isDark);
 
@@ -73,6 +73,7 @@ export default function EvaluationScoresChart({ evaluations, error }) {
       title="My Evaluation Scores"
       subtitle="Your mean score per criterion (0-10)"
       summary={summary}
+      loading={loading}
     >
       {rows.length ? (
         <ResponsiveContainer width="100%" height={280}>
