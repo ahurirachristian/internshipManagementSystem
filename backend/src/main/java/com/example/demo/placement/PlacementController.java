@@ -30,6 +30,7 @@ public class PlacementController {
 
     private final PlacementService placementService;
     private final PlacementPipelineService pipelineService;
+    private final PlacementTimelineService placementTimelineService;
     private final AuditLogService auditLogService;
     private final UniversitySupervisorRepository universitySupervisorRepository;
     private final IndustrialSupervisorRepository industrialSupervisorRepository;
@@ -37,6 +38,7 @@ public class PlacementController {
     private final StudentRepository studentRepository;
 
     public PlacementController(PlacementService placementService, PlacementPipelineService pipelineService,
+            PlacementTimelineService placementTimelineService,
             AuditLogService auditLogService,
             UniversitySupervisorRepository universitySupervisorRepository,
             IndustrialSupervisorRepository industrialSupervisorRepository,
@@ -44,6 +46,7 @@ public class PlacementController {
             StudentRepository studentRepository) {
         this.placementService = placementService;
         this.pipelineService = pipelineService;
+        this.placementTimelineService = placementTimelineService;
         this.auditLogService = auditLogService;
         this.universitySupervisorRepository = universitySupervisorRepository;
         this.industrialSupervisorRepository = industrialSupervisorRepository;
@@ -121,6 +124,21 @@ public class PlacementController {
                 .body(body);
     }
 
+    /**
+     * PC8b: the three timeline queries — funnel-over-time, median
+     * time-to-placement, active duration. Scoping lives in the service
+     * (admin → all, company → own, supervisor → own university); the literal
+     * path wins over /{id} in Spring's pattern ranking.
+     */
+    @GetMapping("/timeline")
+    public ResponseEntity<PlacementTimelineDto> placementTimeline(Principal principal) {
+        UserEntity actor = currentUser(principal);
+        if (actor == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        return ResponseEntity.ok(placementTimelineService.timelineFor(actor));
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<Placement> getPlacement(@PathVariable Long id) {
         Placement placement = placementService.findById(id);
@@ -168,6 +186,11 @@ public class PlacementController {
         }
         resolveSupervisorIds(placement);
         Placement saved = placementService.create(placement);
+        // PC8b: the direct-create path writes the same history shape as the
+        // pipeline; no separate timestamp — createdAt defaults to now() in the
+        // entity and this row records who created it.
+        pipelineService.recordHistory(saved, null, saved.getStatus(),
+                actor != null ? actor.getUsername() : "system");
         auditLogService.log(actor != null ? actor.getUsername() : "system",
                 actor != null ? actor.getRole().name() : "ADMIN", "CREATE", "Placement",
                 "Created placement for student ID: " + saved.getStudentId()

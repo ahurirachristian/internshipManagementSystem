@@ -127,15 +127,30 @@
         primary key (id)
     ) engine=InnoDB;
 
+    create table placement_status_history (
+        changed_at datetime(6) not null,
+        id bigint not null auto_increment,
+        placement_id bigint not null,
+        from_status varchar(32),
+        to_status varchar(32) not null,
+        changed_by varchar(255),
+        primary key (id)
+    ) engine=InnoDB;
+
     create table placements (
+        assigned_at datetime(6),
+        completed_at datetime(6),
         company_id bigint not null,
         company_supervisor_id bigint,
+        created_at datetime(6),
         id bigint not null auto_increment,
+        offered_at datetime(6),
+        started_at datetime(6),
         student_id bigint not null,
         university_supervisor_id bigint,
         company_supervisor varchar(255) not null,
         university_supervisor varchar(255) not null,
-        status enum ('ACTIVE','ASSIGNED','CANCELLED','COMPLETED','PENDING') not null,
+        status enum ('ACTIVE','ASSIGNED','CANCELLED','COMPLETED','OFFERED','PENDING') not null,
         primary key (id)
     ) engine=InnoDB;
 
@@ -198,6 +213,7 @@
     ) engine=InnoDB;
 
     create table students (
+        created_at datetime(6),
         department_id bigint,
         end_date date,
         programme_id bigint,
@@ -246,6 +262,7 @@
         must_change_password bit not null,
         company_id bigint,
         id bigint not null auto_increment,
+        last_login_at datetime(6),
         university_id bigint,
         email varchar(255),
         password varchar(255) not null,

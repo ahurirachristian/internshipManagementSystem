@@ -73,7 +73,25 @@ public class UserEntity {
     @Column(nullable = false)
     private Boolean enabled = true;
 
+    /*
+     * PC8b: stamped ONLY by the real login path (AuthApiController /login).
+     * AuthorityRefreshFilter re-authenticates on every request but must not
+     * touch this — otherwise the value would just mean "last seen". Nullable,
+     * never backfilled: accounts that never signed in since PC8b keep NULL
+     * ("never invent a date").
+     */
+    @Column(name = "last_login_at", nullable = true)
+    private java.time.LocalDateTime lastLoginAt;
+
     public UserEntity() {
+    }
+
+    public java.time.LocalDateTime getLastLoginAt() {
+        return lastLoginAt;
+    }
+
+    public void setLastLoginAt(java.time.LocalDateTime lastLoginAt) {
+        this.lastLoginAt = lastLoginAt;
     }
 
     public UserEntity(String username, String password, Role role) {

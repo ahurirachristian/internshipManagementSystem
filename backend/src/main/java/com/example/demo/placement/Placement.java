@@ -8,6 +8,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "placements")
@@ -55,6 +56,33 @@ public class Placement {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private Status status = Status.PENDING;
+
+    /*
+     * PC8b: the placement timeline. Every column is nullable on purpose — the
+     * backfill policy is "never invent a date" (plan §PC8b): rows that predate
+     * PC8b stay NULL and every query must EXCLUDE them rather than coerce them
+     * to epoch, otherwise fabricated zeros would corrupt the PC12 charts.
+     * createdAt defaults to now() for new rows only: Hibernate overwrites the
+     * initializer with the stored NULL when loading a legacy row.
+     */
+    @Column(name = "created_at")
+    private LocalDateTime createdAt = LocalDateTime.now();
+
+    /** Set when the placement entered OFFERED (createOffer or the PC8a /offer step). */
+    @Column(name = "offered_at")
+    private LocalDateTime offeredAt;
+
+    /** Set when the university approved: OFFERED → ASSIGNED. */
+    @Column(name = "assigned_at")
+    private LocalDateTime assignedAt;
+
+    /** Set when the PC8a /start step ran: ASSIGNED → ACTIVE. */
+    @Column(name = "started_at")
+    private LocalDateTime startedAt;
+
+    /** Set when the PC8a /complete step ran: ACTIVE → COMPLETED. */
+    @Column(name = "completed_at")
+    private LocalDateTime completedAt;
 
     public Placement() {
     }
@@ -137,5 +165,45 @@ public class Placement {
 
     public void setStatus(Status status) {
         this.status = status;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public LocalDateTime getOfferedAt() {
+        return offeredAt;
+    }
+
+    public void setOfferedAt(LocalDateTime offeredAt) {
+        this.offeredAt = offeredAt;
+    }
+
+    public LocalDateTime getAssignedAt() {
+        return assignedAt;
+    }
+
+    public void setAssignedAt(LocalDateTime assignedAt) {
+        this.assignedAt = assignedAt;
+    }
+
+    public LocalDateTime getStartedAt() {
+        return startedAt;
+    }
+
+    public void setStartedAt(LocalDateTime startedAt) {
+        this.startedAt = startedAt;
+    }
+
+    public LocalDateTime getCompletedAt() {
+        return completedAt;
+    }
+
+    public void setCompletedAt(LocalDateTime completedAt) {
+        this.completedAt = completedAt;
     }
 }

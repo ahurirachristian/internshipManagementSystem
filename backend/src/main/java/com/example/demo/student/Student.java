@@ -80,7 +80,25 @@ public class Student {
     @Column(name = "programme_id", nullable = true)
     private Long programmeId;
 
+    /*
+     * PC8b: when the row was created. Nullable on purpose — backfill policy is
+     * "never invent a date": rows that predate PC8b stay NULL and queries must
+     * exclude them (same rule as Placement's timeline columns). The initializer
+     * stamps new rows only; Hibernate overwrites it with the stored NULL when
+     * loading a legacy row.
+     */
+    @Column(name = "created_at", nullable = true)
+    private java.time.LocalDateTime createdAt = java.time.LocalDateTime.now();
+
     public Student() {
+    }
+
+    public java.time.LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(java.time.LocalDateTime createdAt) {
+        this.createdAt = createdAt;
     }
 
     public Long getId() {

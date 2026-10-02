@@ -198,11 +198,15 @@ public class AuthApiController {
 
             // R2: the role is resolved server-side from the account, never from the client.
             UserEntity user = maybeUser.orElseThrow();
+            // PC8b: stamp the real sign-in — the only path that does (the
+            // AuthorityRefreshFilter re-authenticates on every request but must
+            // never write lastLoginAt, or it would degrade to "last seen").
+            user.setLastLoginAt(LocalDateTime.now());
             if (user.getFailedLoginAttempts() != 0 || user.getLockedUntil() != null) {
                 user.setFailedLoginAttempts(0);
                 user.setLockedUntil(null);
-                userRepository.save(user);
             }
+            userRepository.save(user);
             String actualRole = user.getRole().name();
 
             String path = resolveHome(actualRole);

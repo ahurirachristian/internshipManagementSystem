@@ -1,5 +1,6 @@
 package com.example.demo.placement;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -38,11 +39,13 @@ public class PlacementPipelineService {
     private final UniversitySupervisorRepository universitySupervisorRepository;
     private final NotificationService notificationService;
     private final AuditLogService auditLogService;
+    private final PlacementStatusHistoryRepository placementStatusHistoryRepository;
 
     public PlacementPipelineService(PlacementRepository placementRepository, StudentRepository studentRepository,
             UserRepository userRepository, CompanyRepository companyRepository,
             UniversitySupervisorRepository universitySupervisorRepository,
-            NotificationService notificationService, AuditLogService auditLogService) {
+            NotificationService notificationService, AuditLogService auditLogService,
+            PlacementStatusHistoryRepository placementStatusHistoryRepository) {
         this.placementRepository = placementRepository;
         this.studentRepository = studentRepository;
         this.userRepository = userRepository;
@@ -50,6 +53,7 @@ public class PlacementPipelineService {
         this.universitySupervisorRepository = universitySupervisorRepository;
         this.notificationService = notificationService;
         this.auditLogService = auditLogService;
+        this.placementStatusHistoryRepository = placementStatusHistoryRepository;
     }
 
     /** R8: company posts an offer — status OFFERED, companyId forced (L8). */
@@ -71,8 +75,11 @@ public class PlacementPipelineService {
         placement.setUniversitySupervisor("Pending");
         placement.setCompanySupervisor("Pending");
         placement.setStatus(Placement.Status.OFFERED);
+        // PC8b: the offer has a real timestamp; createdAt defaults to now() in the entity.
+        placement.setOfferedAt(LocalDateTime.now());
         Placement saved = placementRepository.save(placement);
 
+        recordHistory(saved, null, Placement.Status.OFFERED, actor.getUsername());
         notifyUniversitySupervisorsAndAdmins(saved, student, actor.getCompanyId(), offerNote);
         auditLogService.log(actor.getUsername(), actor.getRole().name(), "PLACEMENT_OFFER", "Placement",
                 "Offer for studentId " + student.getId() + " at companyId " + actor.getCompanyId(), null);
@@ -102,8 +109,11 @@ public class PlacementPipelineService {
         placement.setUniversitySupervisorId(supervisor.getId());
         placement.setUniversitySupervisor((supervisor.getFirstName() + " " + supervisor.getLastName()).trim());
         placement.setStatus(Placement.Status.ASSIGNED);
+        // PC8b: assignment moment for the median time-to-placement query.
+        placement.setAssignedAt(LocalDateTime.now());
         Placement saved = placementRepository.save(placement);
 
+        recordHistory(saved, Placement.Status.OFFERED, Placement.Status.ASSIGNED, actor.getUsername());
         notifyApproval(saved, student, supervisor);
         auditLogService.log(actor.getUsername(), actor.getRole().name(), "PLACEMENT_APPROVED", "Placement",
                 "Placement " + placement.getId() + " assigned to " + placement.getUniversitySupervisor(), null);
@@ -127,8 +137,10 @@ public class PlacementPipelineService {
         Student student = studentRepository.findById(placement.getStudentId()).orElse(null);
 
         placement.setStatus(Placement.Status.OFFERED);
+        placement.setOfferedAt(LocalDateTime.now());
         Placement saved = placementRepository.save(placement);
 
+        recordHistory(saved, Placement.Status.PENDING, Placement.Status.OFFERED, actor.getUsername());
         if (student != null) {
             notifyUniversitySupervisorsAndAdmins(saved, student, saved.getCompanyId(), null);
         }
@@ -153,8 +165,10 @@ public class PlacementPipelineService {
         Student student = studentRepository.findById(placement.getStudentId()).orElse(null);
 
         placement.setStatus(Placement.Status.ACTIVE);
+        placement.setStartedAt(LocalDateTime.now());
         Placement saved = placementRepository.save(placement);
 
+        recordHistory(saved, Placement.Status.ASSIGNED, Placement.Status.ACTIVE, actor.getUsername());
         notifyInternshipMilestone(saved, student, true);
         auditLogService.log(actor.getUsername(), actor.getRole().name(), "PLACEMENT_STARTED", "Placement",
                 "Placement " + saved.getId() + " started", null);
@@ -174,8 +188,10 @@ public class PlacementPipelineService {
         Student student = studentRepository.findById(placement.getStudentId()).orElse(null);
 
         placement.setStatus(Placement.Status.COMPLETED);
+        placement.setCompletedAt(LocalDateTime.now());
         Placement saved = placementRepository.save(placement);
 
+        recordHistory(saved, Placement.Status.ACTIVE, Placement.Status.COMPLETED, actor.getUsername());
         notifyInternshipMilestone(saved, student, false);
         auditLogService.log(actor.getUsername(), actor.getRole().name(), "PLACEMENT_COMPLETED", "Placement",
                 "Placement " + saved.getId() + " completed", null);
@@ -198,6 +214,7 @@ public class PlacementPipelineService {
         placement.setStatus(Placement.Status.CANCELLED);
         Placement saved = placementRepository.save(placement);
 
+        recordHistory(saved, Placement.Status.OFFERED, Placement.Status.CANCELLED, actor.getUsername());
         List<Long> recipients = new ArrayList<>();
         if (student != null) {
             recipients.add(student.getUserId());
@@ -216,6 +233,23 @@ public class PlacementPipelineService {
         auditLogService.log(actor.getUsername(), actor.getRole().name(), "PLACEMENT_REJECTED", "Placement",
                 "Placement " + placement.getId() + " rejected", null);
         return saved;
+    }
+
+    /**
+     * PC8b: append the transition to {@code placement_status_history}. Called
+     * only AFTER the row is saved so the generated id is final. Statuses are
+     * stored as strings (see {@link PlacementStatusHistory}): the trail is an
+     * audit record and must outlive the enum's vocabulary. Package-private so
+     * the legacy ADMIN direct-create path in {@link PlacementController} writes
+     * the same shape of row without duplicating the mapping.
+     */
+    void recordHistory(Placement saved, Placement.Status from, Placement.Status to, String actorUsername) {
+        PlacementStatusHistory row = new PlacementStatusHistory();
+        row.setPlacementId(saved.getId());
+        row.setFromStatus(from != null ? from.name() : null);
+        row.setToStatus(to.name());
+        row.setChangedBy(actorUsername != null && !actorUsername.isBlank() ? actorUsername : "system");
+        placementStatusHistoryRepository.save(row);
     }
 
     private boolean scopeServiceSafe(UserEntity actor, Long studentUniversity) {
