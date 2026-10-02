@@ -7,6 +7,7 @@ import DiaryReviewModal from '../DiaryReviewModal';
 import StudentDataProvider from '../../context/StudentDataContext';
 import OverviewSection from './OverviewSection';
 import EvaluationScoresChart from './EvaluationScoresChart';
+import DiaryCadenceChart from './DiaryCadenceChart';
 import SettingsSection from './SettingsSection';
 import LearningInstituteSection from './LearningInstituteSection';
 import CompaniesSection from './CompaniesSection';
@@ -557,6 +558,9 @@ export default function StudentDashboard() {
 
           {/* PC12 chart 1: own scores, from /api/evaluations/me. */}
           <EvaluationScoresChart evaluations={evaluations} error={evaluationsError} />
+
+          {/* PC12 chart 2: own diaries, from the state the diary tab already loads. */}
+          <DiaryCadenceChart diaries={diaries} error={diaryError} />
         </>
       )}
       {activeTab === 'profile' && renderProfile()}
