@@ -6,6 +6,7 @@ import InternshipProgress from '../InternshipProgress';
 import DiaryReviewModal from '../DiaryReviewModal';
 import StudentDataProvider from '../../context/StudentDataContext';
 import OverviewSection from './OverviewSection';
+import EvaluationScoresChart from './EvaluationScoresChart';
 import SettingsSection from './SettingsSection';
 import LearningInstituteSection from './LearningInstituteSection';
 import CompaniesSection from './CompaniesSection';
@@ -22,6 +23,7 @@ import {
   fetchSupervisors,
   saveMyProfile,
   updateDiary,
+  fetchMyEvaluations,
 } from '../../services/api';
 
 const emptyDiaryForm = {
@@ -54,6 +56,8 @@ export default function StudentDashboard() {
   const [companies, setCompanies] = useState([]);
   const [supervisors, setSupervisors] = useState([]);
   const [placement, setPlacement] = useState(null);
+  const [evaluations, setEvaluations] = useState([]);
+  const [evaluationsError, setEvaluationsError] = useState('');
 
   const loadDiaries = useCallback(async function loadDiaries() {
     setDiaryLoading(true);
@@ -73,6 +77,7 @@ export default function StudentDashboard() {
     loadSupervisors();
     loadDiaries();
     loadPlacement();
+    loadEvaluations();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -100,6 +105,21 @@ export default function StudentDashboard() {
       }
     } finally {
       setProfileLoading(false);
+    }
+  }
+
+  // PC12: the student's own scores. Fetched here rather than in the chart so
+  // the chart stays a pure renderer and the tab keeps one loading story.
+  async function loadEvaluations() {
+    setEvaluationsError('');
+    try {
+      const data = await fetchMyEvaluations();
+      setEvaluations(Array.isArray(data) ? data : []);
+    } catch (err) {
+      // A failure here must not blank the rest of the Overview, so it is scoped
+      // to the card that needs it.
+      setEvaluationsError(err.message || 'Unable to load your evaluation scores.');
+      setEvaluations([]);
     }
   }
 
@@ -534,6 +554,9 @@ export default function StudentDashboard() {
           <StudentDataProvider>
             <OverviewSection />
           </StudentDataProvider>
+
+          {/* PC12 chart 1: own scores, from /api/evaluations/me. */}
+          <EvaluationScoresChart evaluations={evaluations} error={evaluationsError} />
         </>
       )}
       {activeTab === 'profile' && renderProfile()}
