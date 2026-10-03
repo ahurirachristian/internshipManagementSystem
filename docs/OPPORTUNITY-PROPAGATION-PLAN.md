@@ -1,6 +1,6 @@
 # Opportunity Propagation Plan — company/advisor-submitted internships, relayed Company → Super Admin → University → Student
 
-Status: **Phase 0 and Phase 1 done (S0.1–S1.7 ✅).** Next step: **S2.1**, the transition engine. Phase 0 added characterization tests only; Phases 1–1.7 added the schema, migration and status vocabulary.
+Status: **Phase 0 and Phase 1 done (S0.1–S1.7 ✅); Phase 2 started — S2.1 ✅.** Next step: **S2.2**, side effects on every transition. Phase 0 added characterization tests only; Phases 1–1.7 added the schema, migration and status vocabulary.
 Branch target: `fred`. Every step below is one commit.
 Base commit at time of writing: `f0efc57`.
 Revision: security-scope audit found two gaps in the first draft (`GET /api/vacancies/{id}` unmentioned; `documents`/`audience` reuse unusable). Both corrected — see **D8** in §11 and **§5.11**.
@@ -479,7 +479,7 @@ Two findings from doing Phase 0, both folded back into this plan:
 
 | Step | Goal | Work | Tests | Commit |
 |---|---|---|---|---|
-| **S2.1** | `OpportunityTransitionService` | Closed `EnumMap` per relay type, copied from `ApplicationService:45-57`; scope-first-404 then role-403 then illegal→409; writes a history row | `OpportunityTransitionTest`: every legal pair passes, every illegal pair is 409, terminal is terminal | `feat(opportunities): closed transition engine for every relay` |
+| **S2.1** ✅ `cca616f` | `OpportunityTransitionService` | Closed `EnumMap` per relay type, copied from `ApplicationService:45-57`; scope-first-404 then role-403 then illegal→409; writes a history row | `OpportunityTransitionTest`, **26 tests** — the full cross product of all four machines against tables hard-coded in the test, scope-404/role-403 pins, side-field assertions. Fault-injected both guards: removing legality fails exactly the 5 illegal/terminal suites, removing offer scope fails exactly the H9 test | `feat(opportunities): closed transition engine for every relay` |
 | **S2.2** | Side effects on every transition | `NotificationService.notify` + `AuditLogService.log` wired into the service (never the controller), matching `PlacementPipelineService:82-86` | assert one notification + one audit row per transition | `feat(opportunities): notify and audit every transition` |
 | **S2.3** | Audience resolution — **the security core** | One service that answers "may this actor see this advert, and in what capacity" for all 5 origins × 6 actors, consumed by every later read/write | `OpportunityScopeTest` matrix: every (origin, actor) pair × every (may-see, may-not-see) pair, covering H1–H4, H9 | `feat(opportunities): single audience resolver for every origin` |
 
