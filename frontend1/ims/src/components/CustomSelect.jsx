@@ -68,14 +68,14 @@ export default function CustomSelect({ id, value, onChange, options, required, p
                 role="option"
                 aria-selected={isSelected}
                 onClick={() => { onChange(optValue); setIsOpen(false); }}
-                className={`px-3.5 py-2.5 text-sm cursor-pointer transition-colors flex items-center justify-between ${
+                className={`px-3.5 py-2.5 text-xs cursor-pointer transition-colors flex items-center justify-between ${
                   isSelected
-                    ? 'bg-teal-50 text-teal-900 font-semibold'
-                    : 'text-slate-700 dark:text-slate-300 hover:bg-teal-50 hover:text-teal-900'
+                    ? 'bg-teal-50 text-teal-900 dark:bg-teal-900/30 dark:text-teal-100 font-semibold'
+                    : 'text-slate-700 dark:text-slate-300 hover:bg-teal-50 hover:text-teal-900 dark:hover:bg-teal-900/30 dark:hover:text-teal-100'
                 }`}
               >
                 <span className="truncate">{optLabel}</span>
-                {isSelected && <Check className="w-4 h-4 text-teal-600 shrink-0" />}
+                {isSelected && <Check className="w-4 h-4 text-teal-600 dark:text-teal-400 shrink-0" />}
               </li>
             );
           })}
