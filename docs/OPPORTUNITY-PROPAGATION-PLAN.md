@@ -1,8 +1,9 @@
 # Opportunity Propagation Plan — company/advisor-submitted internships, relayed Company → Super Admin → University → Student
 
-Status: **planning only — nothing in this document has been implemented.**
+Status: **Phase 0 done; implementation starts at S1.1.** Phase 0 added characterization tests only — no feature code exists yet.
 Branch target: `fred`. Every step below is one commit.
 Base commit at time of writing: `f0efc57`.
+Revision: security-scope audit found two gaps in the first draft (`GET /api/vacancies/{id}` unmentioned; `documents`/`audience` reuse unusable). Both corrected — see **D8** in §11 and **§5.11**.
 
 ---
 
@@ -155,6 +156,8 @@ So **today any `STUDENT` can list every advert in the system.** That is the exac
 | **H10** | Student re-applies repeatedly | Existing `Application` uniqueness rules apply unchanged; the feed dedupes by `applied` flag as today | S7.2 |
 | **H11** | Bulk notification to thousands of students in one transaction | Fan-out chunked + one transaction per chunk, capped; see §9 | S6.5 |
 | **H12** | Advert edited after publication, silently changing what students agreed to | Edits to a `PUBLISHED` advert are versioned or require re-verification; see Open decision **D3** | S8.2 |
+| **H13** | Student outside the targeted programme reads a share's offer letter | Attachments are a dedicated table (§5.11), never `documents` — `audience` is display-only and `DocumentScopeService.java:48-51` cannot express "these students at this university". Authorization comes from the S2.3 resolver, so a file is never more visible than its advert | S1.5b, S2.3, S6.7 |
+| **H14** | Path traversal via a crafted `fileName`, or an orphaned blob | On-disk names are server-generated UUIDs (`FileStorageService.java:37`) and `loadFile` rejects any resolved path outside the root (`:69`). Metadata responses omit `fileName`/`storagePath`; a failed insert deletes the stored blob | S1.5b, S6.7 |
 
 ---
 
@@ -238,7 +241,7 @@ All changes are **additive** (`ddl-auto=update` handles MySQL + H2 create, match
 | Targeting | `target_school_ids` VARCHAR(255), `target_department_ids` VARCHAR(255), `target_programme_ids` VARCHAR(255) (comma-separated `Integer` ids, §2.5), `target_year_of_study` VARCHAR(50) (comma-separated), `target_degree_levels` VARCHAR(255), `min_cgpa` DECIMAL(4,2) |
 | Capacity | `slots` INT (CHECK >= 0), `eligibility_notes` TEXT |
 | Contact | `contact_person_name` VARCHAR(150), `contact_role` VARCHAR(100), `contact_email` VARCHAR(200), `contact_phone` VARCHAR(50) |
-| Application | `application_instructions` TEXT, `application_email` VARCHAR(200), `application_phone` VARCHAR(50), `application_url` VARCHAR(500), `required_attachments` TEXT — attachments reuse the existing `documents` table with `audience='OPPORTUNITY:<id>'` (`Document.java:58-59` already has `audience`) |
+| Application | `application_instructions` TEXT, `application_email` VARCHAR(200), `application_phone` VARCHAR(50), `application_url` VARCHAR(500), `required_attachments` TEXT — a *note* about what the applicant must attach. **Uploaded files live in the dedicated `opportunity_attachments` table (§5.11), not in `documents`** — see the correction note below. |
 
 ### 5.5 Placement-card mapping (R9) — proof the fields are sufficient
 
@@ -254,6 +257,7 @@ A placement card must be derivable with **no re-asking**. Existing `Placement` a
 | Work mode + location | `work_mode`, `city`, `address_detail` | ✅ new |
 | Stipend | `is_paid`, `stipend_amount`, `stipend_currency`, `stipend_period` | ✅ new |
 | Deliverables assessed | `deliverables_expected` | ✅ new |
+| Attached documents (offer letter, brochure) | `opportunity_attachments` rows for the advert — filtered through the audience resolver, so a placement card never renders a file the viewer may not open `[H13]` | ✅ new in **S1.5b** |
 | Traceability back to the advert | **NEW** `placements.vacancy_id` | ⬜ built in **S8.1** |
 | Lifecycle status/timestamps | `Placement.Status` + 5 existing timestamps | ✅ existing |
 
@@ -315,6 +319,31 @@ Status: `PENDING → APPROVED | REJECTED`. Terminal `REJECTED`. On `APPROVED` th
 
 **Statuses stored as `String`, not the enum** — copied from `PlacementStatusHistory.java:11-19` so the trail survives a vocabulary change.
 
+### 5.11 `opportunity_attachments` — NEW (advert files: offer letters, brochures)
+
+Chosen over extending `DocumentScopeService` because that predicate is shared with File Management, which works today and has its own passing tests (`DocumentScopeTest`, `FileAccessScopeTest`, `DocumentScopeBackfillTest`). This feature is new, so there is no legacy attachment data to migrate and no reason to put a shared predicate at risk.
+
+| Column | Type | Null | Note |
+|---|---|---|---|
+| `id` | `BIGINT` | PK IDENTITY | |
+| `vacancy_id` | `BIGINT` | NOT NULL | plain scalar, house style — no `@ManyToOne` |
+| `university_id` | `BIGINT` | **yes** | null = advert-level file (super admin + the advertising side). Set = shared with one university's students |
+| `target_programme_ids` | `VARCHAR(255)` | yes | narrows who may read it, mirroring §5.8 |
+| `target_year_of_study` | `VARCHAR(50)` | yes | |
+| `file_name` | `VARCHAR(255)` | NOT NULL | **server-generated UUID**, never the client's name |
+| `original_file_name` | `VARCHAR(255)` | NOT NULL | display only |
+| `content_type` | `VARCHAR(120)` | NOT NULL | |
+| `file_size` | `BIGINT` | NOT NULL | |
+| `storage_path` | `VARCHAR(500)` | NOT NULL | relative to the storage root |
+| `uploaded_by` | `BIGINT` | NOT NULL | |
+| `uploaded_at` | `DATETIME` | NOT NULL | |
+
+Indexes: `(vacancy_id)`, `(university_id)`.
+
+**Blob storage is reused; authorization is not.** `FileStorageService` is reused for the bytes because it already does the two things that matter — it stores under a `UUID` filename (`FileStorageService.java:37`) and rejects any resolved path escaping the storage root (`:69`), which closes path traversal `[H14]`. What is **not** reused is `DocumentScopeService`: authorization comes from the S2.3 audience resolver — the same resolver that decides whether the caller may read the advert itself. **A file is never more visible than its advert.**
+
+**Audience for a file** — super admin always; the advertising side (owning company, or offering university); and, for a `SHARED` advert, only students at `university_id` whose programme/year matches the targeting columns. Anyone else is a **404**, not a 403, so the endpoint is not a probing oracle.
+
 ---
 
 ## 6. API contracts
@@ -362,7 +391,24 @@ Notation: ★ new · ◆ changed · ○ reused · 🔒 super-admin only · `(R#)
 | ◆ GET | `/api/vacancies` | `@PreAuthorize("hasAuthority('super_admin')")` — closes D1. **Only after S7.3 repoints both callers.** |
 | ◆ GET | `/api/vacancies/company/{companyId}` | superseded by `/api/opportunities/mine`; restrict to the caller's own company |
 | ◆ GET | `/api/vacancies/status` | superseded by the scoped feed |
+| ◆ GET | `/api/vacancies/{id}` | 🔒 **the fourth read, and the one an earlier draft of this plan forgot.** Also ungated (`VacancyController.java:63`), so gating only the three above would close the list and leave every single advert readable by id — R1 still violated behind a green test suite. Superseded by `GET /api/opportunities/{id}`; until that exists, gate it to `super_admin`. |
+| ★ GET | `/api/opportunities/{id}` | audience-scoped via S2.3; **404** when out of audience, never 403 `[H3]` |
 | ○ POST/PUT/DELETE | `/api/vacancies` | **kept working unchanged.** `VacancyOwnershipTest:145-175` depends on it, including the admin `companyId:999` override and the `NEW_VACANCY` notification. Internally rewritten to delegate to the opportunity service so there is one code path, but the HTTP contract and the test's expectations are preserved. |
+
+> **All four reads, not three.** `VacancyController` has four ungated GETs (`:48`, `:53`, `:58`, `:63`). Closing three leaves the fourth. The S0.1 baseline already caught this: gating `getAllVacancies` alone turned exactly three assertions red and left `studentCanCurrentlyReadASingleVacancyById` green — because it was still wide open.
+
+### 6.6 Attachments (§5.11)
+
+Not a legacy surface, so it lives outside §6.5.
+
+| Method | Path | Gate | Notes |
+|---|---|---|---|
+| ★ POST | `/api/opportunities/{id}/attachments` | super admin, or the advertising side (owning company / offering university). **`companyId`/`universityId` never read from the body** | `multipart/form-data`; `vacancyId` comes from the path. Bytes → `FileStorageService.storeFile`; the row stores the **generated** `fileName`, never the client's. Targeting columns validated the same way as §5.8. On failure to persist the row, the stored blob is deleted — never orphan a file `[H14]` |
+| ★ GET | `/api/opportunities/{id}/attachments` | audience resolver: super admin, advertising side, or a targeted student | A file with `universityId = null` is **advert-level** and is listed for the super admin and the advertising side, but is **omitted from a student's listing** — a student never sees a file that was not targeted at them |
+| ★ GET | `/{attachmentId}/download` | same resolver, **404** for anyone else | Serves `original_file_name` as a download name while `file_name` stays the on-disk UUID |
+| ★ DELETE | `/api/opportunities/{id}/attachments/{attachmentId}` | uploader, advertising side, or super admin | Deletes the row **and** the blob via `FileStorageService.deleteFile`. A student can never delete |
+
+`GET` returns metadata only (`id`, `originalFileName`, `contentType`, `fileSize`, `uploadedAt`) — never `fileName` or `storagePath`, so the on-disk UUID never reaches a client that could try to guess a path `[H14]`.
 
 ---
 
@@ -421,7 +467,8 @@ Two findings from doing Phase 0, both folded back into this plan:
 | **S1.3** | `opportunity_shares` | Entity + repository | repository test | `feat(opportunities): add the university-to-students share record` |
 | **S1.4** | `opportunity_submissions` | Entity + repository | repository test | `feat(opportunities): add the supervisor submission record` |
 | **S1.5** | `opportunity_status_history` | Entity + repository | repository test | `feat(opportunities): add the relay audit trail` |
-| **S1.6** | Migration DDL + backfill | `backend/migration/add_opportunity_propagation.sql`: add columns, backfill `origin='COMPANY'` and `status='PUBLISHED'` where `status='OPEN'`, create tables/indexes. **Additive only — no drops** | `MigrationCatalogCountTest` still green; new `OpportunityBackfillTest` on H2 | `feat(opportunities): migration and OPEN to PUBLISHED backfill` |
+| **S1.5b** | `opportunity_attachments` (§5.11) | Entity + repository. Columns exactly as §5.11: `university_id` **nullable**, server-generated `file_name` separate from `original_file_name`, targeting columns. Indexes `(vacancy_id)`, `(university_id)`. No `@ManyToOne` — house style is plain scalars | `OpportunityAttachmentScopeTest` schema half: a `university_id`-null advert-level row and a targeted row coexist on one advert; repository returns only rows for a given `vacancy_id`/`university_id` | `feat(opportunities): add the dedicated advert attachments table` |
+| **S1.6** | Migration DDL + backfill | `backend/migration/add_opportunity_propagation.sql`: add columns, backfill `origin='COMPANY'` and `status='PUBLISHED'` where `status='OPEN'`, create tables/indexes — **including `opportunity_attachments` and its two indexes**. **Additive only — no drops** | `MigrationCatalogCountTest` still green; new `OpportunityBackfillTest` on H2 | `feat(opportunities): migration and OPEN to PUBLISHED backfill` |
 | **S1.7** | Enums + parsers | Nested `Opportunity.Status`, `Opportunity.Offer.Status`, `Share.Status`, `Submission.Status`, `Origin`, `VerificationStatus`, `WorkMode`, `SourceKind` + `Status.parse` accepting legacy `"OPEN"`. ⚠️ **Also rewrite the apply gate at `ApplicationService.java:85` in this same commit** — see the 🔴 note in §5.6. Leaving it comparing against `"OPEN"` kills the entire apply path. | `OpportunityStatusParseTest`: `OPEN`→`PUBLISHED`, unknown→400, case/trim tolerant. `ApplicationAdvertStatusGateTest` must be **inverted** here: `PUBLISHED` becomes appliable, `PENDING_REVIEW` stays refused | `feat(opportunities): status enums with legacy OPEN alias` |
 
 **Gate after Phase 1:** full suite unchanged. Nothing user-visible has changed — this is the phase to stop and re-verify if anything wobbles.
@@ -470,6 +517,7 @@ Two findings from doing Phase 0, both folded back into this plan:
 | **S6.4** | Student feed `GET /api/opportunities` | Audience-scoped via S2.3: my university + `SHARED` + `PUBLISHED` + not past deadline + targeting match `[H2][H4]`; zero-filled metadata so counts don't interpolate | **the R7 matrix**: student sees own university's share; another university's student does not; closed/withdrawn share invisible; guessing `/id` → 404 `[H3]` | `feat(opportunities): the student opportunity feed` |
 | **S6.5** | Chunked student notification | Chunked fan-out, one transaction per chunk, cap + log when truncated `[H11]` | 5k-student fixture: all receive it, no single huge transaction | `feat(opportunities): chunked notification fan-out` |
 | **S6.6** | `close share` | `SHARED→CLOSED`, students notified, feed excludes it | closed share invisible to students | `feat(opportunities): universities can withdraw a share` |
+| **S6.7** | Attachments (§5.11, §6.6) | The four endpoints in §6.6: upload / list / download / delete. Blob via `FileStorageService`; **authorization via the S2.3 audience resolver, never `DocumentScopeService`**. Advert-level (`university_id IS NULL`) files are omitted from a student's listing; metadata responses omit `fileName`/`storagePath`; delete removes row **and** blob; a failed insert deletes the blob `[H14]` | full `OpportunityAttachmentScopeTest`: owner ✓, super admin ✓, targeted student ✓, **untargeted student at the same university → 404** `[H13]`, other university → 404, student cannot delete, traversal blocked. Plus a **fault-injection run** proving each negative test actually fails when the resolver is stubbed to allow-all | `feat(opportunities): attach and gate advert documents` |
 
 ### 8.8 Phase 7 — Close the leak D1 (**highest-risk sequencing in this plan**)
 
@@ -480,7 +528,7 @@ Two findings from doing Phase 0, both folded back into this plan:
 | **S7.1** | `OpportunityCard.jsx` | Shared card; field visibility by audience | UI test per audience | `feat(opportunities): shared opportunity card` |
 | **S7.2** | Repoint the **student** UI | `VacanciesSection.jsx` → `/api/opportunities`; new `OpportunitiesSection.jsx`; `StudentDashboard.js:577` mounts it | student feed renders; **student no longer calls `fetchVacancies`** (assert with a fetch spy) | `refactor(student): browse the scoped feed, not the legacy list` |
 | **S7.3** | Repoint the **admin** count | `AdminDashboard.js:11,76` → `/api/opportunities/inbox`. ⚠️ **Three test files mock `fetchVacancies` and must be repointed in the same commit or they fail:** `AdminDashboard.test.js:20,33,43`, `OverviewLanding.test.js:30,142,155`, `RoleAnalytics.test.js:19,42,111` | admin count renders from the inbox; those 3 suites green | `refactor(admin): count adverts from the moderation inbox` |
-| **S7.4** | 🔒 Close D1 | `GET /api/vacancies` → `super_admin` only; `/company/{id}` → own company only; `/status` → retired | **S0.1 inverted**: `STUDENT` now gets **403** on `GET /api/vacancies`; `SUPERVISOR`, `COMPANY` likewise; super admin still 200. `POST/PUT/DELETE` unchanged and `VacancyOwnershipTest` fully green | `fix(security): scope the legacy advert endpoints to the super admin` |
+| **S7.4** | 🔒 Close D1 | **All four** ungated GETs on `VacancyController` (`:48`, `:53`, `:58`, `:63`) → `super_admin` only. `/company/{id}` restricted to the caller's own company; `/status` retired | **S0.1 inverted — all four leak assertions flip 200→403, not three:** `studentCanCurrentlyListEveryVacancyAcrossCompanies`, `studentCanCurrentlyReadASingleVacancyById`, `companyCanCurrentlyListARivalsVacancies`, `supervisorCanCurrentlyListVacanciesFromEveryUniversity`. ⚠️ **`studentCanCurrentlyReadASingleVacancyById` must be flipped here** — as written it certifies the defect, and a green suite vouching for a broken requirement is the failure mode this whole plan is guarding against. The two guard tests (`anonymousIsRejected`, `superAdminCanListEveryVacancy`) must keep passing so the fix cannot over-reach. `POST/PUT/DELETE` unchanged and `VacancyOwnershipTest` fully green | `fix(security): scope every legacy advert read to the super admin` |
 | **S7.5** | Remove the now-dead `fetchVacancies` callers | Delete from `api.js` **only** after `rg fetchVacancies src` confirms zero callers — the full set today is `AdminDashboard.js:11,76`, `VacanciesSection.jsx:6,40`, `api.js:521`, plus the three test mocks repointed in S7.3 | `rg fetchVacancies src` returns nothing; build passes | `refactor(student): drop the dead legacy advert fetch` |
 
 ### 8.9 Phase 8 — Placement cards, history, hardening (R9, H12)
@@ -505,6 +553,7 @@ Two findings from doing Phase 0, both folded back into this plan:
 | Supervisor submission (R6) | university's supervisors | `OPPORTUNITY_SUBMISSION` | A supervisor submitted an opportunity | `/university/opportunities` |
 | Shared with students (R4/R5) | matching students, **chunked** `[H11]` | `OPPORTUNITY_SHARED` | New internship opportunity | `/student/dashboard` |
 | Share closed | students | `OPPORTUNITY_WITHDRAWN` | An opportunity is no longer available | `/student/dashboard` |
+| Advertisement shared | the uploading side | `OPPORTUNITY_ATTACHMENT_ADDED` | A document was attached to your opportunity | role dashboard |
 | Placement card created | student + both supervisors | existing placement notification types | | |
 
 > **[H11] is the one scale risk in this plan.** Student fan-out is per-student rows in `notifications`, and unlike the existing admin fan-out (a handful) a university can hold thousands. S6.5 chunks it. If it still misbehaves, the fallback is a single "N new opportunities" notification per student with a count, not N messages. **Decide before S6.3, not during it.**
@@ -528,7 +577,9 @@ Two findings from doing Phase 0, both folded back into this plan:
 | `OpportunityFeedTest` | **R7** audience matrix + closed/withdrawn exclusion + 404 on guess `[H2][H3][H4]` | S6.4 |
 | `OpportunityFanoutTest` | 5k students, chunked, all notified | S6.5 |
 | `PlacementAdvertLinkTest` | placement card derived from the advert; old placements unaffected | S8.1 |
+| `OpportunityAttachmentScopeTest` | owner reads it; **super admin** reads it; **targeted** student reads it; **untargeted student at the SAME university → 404** `[H13]`; student at another university → 404; a student never sees an advert-level (`university_id IS NULL`) file in their listing; `GET` metadata omits `fileName`/`storagePath`; a crafted `fileName` cannot escape the storage root `[H14]`; deleting removes row **and** blob; a student cannot delete | S1.5b, S6.7 |
 | **Existing, must stay green** | `VacancyOwnershipTest` (8 call sites), `ApplicationLifecycleTest`, `PlacementPipelineTest`, `MigrationCatalogCountTest` | all |
+| **Existing, must stay green (File Management)** | `DocumentScopeTest`, `FileAccessScopeTest`, `DocumentScopeBackfillTest` | all — proof that the new attachment table did not disturb `documents` |
 
 **Gates per phase:** `backend ./start.sh clean test` (must stay ≥ 284 and rising) · `CI=false npx react-scripts test --watchAll=false` (≥ 25 suites / ≥ 166 tests) · `CI=false npm run build` (compiled with warnings, no new ones) · `npx eslint src --ext .js,.jsx` (0 errors, ≤ 9 warnings) · **plus `grep`/`rg` audits** for the id-type and L8 traps in §2.5.
 
@@ -546,6 +597,12 @@ Two findings from doing Phase 0, both folded back into this plan:
 | **D6** | Standalone `/opportunities` route, or a section inside each existing dashboard? | **Section inside each dashboard**, matching how `VacanciesSection` is mounted in `StudentDashboard.js:577`. Fewer routes, less nav churn, and `/file-management` already proves the all-roles route pattern works when needed. | Standalone routes per role. | **S7.2** |
 | **D7** | "Legit offer" (R2) — is `verification_status` a super-admin binary, or a graded scale? | **Binary `VERIFIED`/`REJECTED` with a required note.** Simple, auditable, matches the `RoleRequest` approval precedent. | A graded scale (e.g. `UNVERIFIED/PARTIAL/VERIFIED/REJECTED`). | **S4.2** |
 
+**Already decided, not open:**
+
+| # | Decision | Outcome |
+|---|---|---|
+| **D8** | Where do advert attachments live — extend `documents` + `Document.audience`, or a dedicated table? | **Dedicated `opportunity_attachments` table (§5.11).** Checked and rejected the `documents` reuse: `audience` is display-only and `DocumentScopeService.java:48-51` keys only on `universityId`/`companyId`/uploader, so it can express neither "these students at this university" nor a targeted programme. Reusing `FileStorageService` for the bytes only. |
+
 ---
 
 ## 12. What deliberately does NOT change
@@ -556,6 +613,7 @@ Two findings from doing Phase 0, both folded back into this plan:
 | `Application` and its whole lifecycle | Out of scope. `vacancyId` keeps working; only the audience that can see the advert changes. |
 | `Placement` lifecycle & statuses | Unchanged. S8.1 adds one nullable column and nothing else. |
 | Roles, authorities, `super_admin` | No new role. `super_admin` is already a boolean + granted authority. |
+| **`documents` table, `DocumentScopeService`, `/file-management`** | **Deliberately untouched.** The opportunity feature gets its own `opportunity_attachments` table (§5.11) instead of stretching a shared, currently-working visibility predicate. `DocumentScopeTest` / `FileAccessScopeTest` / `DocumentScopeBackfillTest` must stay green throughout. The only shared piece is `FileStorageService`, and only for the bytes — never for authorization. |
 | `/api/placements`, `/api/evaluations`, `/api/diaries` | Not involved. |
 | `users`, `students`, `universities`, `company` tables | Not involved. `D2`/`internship_companies` is **not** touched and must not be conflated with `company`. |
 | The entity/table name `vacancy` | Deferred rename; see D1. Renaming now would churn `Application.vacancyId`, the seeder and 4 test classes for no functional gain. |
