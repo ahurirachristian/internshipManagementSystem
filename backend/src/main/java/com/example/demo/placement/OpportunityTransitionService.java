@@ -59,9 +59,12 @@ import com.example.demo.notification.NotificationService;
  *
  * <p>Advert scope note: {@code vacancies} carries no {@code university_id} column, so
  * a supervisor's claim on an advert is derived from the relay rows that link their
- * university to it (a submission or a share). That derivation is temporary by design
- * — S2.3 replaces these ad-hoc predicates with the single audience resolver that
- * every later read and write consumes.
+ * university to it (a submission or a share). <b>Seeing is not acting, and that is
+ * why this is not simply {@link OpportunityAudienceResolver#canSee}:</b> a student
+ * may see a shared advert and must never withdraw it; a university offered another
+ * company's advert may see it and must never pull it. The resolver (S2.3) answers
+ * every <i>read</i> from Phase 3 on; this engine keeps the stricter <i>action</i>
+ * scope so no read predicate ever becomes a write grant by default.
  */
 @Service
 @Transactional
