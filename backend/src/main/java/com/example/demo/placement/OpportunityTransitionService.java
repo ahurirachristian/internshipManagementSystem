@@ -10,7 +10,11 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.example.demo.audit.AuditLogService;
+import com.example.demo.auth.Role;
 import com.example.demo.auth.UserEntity;
+import com.example.demo.auth.UserRepository;
+import com.example.demo.notification.NotificationService;
 
 /**
  * S2.1 (opportunity plan §8.3): one transition engine for the advert and its three
@@ -41,6 +45,17 @@ import com.example.demo.auth.UserEntity;
  * with the statuses stored as plain strings (§5.10 — the trail outlives the
  * vocabulary). Illegal attempts write nothing at all: the exception is thrown before
  * the row is touched.
+ *
+ * <p><b>S2.2: every transition also emits exactly one notification and one audit
+ * row, from here — never from a controller</b> (matching
+ * {@code PlacementPipelineService}'s history→notify→audit ordering, so a caller
+ * cannot perform a transition without its side effects). The recipients are the
+ * counterparties named in the §9 catalog where the catalog covers the event:
+ * verified/rejected → the submitter, an answered offer → the super admins. Where
+ * the catalog assigns an audience that needs targeting — students on a closed share
+ * [H11] — the fan-out deliberately arrives with the step that owns it (S6.5/S6.6);
+ * until then the sharing university's supervisors are told, so the side effect is
+ * still exactly one notification per transition.
  *
  * <p>Advert scope note: {@code vacancies} carries no {@code university_id} column, so
  * a supervisor's claim on an advert is derived from the relay rows that link their
@@ -115,16 +130,24 @@ public class OpportunityTransitionService {
     private final OpportunityShareRepository shareRepository;
     private final OpportunitySubmissionRepository submissionRepository;
     private final OpportunityStatusHistoryRepository historyRepository;
+    private final NotificationService notificationService;
+    private final AuditLogService auditLogService;
+    private final UserRepository userRepository;
 
     public OpportunityTransitionService(VacancyRepository vacancyRepository,
             OpportunityOfferRepository offerRepository, OpportunityShareRepository shareRepository,
             OpportunitySubmissionRepository submissionRepository,
-            OpportunityStatusHistoryRepository historyRepository) {
+            OpportunityStatusHistoryRepository historyRepository,
+            NotificationService notificationService, AuditLogService auditLogService,
+            UserRepository userRepository) {
         this.vacancyRepository = vacancyRepository;
         this.offerRepository = offerRepository;
         this.shareRepository = shareRepository;
         this.submissionRepository = submissionRepository;
         this.historyRepository = historyRepository;
+        this.notificationService = notificationService;
+        this.auditLogService = auditLogService;
+        this.userRepository = userRepository;
     }
 
     // --- Advert transitions -------------------------------------------------
@@ -156,6 +179,9 @@ public class OpportunityTransitionService {
         Vacancy saved = vacancyRepository.save(advert);
 
         record(saved.getId(), null, null, from, target, actor);
+        notifyAdvertOriginator(saved, target);
+        auditLogService.log(actor.getUsername(), actor.getRole().name(), "OPPORTUNITY_STATUS",
+                "Vacancy", "Opportunity " + saved.getId() + ": " + from + " -> " + target, null);
         return saved;
     }
 
@@ -240,6 +266,11 @@ public class OpportunityTransitionService {
 
         record(saved.getVacancyId(), saved.getUniversityId(),
                 OpportunityStatusHistory.RELAY_OFFER, from, target, actor);
+        notifySuperAdminsAboutOffer(saved, target);
+        auditLogService.log(actor.getUsername(), actor.getRole().name(), "OPPORTUNITY_OFFER_STATUS",
+                "OpportunityOffer",
+                "Offer " + saved.getId() + " (university " + saved.getUniversityId() + "): "
+                        + from + " -> " + target, null);
         return saved;
     }
 
@@ -280,6 +311,11 @@ public class OpportunityTransitionService {
 
         record(saved.getVacancyId(), saved.getUniversityId(),
                 OpportunityStatusHistory.RELAY_SHARE, from, target, actor);
+        notifySharingUniversitySupervisors(saved, target);
+        auditLogService.log(actor.getUsername(), actor.getRole().name(), "OPPORTUNITY_SHARE_STATUS",
+                "OpportunityShare",
+                "Share " + saved.getId() + " (university " + saved.getUniversityId() + "): "
+                        + from + " -> " + target, null);
         return saved;
     }
 
@@ -322,6 +358,11 @@ public class OpportunityTransitionService {
 
         record(saved.getVacancyId(), saved.getUniversityId(),
                 OpportunityStatusHistory.RELAY_SUBMISSION, from, target, actor);
+        notifySubmitterAboutReview(saved, target);
+        auditLogService.log(actor.getUsername(), actor.getRole().name(), "OPPORTUNITY_SUBMISSION_STATUS",
+                "OpportunitySubmission",
+                "Submission " + saved.getId() + " (university " + saved.getUniversityId() + "): "
+                        + from + " -> " + target, null);
         return saved;
     }
 
@@ -367,6 +408,105 @@ public class OpportunityTransitionService {
 
     private boolean isSuperAdmin(UserEntity actor) {
         return Boolean.TRUE.equals(actor.getSuperAdmin());
+    }
+
+    // --- S2.2 side effects --------------------------------------------------
+
+    /**
+     * The submitter is told the verdict: approved → {@code OPPORTUNITY_VERIFIED},
+     * rejected → {@code OPPORTUNITY_REJECTED} (both from the §9 catalog), anything
+     * else → the house {@code OPPORTUNITY_STATUS} change notice. Recipients are
+     * looked up server-side only (L15): the owning company's users for a
+     * company-submitted advert, that university's supervisors for a
+     * university/supervisor origin, falling back to the super admins who own the
+     * moderation inbox when no relay row links a university yet (R5's advert
+     * before its first share).
+     */
+    private void notifyAdvertOriginator(Vacancy advert, Vacancy.Status target) {
+        String type;
+        String title;
+        if (target == Vacancy.Status.PUBLISHED) {
+            type = "OPPORTUNITY_VERIFIED";
+            title = "Your opportunity was approved";
+        } else if (target == Vacancy.Status.REJECTED) {
+            type = "OPPORTUNITY_REJECTED";
+            title = "Your opportunity was not approved";
+        } else {
+            type = "OPPORTUNITY_STATUS";
+            title = "Opportunity updated";
+        }
+        String body = "\"" + advert.getTitle() + "\" is now " + target + ".";
+        String link = advert.getOrigin() == Vacancy.Origin.COMPANY
+                ? "/company/dashboard"
+                : "/university/dashboard";
+        notificationService.notify(originatorRecipients(advert), type, title, body, link);
+    }
+
+    private List<Long> originatorRecipients(Vacancy advert) {
+        if (advert.getOrigin() == Vacancy.Origin.COMPANY && advert.getCompanyId() != null) {
+            return userRepository.findByCompanyId(advert.getCompanyId()).stream()
+                    .filter(u -> "COMPANY".equals(u.getRole().name()))
+                    .map(UserEntity::getId)
+                    .toList();
+        }
+        Long universityId = submissionRepository.findByVacancyId(advert.getId())
+                .map(OpportunitySubmission::getUniversityId)
+                .orElse(null);
+        if (universityId == null) {
+            return superAdminIds();
+        }
+        return supervisorIds(universityId);
+    }
+
+    /**
+     * An offer is the super admin's to watch: §9 sends them
+     * {@code OPPORTUNITY_OFFER_ANSWERED} when the university responds, and the plain
+     * status notice for the transitions nobody answered yet (shared or stood down).
+     */
+    private void notifySuperAdminsAboutOffer(OpportunityOffer offer, OpportunityOffer.Status target) {
+        boolean answered = target == OpportunityOffer.Status.ACCEPTED
+                || target == OpportunityOffer.Status.DECLINED;
+        String type = answered ? "OPPORTUNITY_OFFER_ANSWERED" : "OPPORTUNITY_STATUS";
+        String title = answered ? "University responded to an offer" : "Offer updated";
+        String body = "Offer for university " + offer.getUniversityId() + " is now " + target + ".";
+        notificationService.notify(superAdminIds(), type, title, body, "/admin/opportunities");
+    }
+
+    /**
+     * A share's close is felt by its university first. The catalog's
+     * {@code OPPORTUNITY_WITHDRAWN} notice to every matching <b>student</b> needs
+     * the targeting-aware, chunked fan-out [H11] and belongs to S6.5/S6.6 — sending
+     * it from here would fan out untargeted and unchunked from the very first
+     * close. The supervisors who shared it are told now.
+     */
+    private void notifySharingUniversitySupervisors(OpportunityShare share, OpportunityShare.Status target) {
+        String body = "Shared opportunity on advert " + share.getVacancyId() + " is now " + target + ".";
+        notificationService.notify(supervisorIds(share.getUniversityId()), "OPPORTUNITY_STATUS",
+                target == OpportunityShare.Status.CLOSED ? "A shared opportunity was withdrawn"
+                        : "Share updated",
+                body, "/university/dashboard");
+    }
+
+    /** The counterpart of §9's {@code OPPORTUNITY_SUBMISSION}: the submitter learns their own verdict. */
+    private void notifySubmitterAboutReview(OpportunitySubmission submission, OpportunitySubmission.Status target) {
+        List<Long> recipients = submission.getSubmittedBy() == null
+                ? List.of()
+                : List.of(submission.getSubmittedBy());
+        notificationService.notify(recipients, "OPPORTUNITY_STATUS", "Submission reviewed",
+                "Your submission is now " + target + ".", "/university/dashboard");
+    }
+
+    private List<Long> superAdminIds() {
+        return userRepository.findBySuperAdminTrue().stream().map(UserEntity::getId).toList();
+    }
+
+    private List<Long> supervisorIds(Long universityId) {
+        if (universityId == null) {
+            return List.of();
+        }
+        return userRepository.findByUniversityIdAndRole(universityId, Role.SUPERVISOR).stream()
+                .map(UserEntity::getId)
+                .toList();
     }
 
     /**
