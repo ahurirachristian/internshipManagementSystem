@@ -162,6 +162,42 @@ public class OpportunityService {
         return saved;
     }
 
+    /**
+     * S3.3: {@code GET /mine} — what the caller put into the system themselves.
+     *
+     * <p>A company sees exactly its own {@code origin=COMPANY} submissions, never a
+     * rival's [H1]; a supervisor sees the proposals they personally submitted,
+     * through their {@code opportunity_submissions} rows — rejected ones included,
+     * because knowing your proposal was turned down is part of the story. Rows are
+     * resolved through the vacancy table and dropped when the advert is gone, so
+     * the list can never 500 on a dangling link.
+     *
+     * <p>Not here: R5's university-sourced adverts. They carry no creator column
+     * (D1 kept {@code vacancies} free of them) and no relay row until S6.3 shares
+     * them — at which point this university's share makes them visible through the
+     * {@code /shared} view instead. The creator sees their sourced advert the
+     * moment it reaches an audience, which is also the first moment there is
+     * anything to act on.
+     */
+    public java.util.List<Vacancy> listMine(UserEntity actor) {
+        return switch (actor.getRole().name()) {
+            case "COMPANY" -> {
+                if (actor.getCompanyId() == null) {
+                    throw new AccessDeniedException("Your account is not linked to a company.");
+                }
+                yield vacancyRepository.findByCompanyId(actor.getCompanyId()).stream()
+                        .filter(v -> v.getOrigin() == Vacancy.Origin.COMPANY)
+                        .toList();
+            }
+            case "SUPERVISOR" -> submissionRepository
+                    .findBySubmittedByOrderBySubmittedAtDesc(actor.getId()).stream()
+                    .map(row -> vacancyRepository.findById(row.getVacancyId()).orElse(null))
+                    .filter(java.util.Objects::nonNull)
+                    .toList();
+            default -> throw new AccessDeniedException("Only companies and supervisors have submissions.");
+        };
+    }
+
     /** Session decides [H5][H6][H8] — the request's own origin/status/companyId are never read. */
     private Derived derive(UserEntity actor, OpportunityCreateRequest request) {
         return switch (actor.getRole().name()) {

@@ -2,6 +2,7 @@ package com.example.demo.placement;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -493,5 +494,77 @@ class OpportunitySubmissionTest {
         // There is no pipeline to put it in — refused rather than floating unscored.
         postExpecting(account("subsup", Role.SUPERVISOR, null, null),
                 body("\"externalOrgName\":\"Kololo Labs\""), 403);
+    }
+
+    // --- 6. S3.3: GET /api/opportunities/mine -------------------------------
+
+    private java.util.List<Integer> mineIds(UserEntity actor) throws Exception {
+        String body = mockMvc.perform(get("/api/opportunities/mine").with(as(actor)))
+                .andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString();
+        return JsonPath.read(body, "$[*].id");
+    }
+
+    @Test
+    void aCompanySeesItsOwnSubmissionsAndNeverARivals() throws Exception {
+        UserEntity mine = companyUser();
+        UserEntity rival = companyUser();
+        String mineAdvert = postExpecting(mine, body(), 201);
+        String rivalAdvert = postExpecting(rival, body(), 201);
+
+        java.util.List<Integer> visible = mineIds(mine);
+
+        assertThat(visible).contains((int) idOf(mineAdvert));
+        // [H1]: a rival's submission never leaves the server for the wrong company.
+        assertThat(visible).doesNotContain((int) idOf(rivalAdvert));
+    }
+
+    @Test
+    void aSupervisorSeesTheirOwnProposalsWithTheirCurrentStatus() throws Exception {
+        UserEntity proposer = supervisor();
+        UserEntity peerAtSameUniversity = account("subsup", Role.SUPERVISOR, null, UNI_A);
+        String proposal = postExpecting(proposer,
+                body("\"externalOrgName\":\"Kololo Labs\""), 201);
+
+        java.util.List<Integer> visible = mineIds(proposer);
+        assertThat(visible).contains((int) idOf(proposal));
+        // The status is in the payload — the proposer can see where it went.
+        String body = mockMvc.perform(get("/api/opportunities/mine").with(as(proposer)))
+                .andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString();
+        assertThat(body).contains("PENDING_REVIEW");
+
+        // A peer at the same university did not submit it, so it is not theirs [H9].
+        assertThat(mineIds(peerAtSameUniversity)).doesNotContain((int) idOf(proposal));
+    }
+
+    @Test
+    void mineIsClosedToStudentsAdminsAndFieldSupervisors() throws Exception {
+        // /mine is gated to COMPANY + SUPERVISOR only: a student, a plain admin
+        // (the endpoint is the submitter's own shelf, not the moderator's) and a
+        // field supervisor are all refused before any row is loaded.
+        mockMvc.perform(get("/api/opportunities/mine")
+                        .with(as(account("substd", Role.STUDENT, null, UNI_A))))
+                .andExpect(status().isForbidden());
+        mockMvc.perform(get("/api/opportunities/mine").with(as(plainAdmin())))
+                .andExpect(status().isForbidden());
+        mockMvc.perform(get("/api/opportunities/mine")
+                        .with(as(account("subind", Role.INDUSTRIAL_SUPERVISOR, COMPANY_ID, null))))
+                .andExpect(status().isForbidden());
+        mockMvc.perform(get("/api/opportunities/mine"))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void aCompanyNeverSeesASupervisorProposalThroughMine() throws Exception {
+        UserEntity owner = companyUser();
+        String companyAdvert = postExpecting(owner, body(), 201);
+        String proposal = postExpecting(supervisor(),
+                body("\"externalOrgName\":\"Kololo Labs\""), 201);
+
+        java.util.List<Integer> visible = mineIds(owner);
+
+        assertThat(visible).contains((int) idOf(companyAdvert));
+        assertThat(visible).doesNotContain((int) idOf(proposal));
     }
 }
