@@ -73,6 +73,7 @@ function nativeControls() {
       const isDate = new RegExp(`type\\s*=\\s*["'](${DATE_TYPES.join('|')})["']`).test(tag);
       if (match[1] === 'input' && !isDate) continue;
       found.push({
+        el: match[1],
         file: path.relative(SRC, file),
         line: source.slice(0, match.index).split('\n').length,
         tag,
@@ -80,6 +81,23 @@ function nativeControls() {
     }
   }
   return found;
+}
+
+/**
+ * What the control's className resolves to once the token is composed in, which
+ * is what the browser actually receives. Asserting against the raw JSX instead
+ * would be wrong here: a site writes className={CONTROL_CLASS}, and the marker
+ * only appears after CONTROL_SURFACE is interpolated, so a literal search reports
+ * every select as unmarked when all of them are fine.
+ */
+function resolvedClasses(tag) {
+  const literal = tag.match(/className="([^"]*)"/);
+  const expression = tag.match(/className=\{([^}]*(?:\{[^}]*\}[^}]*)*)\}/);
+  const raw = literal ? literal[1] : expression ? expression[1] : '';
+  return raw
+    .replace(/\bCOMPACT_CONTROL_CLASS\b/g, COMPACT_CONTROL_CLASS)
+    .replace(/\bCONTROL_CLASS\b/g, CONTROL_CLASS)
+    .replace(/\bCONTROL_DISABLED_CLASS\b/g, CONTROL_DISABLED_CLASS);
 }
 
 describe('native form controls share one definition', () => {
@@ -99,6 +117,32 @@ describe('native form controls share one definition', () => {
       .map(({ file, line, tag }) => `${file}:${line} ${tag.replace(/\s+/g, ' ').slice(0, 90)}`)
       .join('\n');
     expect(report).toBe('');
+  });
+
+  it('marks every select so App.css can take away the platform arrow', () => {
+    // A native <select> left at appearance:auto keeps the browser's own arrow, and
+    // no utility class can switch that off, so a perfectly-coloured select still
+    // reads as unstyled next to CustomSelect, which draws its own chevron. The
+    // marker is what App.css hangs appearance:none off.
+    const selects = controls.filter((control) => control.el === 'select');
+    expect(selects.length).toBeGreaterThan(0);
+    const unmarked = selects
+      .filter((control) => !/\bds-control\b/.test(resolvedClasses(control.tag)))
+      .map(({ file, line }) => `${file}:${line}`);
+    expect(unmarked).toEqual([]);
+  });
+
+  it('actually suppresses the native arrow, rather than only marking the selects', () => {
+    // The marker alone changes nothing. This is the assertion that failed to exist
+    // when 22 selects were reported as migrated while still rendering platform
+    // defaults — verified by computed style, which returned appearance:auto.
+    const css = fs.readFileSync(path.join(SRC, 'App.css'), 'utf8');
+    // Anchored to a line of its own so the -webkit- prefixed declaration cannot
+    // satisfy it on its own — it did, which let a deleted `appearance: none` pass.
+    expect(css).toMatch(/select\.ds-control[^{]*\{[^}]*\n\s{2}appearance:\s*none/);
+    expect(css).toMatch(/\.dark select\.ds-control[^{]*\{[^}]*background-image/);
+    expect(CONTROL_CLASS).toContain('ds-control');
+    expect(COMPACT_CONTROL_CLASS).toContain('ds-control-sm');
   });
 
   it('keeps a control that can be disabled carrying the disabled treatment', () => {
@@ -145,10 +189,14 @@ describe('the shared definition itself', () => {
   it('emits complete Tailwind utilities rather than partial class names', () => {
     // Tailwind scans these files as plain text, so a token it cannot recognise is
     // simply dropped from the build and the field loses that property silently.
+    // ds-control and ds-control-sm are deliberately excluded: they are App.css
+    // hooks for the native-arrow suppression, not utilities Tailwind should emit,
+    // and they are covered by the assertion that App.css defines them.
     [CONTROL_CLASS, COMPACT_CONTROL_CLASS, CONTROL_DISABLED_CLASS]
       .join(' ')
       .split(/\s+/)
       .filter(Boolean)
+      .filter((token) => !token.startsWith('ds-control'))
       .forEach((token) => {
         expect(token).toMatch(
           /^(dark:|focus:|disabled:)?(w|bg|text|border|ring|rounded|shadow|opacity|cursor|transition|outline|font|px|py|p|m)[a-z0-9/[\].:%-]*$/,

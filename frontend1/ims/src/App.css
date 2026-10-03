@@ -111,10 +111,59 @@ button {
 
 /* --- Native form controls: the parts utility classes cannot reach --- */
 
+/* A native <select> draws its own arrow, and utility classes cannot switch that
+   off. Left at appearance:auto the control keeps the platform's arrow on the
+   right even when everything else about it matches the design system, which is
+   what made the migrated dropdowns still read as unstyled next to CustomSelect —
+   that component renders its own chevron, so the two looked like different
+   products. Suppressing it and drawing the same chevron puts them on one look.
+
+   The marker class lives on the shared token, so this applies to every select in
+   the app at once and cannot drift from it. It is scoped with `select` so the
+   CustomSelect <button>, which carries the same marker, keeps its own SVG.
+
+   `select.ds-control` also outranks Tailwind's px-*, so the arrow clearance here
+   wins over the density in the token rather than depending on stylesheet order. */
+select.ds-control,
+select.ds-control-sm {
+  -webkit-appearance: none;
+  appearance: none;
+  background-repeat: no-repeat;
+  background-position: right 0.7rem center;
+  background-size: 1.05rem 1.05rem;
+}
+
+select.ds-control {
+  padding-right: 2.5rem;
+}
+
+/* Table-cell density: a full 2.5rem of clearance would leave a narrow column no
+   room for its own text, so the compact dropdown gets a smaller arrow. */
+select.ds-control-sm {
+  padding-right: 1.75rem;
+  background-position: right 0.35rem center;
+  background-size: 0.85rem 0.85rem;
+}
+
+/* Chevron strokes match the arrow CustomSelect already renders: slate-500 in
+   light, slate-400 in dark. Inline because a data URI cannot inherit currentColor. */
+select.ds-control {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none' stroke='%2364748b' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5.5 8l4.5 4.5L14.5 8'/%3E%3C/svg%3E");
+}
+
+.dark select.ds-control {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none' stroke='%2394a3b8' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5.5 8l4.5 4.5L14.5 8'/%3E%3C/svg%3E");
+}
+
 /* A <select>'s expanded option list and a date input's calendar are drawn by the
    browser, not by the page, so their colours come from these rules instead of a
    className. Kept in step with CONTROL_CLASS (ui/formControls.js): white/slate-900
-   in light mode, slate-900/slate-100 in dark. */
+   in light mode, slate-900/slate-100 in dark.
+
+   Chromium honours these. Firefox and Safari largely ignore background on
+   <option>, so the open list keeps the platform palette there — that part is a
+   browser limit, not a missing rule, and the only way past it is CustomSelect,
+   which renders its own list. */
 select option {
   background-color: #ffffff;
   color: #0f172a;
