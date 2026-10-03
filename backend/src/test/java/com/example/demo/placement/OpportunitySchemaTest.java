@@ -80,15 +80,16 @@ class OpportunitySchemaTest {
         // origin and verification_status are the two columns the whole relay hangs
         // off: the audience resolver branches on origin, and nothing but a super
         // admin may move an advert out of UNVERIFIED.
-        assertThat(legacyStyle("Defaults").getOrigin()).isEqualTo("COMPANY");
-        assertThat(legacyStyle("Defaults").getVerificationStatus()).isEqualTo("UNVERIFIED");
+        assertThat(legacyStyle("Defaults").getOrigin()).isEqualTo(Vacancy.Origin.COMPANY);
+        assertThat(legacyStyle("Defaults").getVerificationStatus())
+                .isEqualTo(Vacancy.VerificationStatus.UNVERIFIED);
     }
 
     @Test
     void theLogisticsAndSafetyDefaultsAreSane() {
         Vacancy vacancy = legacyStyle("Defaults");
 
-        assertThat(vacancy.getWorkMode()).isEqualTo("ONSITE");
+        assertThat(vacancy.getWorkMode()).isEqualTo(Vacancy.WorkMode.ONSITE);
         assertThat(vacancy.getSafetyOrientationRequired()).isFalse();
     }
 
@@ -192,11 +193,11 @@ class OpportunitySchemaTest {
     @Test
     void everyProvenanceAndVerificationColumnRoundTrips() {
         Vacancy vacancy = legacyStyle("Provenance");
-        vacancy.setOrigin("SUPER_ADMIN");
-        vacancy.setStatus("PUBLISHED");
-        vacancy.setSourceKind("EXTERNAL_OFFER");
+        vacancy.setOrigin(Vacancy.Origin.SUPER_ADMIN);
+        vacancy.setStatus(Vacancy.Status.PUBLISHED);
+        vacancy.setSourceKind(Vacancy.SourceKind.EXTERNAL_OFFER);
         vacancy.setSourceReference("https://example.org/careers/42");
-        vacancy.setVerificationStatus("VERIFIED");
+        vacancy.setVerificationStatus(Vacancy.VerificationStatus.VERIFIED);
         vacancy.setVerifiedBy(7L);
         vacancy.setVerifiedAt(LocalDateTime.now().withNano(0));
         vacancy.setVerificationNote("Letter on file, confirmed by phone.");
@@ -207,11 +208,11 @@ class OpportunitySchemaTest {
 
         Vacancy reloaded = flushAndReload(vacancyRepository.save(vacancy).getId());
 
-        assertThat(reloaded.getOrigin()).isEqualTo("SUPER_ADMIN");
-        assertThat(reloaded.getStatus()).isEqualTo("PUBLISHED");
-        assertThat(reloaded.getSourceKind()).isEqualTo("EXTERNAL_OFFER");
+        assertThat(reloaded.getOrigin()).isEqualTo(Vacancy.Origin.SUPER_ADMIN);
+        assertThat(reloaded.getStatus()).isEqualTo(Vacancy.Status.PUBLISHED);
+        assertThat(reloaded.getSourceKind()).isEqualTo(Vacancy.SourceKind.EXTERNAL_OFFER);
         assertThat(reloaded.getSourceReference()).isEqualTo("https://example.org/careers/42");
-        assertThat(reloaded.getVerificationStatus()).isEqualTo("VERIFIED");
+        assertThat(reloaded.getVerificationStatus()).isEqualTo(Vacancy.VerificationStatus.VERIFIED);
         assertThat(reloaded.getVerifiedBy()).isEqualTo(7L);
         assertThat(reloaded.getVerifiedAt()).isNotNull();
         assertThat(reloaded.getVerificationNote()).isEqualTo("Letter on file, confirmed by phone.");
@@ -245,7 +246,7 @@ class OpportunitySchemaTest {
     @Test
     void everyLogisticsColumnRoundTrips() {
         Vacancy vacancy = legacyStyle("Logistics");
-        vacancy.setWorkMode("HYBRID");
+        vacancy.setWorkMode(Vacancy.WorkMode.HYBRID);
         vacancy.setCountry("Uganda");
         vacancy.setCity("Kampala");
         vacancy.setAddressDetail("Plot 42, Kololo");
@@ -259,7 +260,7 @@ class OpportunitySchemaTest {
 
         Vacancy reloaded = flushAndReload(vacancyRepository.save(vacancy).getId());
 
-        assertThat(reloaded.getWorkMode()).isEqualTo("HYBRID");
+        assertThat(reloaded.getWorkMode()).isEqualTo(Vacancy.WorkMode.HYBRID);
         assertThat(reloaded.getCountry()).isEqualTo("Uganda");
         assertThat(reloaded.getCity()).isEqualTo("Kampala");
         assertThat(reloaded.getAddressDetail()).isEqualTo("Plot 42, Kololo");
@@ -357,7 +358,11 @@ class OpportunitySchemaTest {
         assertThat(reloaded.getCompanyId()).isEqualTo(42L);
         assertThat(reloaded.getLocation()).isEqualTo("Kampala");
         assertThat(reloaded.getRequirements()).isEqualTo("Legacy requirements");
-        assertThat(reloaded.getStatus()).isEqualTo("OPEN");
+        // Status is the one legacy field whose *spelling* changed: "OPEN" is the
+        // documented alias of PUBLISHED (§5.6), so the constructor normalises it. The
+        // field itself is still untouched — no other value is substituted, and the
+        // alias is what keeps every existing fixture and client working.
+        assertThat(reloaded.getStatus()).isEqualTo(Vacancy.Status.PUBLISHED);
         assertThat(reloaded.getDeadline()).isEqualTo(deadline);
         assertThat(reloaded.getCreatedAt()).isEqualTo(created);
     }

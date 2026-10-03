@@ -68,7 +68,7 @@ class OpportunityOfferRepositoryTest {
         return offer;
     }
 
-    private OpportunityOffer offer(Long vacancyId, long universityId, String status) {
+    private OpportunityOffer offer(Long vacancyId, long universityId, OpportunityOffer.Status status) {
         OpportunityOffer offer = offer(vacancyId, universityId);
         offer.setStatus(status);
         return offer;
@@ -81,7 +81,7 @@ class OpportunityOfferRepositoryTest {
         OpportunityOffer saved = offerRepository.save(offer(vacancyId(), 10L));
 
         assertThat(saved.getId()).isNotNull();
-        assertThat(saved.getStatus()).isEqualTo(OpportunityOffer.OFFERED);
+        assertThat(saved.getStatus()).isEqualTo(OpportunityOffer.Status.OFFERED);
         assertThat(saved.getOfferedAt()).isNotNull();
     }
 
@@ -139,7 +139,7 @@ class OpportunityOfferRepositoryTest {
 
     @Test
     void everyColumnRoundTrips() {
-        OpportunityOffer row = offer(vacancyId(), 10L, OpportunityOffer.ACCEPTED);
+        OpportunityOffer row = offer(vacancyId(), 10L, OpportunityOffer.Status.ACCEPTED);
         row.setNote("Strong programme in software engineering.");
         row.setRespondedBy(99L);
         row.setRespondedAt(LocalDateTime.now().withNano(0));
@@ -151,7 +151,7 @@ class OpportunityOfferRepositoryTest {
 
         assertThat(reloaded.getVacancyId()).isEqualTo(row.getVacancyId());
         assertThat(reloaded.getUniversityId()).isEqualTo(10L);
-        assertThat(reloaded.getStatus()).isEqualTo(OpportunityOffer.ACCEPTED);
+        assertThat(reloaded.getStatus()).isEqualTo(OpportunityOffer.Status.ACCEPTED);
         assertThat(reloaded.getNote()).isEqualTo("Strong programme in software engineering.");
         assertThat(reloaded.getOfferedBy()).isEqualTo(1L);
         assertThat(reloaded.getOfferedAt()).isNotNull();
@@ -176,16 +176,16 @@ class OpportunityOfferRepositoryTest {
     @Test
     void offersCanBeFilteredByVacancyAndStatus() {
         Long vacancyId = vacancyId();
-        offerRepository.saveAndFlush(offer(vacancyId, 10L, OpportunityOffer.OFFERED));
-        offerRepository.saveAndFlush(offer(vacancyId, 11L, OpportunityOffer.ACCEPTED));
+        offerRepository.saveAndFlush(offer(vacancyId, 10L, OpportunityOffer.Status.OFFERED));
+        offerRepository.saveAndFlush(offer(vacancyId, 11L, OpportunityOffer.Status.ACCEPTED));
 
         // S5.1 refuses to offer a non-PUBLISHED advert, and S6.1 gates sharing on
         // ACCEPTED — both need to separate these two.
-        assertThat(offerRepository.findByVacancyIdAndStatus(vacancyId, OpportunityOffer.OFFERED))
+        assertThat(offerRepository.findByVacancyIdAndStatus(vacancyId, OpportunityOffer.Status.OFFERED))
                 .hasSize(1);
-        assertThat(offerRepository.findByVacancyIdAndStatus(vacancyId, OpportunityOffer.ACCEPTED))
+        assertThat(offerRepository.findByVacancyIdAndStatus(vacancyId, OpportunityOffer.Status.ACCEPTED))
                 .hasSize(1);
-        assertThat(offerRepository.findByVacancyIdAndStatus(vacancyId, OpportunityOffer.DECLINED))
+        assertThat(offerRepository.findByVacancyIdAndStatus(vacancyId, OpportunityOffer.Status.DECLINED))
                 .isEmpty();
     }
 

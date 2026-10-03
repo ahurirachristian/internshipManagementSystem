@@ -3,6 +3,8 @@ package com.example.demo.placement;
 import java.time.LocalDateTime;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -40,9 +42,17 @@ import jakarta.persistence.UniqueConstraint;
         })
 public class OpportunitySubmission {
 
-    public static final String PENDING = "PENDING";
-    public static final String APPROVED = "APPROVED";
-    public static final String REJECTED = "REJECTED";
+    /**
+     * {@code PENDING} → {@code APPROVED | REJECTED}. Terminal: {@code REJECTED}.
+     *
+     * <p>{@link #APPROVED} is a gate, not a formality: R6's second half is a share,
+     * and that share is only reachable once this row reads {@code APPROVED}.
+     */
+    public enum Status {
+        PENDING,
+        APPROVED,
+        REJECTED
+    }
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -66,7 +76,8 @@ public class OpportunitySubmission {
     private LocalDateTime submittedAt = LocalDateTime.now();
 
     @Column(name = "status", nullable = false, length = 16)
-    private String status = PENDING;
+    @Enumerated(EnumType.STRING)
+    private Status status = Status.PENDING;
 
     /** The supervisor's own pitch: where they found it, why it suits this cohort. */
     @Column(name = "note", length = 500)
@@ -121,11 +132,11 @@ public class OpportunitySubmission {
         this.submittedAt = submittedAt;
     }
 
-    public String getStatus() {
+    public Status getStatus() {
         return status;
     }
 
-    public void setStatus(String status) {
+    public void setStatus(Status status) {
         this.status = status;
     }
 

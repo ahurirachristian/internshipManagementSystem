@@ -77,9 +77,13 @@ export default function VacanciesSection() {
     );
   }
 
-  const openVacancies = vacancies.filter(
-    (vacancy) => String(vacancy.status || '').toUpperCase() === 'OPEN',
-  );
+  const openVacancies = vacancies.filter((vacancy) => {
+    // "OPEN" is the legacy spelling of "PUBLISHED" (opportunity plan §5.6): the
+    // column became an enum, but existing rows and clients keep the old word.
+    // Accept both until S7.2 repoints this tab at the scoped opportunity feed.
+    const status = String(vacancy.status || '').toUpperCase();
+    return status === 'OPEN' || status === 'PUBLISHED';
+  });
   const appliedVacancyIds = new Set(
     applications.map((application) => String(application.vacancyId)),
   );

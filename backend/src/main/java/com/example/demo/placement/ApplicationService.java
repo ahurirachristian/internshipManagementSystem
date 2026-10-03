@@ -78,11 +78,19 @@ public class ApplicationService {
      * PC9: a student applies to a vacancy. The company link is copied from the
      * VACANCY (never from the body — L8); duplicate applications are a 409;
      * closed vacancies refuse new applications.
+     *
+     * <p>The gate asks {@link Vacancy.Status#acceptsApplications()} rather than
+     * comparing against the literal {@code "OPEN"}. That comparison was correct while
+     * every live advert happened to spell its status {@code "OPEN"}; the moment the
+     * vocabulary grew a {@code PUBLISHED} state, a correctly published advert would
+     * have been refused here — a 409 with no compile error and no failing test,
+     * because every apply fixture used the legacy spelling. Deciding admissibility as
+     * a question about a named state keeps that from being possible again.
      */
     public ApplicationDto apply(UserEntity actor, Long vacancyId, String note) {
         Vacancy vacancy = vacancyRepository.findById(vacancyId)
                 .orElseThrow(() -> new NoSuchElementException("Vacancy not found."));
-        if (!"OPEN".equalsIgnoreCase(vacancy.getStatus())) {
+        if (vacancy.getStatus() == null || !vacancy.getStatus().acceptsApplications()) {
             throw new IllegalStateException("This vacancy is no longer open.");
         }
         Student student = studentRepository.findByUserId(actor.getId())

@@ -17,7 +17,7 @@ public interface OpportunitySubmissionRepository
      * to read or answer this queue [H7].
      */
     List<OpportunitySubmission> findByUniversityIdAndStatusOrderBySubmittedAtAsc(
-            Long universityId, String status);
+            Long universityId, OpportunitySubmission.Status status);
 
 
     /** A supervisor's own submissions, including rejected ones. */
@@ -32,7 +32,7 @@ public interface OpportunitySubmissionRepository
      * review row for that advert is APPROVED, so the service reads this rather than
      * trusting the caller to have checked.
      */
-    Optional<OpportunitySubmission> findByVacancyIdAndStatus(Long vacancyId, String status);
+    Optional<OpportunitySubmission> findByVacancyIdAndStatus(Long vacancyId, OpportunitySubmission.Status status);
 
     /**
      * L18, as on the other two relay tables: two supervisors reviewing one submission

@@ -6,6 +6,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -44,6 +45,31 @@ public class GlobalExceptionHandler {
     public ResponseEntity<Map<String, String>> handleBadRequest(IllegalArgumentException ex) {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(Map.of("error", ex.getMessage()));
+    }
+
+    /**
+     * A body that cannot be turned into the entity is a client error, and the specific
+     * cause is already a 400-shaped message.
+     *
+     * <p>Without this, a malformed body is a 500. That was reachable long before the
+     * opportunity work — {@code @ExceptionHandler(IllegalArgumentException.class)}
+     * above looks like it covers bad input, but Jackson wraps a failure thrown from a
+     * deserialiser in {@code HttpMessageNotReadableException}, so the handler never
+     * sees it and the request falls through to {@link #handleGeneric}.
+     *
+     * <p>It became load-bearing at S1.7: an unrecognised advert status is rejected by
+     * {@code Vacancy.Status.parse}, so {@code {"status":"BANANA"}} is now a parse
+     * failure rather than a silently stored nonsense string. The plan says an unknown
+     * status is a 400; without this handler it was a 500.
+     */
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<Map<String, String>> handleUnreadableBody(HttpMessageNotReadableException ex) {
+        Throwable cause = ex.getMostSpecificCause();
+        String message = cause.getMessage() == null
+                ? "Request body could not be read"
+                : cause.getMessage();
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(Map.of("error", message));
     }
 
     @ExceptionHandler(AccessDeniedException.class)

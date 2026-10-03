@@ -3,8 +3,13 @@ package com.example.demo.placement;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.EnumSet;
+import java.util.Locale;
+import java.util.Set;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -12,6 +17,7 @@ import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+import com.fasterxml.jackson.annotation.JsonCreator;
 
 @Entity
 @Table(name = "vacancies")
@@ -48,8 +54,17 @@ public class Vacancy {
     @Column(name = "requirements", columnDefinition = "TEXT")
     private String requirements;
 
-    @NotBlank(message = "Status is required")
-    private String status;
+    /**
+     * The advert's lifecycle state. Was free text; became a closed vocabulary in
+     * S1.7 because {@link #acceptsApplications()} has to be a decision about a
+     * named state rather than a string comparison someone can typo.
+     *
+     * @see Status
+     */
+    @NotNull(message = "Status is required")
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status", nullable = false, length = 20)
+    private Status status;
 
     @NotNull(message = "Deadline is required")
     private LocalDate deadline;
@@ -66,7 +81,8 @@ public class Vacancy {
      * value would be a privilege escalation.
      */
     @Column(name = "origin", nullable = false, length = 20)
-    private String origin = "COMPANY";
+    @Enumerated(EnumType.STRING)
+    private Origin origin = Origin.COMPANY;
 
     /** The host organisation's name, for adverts with no company behind them. */
     @Size(max = 200, message = "External organisation name must be at most 200 characters")
@@ -75,7 +91,8 @@ public class Vacancy {
 
     /** COMPANY_DIRECT, EXTERNAL_OFFER, UNIVERSITY_SOURCED, SUPERVISOR_SOURCED or REFERRAL. */
     @Column(name = "source_kind", length = 24)
-    private String sourceKind;
+    @Enumerated(EnumType.STRING)
+    private SourceKind sourceKind;
 
     /** A URL, a letter reference, or who referred it — the evidence for "legit offer". */
     @Size(max = 500, message = "Source reference must be at most 500 characters")
@@ -88,7 +105,8 @@ public class Vacancy {
      * interested party in its own advert.
      */
     @Column(name = "verification_status", nullable = false, length = 16)
-    private String verificationStatus = "UNVERIFIED";
+    @Enumerated(EnumType.STRING)
+    private VerificationStatus verificationStatus = VerificationStatus.UNVERIFIED;
 
     @Column(name = "verified_by")
     private Long verifiedBy;
@@ -146,7 +164,8 @@ public class Vacancy {
 
     /** ONSITE, REMOTE or HYBRID. */
     @Column(name = "work_mode", nullable = false, length = 16)
-    private String workMode = "ONSITE";
+    @Enumerated(EnumType.STRING)
+    private WorkMode workMode = WorkMode.ONSITE;
 
     @Size(max = 100, message = "Country must be at most 100 characters")
     @Column(name = "country", length = 100)
@@ -254,16 +273,166 @@ public class Vacancy {
     @Column(name = "required_attachments", columnDefinition = "TEXT")
     private String requiredAttachments;
 
+    // --- The closed vocabularies (plan §5.6, step S1.7) ---
+
+    /**
+     * The advert lifecycle.
+     *
+     * <pre>
+     * PENDING_REVIEW --verify--&gt; PUBLISHED --&gt; CLOSED
+     *       |  ^                   |  ^            |
+     *       |  | re-submit         |  |            +-- EXPIRED (deadline passed, computed)
+     *       +--+ REJECTED --------+  +-- WITHDRAWN (originator pulls it)
+     * </pre>
+     *
+     * <p><b>{@code "OPEN"} is still accepted as an alias of {@link #PUBLISHED}.</b>
+     * Every advert row in the production database carries that string, every
+     * {@code POST /api/vacancies} body carries it, and every existing test passes it
+     * to the constructor. Renaming the vocabulary without the alias would 400 all of
+     * them at once, so the alias is the compatibility layer — not a second state, and
+     * {@link #PUBLISHED} is the only thing it resolves to.
+     *
+     * <p><b>What the alias does not do is keep the apply path alive.</b> The apply
+     * gate used to be:
+     *
+     * <pre>
+     * if (!"OPEN".equalsIgnoreCase(vacancy.getStatus())) { throw ... }
+     * </pre>
+     *
+     * That protects rows <i>already written</i> as {@code "OPEN"}. It does nothing
+     * for rows written <i>after</i> this change: a super-admin-published advert
+     * carries {@code "PUBLISHED"}, and {@code "OPEN".equalsIgnoreCase("PUBLISHED")}
+     * is false. So the alias plus the old gate together would make every correctly
+     * published opportunity unappliable — a 409 on apply with no compile error and no
+     * failing test, because every apply test uses the legacy fixture. That is why the
+     * gate now asks {@link #acceptsApplications()} and why
+     * {@code ApplicationAdvertStatusGateTest} was inverted in the same commit.
+     */
+    public enum Status {
+        /** Submitted and not yet seen by a moderator. The private state of R1. */
+        PENDING_REVIEW,
+        /** Verified and live. */
+        PUBLISHED,
+        /** Turned down. Terminal. */
+        REJECTED,
+        /** Withdrawn by whoever put it up. Terminal. */
+        WITHDRAWN,
+        /** Wound down deliberately. Terminal. */
+        CLOSED,
+        /** Deadline passed. Computed from the deadline, never stored. Terminal. */
+        EXPIRED;
+
+        /** The pre-enum spelling of {@link #PUBLISHED}, still accepted on the wire. */
+        public static final String LEGACY_OPEN = "OPEN";
+
+        /**
+         * The statuses a student may apply to.
+         *
+         * <p>{@link #PUBLISHED} alone, deliberately. {@link #PENDING_REVIEW} is
+         * exactly the state R1 keeps private, so admitting it would make the
+         * moderation step decoration.
+         */
+        private static final Set<Status> OPEN_TO_APPLICATIONS = EnumSet.of(PUBLISHED);
+
+        /**
+         * Parses a stored or submitted status, accepting the legacy {@code "OPEN"}.
+         *
+         * <p>Case- and whitespace-tolerant on purpose: the gate this replaces used
+         * {@code equalsIgnoreCase}, so a lower-case {@code "open"} row was admissible
+         * and taking it out of service now would be a live advert losing its
+         * applicants for no good reason.
+         *
+         * <p>Unknown values are a 400 rather than a 409. That is a real behaviour
+         * change and a deliberate one: an unrecognised status used to be
+         * indistinguishable from a closed advert, so a typo in a request body was
+         * reported as "no longer open", which is both wrong and unhelpful.
+         *
+         * @throws IllegalArgumentException on anything unrecognised, which the global
+         *         handler renders as a 400
+         */
+        @JsonCreator
+        public static Status parse(String raw) {
+            if (raw == null || raw.isBlank()) {
+                throw new IllegalArgumentException("Status is required.");
+            }
+            String normalised = raw.trim().toUpperCase(Locale.ROOT);
+            if (LEGACY_OPEN.equals(normalised)) {
+                return PUBLISHED;
+            }
+            try {
+                return Status.valueOf(normalised);
+            } catch (IllegalArgumentException e) {
+                throw new IllegalArgumentException("Unknown advert status: " + raw);
+            }
+        }
+
+        /**
+         * True when a student may apply to an advert in this state.
+         *
+         * <p>This is the apply gate. It is a method on the enum so the answer lives
+         * next to the states it is a question about, rather than in a service that
+         * can drift from them.
+         */
+        public boolean acceptsApplications() {
+            return OPEN_TO_APPLICATIONS.contains(this);
+        }
+    }
+
+    /**
+     * Who put the advert here. The audience resolver branches on this, so it is a
+     * closed set rather than free text — an unrecognised origin must not be able to
+     * fall through to a default audience.
+     */
+    public enum Origin {
+        /** A company posting its own advert. The only origin needing verification (D2). */
+        COMPANY,
+        /** A moderator, who is trusted by definition. */
+        SUPER_ADMIN,
+        /** A university sourcing an advert itself (R5). */
+        UNIVERSITY,
+        /** A supervisor forwarding one to a university (R6). */
+        SUPERVISOR
+    }
+
+    /** The legitimacy verdict on an advert, with the judge and reason recorded. */
+    public enum VerificationStatus {
+        UNVERIFIED,
+        VERIFIED,
+        REJECTED
+    }
+
+    /** How the role is performed. */
+    public enum WorkMode {
+        ONSITE,
+        REMOTE,
+        HYBRID
+    }
+
+    /** Where the advert's content came from. */
+    public enum SourceKind {
+        COMPANY_DIRECT,
+        EXTERNAL_OFFER,
+        UNIVERSITY_SOURCED,
+        SUPERVISOR_SOURCED,
+        REFERRAL
+    }
+
     public Vacancy() {
     }
 
+    /**
+     * The legacy constructor, kept so the existing fixtures keep compiling and the
+     * {@code "OPEN"} they pass still lands on {@link Status#PUBLISHED}. The {@code String}
+     * parameter is deliberate: narrowing it to {@code Status} would force every caller
+     * to be edited for no gain, and would lose the one place the alias is exercised.
+     */
     public Vacancy(String title, String description, Long companyId, String location, String requirements, String status, LocalDate deadline, LocalDate createdAt) {
         this.title = title;
         this.description = description;
         this.companyId = companyId;
         this.location = location;
         this.requirements = requirements;
-        this.status = status;
+        this.status = Status.parse(status);
         this.deadline = deadline;
         this.createdAt = createdAt;
     }
@@ -316,11 +485,11 @@ public class Vacancy {
         this.requirements = requirements;
     }
 
-    public String getStatus() {
+    public Status getStatus() {
         return status;
     }
 
-    public void setStatus(String status) {
+    public void setStatus(Status status) {
         this.status = status;
     }
 
@@ -340,11 +509,11 @@ public class Vacancy {
         this.createdAt = createdAt;
     }
 
-    public String getOrigin() {
+    public Origin getOrigin() {
         return origin;
     }
 
-    public void setOrigin(String origin) {
+    public void setOrigin(Origin origin) {
         this.origin = origin;
     }
 
@@ -356,11 +525,11 @@ public class Vacancy {
         this.externalOrgName = externalOrgName;
     }
 
-    public String getSourceKind() {
+    public SourceKind getSourceKind() {
         return sourceKind;
     }
 
-    public void setSourceKind(String sourceKind) {
+    public void setSourceKind(SourceKind sourceKind) {
         this.sourceKind = sourceKind;
     }
 
@@ -372,11 +541,11 @@ public class Vacancy {
         this.sourceReference = sourceReference;
     }
 
-    public String getVerificationStatus() {
+    public VerificationStatus getVerificationStatus() {
         return verificationStatus;
     }
 
-    public void setVerificationStatus(String verificationStatus) {
+    public void setVerificationStatus(VerificationStatus verificationStatus) {
         this.verificationStatus = verificationStatus;
     }
 
@@ -500,11 +669,11 @@ public class Vacancy {
         this.safetyNotes = safetyNotes;
     }
 
-    public String getWorkMode() {
+    public WorkMode getWorkMode() {
         return workMode;
     }
 
-    public void setWorkMode(String workMode) {
+    public void setWorkMode(WorkMode workMode) {
         this.workMode = workMode;
     }
 

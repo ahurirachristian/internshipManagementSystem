@@ -15,7 +15,7 @@ public interface OpportunityOfferRepository extends JpaRepository<OpportunityOff
 
     List<OpportunityOffer> findByVacancyId(Long vacancyId);
 
-    List<OpportunityOffer> findByVacancyIdAndStatus(Long vacancyId, String status);
+    List<OpportunityOffer> findByVacancyIdAndStatus(Long vacancyId, OpportunityOffer.Status status);
 
     /** Backs the S5.1 duplicate-offer 409 without relying on the unique constraint alone. */
     boolean existsByVacancyIdAndUniversityId(Long vacancyId, Long universityId);

@@ -3,6 +3,8 @@ package com.example.demo.placement;
 import java.time.LocalDateTime;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -48,8 +50,17 @@ import jakarta.persistence.UniqueConstraint;
         })
 public class OpportunityShare {
 
-    public static final String SHARED = "SHARED";
-    public static final String CLOSED = "CLOSED";
+    /**
+     * {@code SHARED} → {@code CLOSED}. Terminal: {@code CLOSED}.
+     *
+     * <p>Only two states, which is the whole point of this table: a share is a
+     * broadcast, and the only thing that can happen to a broadcast is that it is
+     * called off.
+     */
+    public enum Status {
+        SHARED,
+        CLOSED
+    }
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -71,7 +82,8 @@ public class OpportunityShare {
     private Long offerId;
 
     @Column(name = "status", nullable = false, length = 16)
-    private String status = SHARED;
+    @Enumerated(EnumType.STRING)
+    private Status status = Status.SHARED;
 
     /** Optional context from the university to its own supervisors and students. */
     @Column(name = "note", length = 500)
@@ -132,11 +144,11 @@ public class OpportunityShare {
         this.offerId = offerId;
     }
 
-    public String getStatus() {
+    public Status getStatus() {
         return status;
     }
 
-    public void setStatus(String status) {
+    public void setStatus(Status status) {
         this.status = status;
     }
 

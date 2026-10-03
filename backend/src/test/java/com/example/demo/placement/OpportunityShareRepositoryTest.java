@@ -74,7 +74,7 @@ class OpportunityShareRepositoryTest {
         return share;
     }
 
-    private OpportunityShare share(Long vacancyId, long universityId, String status) {
+    private OpportunityShare share(Long vacancyId, long universityId, OpportunityShare.Status status) {
         OpportunityShare share = share(vacancyId, universityId);
         share.setStatus(status);
         return share;
@@ -87,7 +87,7 @@ class OpportunityShareRepositoryTest {
         OpportunityShare saved = shareRepository.save(share(vacancyId(), 10L));
 
         assertThat(saved.getId()).isNotNull();
-        assertThat(saved.getStatus()).isEqualTo(OpportunityShare.SHARED);
+        assertThat(saved.getStatus()).isEqualTo(OpportunityShare.Status.SHARED);
         assertThat(saved.getSharedAt()).isNotNull();
     }
 
@@ -125,18 +125,18 @@ class OpportunityShareRepositoryTest {
         shareRepository.saveAndFlush(share(vacancyId(), 10L));
 
         OpportunityShare closed = shareRepository.saveAndFlush(share(vacancyId(), 10L));
-        closed.setStatus(OpportunityShare.CLOSED);
+        closed.setStatus(OpportunityShare.Status.CLOSED);
         closed.setClosedAt(LocalDateTime.now().withNano(0));
         closed.setClosedBy(2L);
         shareRepository.flush();
 
         List<OpportunityShare> feed = shareRepository
-                .findByUniversityIdAndStatusOrderBySharedAtDesc(10L, OpportunityShare.SHARED);
+                .findByUniversityIdAndStatusOrderBySharedAtDesc(10L, OpportunityShare.Status.SHARED);
 
         // This university has one live advert and one withdrawn one. Exactly one is in
         // the feed. If this returns 2, a withdrawn advert is in a student's feed.
         assertThat(feed).hasSize(1);
-        assertThat(feed.get(0).getStatus()).isEqualTo(OpportunityShare.SHARED);
+        assertThat(feed.get(0).getStatus()).isEqualTo(OpportunityShare.Status.SHARED);
     }
 
     @Test
@@ -146,7 +146,7 @@ class OpportunityShareRepositoryTest {
         shareRepository.saveAndFlush(share(vacancyId(), 11L));
 
         List<OpportunityShare> mine = shareRepository
-                .findByUniversityIdAndStatusOrderBySharedAtDesc(10L, OpportunityShare.SHARED);
+                .findByUniversityIdAndStatusOrderBySharedAtDesc(10L, OpportunityShare.Status.SHARED);
 
         assertThat(mine).hasSize(1);
         assertThat(mine.get(0).getUniversityId()).isEqualTo(10L);
@@ -158,7 +158,7 @@ class OpportunityShareRepositoryTest {
         // list withdrawn shares, otherwise they lose the record of what they pulled.
         shareRepository.saveAndFlush(share(vacancyId(), 10L));
         OpportunityShare closed = shareRepository.saveAndFlush(share(vacancyId(), 11L));
-        closed.setStatus(OpportunityShare.CLOSED);
+        closed.setStatus(OpportunityShare.Status.CLOSED);
         shareRepository.flush();
 
         assertThat(shareRepository.findByUniversityIdOrderBySharedAtDesc(10L)).hasSize(1);
@@ -255,7 +255,7 @@ class OpportunityShareRepositoryTest {
 
     @Test
     void everyColumnRoundTrips() {
-        OpportunityShare row = share(vacancyId(), 10L, OpportunityShare.CLOSED);
+        OpportunityShare row = share(vacancyId(), 10L, OpportunityShare.Status.CLOSED);
         row.setOfferId(5L);
         row.setNote("Shared to third years only.");
         row.setTargetProgrammeIds("11,12");
@@ -271,7 +271,7 @@ class OpportunityShareRepositoryTest {
         assertThat(reloaded.getVacancyId()).isEqualTo(row.getVacancyId());
         assertThat(reloaded.getUniversityId()).isEqualTo(10L);
         assertThat(reloaded.getOfferId()).isEqualTo(5L);
-        assertThat(reloaded.getStatus()).isEqualTo(OpportunityShare.CLOSED);
+        assertThat(reloaded.getStatus()).isEqualTo(OpportunityShare.Status.CLOSED);
         assertThat(reloaded.getNote()).isEqualTo("Shared to third years only.");
         assertThat(reloaded.getSharedBy()).isEqualTo(1L);
         assertThat(reloaded.getSharedAt()).isNotNull();

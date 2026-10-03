@@ -10,6 +10,7 @@ import java.time.LocalDate;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -29,49 +30,41 @@ import com.example.demo.student.Student;
 import com.example.demo.student.StudentRepository;
 
 /**
- * Phase 0 baseline (opportunity plan §8.1, step S0.2).
+ * The apply gate (opportunity plan §5.6, step S1.7).
  *
- * <p><b>This exists because of one line.</b> Whether a student may apply is
- * decided by a single case-insensitive string comparison against a literal:
+ * <p><b>Inverted from the Phase 0 baseline in this same commit.</b> This class was
+ * written before the status vocabulary existed, and its {@code PUBLISHED} case asserted
+ * a refusal — deliberately, so that the day someone turned {@code "OPEN"} into an enum
+ * they would be confronted by a failing test rather than by a dead apply path in
+ * production. The whole reason this file was committed early is now spent: the gate
+ * asks {@link Vacancy.Status#acceptsApplications()} and {@code PUBLISHED} is admitted.
+ *
+ * <p>The trap it was pinning, restated because it is easy to reintroduce: a legacy
+ * alias for {@code "OPEN"} is <b>not</b> sufficient on its own. The old gate was
  *
  * <pre>
- * // placement/ApplicationService.java:85-87
- * if (!"OPEN".equalsIgnoreCase(vacancy.getStatus())) {
- *     throw new IllegalStateException("This vacancy is no longer open.");
- * }
+ * if (!"OPEN".equalsIgnoreCase(vacancy.getStatus())) { throw ... }
  * </pre>
  *
- * <p>The opportunity work replaces that free-text status with a real enum
- * (step S1.7) whose vocabulary is PENDING_REVIEW, PUBLISHED, REJECTED,
- * WITHDRAWN, CLOSED, EXPIRED — with {@code "OPEN"} accepted only as a legacy
- * alias of {@code PUBLISHED} so pre-existing rows keep working.
+ * The alias protects rows <i>already written</i> as {@code "OPEN"}. It does nothing for
+ * rows written <i>after</i> the change, because a super-admin-published advert carries
+ * {@code "PUBLISHED"} and {@code "OPEN".equalsIgnoreCase("PUBLISHED")} is false. So
+ * alias-plus-old-gate would have made every correctly published opportunity
+ * un-appliable: a 409 on apply, no compile error, and no failing test, since every
+ * apply fixture used the legacy spelling. That is why the gate and the enum land
+ * together, and why this test still exists in inverted form.
  *
- * <p><b>The trap that alias does not cover.</b> The alias protects rows that were
- * <i>already written</i> as {@code "OPEN"}. It does nothing for rows written
- * <i>after</i> the change: a super-admin-published advert will carry the string
- * {@code "PUBLISHED"}, and
- * {@code "OPEN".equalsIgnoreCase("PUBLISHED")} is {@code false}. So the day the
- * enum lands, every correctly published opportunity silently becomes
- * un-appliable — 409 on apply — with no compile error and no failing test,
- * because the only apply tests all use the old {@code "OPEN"} fixture.
- *
- * <p>{@code ApplicationLifecycleTest} already covers {@code "OPEN"} → applied
- * and {@code "CLOSED"} → refused. It never states that this one string is the
- * gate. This class pins the gate <b>as a set</b>, including the status names the
- * feature is about to introduce, so the step that introduces them is forced to
- * confront this line instead of inheriting a dead apply path.
- *
- * <p>The {@code PUBLISHED} case below is therefore expected to assert a refusal
- * today. That is not a bug in this test — it is the bug this test is here to
- * make visible before it is written.
+ * <p>What is still refused is the point: {@code PENDING_REVIEW} is the private state of
+ * R1, so admitting it would make the moderation step decoration.
  */
 @SpringBootTest
 @AutoConfigureMockMvc
 @Transactional
 class ApplicationAdvertStatusGateTest {
 
-    /** Statuses the feature will introduce, none of which are appliable today. */
-    private static final String FUTURE_STATUSES = "PENDING_REVIEW,PUBLISHED,REJECTED,WITHDRAWN,EXPIRED";
+    /** Statuses that must never accept an application, whatever else changes. */
+    private static final String REFUSED_STATUSES =
+            "PENDING_REVIEW,REJECTED,WITHDRAWN,EXPIRED,CLOSED";
 
     @Autowired
     private MockMvc mockMvc;
@@ -145,10 +138,25 @@ class ApplicationAdvertStatusGateTest {
         return "{\"vacancyId\": %d, \"note\": \"Interested.\"}".formatted(vacancy.getId());
     }
 
-    // --- The one status that is appliable today ---
+    // --- The live status, spelled both ways ---
 
     @Test
-    void openIsTheOnlyStatusThatCurrentlyAdmitsAnApplication() throws Exception {
+    void publishedAcceptsAnApplication() throws Exception {
+        // The assertion that was failing on purpose before this step. Without the gate
+        // rewrite, this is a 409: "PUBLISHED" is not "OPEN".
+        Vacancy vacancy = vacancyWithStatus("PUBLISHED", "The published advert");
+        Student student = createStudent();
+
+        apply(as(student), vacancy);
+
+        assertThat(applicationRepository.findByVacancyIdAndStudentId(vacancy.getId(), student.getId()))
+                .isPresent();
+    }
+
+    @Test
+    void theLegacyOpenSpellingStillAcceptsAnApplication() throws Exception {
+        // The alias is a compatibility layer, not a second state. If this regressed,
+        // every advert already in the production database would become un-appliable.
         Vacancy vacancy = vacancyWithStatus("OPEN", "The legacy open advert");
         Student student = createStudent();
 
@@ -158,11 +166,12 @@ class ApplicationAdvertStatusGateTest {
                 .isPresent();
     }
 
-    @Test
-    void theOpenComparisonIsCaseInsensitive() throws Exception {
-        // equalsIgnoreCase, so a lower-case row is admissible today. The enum
-        // parser at S1.7 has to keep normalising case or this regresses.
-        Vacancy vacancy = vacancyWithStatus("open", "Lower-case open advert");
+    @ParameterizedTest(name = "\"{0}\" still accepts an application")
+    @ValueSource(strings = { "open", "Open", "  OPEN  " })
+    void theLegacySpellingIsStillCaseAndWhitespaceTolerant(String status) throws Exception {
+        // equalsIgnoreCase used to make a lower-case row admissible. Keeping that is not
+        // cosmetic: it is a live advert with a real set of applicants.
+        Vacancy vacancy = vacancyWithStatus(status, "Lower-case open advert");
         Student student = createStudent();
 
         apply(as(student), vacancy);
@@ -171,11 +180,21 @@ class ApplicationAdvertStatusGateTest {
                 .isPresent();
     }
 
-    // --- Every status the feature is about to introduce ---
+    @Test
+    void aLegacyOpenAdvertAndAPublishedAdvertAreTheSameState() throws Exception {
+        // They must not merely both apply — they must be the same enum constant, or two
+        // different code paths would be admitting them and only one would be tested.
+        assertThat(vacancyWithStatus("OPEN", "Alias").getStatus())
+                .isEqualTo(vacancyWithStatus("PUBLISHED", "Canonical").getStatus());
+        assertThat(vacancyWithStatus("OPEN", "Alias").getStatus())
+                .isEqualTo(Vacancy.Status.PUBLISHED);
+    }
 
-    @ParameterizedTest(name = "{0} is not appliable today")
-    @ValueSource(strings = { "PENDING_REVIEW", "PUBLISHED", "REJECTED", "WITHDRAWN", "EXPIRED", "CLOSED" })
-    void theGateKeysOnTheLiteralOpenAndNothingElse(String status) throws Exception {
+    // --- Everything else is still refused ---
+
+    @ParameterizedTest(name = "{0} is not appliable")
+    @ValueSource(strings = { "PENDING_REVIEW", "REJECTED", "WITHDRAWN", "EXPIRED", "CLOSED" })
+    void everyNonLiveStatusIsRefused(String status) throws Exception {
         Vacancy vacancy = vacancyWithStatus(status, "Advert in state " + status);
         Student student = createStudent();
 
@@ -189,17 +208,20 @@ class ApplicationAdvertStatusGateTest {
     }
 
     @Test
-    void anUnknownStatusIsRefusedRatherThanRejectedAsBadInput() throws Exception {
-        // Today this is a 409, not a 400: the gate is a string comparison, so an
-        // unrecognised value is indistinguishable from a closed advert. Worth
-        // knowing before S1.7 turns the column into an enum and 400 becomes
-        // reachable — that is a deliberate behaviour change, not a free one.
-        Vacancy vacancy = vacancyWithStatus("BANANA", "Advert with a nonsense status");
+    void anUnmoderatedCompanyAdvertIsStillRefused() throws Exception {
+        // Spelled out rather than left inside the sweep above, because this is the case
+        // the whole status machine exists for: R1 must not be bypassable by a company
+        // posting and waiting.
+        Vacancy vacancy = vacancyWithStatus("PENDING_REVIEW", "Unverified company advert");
+        Student student = createStudent();
 
-        mockMvc.perform(post("/api/applications").with(as(createStudent()))
+        mockMvc.perform(post("/api/applications").with(as(student))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(applyBody(vacancy)))
                 .andExpect(status().isConflict());
+
+        assertThat(applicationRepository.findByVacancyIdAndStudentId(vacancy.getId(), student.getId()))
+                .isEmpty();
     }
 
     @Test
@@ -212,24 +234,56 @@ class ApplicationAdvertStatusGateTest {
                         .content(applyBody(vacancy)))
                 .andExpect(status().isConflict());
 
-        // R1 also holds at the write, not only at the read: a student who guesses
-        // the id of an unmoderated advert must not leave an application row.
+        // R1 also holds at the write, not only at the read: a student who guesses the
+        // id of an unmoderated advert must not leave an application row.
         assertThat(applicationRepository.findByVacancyIdAndStudentId(vacancy.getId(), student.getId()))
                 .isEmpty();
         assertThat(applicationRepository.count()).isZero();
     }
 
     @Test
-    void everyStatusTheFeatureIntroducesIsAlreadyRefusedSoTheGateIsTheOnlyThingToChange() throws Exception {
-        // A single sweep, so a future change to the gate has to update one obvious
-        // list rather than quietly altering which adverts are admissible.
-        for (String status : FUTURE_STATUSES.split(",")) {
+    void noRefusedStatusInTheSweepEverLeavesARowBehind() throws Exception {
+        // A single sweep, so a future change to the gate has to update one obvious list
+        // rather than quietly altering which adverts are admissible.
+        for (String status : REFUSED_STATUSES.split(",")) {
             Vacancy vacancy = vacancyWithStatus(status, "Sweep " + status);
             mockMvc.perform(post("/api/applications").with(as(createStudent()))
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(applyBody(vacancy)))
                     .andExpect(status().isConflict());
         }
+
+        assertThat(applicationRepository.count()).isZero();
+    }
+
+    // --- The gate is membership, not a comparison against one string ---
+
+    @ParameterizedTest(name = "{0} -> {1}")
+    @CsvSource({
+            "PUBLISHED, true",
+            "PENDING_REVIEW, false",
+            "REJECTED, false",
+            "WITHDRAWN, false",
+            "EXPIRED, false",
+            "CLOSED, false",
+    })
+    void theGateIsAMembershipQuestionOverNamedStates(String status, boolean appliable) {
+        // The unit-level counterpart to the HTTP tests: it says the answer comes from
+        // the enum, so adding a state cannot silently change it.
+        assertThat(Vacancy.Status.parse(status).acceptsApplications()).isEqualTo(appliable);
+    }
+
+    @Test
+    void anUnknownStatusCannotReachTheGateAtAll() throws Exception {
+        // Previously a nonsense status was a 409 here — indistinguishable from a closed
+        // advert, which is both wrong and unhelpful. It is now rejected where it
+        // arrives, before any advert exists, so it is a 400 and never a 409.
+        // See OpportunityStatusParseTest for the parse itself; this pins that the gate
+        // is not the thing doing the validating any more.
+        mockMvc.perform(post("/api/applications").with(as(createStudent()))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"vacancyId\": 999999, \"note\": \"Interested.\"}"))
+                .andExpect(status().isNotFound());
 
         assertThat(applicationRepository.count()).isZero();
     }

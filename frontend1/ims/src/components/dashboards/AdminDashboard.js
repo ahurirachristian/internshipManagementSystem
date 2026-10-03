@@ -583,7 +583,7 @@ export default function AdminDashboard() {
                     <td className="py-3.5 px-3 text-xs text-slate-600 dark:text-slate-400">{vacancy.location || '—'}</td>
                     <td className="py-3.5 px-3 text-xs text-slate-600 dark:text-slate-400">{formatDate(vacancy.deadline)}</td>
                     <td className="py-3.5 px-3 pr-5">
-                      <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold ${vacancy.status === 'OPEN' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-slate-100 text-slate-600 border border-slate-200'}`}>
+                      <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold ${['OPEN', 'PUBLISHED'].includes(String(vacancy.status || '').toUpperCase()) ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-slate-100 text-slate-600 border border-slate-200'}`}>
                         {vacancy.status || '—'}
                       </span>
                     </td>

@@ -72,7 +72,7 @@ class OpportunitySubmissionRepositoryTest {
         OpportunitySubmission saved = submissionRepository.save(submission(vacancyId(), 10L));
 
         assertThat(saved.getId()).isNotNull();
-        assertThat(saved.getStatus()).isEqualTo(OpportunitySubmission.PENDING);
+        assertThat(saved.getStatus()).isEqualTo(OpportunitySubmission.Status.PENDING);
         assertThat(saved.getSubmittedAt()).isNotNull();
     }
 
@@ -127,7 +127,7 @@ class OpportunitySubmissionRepositoryTest {
         // [H7]: one university's supervisors must not read another's queue, and at S6.2
         // must not be able to answer it either.
         List<OpportunitySubmission> mine = submissionRepository
-                .findByUniversityIdAndStatusOrderBySubmittedAtAsc(10L, OpportunitySubmission.PENDING);
+                .findByUniversityIdAndStatusOrderBySubmittedAtAsc(10L, OpportunitySubmission.Status.PENDING);
 
         assertThat(mine).hasSize(1);
         assertThat(mine.get(0).getUniversityId()).isEqualTo(10L);
@@ -137,13 +137,13 @@ class OpportunitySubmissionRepositoryTest {
     void anApprovedSubmissionLeavesThePendingQueue() {
         submissionRepository.saveAndFlush(submission(vacancyId(), 10L));
         OpportunitySubmission approved = submissionRepository.saveAndFlush(submission(vacancyId(), 11L));
-        approved.setStatus(OpportunitySubmission.APPROVED);
+        approved.setStatus(OpportunitySubmission.Status.APPROVED);
         approved.setReviewedBy(3L);
         approved.setReviewedAt(LocalDateTime.now().withNano(0));
         submissionRepository.flush();
 
         List<OpportunitySubmission> pending = submissionRepository
-                .findByUniversityIdAndStatusOrderBySubmittedAtAsc(10L, OpportunitySubmission.PENDING);
+                .findByUniversityIdAndStatusOrderBySubmittedAtAsc(10L, OpportunitySubmission.Status.PENDING);
 
         assertThat(pending).hasSize(1);
     }
@@ -152,7 +152,7 @@ class OpportunitySubmissionRepositoryTest {
     void aSupervisorSeesEverySubmissionTheyMadeIncludingRejectedOnes() {
         submissionRepository.saveAndFlush(submission(vacancyId(), 10L));
         OpportunitySubmission rejected = submissionRepository.saveAndFlush(submission(vacancyId(), 11L));
-        rejected.setStatus(OpportunitySubmission.REJECTED);
+        rejected.setStatus(OpportunitySubmission.Status.REJECTED);
         rejected.setReviewNote("Not a real placement.");
         submissionRepository.flush();
 
@@ -170,11 +170,11 @@ class OpportunitySubmissionRepositoryTest {
 
         // Before review: nothing for the gate to find, so the share is refused.
         assertThat(submissionRepository
-                .findByVacancyIdAndStatus(vacancyId, OpportunitySubmission.APPROVED)).isEmpty();
+                .findByVacancyIdAndStatus(vacancyId, OpportunitySubmission.Status.APPROVED)).isEmpty();
         assertThat(submissionRepository
-                .findByVacancyIdAndStatus(vacancyId, OpportunitySubmission.PENDING)).isPresent();
+                .findByVacancyIdAndStatus(vacancyId, OpportunitySubmission.Status.PENDING)).isPresent();
 
-        pending.setStatus(OpportunitySubmission.APPROVED);
+        pending.setStatus(OpportunitySubmission.Status.APPROVED);
         pending.setReviewedBy(3L);
         pending.setReviewedAt(LocalDateTime.now().withNano(0));
         pending.setReviewNote("Vetted the host; proceeding.");
@@ -183,7 +183,7 @@ class OpportunitySubmissionRepositoryTest {
 
         // After review, the share endpoint has what it needs to unlock R6's second half.
         assertThat(submissionRepository
-                .findByVacancyIdAndStatus(vacancyId, OpportunitySubmission.APPROVED)).isPresent();
+                .findByVacancyIdAndStatus(vacancyId, OpportunitySubmission.Status.APPROVED)).isPresent();
     }
 
     @Test
@@ -202,7 +202,7 @@ class OpportunitySubmissionRepositoryTest {
     @Test
     void everyColumnRoundTrips() {
         OpportunitySubmission row = submission(vacancyId(), 10L);
-        row.setStatus(OpportunitySubmission.REJECTED);
+        row.setStatus(OpportunitySubmission.Status.REJECTED);
         row.setNote("Found at a careers fair; host confirmed in writing.");
         row.setReviewedBy(3L);
         row.setReviewedAt(LocalDateTime.now().withNano(0));
@@ -216,7 +216,7 @@ class OpportunitySubmissionRepositoryTest {
         assertThat(reloaded.getUniversityId()).isEqualTo(10L);
         assertThat(reloaded.getSubmittedBy()).isEqualTo(7L);
         assertThat(reloaded.getSubmittedAt()).isNotNull();
-        assertThat(reloaded.getStatus()).isEqualTo(OpportunitySubmission.REJECTED);
+        assertThat(reloaded.getStatus()).isEqualTo(OpportunitySubmission.Status.REJECTED);
         assertThat(reloaded.getNote()).isEqualTo("Found at a careers fair; host confirmed in writing.");
         assertThat(reloaded.getReviewedBy()).isEqualTo(3L);
         assertThat(reloaded.getReviewedAt()).isNotNull();

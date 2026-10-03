@@ -3,6 +3,8 @@ package com.example.demo.placement;
 import java.time.LocalDateTime;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -18,10 +20,11 @@ import jakarta.persistence.UniqueConstraint;
  * deliberately offered to it, which is what makes R3 selective rather than a
  * global broadcast.
  *
- * <p>Statuses are {@code String} constants rather than a nested enum because the
- * enum lands in S1.7; {@code OFFERED} → {@code ACCEPTED | DECLINED} →
- * {@code SHARED | CLOSED}. Transitions are validated by the transition service at
- * S2.1, not here, matching how {@code RoleRequest} leaves status to its service.
+ * <p>{@link Status} is a closed vocabulary so the S2.1 transition service can
+ * exhaustively check legality: {@code OFFERED} → {@code ACCEPTED | DECLINED} →
+ * {@code SHARED | CLOSED}. The transitions themselves are validated by that service,
+ * not here, matching how {@code RoleRequest} leaves status to its service — but the
+ * states it validates between are named constants, so a typo cannot invent a state.
  *
  * <p>The {@code (vacancy_id, university_id)} unique constraint is the whole point
  * of the table: it is what makes a second offer the same pair a 409 rather than a
@@ -39,11 +42,21 @@ import jakarta.persistence.UniqueConstraint;
         })
 public class OpportunityOffer {
 
-    public static final String OFFERED = "OFFERED";
-    public static final String ACCEPTED = "ACCEPTED";
-    public static final String DECLINED = "DECLINED";
-    public static final String SHARED = "SHARED";
-    public static final String CLOSED = "CLOSED";
+    /**
+     * {@code OFFERED} → {@code ACCEPTED | DECLINED}, {@code ACCEPTED} →
+     * {@code SHARED | CLOSED}. Terminal: {@code DECLINED}, {@code CLOSED}.
+     *
+     * <p>{@code SHARED} is deliberately not terminal: the university accepted the
+     * offer and then shared it, and may later close the share while leaving its own
+     * acceptance standing.
+     */
+    public enum Status {
+        OFFERED,
+        ACCEPTED,
+        DECLINED,
+        SHARED,
+        CLOSED
+    }
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -63,7 +76,8 @@ public class OpportunityOffer {
     private Long universityId;
 
     @Column(name = "status", nullable = false, length = 16)
-    private String status = OFFERED;
+    @Enumerated(EnumType.STRING)
+    private Status status = Status.OFFERED;
 
     /** Optional context from the super admin; why this advert, why this university. */
     @Column(name = "note", length = 500)
@@ -108,11 +122,11 @@ public class OpportunityOffer {
         this.universityId = universityId;
     }
 
-    public String getStatus() {
+    public Status getStatus() {
         return status;
     }
 
-    public void setStatus(String status) {
+    public void setStatus(Status status) {
         this.status = status;
     }
 

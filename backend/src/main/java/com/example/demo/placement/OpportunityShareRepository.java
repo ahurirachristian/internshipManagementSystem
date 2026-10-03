@@ -19,7 +19,7 @@ public interface OpportunityShareRepository extends JpaRepository<OpportunitySha
      * in front of students, and a feed that forgot the predicate would keep showing
      * an advert a university deliberately pulled.
      */
-    List<OpportunityShare> findByUniversityIdAndStatusOrderBySharedAtDesc(Long universityId, String status);
+    List<OpportunityShare> findByUniversityIdAndStatusOrderBySharedAtDesc(Long universityId, OpportunityShare.Status status);
 
     List<OpportunityShare> findByUniversityIdOrderBySharedAtDesc(Long universityId);
 

@@ -347,9 +347,9 @@ class OpportunityMigrationDdlTest {
         assertThat(ddl).contains("status VARCHAR(16) NOT NULL DEFAULT 'OFFERED'");
         assertThat(ddl).contains("status VARCHAR(16) NOT NULL DEFAULT 'SHARED'");
         assertThat(ddl).contains("status VARCHAR(16) NOT NULL DEFAULT 'PENDING'");
-        assertThat(OpportunityOffer.OFFERED).isEqualTo("OFFERED");
-        assertThat(OpportunityShare.SHARED).isEqualTo("SHARED");
-        assertThat(OpportunitySubmission.PENDING).isEqualTo("PENDING");
+        assertThat(OpportunityOffer.Status.OFFERED.name()).isEqualTo("OFFERED");
+        assertThat(OpportunityShare.Status.SHARED.name()).isEqualTo("SHARED");
+        assertThat(OpportunitySubmission.Status.PENDING.name()).isEqualTo("PENDING");
     }
 
     @Test
