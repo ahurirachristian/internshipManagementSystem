@@ -81,6 +81,10 @@ class OpportunitySubmissionTest {
     private NotificationRepository notificationRepository;
     @Autowired
     private AuditLogRepository auditLogRepository;
+    @Autowired
+    private OpportunitySubmissionRepository submissionRepository;
+    @Autowired
+    private OpportunityAudienceResolver resolver;
 
     // --- Fixtures ---
 
@@ -368,16 +372,16 @@ class OpportunitySubmissionTest {
     // --- 4. Side effects ----------------------------------------------------
 
     @Test
-    void awaitingReviewNotifiesTheSuperAdminsAndEveryCreationIsAudited() throws Exception {
+    void awaitingReviewNotifiesWhoeverIsActuallyWaitingAndEveryCreationIsAudited() throws Exception {
         UserEntity admin = superAdmin();
 
-        String pending = postExpecting(supervisor(),
-                body("\"externalOrgName\":\"Kololo Labs\""), 201);
+        // A company submission waits on the super admin's inbox [R1]...
+        String pending = postExpecting(companyUser(), body(), 201);
         assertThat(notified(admin, "OPPORTUNITY_SUBMITTED")).isTrue();
         assertThat(auditCount("Opportunity " + idOf(pending))).isEqualTo(1);
 
-        // A born-published advert awaits nobody's decision: audited, never announced
-        // as awaiting review (§9's catalog event does not apply to it).
+        // ...while a born-published advert awaits nobody's decision: audited, never
+        // announced as awaiting review (§9's catalog event does not apply to it).
         String published = postExpecting(admin,
                 body("\"externalOrgName\":\"Global Fintech Ltd\"", "\"sourceReference\":\"ref-9\""),
                 201);
@@ -413,5 +417,81 @@ class OpportunitySubmissionTest {
 
         assertThat(notified(superAdmin(), "OPPORTUNITY_SUBMITTED")).isTrue();
         assertThat(notified(rival, "OPPORTUNITY_SUBMITTED")).isFalse();
+    }
+
+    // --- 5. S3.2: the R6 submission record ---------------------------------
+
+    @Test
+    void aSupervisorProposalWritesAPendingSubmissionForTheirUniversity() throws Exception {
+        UserEntity proposer = supervisor();
+
+        String response = postExpecting(proposer,
+                body("\"externalOrgName\":\"Kololo Labs\""), 201);
+
+        OpportunitySubmission proposal = submissionRepository
+                .findByVacancyId(idOf(response)).orElseThrow();
+        // The session's university, forced — no universityId exists on the body to
+        // forge even if a client tried [H7].
+        assertThat(proposal.getUniversityId()).isEqualTo(UNI_A);
+        assertThat(proposal.getSubmittedBy()).isEqualTo(proposer.getId());
+        assertThat(proposal.getStatus()).isEqualTo(OpportunitySubmission.Status.PENDING);
+    }
+
+    @Test
+    void theProposalReachesItsOwnUniversityAndNoOtherAndNeverAStudent() throws Exception {
+        String response = postExpecting(supervisor(),
+                body("\"externalOrgName\":\"Kololo Labs\""), 201);
+        Vacancy advert = vacancyRepository.findById(idOf(response)).orElseThrow();
+
+        // R6 half one: the university's review queue holds it...
+        assertThat(submissionRepository
+                .findByUniversityIdAndStatusOrderBySubmittedAtAsc(UNI_A,
+                        OpportunitySubmission.Status.PENDING))
+                .anyMatch(s -> s.getVacancyId().equals(advert.getId()));
+        // ...no other university sees it...
+        assertThat(submissionRepository
+                .findByUniversityIdAndStatusOrderBySubmittedAtAsc(UNI_B,
+                        OpportunitySubmission.Status.PENDING))
+                .noneMatch(s -> s.getVacancyId().equals(advert.getId()));
+        // ...and a student of the very same university never does: a proposal is
+        // R1's private state until it is reviewed and shared.
+        UserEntity student = account("substd", Role.STUDENT, null, UNI_A);
+        assertThat(resolver.capacityOf(student, advert))
+                .isEqualTo(OpportunityAudienceResolver.Capacity.NONE);
+    }
+
+    @Test
+    void theProposalIsAnnouncedToItsUniversityAndNotToTheSuperAdmins() throws Exception {
+        UserEntity peerAtSameUniversity = account("subsup", Role.SUPERVISOR, null, UNI_A);
+        UserEntity peerElsewhere = account("subsup", Role.SUPERVISOR, null, UNI_B);
+        UserEntity admin = superAdmin();
+
+        postExpecting(supervisor(), body("\"externalOrgName\":\"Kololo Labs\""), 201);
+
+        assertThat(notified(peerAtSameUniversity, "OPPORTUNITY_SUBMISSION")).isTrue();
+        assertThat(notified(peerElsewhere, "OPPORTUNITY_SUBMISSION")).isFalse();
+        // D2: an R6 proposal never passes the super admin — their inbox stays quiet.
+        assertThat(notified(admin, "OPPORTUNITY_SUBMITTED")).isFalse();
+    }
+
+    @Test
+    void companyAndUniversitySourcedPostsWriteNoSubmissionRow() throws Exception {
+        String companyResponse = postExpecting(companyUser(), body(), 201);
+        String sourcedResponse = postExpecting(supervisor(),
+                body("\"externalOrgName\":\"Kololo Labs\"",
+                        "\"sourceKind\":\"UNIVERSITY_SOURCED\""),
+                201);
+
+        // Company submissions wait in the super admin's inbox instead; R5 needs no
+        // review hop at all (D2) — only R6 has this record.
+        assertThat(submissionRepository.findByVacancyId(idOf(companyResponse))).isEmpty();
+        assertThat(submissionRepository.findByVacancyId(idOf(sourcedResponse))).isEmpty();
+    }
+
+    @Test
+    void aSupervisorWithoutAUniversityCannotProposeAnything() throws Exception {
+        // There is no pipeline to put it in — refused rather than floating unscored.
+        postExpecting(account("subsup", Role.SUPERVISOR, null, null),
+                body("\"externalOrgName\":\"Kololo Labs\""), 403);
     }
 }

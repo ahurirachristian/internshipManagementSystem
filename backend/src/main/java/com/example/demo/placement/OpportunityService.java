@@ -39,7 +39,9 @@ import com.example.demo.school.SchoolRepository;
  *       {@code sourceKind=UNIVERSITY_SOURCED} is R5 — the university is the
  *       trusted verifier (D2), so it is born {@code PUBLISHED} for its own
  *       university; anything else is R6 — a proposal the university reviews,
- *       born {@code PENDING_REVIEW} (its submission row follows in S3.2).</li>
+ *       born {@code PENDING_REVIEW}, and its {@code opportunity_submissions} row
+ *       is written in the same save — the session's university, never the body's
+ *       [H7] — so the university's queue holds it from the first second.</li>
  *   <li><b>{@code companyId} comes from the session, never the body</b> [H8],
  *       and every non-company origin has no company at all — the external
  *       organisation's name is then required (R2/R5/R6 may have no company
@@ -51,16 +53,20 @@ import com.example.demo.school.SchoolRepository;
  *       controller (§2.5).</li>
  * </ul>
  *
- * <p>Side effects follow the house rule: one audit row always; the
- * {@code OPPORTUNITY_SUBMITTED} notification to super admins when — and only
- * when — a review is actually being awaited (§9's catalog event), because a
- * born-published advert is not a decision anyone is waiting on.
+ * <p>Side effects follow the house rule: one audit row always, and the §9
+ * catalog's audience depends on who is actually waiting — a company or
+ * plain-admin submission goes to the super admins' inbox
+ * ({@code OPPORTUNITY_SUBMITTED}), while an R6 proposal goes to the proposing
+ * university's own supervisors ({@code OPPORTUNITY_SUBMISSION}) because D2 says
+ * it never passes the super admin at all. A born-published advert awaits nobody's
+ * decision, so it is audited and never announced as awaiting review.
  */
 @Service
 @Transactional
 public class OpportunityService {
 
     private final VacancyRepository vacancyRepository;
+    private final OpportunitySubmissionRepository submissionRepository;
     private final SchoolRepository schoolRepository;
     private final DepartmentRepository departmentRepository;
     private final ProgrammeRepository programmeRepository;
@@ -68,11 +74,13 @@ public class OpportunityService {
     private final NotificationService notificationService;
     private final AuditLogService auditLogService;
 
-    public OpportunityService(VacancyRepository vacancyRepository, SchoolRepository schoolRepository,
+    public OpportunityService(VacancyRepository vacancyRepository,
+            OpportunitySubmissionRepository submissionRepository, SchoolRepository schoolRepository,
             DepartmentRepository departmentRepository, ProgrammeRepository programmeRepository,
             UserRepository userRepository, NotificationService notificationService,
             AuditLogService auditLogService) {
         this.vacancyRepository = vacancyRepository;
+        this.submissionRepository = submissionRepository;
         this.schoolRepository = schoolRepository;
         this.departmentRepository = departmentRepository;
         this.programmeRepository = programmeRepository;
@@ -123,13 +131,33 @@ public class OpportunityService {
 
         Vacancy saved = vacancyRepository.save(advert);
 
+        OpportunitySubmission proposal = null;
+        if (derived.origin() == Vacancy.Origin.SUPERVISOR) {
+            // R6: the proposal is a submission for approval — one hop of review at
+            // the university that was forced from the session, never the body [H7].
+            proposal = new OpportunitySubmission();
+            proposal.setVacancyId(saved.getId());
+            proposal.setUniversityId(actor.getUniversityId());
+            proposal.setSubmittedBy(actor.getId());
+            submissionRepository.save(proposal);
+        }
+
         auditLogService.log(actor.getUsername(), actor.getRole().name(), "OPPORTUNITY_SUBMITTED", "Vacancy",
                 "Opportunity " + saved.getId() + " created with origin " + saved.getOrigin()
-                        + ", status " + saved.getStatus(), null);
+                        + ", status " + saved.getStatus()
+                        + (proposal != null ? ", submission " + proposal.getId() : ""), null);
         if (derived.awaitingReview()) {
-            notificationService.notify(superAdminIds(), "OPPORTUNITY_SUBMITTED",
-                    "New opportunity awaiting review",
-                    "\"" + saved.getTitle() + "\" was submitted for review.", "/admin/opportunities");
+            if (derived.origin() == Vacancy.Origin.SUPERVISOR) {
+                // §9: an R6 submission goes to its own university's supervisors.
+                notificationService.notify(supervisorIds(actor.getUniversityId()), "OPPORTUNITY_SUBMISSION",
+                        "A supervisor submitted an opportunity",
+                        "\"" + saved.getTitle() + "\" is waiting for the university's review.",
+                        "/university/opportunities");
+            } else {
+                notificationService.notify(superAdminIds(), "OPPORTUNITY_SUBMITTED",
+                        "New opportunity awaiting review",
+                        "\"" + saved.getTitle() + "\" was submitted for review.", "/admin/opportunities");
+            }
         }
         return saved;
     }
@@ -145,11 +173,17 @@ public class OpportunityService {
                 yield new Derived(Vacancy.Origin.COMPANY, Vacancy.Status.PENDING_REVIEW,
                         Vacancy.VerificationStatus.UNVERIFIED, actor.getCompanyId(), true);
             }
-            case "SUPERVISOR" -> universitySourced(request)
-                    ? new Derived(Vacancy.Origin.UNIVERSITY, Vacancy.Status.PUBLISHED,
-                            Vacancy.VerificationStatus.VERIFIED, null, false)
-                    : new Derived(Vacancy.Origin.SUPERVISOR, Vacancy.Status.PENDING_REVIEW,
-                            Vacancy.VerificationStatus.UNVERIFIED, null, true);
+            case "SUPERVISOR" -> {
+                if (actor.getUniversityId() == null) {
+                    // A proposal has to land somewhere: no university, no pipeline.
+                    throw new AccessDeniedException("Your account is not linked to a university.");
+                }
+                yield universitySourced(request)
+                        ? new Derived(Vacancy.Origin.UNIVERSITY, Vacancy.Status.PUBLISHED,
+                                Vacancy.VerificationStatus.VERIFIED, null, false)
+                        : new Derived(Vacancy.Origin.SUPERVISOR, Vacancy.Status.PENDING_REVIEW,
+                                Vacancy.VerificationStatus.UNVERIFIED, null, true);
+            }
             case "ADMIN" -> {
                 boolean moderator = Boolean.TRUE.equals(actor.getSuperAdmin());
                 requireSourceEvidence(request);
@@ -323,5 +357,13 @@ public class OpportunityService {
 
     private List<Long> superAdminIds() {
         return userRepository.findBySuperAdminTrue().stream().map(UserEntity::getId).toList();
+    }
+
+    private List<Long> supervisorIds(Long universityId) {
+        if (universityId == null) {
+            return List.of();
+        }
+        return userRepository.findByUniversityIdAndRole(universityId, com.example.demo.auth.Role.SUPERVISOR)
+                .stream().map(UserEntity::getId).toList();
     }
 }
