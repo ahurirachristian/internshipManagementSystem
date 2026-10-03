@@ -3,6 +3,7 @@ import DashboardLayout from '../DashboardLayout';
 import CompanyEditModal from '../CompanyEditModal';
 import CompanySupervisorModal from '../CompanySupervisorModal';
 import ApplicationsFunnelChart from './ApplicationsFunnelChart';
+import OpportunityForm from './OpportunityForm';
 import { CONTROL_CLASS } from '../ui/formControls';
 import PlacementPaceChart from './PlacementPaceChart';
 import { DonutChart } from '../../charts/ProgressCharts';
@@ -1015,6 +1016,7 @@ export default function CompanyDashboard() {  const { user } = useAuth();
         { id: 'offers', label: 'Offers' },
         { id: 'applications', label: 'Applications' },
         { id: 'supervisors', label: 'Field Supervisors' },
+        { id: 'advertise', label: 'Advertise' },
       ]}
       activeTab={activeTab}
       onTabChange={(tab) => {
@@ -1067,6 +1069,8 @@ export default function CompanyDashboard() {  const { user } = useAuth();
         {activeTab === 'offers' && renderOffers()}
         {activeTab === 'applications' && renderApplications()}
         {activeTab === 'supervisors' && renderSupervisors()}
+        {/* S3.4: the R8 submission form — a company posts its own adverts here. */}
+        {activeTab === 'advertise' && <OpportunityForm />}
       </div>
 
       {supModal && (

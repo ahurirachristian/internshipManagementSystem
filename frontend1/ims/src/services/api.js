@@ -539,6 +539,21 @@ export async function applyToVacancy(vacancyId, note) {
   return parseResponse(response);
 }
 
+// --- Opportunities (opportunity plan S3.1) ---
+// The server derives origin, status, verification and companyId from the session
+// role, so whatever this sends in those fields is ignored on purpose — the
+// response is the authority on what actually happened.
+
+export async function createOpportunity(payload) {
+  const response = await fetch(`${API_ROOT}/api/opportunities`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+    body: JSON.stringify(payload),
+  });
+  return parseResponse(response);
+}
+
 export async function fetchPlacementTimeline() {
   const response = await fetch(`${API_ROOT}/api/placements/timeline`, {
     credentials: 'include',

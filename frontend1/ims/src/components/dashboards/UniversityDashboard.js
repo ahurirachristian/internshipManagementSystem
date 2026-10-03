@@ -9,6 +9,7 @@ import { chartColor, seriesColor } from '../../charts/colors';
 import { ChartCard, ChartEmpty, chartThemeFor } from '../../charts/ChartCard';
 import ProgrammePlacementRateChart from './ProgrammePlacementRateChart';
 import UnevaluatedDistributionChart from './UnevaluatedDistributionChart';
+import OpportunityForm from './OpportunityForm';
 import {
   deleteStudent,
   fetchUniversityStudents,
@@ -1481,6 +1482,8 @@ export default function UniversityDashboard() {
         { id: 'diaries', label: 'Diaries' },
         { id: 'evaluations', label: 'Evaluations' },
         { id: 'academic', label: 'Academic Structure' },
+        // S3.4: R5 sources it, R6 proposes it — one form, both stories.
+        { id: 'advertise', label: 'Advertise' },
       ]}
       activeTab={activeTab}
       onTabChange={setActiveTab}
@@ -1543,6 +1546,7 @@ export default function UniversityDashboard() {
         {activeTab === 'diaries' && renderDiaries()}
         {activeTab === 'evaluations' && renderEvaluations()}
         {activeTab === 'academic' && renderAcademicStructure()}
+        {activeTab === 'advertise' && <OpportunityForm />}
       </div>
 
       {editStudent && (
