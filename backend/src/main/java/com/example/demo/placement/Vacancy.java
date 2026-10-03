@@ -1,6 +1,8 @@
 package com.example.demo.placement;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -24,19 +26,26 @@ public class Vacancy {
     private String title;
 
     @NotBlank(message = "Description is required")
-    @Size(max = 1000, message = "Description must be at most 1000 characters")
-    @Column(nullable = false, length = 1000)
+    @Column(name = "description", nullable = false, columnDefinition = "TEXT")
     private String description;
 
-    @NotNull(message = "Company ID is required")
-    @Column(name = "company_id", nullable = false)
+    /**
+     * Nullable as of the opportunity work: a sourced external offer (R2), a
+     * university-sourced advert (R5) and a supervisor submission (R6) have no
+     * company to point at, and they name the host in
+     * {@link #externalOrgName} instead. This is the only column in the plan that
+     * is loosened rather than added, so the rule that replaces the old
+     * {@code NOT NULL} — company present, or an external name present — is
+     * enforced when adverts are submitted, not here, because at this layer it
+     * cannot tell which origin a row will end up claiming.
+     */
+    @Column(name = "company_id")
     private Long companyId;
 
     @Size(max = 200, message = "Location must be at most 200 characters")
     private String location;
 
-    @Size(max = 1000, message = "Requirements must be at most 1000 characters")
-    @Column(nullable = true, length = 1000)
+    @Column(name = "requirements", columnDefinition = "TEXT")
     private String requirements;
 
     @NotBlank(message = "Status is required")
@@ -47,6 +56,203 @@ public class Vacancy {
 
     /** Stamped server-side on save; not required from the client. */
     private LocalDate createdAt;
+
+    // --- Provenance and verification (plan §5.1) ---
+
+    /**
+     * Who put this advert here: COMPANY, SUPER_ADMIN, UNIVERSITY or SUPERVISOR.
+     * Derived from the session role when an advert is created and never read from
+     * the request body — the audience resolver branches on it, so a client-supplied
+     * value would be a privilege escalation.
+     */
+    @Column(name = "origin", nullable = false, length = 20)
+    private String origin = "COMPANY";
+
+    /** The host organisation's name, for adverts with no company behind them. */
+    @Size(max = 200, message = "External organisation name must be at most 200 characters")
+    @Column(name = "external_org_name", length = 200)
+    private String externalOrgName;
+
+    /** COMPANY_DIRECT, EXTERNAL_OFFER, UNIVERSITY_SOURCED, SUPERVISOR_SOURCED or REFERRAL. */
+    @Column(name = "source_kind", length = 24)
+    private String sourceKind;
+
+    /** A URL, a letter reference, or who referred it — the evidence for "legit offer". */
+    @Size(max = 500, message = "Source reference must be at most 500 characters")
+    @Column(name = "source_reference", length = 500)
+    private String sourceReference;
+
+    /**
+     * UNVERIFIED, VERIFIED or REJECTED. Only a super admin moves an advert off
+     * UNVERIFIED, and only for a company-submitted one: a company is the one
+     * interested party in its own advert.
+     */
+    @Column(name = "verification_status", nullable = false, length = 16)
+    private String verificationStatus = "UNVERIFIED";
+
+    @Column(name = "verified_by")
+    private Long verifiedBy;
+
+    @Column(name = "verified_at")
+    private LocalDateTime verifiedAt;
+
+    @Size(max = 500, message = "Verification note must be at most 500 characters")
+    @Column(name = "verification_note", length = 500)
+    private String verificationNote;
+
+    @Column(name = "published_at")
+    private LocalDateTime publishedAt;
+
+    @Column(name = "reviewed_at")
+    private LocalDateTime reviewedAt;
+
+    @Size(max = 500, message = "Review note must be at most 500 characters")
+    @Column(name = "review_note", length = 500)
+    private String reviewNote;
+
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
+
+    // --- Awareness and completeness (plan §5.2) ---
+
+    @Column(name = "responsibilities", columnDefinition = "TEXT")
+    private String responsibilities;
+
+    /** What the student must hand over. Also what a supervisor assesses against later. */
+    @Column(name = "deliverables_expected", columnDefinition = "TEXT")
+    private String deliverablesExpected;
+
+    @Column(name = "benefits", columnDefinition = "TEXT")
+    private String benefits;
+
+    @Column(name = "required_skills", columnDefinition = "TEXT")
+    private String requiredSkills;
+
+    @Column(name = "nice_to_have", columnDefinition = "TEXT")
+    private String niceToHave;
+
+    @Size(max = 500, message = "Tools and technologies must be at most 500 characters")
+    @Column(name = "tools_technologies", length = 500)
+    private String toolsTechnologies;
+
+    /** A mandatory site briefing. False by default so an omitted field reads as false. */
+    @Column(name = "safety_orientation_required", nullable = false)
+    private Boolean safetyOrientationRequired = false;
+
+    @Column(name = "safety_notes", columnDefinition = "TEXT")
+    private String safetyNotes;
+
+    // --- Logistics (plan §5.3) ---
+
+    /** ONSITE, REMOTE or HYBRID. */
+    @Column(name = "work_mode", nullable = false, length = 16)
+    private String workMode = "ONSITE";
+
+    @Size(max = 100, message = "Country must be at most 100 characters")
+    @Column(name = "country", length = 100)
+    private String country;
+
+    @Size(max = 100, message = "City must be at most 100 characters")
+    @Column(name = "city", length = 100)
+    private String city;
+
+    @Size(max = 255, message = "Address detail must be at most 255 characters")
+    @Column(name = "address_detail", length = 255)
+    private String addressDetail;
+
+    @Column(name = "duration_weeks")
+    private Integer durationWeeks;
+
+    @Column(name = "start_date")
+    private LocalDate startDate;
+
+    @Column(name = "end_date")
+    private LocalDate endDate;
+
+    /**
+     * Null means the advertiser never said. False means unpaid. Collapsing the
+     * first two states would put a claim in the advert's mouth.
+     */
+    @Column(name = "is_paid")
+    private Boolean isPaid;
+
+    @Column(name = "stipend_amount", precision = 12, scale = 2)
+    private BigDecimal stipendAmount;
+
+    @Size(max = 3, message = "Stipend currency must be at most 3 characters")
+    @Column(name = "stipend_currency", length = 3)
+    private String stipendCurrency;
+
+    /** MONTHLY, WEEKLY or TOTAL. */
+    @Size(max = 16, message = "Stipend period must be at most 16 characters")
+    @Column(name = "stipend_period", length = 16)
+    private String stipendPeriod;
+
+    // --- Targeting, capacity and contact (plan §5.4) ---
+    //
+    // Comma-separated id lists rather than a join table: the academic hierarchy
+    // mixes Integer and Long ids (plan §2.5), and a row-per-target table would put
+    // a type-conversion trap in the one place that has to be right. Converted once,
+    // in the service, never in a controller.
+
+    @Column(name = "target_school_ids", length = 255)
+    private String targetSchoolIds;
+
+    @Column(name = "target_department_ids", length = 255)
+    private String targetDepartmentIds;
+
+    @Column(name = "target_programme_ids", length = 255)
+    private String targetProgrammeIds;
+
+    @Column(name = "target_year_of_study", length = 50)
+    private String targetYearOfStudy;
+
+    @Column(name = "target_degree_levels", length = 255)
+    private String targetDegreeLevels;
+
+    @Column(name = "min_cgpa", precision = 4, scale = 2)
+    private BigDecimal minCgpa;
+
+    @Column(name = "slots")
+    private Integer slots;
+
+    @Column(name = "eligibility_notes", columnDefinition = "TEXT")
+    private String eligibilityNotes;
+
+    @Size(max = 150, message = "Contact name must be at most 150 characters")
+    @Column(name = "contact_person_name", length = 150)
+    private String contactPersonName;
+
+    @Size(max = 100, message = "Contact role must be at most 100 characters")
+    @Column(name = "contact_role", length = 100)
+    private String contactRole;
+
+    @Size(max = 200, message = "Contact email must be at most 200 characters")
+    @Column(name = "contact_email", length = 200)
+    private String contactEmail;
+
+    @Size(max = 50, message = "Contact phone must be at most 50 characters")
+    @Column(name = "contact_phone", length = 50)
+    private String contactPhone;
+
+    @Column(name = "application_instructions", columnDefinition = "TEXT")
+    private String applicationInstructions;
+
+    @Size(max = 200, message = "Application email must be at most 200 characters")
+    @Column(name = "application_email", length = 200)
+    private String applicationEmail;
+
+    @Size(max = 50, message = "Application phone must be at most 50 characters")
+    @Column(name = "application_phone", length = 50)
+    private String applicationPhone;
+
+    @Size(max = 500, message = "Application URL must be at most 500 characters")
+    @Column(name = "application_url", length = 500)
+    private String applicationUrl;
+
+    /** What the applicant must attach. The files themselves live in opportunity_attachments. */
+    @Column(name = "required_attachments", columnDefinition = "TEXT")
+    private String requiredAttachments;
 
     public Vacancy() {
     }
@@ -132,5 +338,389 @@ public class Vacancy {
 
     public void setCreatedAt(LocalDate createdAt) {
         this.createdAt = createdAt;
+    }
+
+    public String getOrigin() {
+        return origin;
+    }
+
+    public void setOrigin(String origin) {
+        this.origin = origin;
+    }
+
+    public String getExternalOrgName() {
+        return externalOrgName;
+    }
+
+    public void setExternalOrgName(String externalOrgName) {
+        this.externalOrgName = externalOrgName;
+    }
+
+    public String getSourceKind() {
+        return sourceKind;
+    }
+
+    public void setSourceKind(String sourceKind) {
+        this.sourceKind = sourceKind;
+    }
+
+    public String getSourceReference() {
+        return sourceReference;
+    }
+
+    public void setSourceReference(String sourceReference) {
+        this.sourceReference = sourceReference;
+    }
+
+    public String getVerificationStatus() {
+        return verificationStatus;
+    }
+
+    public void setVerificationStatus(String verificationStatus) {
+        this.verificationStatus = verificationStatus;
+    }
+
+    public Long getVerifiedBy() {
+        return verifiedBy;
+    }
+
+    public void setVerifiedBy(Long verifiedBy) {
+        this.verifiedBy = verifiedBy;
+    }
+
+    public LocalDateTime getVerifiedAt() {
+        return verifiedAt;
+    }
+
+    public void setVerifiedAt(LocalDateTime verifiedAt) {
+        this.verifiedAt = verifiedAt;
+    }
+
+    public String getVerificationNote() {
+        return verificationNote;
+    }
+
+    public void setVerificationNote(String verificationNote) {
+        this.verificationNote = verificationNote;
+    }
+
+    public LocalDateTime getPublishedAt() {
+        return publishedAt;
+    }
+
+    public void setPublishedAt(LocalDateTime publishedAt) {
+        this.publishedAt = publishedAt;
+    }
+
+    public LocalDateTime getReviewedAt() {
+        return reviewedAt;
+    }
+
+    public void setReviewedAt(LocalDateTime reviewedAt) {
+        this.reviewedAt = reviewedAt;
+    }
+
+    public String getReviewNote() {
+        return reviewNote;
+    }
+
+    public void setReviewNote(String reviewNote) {
+        this.reviewNote = reviewNote;
+    }
+
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(LocalDateTime updatedAt) {
+        this.updatedAt = updatedAt;
+    }
+
+    public String getResponsibilities() {
+        return responsibilities;
+    }
+
+    public void setResponsibilities(String responsibilities) {
+        this.responsibilities = responsibilities;
+    }
+
+    public String getDeliverablesExpected() {
+        return deliverablesExpected;
+    }
+
+    public void setDeliverablesExpected(String deliverablesExpected) {
+        this.deliverablesExpected = deliverablesExpected;
+    }
+
+    public String getBenefits() {
+        return benefits;
+    }
+
+    public void setBenefits(String benefits) {
+        this.benefits = benefits;
+    }
+
+    public String getRequiredSkills() {
+        return requiredSkills;
+    }
+
+    public void setRequiredSkills(String requiredSkills) {
+        this.requiredSkills = requiredSkills;
+    }
+
+    public String getNiceToHave() {
+        return niceToHave;
+    }
+
+    public void setNiceToHave(String niceToHave) {
+        this.niceToHave = niceToHave;
+    }
+
+    public String getToolsTechnologies() {
+        return toolsTechnologies;
+    }
+
+    public void setToolsTechnologies(String toolsTechnologies) {
+        this.toolsTechnologies = toolsTechnologies;
+    }
+
+    public Boolean getSafetyOrientationRequired() {
+        return safetyOrientationRequired;
+    }
+
+    public void setSafetyOrientationRequired(Boolean safetyOrientationRequired) {
+        this.safetyOrientationRequired = safetyOrientationRequired;
+    }
+
+    public String getSafetyNotes() {
+        return safetyNotes;
+    }
+
+    public void setSafetyNotes(String safetyNotes) {
+        this.safetyNotes = safetyNotes;
+    }
+
+    public String getWorkMode() {
+        return workMode;
+    }
+
+    public void setWorkMode(String workMode) {
+        this.workMode = workMode;
+    }
+
+    public String getCountry() {
+        return country;
+    }
+
+    public void setCountry(String country) {
+        this.country = country;
+    }
+
+    public String getCity() {
+        return city;
+    }
+
+    public void setCity(String city) {
+        this.city = city;
+    }
+
+    public String getAddressDetail() {
+        return addressDetail;
+    }
+
+    public void setAddressDetail(String addressDetail) {
+        this.addressDetail = addressDetail;
+    }
+
+    public Integer getDurationWeeks() {
+        return durationWeeks;
+    }
+
+    public void setDurationWeeks(Integer durationWeeks) {
+        this.durationWeeks = durationWeeks;
+    }
+
+    public LocalDate getStartDate() {
+        return startDate;
+    }
+
+    public void setStartDate(LocalDate startDate) {
+        this.startDate = startDate;
+    }
+
+    public LocalDate getEndDate() {
+        return endDate;
+    }
+
+    public void setEndDate(LocalDate endDate) {
+        this.endDate = endDate;
+    }
+
+    public Boolean getIsPaid() {
+        return isPaid;
+    }
+
+    public void setIsPaid(Boolean isPaid) {
+        this.isPaid = isPaid;
+    }
+
+    public BigDecimal getStipendAmount() {
+        return stipendAmount;
+    }
+
+    public void setStipendAmount(BigDecimal stipendAmount) {
+        this.stipendAmount = stipendAmount;
+    }
+
+    public String getStipendCurrency() {
+        return stipendCurrency;
+    }
+
+    public void setStipendCurrency(String stipendCurrency) {
+        this.stipendCurrency = stipendCurrency;
+    }
+
+    public String getStipendPeriod() {
+        return stipendPeriod;
+    }
+
+    public void setStipendPeriod(String stipendPeriod) {
+        this.stipendPeriod = stipendPeriod;
+    }
+
+    public String getTargetSchoolIds() {
+        return targetSchoolIds;
+    }
+
+    public void setTargetSchoolIds(String targetSchoolIds) {
+        this.targetSchoolIds = targetSchoolIds;
+    }
+
+    public String getTargetDepartmentIds() {
+        return targetDepartmentIds;
+    }
+
+    public void setTargetDepartmentIds(String targetDepartmentIds) {
+        this.targetDepartmentIds = targetDepartmentIds;
+    }
+
+    public String getTargetProgrammeIds() {
+        return targetProgrammeIds;
+    }
+
+    public void setTargetProgrammeIds(String targetProgrammeIds) {
+        this.targetProgrammeIds = targetProgrammeIds;
+    }
+
+    public String getTargetYearOfStudy() {
+        return targetYearOfStudy;
+    }
+
+    public void setTargetYearOfStudy(String targetYearOfStudy) {
+        this.targetYearOfStudy = targetYearOfStudy;
+    }
+
+    public String getTargetDegreeLevels() {
+        return targetDegreeLevels;
+    }
+
+    public void setTargetDegreeLevels(String targetDegreeLevels) {
+        this.targetDegreeLevels = targetDegreeLevels;
+    }
+
+    public BigDecimal getMinCgpa() {
+        return minCgpa;
+    }
+
+    public void setMinCgpa(BigDecimal minCgpa) {
+        this.minCgpa = minCgpa;
+    }
+
+    public Integer getSlots() {
+        return slots;
+    }
+
+    public void setSlots(Integer slots) {
+        this.slots = slots;
+    }
+
+    public String getEligibilityNotes() {
+        return eligibilityNotes;
+    }
+
+    public void setEligibilityNotes(String eligibilityNotes) {
+        this.eligibilityNotes = eligibilityNotes;
+    }
+
+    public String getContactPersonName() {
+        return contactPersonName;
+    }
+
+    public void setContactPersonName(String contactPersonName) {
+        this.contactPersonName = contactPersonName;
+    }
+
+    public String getContactRole() {
+        return contactRole;
+    }
+
+    public void setContactRole(String contactRole) {
+        this.contactRole = contactRole;
+    }
+
+    public String getContactEmail() {
+        return contactEmail;
+    }
+
+    public void setContactEmail(String contactEmail) {
+        this.contactEmail = contactEmail;
+    }
+
+    public String getContactPhone() {
+        return contactPhone;
+    }
+
+    public void setContactPhone(String contactPhone) {
+        this.contactPhone = contactPhone;
+    }
+
+    public String getApplicationInstructions() {
+        return applicationInstructions;
+    }
+
+    public void setApplicationInstructions(String applicationInstructions) {
+        this.applicationInstructions = applicationInstructions;
+    }
+
+    public String getApplicationEmail() {
+        return applicationEmail;
+    }
+
+    public void setApplicationEmail(String applicationEmail) {
+        this.applicationEmail = applicationEmail;
+    }
+
+    public String getApplicationPhone() {
+        return applicationPhone;
+    }
+
+    public void setApplicationPhone(String applicationPhone) {
+        this.applicationPhone = applicationPhone;
+    }
+
+    public String getApplicationUrl() {
+        return applicationUrl;
+    }
+
+    public void setApplicationUrl(String applicationUrl) {
+        this.applicationUrl = applicationUrl;
+    }
+
+    public String getRequiredAttachments() {
+        return requiredAttachments;
+    }
+
+    public void setRequiredAttachments(String requiredAttachments) {
+        this.requiredAttachments = requiredAttachments;
     }
 }
