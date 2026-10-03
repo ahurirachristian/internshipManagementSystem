@@ -272,6 +272,23 @@ Terminal: `REJECTED`, `CLOSED`, `EXPIRED`, `WITHDRAWN`. Implemented as a closed 
 
 **Wire compatibility.** `"OPEN"` is accepted as a legacy alias of `PUBLISHED` in the parser (`Status.parse`), so `VacancyOwnershipTest`'s `"status":"OPEN"` JSON and `ApplicationLifecycleTest`'s `"OPEN"` constructor argument keep passing **without editing those tests**. Any other unrecognised value is 400.
 
+**🔴 The apply gate must change in the same step — found in Phase 0.** This alias is *not* sufficient, and the plan originally missed it. Whether a student may apply is decided here:
+
+```java
+// placement/ApplicationService.java:85-87
+if (!"OPEN".equalsIgnoreCase(vacancy.getStatus())) {
+    throw new IllegalStateException("This vacancy is no longer open.");
+}
+```
+
+The alias protects rows **already written** as `"OPEN"`. It does nothing for rows **written after** the change: a super-admin-published advert carries `"PUBLISHED"`, and `"OPEN".equalsIgnoreCase("PUBLISHED")` is `false`. So the day the enum lands, **every correctly published opportunity silently becomes un-appliable** — 409 on apply, no compile error, no failing test, because every existing apply test uses the `"OPEN"` fixture.
+
+Two consequences for S1.7:
+1. The gate must become membership of the *new* vocabulary, not a comparison against `"OPEN"`. Decide and document which statuses are admissible: **recommend `PUBLISHED` only** (`PENDING_REVIEW` is precisely R1's private state).
+2. An unknown status becomes a **400 rather than a 409** once the column is an enum. That is a real behaviour change, so it is a decision to make on purpose rather than a free side effect.
+
+`ApplicationAdvertStatusGateTest` (committed in Phase 0) pins all of this and fires on the change — it was verified to fail with `expected:<409> but was:<201>` when `PUBLISHED` was admitted.
+
 ### 5.7 `opportunity_offers` — NEW (super admin → university, R3)
 
 `id`, `vacancy_id` NN, `university_id` NN (**`Long`**), `status` NOT NULL default `OFFERED`, `note` VARCHAR(500), `offered_by` NN, `offered_at` NN, `responded_by`, `responded_at`, `response_note` VARCHAR(500). **UNIQUE (`vacancy_id`,`university_id`)**, index (`university_id`,`status`).
@@ -377,9 +394,23 @@ Every step = **one branch → its own tests → gate → ff-merge → one commit
 |---|---|---|---|---|
 | **S0.1** | Characterise current advert visibility so we can prove D1 gets closed and nothing else regresses | Add `VacancyVisibilityBaselineTest`: `STUDENT` currently **can** list all adverts (asserts today's leaky behaviour, clearly named as the defect) | new | `test(vacancy): pin current unscoped advert visibility` |
 | **S0.2** | Lock the applications path that must survive everything | Assert `POST /api/applications` against a `"OPEN"` advert still reaches `SUBMITTED`, and `GET /api/applications/funnel` still zero-fills | new | `test(applications): lock the advert-driven application path` |
-| **S0.3** | Snapshot the full pre-change gate | Run and record: backend 284, frontend 25/166, eslint 0/9, build | — | (no commit — recorded in the PR body) |
+| **S0.3** | Snapshot the full pre-change gate | Run and record — **measured 2026-10-03 at `43d263a`**: backend **303** (284 baseline + 19 new), frontend **25 suites / 166 tests**, eslint **0 errors / 9 warnings**, build **compiled with warnings** | — | (no commit — recorded in §8.1.1 below) |
 
 **Gate after Phase 0:** identical to the recorded baseline.
+
+#### 8.1.1 Phase 0 result — measured baseline
+
+| Gate | Value at `43d263a` |
+|---|---|
+| Backend `./start.sh clean test` | **303 passed**, 0 failures (284 + `VacancyVisibilityBaselineTest` 8 + `ApplicationAdvertStatusGateTest` 11) |
+| Frontend `react-scripts test` | **25 suites / 166 tests** passed |
+| ESLint | **0 errors / 9 warnings** (pre-existing) |
+| Build | **compiled with warnings** (no new ones) |
+
+Two findings from doing Phase 0, both folded back into this plan:
+
+1. **The apply gate (`ApplicationService.java:85`) would have died at S1.7** — a dead end-to-end path that no existing test would have caught. Now called out in §5.6 and added to S1.7 as in-scope work. This is the concrete payoff of pinning behaviour before changing it.
+2. **`fetchVacancies` has six live references, three of them test mocks** — recorded in S7.3/S7.5 so the repoint cannot half-land and break three suites.
 
 ### 8.2 Phase 1 — Schema foundation (additive; zero behaviour change)
 
@@ -391,7 +422,7 @@ Every step = **one branch → its own tests → gate → ff-merge → one commit
 | **S1.4** | `opportunity_submissions` | Entity + repository | repository test | `feat(opportunities): add the supervisor submission record` |
 | **S1.5** | `opportunity_status_history` | Entity + repository | repository test | `feat(opportunities): add the relay audit trail` |
 | **S1.6** | Migration DDL + backfill | `backend/migration/add_opportunity_propagation.sql`: add columns, backfill `origin='COMPANY'` and `status='PUBLISHED'` where `status='OPEN'`, create tables/indexes. **Additive only — no drops** | `MigrationCatalogCountTest` still green; new `OpportunityBackfillTest` on H2 | `feat(opportunities): migration and OPEN to PUBLISHED backfill` |
-| **S1.7** | Enums + parsers | Nested `Opportunity.Status`, `Opportunity.Offer.Status`, `Share.Status`, `Submission.Status`, `Origin`, `VerificationStatus`, `WorkMode`, `SourceKind` + `Status.parse` accepting legacy `"OPEN"` | `OpportunityStatusParseTest`: `OPEN`→`PUBLISHED`, unknown→`null`, case/trim tolerant | `feat(opportunities): status enums with legacy OPEN alias` |
+| **S1.7** | Enums + parsers | Nested `Opportunity.Status`, `Opportunity.Offer.Status`, `Share.Status`, `Submission.Status`, `Origin`, `VerificationStatus`, `WorkMode`, `SourceKind` + `Status.parse` accepting legacy `"OPEN"`. ⚠️ **Also rewrite the apply gate at `ApplicationService.java:85` in this same commit** — see the 🔴 note in §5.6. Leaving it comparing against `"OPEN"` kills the entire apply path. | `OpportunityStatusParseTest`: `OPEN`→`PUBLISHED`, unknown→400, case/trim tolerant. `ApplicationAdvertStatusGateTest` must be **inverted** here: `PUBLISHED` becomes appliable, `PENDING_REVIEW` stays refused | `feat(opportunities): status enums with legacy OPEN alias` |
 
 **Gate after Phase 1:** full suite unchanged. Nothing user-visible has changed — this is the phase to stop and re-verify if anything wobbles.
 
