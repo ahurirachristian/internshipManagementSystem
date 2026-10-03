@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { Check } from 'lucide-react';
+import { CONTROL_CLASS } from './ui/formControls';
 
 export default function CustomSelect({ id, value, onChange, options, required, placeholder }) {
   const [isOpen, setIsOpen] = useState(false);
@@ -39,7 +40,7 @@ export default function CustomSelect({ id, value, onChange, options, required, p
         aria-haspopup="listbox"
         aria-expanded={isOpen}
         aria-required={required || undefined}
-        className="w-full bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 text-sm rounded-xl border border-slate-300 dark:border-slate-700 px-3.5 py-2.5 focus:border-teal-600 focus:ring-2 focus:ring-teal-600/20 focus:outline-none transition-all cursor-pointer shadow-xs font-medium text-left flex items-center justify-between gap-2"
+        className={`${CONTROL_CLASS} cursor-pointer text-left flex items-center justify-between gap-2`}
       >
         <span className={`truncate ${!displayLabel ? 'text-slate-400' : ''}`}>
           {displayLabel || placeholder || 'Select...'}
