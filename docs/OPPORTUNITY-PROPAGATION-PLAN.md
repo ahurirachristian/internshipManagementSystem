@@ -441,6 +441,7 @@ Every step = **one branch → its own tests → gate → ff-merge → one commit
 | **S0.1** | Characterise current advert visibility so we can prove D1 gets closed and nothing else regresses | Add `VacancyVisibilityBaselineTest`: `STUDENT` currently **can** list all adverts (asserts today's leaky behaviour, clearly named as the defect) | new | `test(vacancy): pin current unscoped advert visibility` |
 | **S0.2** | Lock the applications path that must survive everything | Assert `POST /api/applications` against a `"OPEN"` advert still reaches `SUBMITTED`, and `GET /api/applications/funnel` still zero-fills | new | `test(applications): lock the advert-driven application path` |
 | **S0.3** | Snapshot the full pre-change gate | Run and record — **measured 2026-10-03 at `43d263a`**: backend **303** (284 baseline + 19 new), frontend **25 suites / 166 tests**, eslint **0 errors / 9 warnings**, build **compiled with warnings** | — | (no commit — recorded in §8.1.1 below) |
+| **S0.4** ✅ `cdca2fc` | Re-audit the plan against the code before writing feature code | Found two gaps: `GET /api/vacancies/{id}` unmentioned, and the `documents`/`audience` attachment reuse unusable. Corrected in §5.11, §6.5, §6.6, §3 (H13/H14), D8 | markdown table-column check across the whole document | `docs(opportunities): close two security gaps the first draft missed` |
 
 **Gate after Phase 0:** identical to the recorded baseline.
 
@@ -462,7 +463,7 @@ Two findings from doing Phase 0, both folded back into this plan:
 
 | Step | Goal | Work | Tests | Commit |
 |---|---|---|---|---|
-| **S1.1** | Add columns to `vacancies` (5.1–5.4) | Entity fields + getters/setters, no Lombok; `companyId` → nullable; `description`/`requirements` → `TEXT`; `origin`/`verification_status` defaults | `OpportunitySchemaTest` (context loads, defaults are right) | `feat(opportunities): add the advert field inventory` |
+| **S1.1** ✅ `05dd28d` | Add columns to `vacancies` (5.1–5.4) | Entity fields + getters/setters, no Lombok; `companyId` → nullable; `description`/`requirements` → `TEXT`; `origin`/`verification_status` defaults | `OpportunitySchemaTest`, **13 tests** — every new column forced through a real `INSERT`/`SELECT` round trip (H2 builds its schema from the annotations and never reads the S1.6 migration, so an annotation-vs-DDL mismatch is otherwise untestable). `companyId`-nullable and the `TEXT` change both fault-injected and confirmed to fail when reverted | `feat(opportunities): add the advert field inventory` |
 | **S1.2** | `opportunity_offers` | Entity + repository (UNIQUE + index) | repository test: duplicate offer rejected | `feat(opportunities): add the super-admin-to-university offer record` |
 | **S1.3** | `opportunity_shares` | Entity + repository | repository test | `feat(opportunities): add the university-to-students share record` |
 | **S1.4** | `opportunity_submissions` | Entity + repository | repository test | `feat(opportunities): add the supervisor submission record` |
