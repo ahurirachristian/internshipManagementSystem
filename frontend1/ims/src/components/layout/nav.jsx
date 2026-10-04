@@ -47,6 +47,8 @@ export const NAV_GROUPS = [
       { to: '/admin/universities', icon: University, label: 'Universities', roles: ['ADMIN'] },
       { to: '/admin/role-requests', icon: ShieldCheck, label: 'Role Requests', roles: ['ADMIN'] },
       { to: '/admin/opportunities', icon: ListChecks, label: 'Opportunities', roles: ['ADMIN'] },
+      // S6.1: the target of the OPPORTUNITY_OFFERED / OPPORTUNITY_SUBMISSION links.
+      { to: '/university/opportunities', icon: ListChecks, label: 'Offer Inbox', roles: ['ADMIN', 'SUPERVISOR'] },
     ],
   },
   {

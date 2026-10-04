@@ -18,6 +18,7 @@ import AdminUsersPage from './components/dashboards/AdminUsersPage';
 import AdminStudentArea from './components/dashboards/AdminStudentArea';
 import AuditLogs from './components/dashboards/AuditLogs';
 import OpportunityInbox from './components/dashboards/OpportunityInbox';
+import OfferInbox from './components/dashboards/OfferInbox';
 import CompanyProfilePage from './components/dashboards/CompanyProfilePage';
 import CompanyPage from './components/CompanyPage';
 import UniversitiesManagement from './components/UniversitiesManagement';
@@ -208,6 +209,14 @@ function AppRoutes() {
         element={
           <ProtectedRoute roles={["ADMIN", "SUPERVISOR"]}>
             <UniversityDashboard />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/university/opportunities"
+        element={
+          <ProtectedRoute roles={["ADMIN", "SUPERVISOR"]}>
+            <OfferInbox />
           </ProtectedRoute>
         }
       />
