@@ -575,6 +575,19 @@ export async function transitionOpportunity(id, status, verificationNote) {
   return parseResponse(response);
 }
 
+// Super-admin broadcast (S5.1): offer a published advert to chosen universities.
+// The server answers 409 if the advert is not published or already offered there,
+// and 400 for an id that is not a university — its message is what to show.
+export async function offerToUniversities(id, universityIds, note) {
+  const response = await fetch(`${API_ROOT}/api/opportunities/${id}/offers`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+    body: JSON.stringify({ universityIds, note }),
+  });
+  return parseResponse(response);
+}
+
 export async function fetchPlacementTimeline() {
   const response = await fetch(`${API_ROOT}/api/placements/timeline`, {
     credentials: 'include',

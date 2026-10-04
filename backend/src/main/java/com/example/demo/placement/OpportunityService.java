@@ -21,6 +21,7 @@ import com.example.demo.programme.Programme;
 import com.example.demo.programme.ProgrammeRepository;
 import com.example.demo.school.School;
 import com.example.demo.school.SchoolRepository;
+import com.example.demo.university.UniversityRepository;
 
 /**
  * S3.1 (opportunity plan §6.1): {@code POST /api/opportunities} — one endpoint
@@ -68,23 +69,33 @@ public class OpportunityService {
 
     private final VacancyRepository vacancyRepository;
     private final OpportunitySubmissionRepository submissionRepository;
+    private final OpportunityOfferRepository offerRepository;
+    private final OpportunityStatusHistoryRepository historyRepository;
     private final SchoolRepository schoolRepository;
     private final DepartmentRepository departmentRepository;
     private final ProgrammeRepository programmeRepository;
+    private final UniversityRepository universityRepository;
     private final UserRepository userRepository;
     private final NotificationService notificationService;
     private final AuditLogService auditLogService;
 
     public OpportunityService(VacancyRepository vacancyRepository,
-            OpportunitySubmissionRepository submissionRepository, SchoolRepository schoolRepository,
+            OpportunitySubmissionRepository submissionRepository,
+            OpportunityOfferRepository offerRepository,
+            OpportunityStatusHistoryRepository historyRepository,
+            SchoolRepository schoolRepository,
             DepartmentRepository departmentRepository, ProgrammeRepository programmeRepository,
+            UniversityRepository universityRepository,
             UserRepository userRepository, NotificationService notificationService,
             AuditLogService auditLogService) {
         this.vacancyRepository = vacancyRepository;
         this.submissionRepository = submissionRepository;
+        this.offerRepository = offerRepository;
+        this.historyRepository = historyRepository;
         this.schoolRepository = schoolRepository;
         this.departmentRepository = departmentRepository;
         this.programmeRepository = programmeRepository;
+        this.universityRepository = universityRepository;
         this.userRepository = userRepository;
         this.notificationService = notificationService;
         this.auditLogService = auditLogService;
@@ -221,6 +232,113 @@ public class OpportunityService {
                 .stream()
                 .sorted(Comparator.comparing(Vacancy::getId).reversed())
                 .toList();
+    }
+
+    /**
+     * S5.1 (plan §6.2): {@code POST /{id}/offers} — the super admin broadcasting a
+     * published advert to a chosen set of universities (R3).
+     *
+     * <p>Order matters and is the same three questions the S2.1 engine asks:
+     * role first ({@code super_admin} flag, 403 — a plain {@code ADMIN} passes
+     * the controller's authority gate and is refused here [H6]), then the
+     * advert itself (404 when it does not exist, **409 when it is not
+     * {@code PUBLISHED}** — an unmoderated or dead advert is not ours to
+     * broadcast), then the body: every id must name a real university (400,
+     * checked for the whole batch **before** anything is written so a bad id
+     * cannot leave a half-made broadcast), and any pair the unique constraint
+     * already holds is a 409 rather than a duplicate row two inboxes would
+     * both act on.
+     *
+     * <p>Nothing here trusts the body beyond the ids and the note: the offer is
+     * born {@code OFFERED}, {@code offered_by}/{@code offered_at} are the
+     * session's, and each creation appends one §5.10 history row (from {@code
+     * null} — the offer has no predecessor) so the S8.2 trail shows where the
+     * relay began. Recipients follow the §9 catalog: each university's own
+     * {@code SUPERVISOR} accounts, looked up server-side (L15), never a list the
+     * client supplies.
+     */
+    public List<OpportunityOffer> offerToUniversities(UserEntity actor, Long vacancyId,
+            OpportunityOfferCreateRequest request) {
+        if (!Boolean.TRUE.equals(actor.getSuperAdmin())) {
+            throw new AccessDeniedException("Only a super admin can offer an opportunity to universities.");
+        }
+        Vacancy advert = vacancyRepository.findById(vacancyId)
+                .orElseThrow(() -> new java.util.NoSuchElementException("Opportunity not found."));
+        if (advert.getStatus() != Vacancy.Status.PUBLISHED) {
+            throw new IllegalStateException(
+                    "Only a published opportunity can be offered to universities.");
+        }
+
+        List<Long> targets = request.universityIds() == null
+                ? List.of()
+                : request.universityIds().stream()
+                        .filter(java.util.Objects::nonNull)
+                        .distinct()
+                        .toList();
+        if (targets.isEmpty()) {
+            throw new IllegalArgumentException("Choose at least one university to offer this opportunity to.");
+        }
+        if (request.note() != null && request.note().length() > 500) {
+            throw new IllegalArgumentException("An offer note may not exceed 500 characters.");
+        }
+        requireExistingUniversities(targets);
+
+        List<OpportunityOffer> created = new java.util.ArrayList<>();
+        for (Long universityId : targets) {
+            if (offerRepository.existsByVacancyIdAndUniversityId(vacancyId, universityId)) {
+                throw new IllegalStateException(
+                        "This opportunity has already been offered to university " + universityId + ".");
+            }
+        }
+        for (Long universityId : targets) {
+            created.add(publishOffer(actor, advert, universityId, request.note()));
+        }
+        return created;
+    }
+
+    /**
+     * §2.5: {@code University.universityId} is an {@code Integer} while offers
+     * carry a {@code Long} — the conversion happens once, here, and an id that
+     * cannot be a real university row is refused rather than wrapped.
+     */
+    private void requireExistingUniversities(List<Long> universityIds) {
+        for (Long id : universityIds) {
+            if (id == null || id < 1 || id > Integer.MAX_VALUE
+                    || !universityRepository.existsById(id.intValue())) {
+                throw new IllegalArgumentException("Unknown university: " + id);
+            }
+        }
+    }
+
+    /** One offer row + its §5.10 history row + its §9 notification + its audit row. */
+    private OpportunityOffer publishOffer(UserEntity actor, Vacancy advert, Long universityId,
+            String note) {
+        OpportunityOffer offer = new OpportunityOffer();
+        offer.setVacancyId(advert.getId());
+        offer.setUniversityId(universityId);
+        offer.setNote(note);
+        offer.setOfferedBy(actor.getId());
+        offer.setOfferedAt(LocalDateTime.now());
+        OpportunityOffer saved = offerRepository.save(offer);
+
+        OpportunityStatusHistory row = new OpportunityStatusHistory();
+        row.setVacancyId(advert.getId());
+        row.setUniversityId(universityId);
+        row.setRelayType(OpportunityStatusHistory.RELAY_OFFER);
+        row.setFromStatus(null);
+        row.setToStatus(OpportunityOffer.Status.OFFERED.name());
+        row.setChangedBy(actor.getId());
+        historyRepository.save(row);
+
+        notificationService.notify(supervisorIds(universityId), "OPPORTUNITY_OFFERED",
+                "New opportunity offered to your university",
+                "\"" + advert.getTitle() + "\" was offered to your university.",
+                "/university/opportunities");
+        auditLogService.log(actor.getUsername(), actor.getRole().name(), "OPPORTUNITY_OFFERED",
+                "OpportunityOffer",
+                "Offer " + saved.getId() + " (university " + universityId
+                        + ") created for opportunity " + advert.getId(), null);
+        return saved;
     }
 
     /** Session decides [H5][H6][H8] — the request's own origin/status/companyId are never read. */

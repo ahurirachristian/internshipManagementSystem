@@ -1,5 +1,5 @@
 /**
- * S4.3 (opportunity plan §8.5): the super-admin moderation inbox.
+ * S4.3 + S5.1 (opportunity plan §8.5/§8.6): the super-admin moderation inbox.
  *
  * Reads `GET /api/opportunities/inbox` (S4.1 — the server has already decided
  * this audience is the super admin) and drives `POST /{id}/transition`
@@ -8,15 +8,23 @@
  * is shown verbatim — the client validates for convenience, never instead of
  * the server.
  *
- * The "then offer to universities" half of the plan's S4.3 row deliberately
- * lives at S5.1: the offers endpoint does not exist until then, and a button
- * that 404s would be a broken window between two working commits.
+ * After a **verify**, the row does not simply vanish: it steps sideways into
+ * the S5.1 offer panel, because a freshly published advert is exactly the
+ * moment R3's broadcast applies (the server only allows offers on a
+ * `PUBLISHED` advert). The super admin multi-selects universities, adds an
+ * optional note and sends — or dismisses the row without offering. Rejection
+ * still retires the row outright: there is nothing to broadcast.
  */
 import { useEffect, useState } from 'react';
 import DashboardLayout from '../DashboardLayout';
 import { AlertCircle, FileText, X } from 'lucide-react';
 import { CONTROL_CLASS } from '../ui/formControls';
-import { fetchOpportunityInbox, transitionOpportunity } from '../../services/api';
+import {
+  fetchOpportunityInbox,
+  fetchUniversities,
+  offerToUniversities,
+  transitionOpportunity,
+} from '../../services/api';
 
 const ORIGIN_LABELS = {
   COMPANY: 'Company',
@@ -35,6 +43,13 @@ export default function OpportunityInbox() {
   const [deciding, setDeciding] = useState(null);
   const [note, setNote] = useState('');
   const [submitting, setSubmitting] = useState(false);
+
+  // S5.1: the just-verified row waiting for its universities: { id, title } | null.
+  const [offering, setOffering] = useState(null);
+  const [universities, setUniversities] = useState([]);
+  const [selectedIds, setSelectedIds] = useState([]);
+  const [offerNote, setOfferNote] = useState('');
+  const [sending, setSending] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -72,17 +87,75 @@ export default function OpportunityInbox() {
     try {
       const saved = await transitionOpportunity(deciding.id, deciding.target, note.trim());
       const decided = items.find((item) => item.id === deciding.id);
-      setItems((prev) => prev.filter((item) => item.id !== deciding.id));
       setNotice(
         `“${decided?.title ?? 'Opportunity'}” is now ${saved?.status || deciding.target}.`,
       );
       setDeciding(null);
       setNote('');
+      if (deciding.target === 'PUBLISHED') {
+        // Verified → offered: the row steps into the S5.1 broadcast panel
+        // instead of leaving, because the server only accepts offers on a
+        // published advert.
+        setOffering({ id: deciding.id, title: decided?.title ?? 'Opportunity' });
+        setSelectedIds([]);
+        setOfferNote('');
+        await loadUniversities();
+      } else {
+        // Rejected: nothing to broadcast, the row leaves the queue.
+        setItems((prev) => prev.filter((item) => item.id !== deciding.id));
+      }
     } catch (err) {
       // Verbatim: the server's reason is the authority on why it refused.
       setError(err.message || 'The verdict could not be recorded.');
     } finally {
       setSubmitting(false);
+    }
+  }
+
+  // Loaded once, lazily, on the first verify — an inbox nobody verifies never
+  // asks for the full university list.
+  async function loadUniversities() {
+    if (universities.length > 0) return;
+    try {
+      const data = await fetchUniversities();
+      setUniversities(Array.isArray(data) ? data : []);
+    } catch (err) {
+      setError(err.message || 'Unable to load the university list.');
+    }
+  }
+
+  function toggleUniversity(id) {
+    setSelectedIds((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id],
+    );
+  }
+
+  function dismissOffer() {
+    setItems((prev) => prev.filter((item) => item.id !== offering.id));
+    setOffering(null);
+    setSelectedIds([]);
+    setOfferNote('');
+  }
+
+  async function submitOffers() {
+    if (!offering || selectedIds.length === 0) return;
+    setSending(true);
+    setError('');
+    try {
+      const created = await offerToUniversities(offering.id, selectedIds, offerNote.trim());
+      const count = Array.isArray(created) ? created.length : selectedIds.length;
+      setNotice(
+        `Offered “${offering.title}” to ${count} ${count === 1 ? 'university' : 'universities'}.`,
+      );
+      setItems((prev) => prev.filter((item) => item.id !== offering.id));
+      setOffering(null);
+      setSelectedIds([]);
+      setOfferNote('');
+    } catch (err) {
+      // Verbatim, and the row stays so the offer can be retried or dismissed.
+      setError(err.message || 'The offer could not be sent.');
+    } finally {
+      setSending(false);
     }
   }
 
@@ -157,6 +230,7 @@ export default function OpportunityInbox() {
           <ul aria-label="Opportunities awaiting review" className="space-y-4">
             {items.map((item) => {
               const formOpen = deciding && deciding.id === item.id;
+              const offerOpen = offering && offering.id === item.id;
               return (
                 <li
                   key={item.id}
@@ -179,7 +253,7 @@ export default function OpportunityInbox() {
                       </p>
                     </div>
 
-                    {!formOpen && (
+                    {!formOpen && !offerOpen && (
                       <div className="flex items-center gap-2 shrink-0">
                         <button
                           type="button"
@@ -200,6 +274,93 @@ export default function OpportunityInbox() {
                       </div>
                     )}
                   </div>
+
+                  {offerOpen && (
+                    <div
+                      className="mt-4 pt-4 border-t border-slate-200 dark:border-slate-800 space-y-3"
+                    >
+                      <div className="flex flex-wrap items-baseline justify-between gap-2">
+                        <h3 className="text-xs font-bold uppercase tracking-wider text-slate-800 dark:text-slate-200">
+                          Offer to universities
+                        </h3>
+                        <span className="normal-case font-medium text-slate-500 dark:text-slate-400 text-xs">
+                          Select at least one — the note is optional context
+                        </span>
+                      </div>
+
+                      {universities.length === 0 && (
+                        <p className="text-xs text-slate-500 dark:text-slate-400">
+                          Loading universities...
+                        </p>
+                      )}
+
+                      {universities.length > 0 && (
+                        <ul
+                          aria-label={`Universities to offer ${item.title} to`}
+                          className="max-h-52 overflow-y-auto rounded-xl border border-slate-200 dark:border-slate-800 divide-y divide-slate-100 dark:divide-slate-800"
+                        >
+                          {universities.map((university) => {
+                            const id = university.universityId;
+                            const checked = selectedIds.includes(id);
+                            return (
+                              <li key={id}>
+                                <label className="flex items-center gap-3 px-3.5 py-2.5 text-xs text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/60 cursor-pointer">
+                                  <input
+                                    type="checkbox"
+                                    checked={checked}
+                                    onChange={() => toggleUniversity(id)}
+                                    className="w-4 h-4 rounded border-slate-300 text-teal-700 focus:ring-teal-700"
+                                  />
+                                  <span className="font-medium">{university.fullName}</span>
+                                  {university.shortForm && (
+                                    <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                                      {university.shortForm}
+                                    </span>
+                                  )}
+                                </label>
+                              </li>
+                            );
+                          })}
+                        </ul>
+                      )}
+
+                      <label
+                        htmlFor={`offer-note-${item.id}`}
+                        className="block text-xs font-bold uppercase tracking-wider text-slate-800 dark:text-slate-200"
+                      >
+                        Offer note
+                        <span className="normal-case font-medium text-slate-500 dark:text-slate-400 ml-2">
+                          Optional — why these universities
+                        </span>
+                      </label>
+                      <textarea
+                        id={`offer-note-${item.id}`}
+                        rows={2}
+                        value={offerNote}
+                        onChange={(e) => setOfferNote(e.target.value)}
+                        className={CONTROL_CLASS}
+                        placeholder="Strong ICT cohort at these institutions..."
+                      />
+                      <div className="flex items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={submitOffers}
+                          disabled={selectedIds.length === 0 || sending}
+                          className="px-3.5 py-2 rounded-xl text-xs font-bold bg-teal-700 text-white hover:bg-teal-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                        >
+                          Send offers
+                        </button>
+                        <button
+                          type="button"
+                          onClick={dismissOffer}
+                          disabled={sending}
+                          className="px-3.5 py-2 rounded-xl text-xs font-bold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
+                        >
+                          Dismiss
+                        </button>
+                      </div>
+                    </div>
+                  )}
 
                   {formOpen && (
                     <div className="mt-4 pt-4 border-t border-slate-200 dark:border-slate-800 space-y-3">

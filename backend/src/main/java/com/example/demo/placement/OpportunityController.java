@@ -136,4 +136,25 @@ public class OpportunityController {
                 : body.get("verification_note");
         return ResponseEntity.ok(opportunityTransitionService.transitionAdvert(actor, id, status, note));
     }
+
+    /**
+     * S5.1 (plan §6.2): {@code POST /{id}/offers} — the super-admin broadcast
+     * (R3). The authority gate narrows to {@code ADMIN} the same way the inbox
+     * does; the {@code super_admin} flag check then refuses a plain admin [H6].
+     * The path id is the advert, the body only ever carries the target
+     * universities and an optional note — nothing that could claim an origin, a
+     * status or an offerer (L15: recipients are looked up server-side).
+     */
+    @PostMapping("/{id}/offers")
+    @PreAuthorize("hasAuthority('ADMIN')")
+    public ResponseEntity<?> offer(@PathVariable Long id,
+            @RequestBody OpportunityOfferCreateRequest request, Principal principal) {
+        UserEntity actor = principal == null ? null
+                : userRepository.findByUsername(principal.getName()).orElse(null);
+        if (actor == null) {
+            throw new AccessDeniedException("An offer must come from a known session.");
+        }
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(opportunityService.offerToUniversities(actor, id, request));
+    }
 }
