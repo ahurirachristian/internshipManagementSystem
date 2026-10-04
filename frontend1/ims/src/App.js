@@ -17,6 +17,7 @@ import AdminDashboard from './components/dashboards/AdminDashboard';
 import AdminUsersPage from './components/dashboards/AdminUsersPage';
 import AdminStudentArea from './components/dashboards/AdminStudentArea';
 import AuditLogs from './components/dashboards/AuditLogs';
+import OpportunityInbox from './components/dashboards/OpportunityInbox';
 import CompanyProfilePage from './components/dashboards/CompanyProfilePage';
 import CompanyPage from './components/CompanyPage';
 import UniversitiesManagement from './components/UniversitiesManagement';
@@ -287,6 +288,15 @@ function AppRoutes() {
         element={
           <ProtectedRoute role="ADMIN">
             <AuditLogs />
+          </ProtectedRoute>
+        }
+      />
+      {/* S4.3: the target of the S2.2 OPPORTUNITY_* notification links. */}
+      <Route
+        path="/admin/opportunities"
+        element={
+          <ProtectedRoute role="ADMIN">
+            <OpportunityInbox />
           </ProtectedRoute>
         }
       />

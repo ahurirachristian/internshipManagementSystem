@@ -46,6 +46,7 @@ export const NAV_GROUPS = [
       { to: '/admin/placements', icon: RectangleHorizontal, label: 'Internship Placement', roles: ['ADMIN'] },
       { to: '/admin/universities', icon: University, label: 'Universities', roles: ['ADMIN'] },
       { to: '/admin/role-requests', icon: ShieldCheck, label: 'Role Requests', roles: ['ADMIN'] },
+      { to: '/admin/opportunities', icon: ListChecks, label: 'Opportunities', roles: ['ADMIN'] },
     ],
   },
   {

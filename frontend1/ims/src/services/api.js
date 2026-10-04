@@ -554,6 +554,27 @@ export async function createOpportunity(payload) {
   return parseResponse(response);
 }
 
+// Super-admin moderation inbox (S4.1): PENDING_REVIEW + UNVERIFIED rows.
+export async function fetchOpportunityInbox() {
+  const response = await fetch(`${API_ROOT}/api/opportunities/inbox`, {
+    credentials: 'include',
+  });
+  return parseResponse(response);
+}
+
+// One verb for advert transitions (S4.2): a verify/reject verdict requires
+// the note — the server answers 400 without it, and its message is what the
+// UI should show.
+export async function transitionOpportunity(id, status, verificationNote) {
+  const response = await fetch(`${API_ROOT}/api/opportunities/${id}/transition`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+    body: JSON.stringify({ status, verificationNote }),
+  });
+  return parseResponse(response);
+}
+
 export async function fetchPlacementTimeline() {
   const response = await fetch(`${API_ROOT}/api/placements/timeline`, {
     credentials: 'include',
