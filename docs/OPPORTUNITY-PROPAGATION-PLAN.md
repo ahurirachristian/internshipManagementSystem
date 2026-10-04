@@ -1,6 +1,6 @@
 # Opportunity Propagation Plan — company/advisor-submitted internships, relayed Company → Super Admin → University → Student
 
-Status: **Phases 0–3 done (S0.1–S3.4 ✅); Phase 4 in progress — S4.1 ✅.** Next step: **S4.2**, verify/reject transition. Phase 0 added characterization tests only; Phases 1–2 added the schema, migration, status vocabulary and the transition engine + audience resolver; Phase 3 opens the endpoints.
+Status: **Phases 0–3 done (S0.1–S3.4 ✅); Phase 4 in progress — S4.1 ✅, S4.2 ✅.** Next step: **S4.3**, `OpportunityInbox.jsx`. Phase 0 added characterization tests only; Phases 1–2 added the schema, migration, status vocabulary and the transition engine + audience resolver; Phase 3 opens the endpoints.
 Branch target: `fred`. Every step below is one commit.
 Base commit at time of writing: `f0efc57`.
 Revision: security-scope audit found two gaps in the first draft (`GET /api/vacancies/{id}` unmentioned; `documents`/`audience` reuse unusable). Both corrected — see **D8** in §11 and **§5.11**.
@@ -499,7 +499,7 @@ Two findings from doing Phase 0, both folded back into this plan:
 | Step | Goal | Work | Tests | Commit |
 |---|---|---|---|---|
 | **S4.1** ✅ `5fac74d` | 🔒 `GET /api/opportunities/inbox` | Super-admin-only (`super_admin` flag, not the `ADMIN` role — the controller narrows to `ADMIN`, the service then checks the flag), `verification_status=UNVERIFIED` + `status=PENDING_REVIEW`, newest first | `OpportunityInboxTest`, **7 tests**: `STUDENT`, `SUPERVISOR`, `COMPANY`, plain `ADMIN` → 403, anonymous → 401; **`STUDENT` cannot see a company's submission** (R1, the headline); born-published and already-judged rows never enter the queue. Fault-injected the gate (authority + flag): exactly the 4 gate tests flip 403→200 | `feat(opportunities): super-admin moderation inbox` |
-| **S4.2** | Verify / reject | `/transition` with a **required** `verification_note`; sets `verified_by/at`; `PENDING_REVIEW→PUBLISHED` or `→REJECTED`; notifies the submitter | rejecting without a note → 400; only super admin can verify `[H6]`; history row written | `feat(opportunities): verify or reject a submission` |
+| **S4.2** ✅ `b17ebcf` | Verify / reject | `POST /{id}/transition` wired to the S2.1 engine: **required** verification note on a verdict (D7 — both `verification_note`/`verificationNote` accepted), sets `verified_by/at` + `verification_note` + `verification_status` (row leaves the inbox queue); `PENDING_REVIEW→PUBLISHED` or `→REJECTED`; notifier + audit already engine-side. Scope 404 → role 403 → legality 409 **before** note validation, so an illegal jump stays 409 | `OpportunityVerifyRejectTest`, **10 tests**: both verdicts record fields + notify + one history row, reject/verify without a note → 400 (row untouched), only super admin verifies `[H6]` (plain admin + owner → 403, stranger → 404, student/field supervisor → 403, anonymous → 401), unknown/missing status → 400, terminal → 409. Fault-injected note + role checks: exactly the 3 guarded tests go red. S2.1/S2.2 suites updated to pass notes, verdict-loop now asserts the [H6] fields | `feat(opportunities): verify or reject a submission` |
 | **S4.3** | `OpportunityInbox.jsx` | Super-admin UI: inbox, verify with note, multi-select universities, offer | UI test | `feat(opportunities): super-admin inbox UI` |
 
 ### 8.6 Phase 5 — Super admin → university (R2/R3)
@@ -597,13 +597,13 @@ Two findings from doing Phase 0, both folded back into this plan:
 | **D4** | One `opportunity_shares` row per university (broadcast + targeting filters), or one row per student? | **Per university**, with targeting columns. The audience is then derived by querying `students` at read time, so a student who enrols late still sees it. Per-student rows do not scale to a 5k-student university. | Per-student rows, for exact per-recipient delivery records. | **S6.3** |
 | **D5** | Should a company be able to see which universities its advert was offered to? | **No** until `PUBLISHED`; after publish, show a count only, not names. Prevents companies from learning a university's recruiting posture. | Full visibility after publish. | **S5.1** |
 | **D6** | Standalone `/opportunities` route, or a section inside each existing dashboard? | **Section inside each dashboard**, matching how `VacanciesSection` is mounted in `StudentDashboard.js:577`. Fewer routes, less nav churn, and `/file-management` already proves the all-roles route pattern works when needed. | Standalone routes per role. | **S7.2** |
-| **D7** | "Legit offer" (R2) — is `verification_status` a super-admin binary, or a graded scale? | **Binary `VERIFIED`/`REJECTED` with a required note.** Simple, auditable, matches the `RoleRequest` approval precedent. | A graded scale (e.g. `UNVERIFIED/PARTIAL/VERIFIED/REJECTED`). | **S4.2** |
 
 **Already decided, not open:**
 
 | # | Decision | Outcome |
 |---|---|---|
 | **D8** | Where do advert attachments live — extend `documents` + `Document.audience`, or a dedicated table? | **Dedicated `opportunity_attachments` table (§5.11).** Checked and rejected the `documents` reuse: `audience` is display-only and `DocumentScopeService.java:48-51` keys only on `universityId`/`companyId`/uploader, so it can express neither "these students at this university" nor a targeted programme. Reusing `FileStorageService` for the bytes only. |
+| **D7** | "Legit offer" (R2) — is `verification_status` a super-admin binary, or a graded scale? | **Binary `VERIFIED`/`REJECTED` with a required note** — implemented in S4.2: `requireVerificationNote` refuses a verdict without a non-blank ≤500-char note (400), and the verdict writes `verification_status` + `verified_by/at` + `verification_note` in one move. Matches the `RoleRequest` approval precedent. |
 
 ---
 
