@@ -22,8 +22,10 @@ import com.example.demo.auth.UserRepository;
  * S3.1/S3.3 (opportunity plan §6.1): the opportunity surface —
  * {@code POST /api/opportunities}, gated to the three personas the brief lets
  * put an advert into the system ({@code COMPANY}, {@code SUPERVISOR},
- * {@code ADMIN}), and {@code GET /mine} for the two personas that have
- * "their own" to read ({@code COMPANY}, {@code SUPERVISOR}). Students, field
+ * {@code ADMIN}), {@code GET /mine} for the two personas that have
+ * "their own" to read ({@code COMPANY}, {@code SUPERVISOR}), and
+ * {@code GET /inbox} for the one persona that judges everyone's submissions
+ * (S4.1: the {@code super_admin} flag, not the {@code ADMIN} role). Students, field
  * supervisors and admins are refused at the door with a 403 before any tenancy
  * question is asked.
  *
@@ -74,5 +76,24 @@ public class OpportunityController {
             throw new AccessDeniedException("A submission list must come from a known session.");
         }
         return ResponseEntity.ok(opportunityService.listMine(actor));
+    }
+
+    /**
+     * S4.1: the moderation inbox — super-admin only. {@code STUDENT},
+     * {@code SUPERVISOR} and {@code COMPANY} are refused by the authority gate
+     * before any query runs, which is R1 in one line: a student cannot see a
+     * company's submission, not even its existence. A plain {@code ADMIN}
+     * passes this gate and is then refused by the service for lacking the
+     * {@code super_admin} flag [H6].
+     */
+    @GetMapping("/inbox")
+    @PreAuthorize("hasAuthority('ADMIN')")
+    public ResponseEntity<List<Vacancy>> inbox(Principal principal) {
+        UserEntity actor = principal == null ? null
+                : userRepository.findByUsername(principal.getName()).orElse(null);
+        if (actor == null) {
+            throw new AccessDeniedException("A moderation inbox must come from a known session.");
+        }
+        return ResponseEntity.ok(opportunityService.listInbox(actor));
     }
 }

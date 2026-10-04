@@ -15,4 +15,13 @@ public interface VacancyRepository extends JpaRepository<Vacancy, Long> {
     List<Vacancy> findByStatus(Vacancy.Status status);
 
     List<Vacancy> findByCompanyIdAndStatus(Long companyId, Vacancy.Status status);
+
+    /**
+     * S4.1: the moderation inbox — everything still waiting for a verdict. Both
+     * halves of the predicate matter: an advert that was verified without review
+     * (the super admin's own sourced posts) is not in anyone's queue, and a
+     * rejected or published row has already left it.
+     */
+    List<Vacancy> findByStatusAndVerificationStatus(Vacancy.Status status,
+            Vacancy.VerificationStatus verificationStatus);
 }

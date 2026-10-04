@@ -2,6 +2,7 @@ package com.example.demo.placement;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
@@ -196,6 +197,30 @@ public class OpportunityService {
                     .toList();
             default -> throw new AccessDeniedException("Only companies and supervisors have submissions.");
         };
+    }
+
+    /**
+     * S4.1: {@code GET /inbox} — the queue of everything still awaiting a verdict
+     * ({@code PENDING_REVIEW} + {@code UNVERIFIED}), newest first.
+     *
+     * <p>The door is the {@code super_admin} flag itself, not merely the
+     * {@code ADMIN} role: a plain admin without the flag submits adverts like any
+     * other persona (see {@link #derive}) and must not read the queue they could
+     * then vote on — R1's headline is that <b>a student can never see a company's
+     * submission</b>, and the same logic runs down the rest of the roster: a
+     * company never sees a rival's rows, a supervisor never sees another
+     * university's queue. The controller narrows the authorities to
+     * {@code ADMIN} first; this check is the super-admin half [H6].
+     */
+    public List<Vacancy> listInbox(UserEntity actor) {
+        if (!Boolean.TRUE.equals(actor.getSuperAdmin())) {
+            throw new AccessDeniedException("Only a super admin can read the moderation inbox.");
+        }
+        return vacancyRepository.findByStatusAndVerificationStatus(Vacancy.Status.PENDING_REVIEW,
+                Vacancy.VerificationStatus.UNVERIFIED)
+                .stream()
+                .sorted(Comparator.comparing(Vacancy::getId).reversed())
+                .toList();
     }
 
     /** Session decides [H5][H6][H8] — the request's own origin/status/companyId are never read. */
