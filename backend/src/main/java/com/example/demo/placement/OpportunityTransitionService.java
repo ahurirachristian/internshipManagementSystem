@@ -296,18 +296,68 @@ public class OpportunityTransitionService {
      * both succeed.
      */
     public OpportunityOffer transitionOffer(UserEntity actor, Long offerId, OpportunityOffer.Status target) {
+        return transitionOffer(actor, offerId, target, null);
+    }
+
+    /**
+     * S5.2 (plan §6.3): {@code POST /{id}/offers/{offerId}/respond} — the
+     * university's answer to one offer.
+     *
+     * <p>The path's advert id is an *anchor*, not decoration: an offer whose
+     * {@code vacancyId} differs from the path's {@code {id}} does not exist in
+     * this URL — 404, before scope or role — so an offer id cannot be replayed
+     * under another advert's path and the endpoint stays answerable only in the
+     * shape the plan specifies. From there it is the same engine as every other
+     * relay move: scope 404 [H9] → SUPERVISOR-only 403 → legality 409 → the
+     * optional note's length 400.
+     */
+    public OpportunityOffer respondToOffer(UserEntity actor, Long vacancyId, Long offerId,
+            OpportunityOffer.Status target, String responseNote) {
         OpportunityOffer offer = offerRepository.findByIdForUpdate(offerId)
                 .orElseThrow(() -> new NoSuchElementException("Offer not found."));
+        if (!offer.getVacancyId().equals(vacancyId)) {
+            throw new NoSuchElementException("Offer not found.");
+        }
+        return applyOfferTransition(actor, offer, target, responseNote);
+    }
+
+    /**
+     * S5.2: the same engine with the university's answer attached. A response
+     * note is optional here — unlike the D7 verdict it records the university's
+     * reasoning rather than a legitimacy decision — but when present it must fit
+     * the §5.7 column (≤500 chars, 400 otherwise). The check runs *before* the
+     * row is touched, so a refusal leaves the offer answered nothing at all.
+     *
+     * <p>The answer itself ({@code ACCEPTED}/{@code DECLINED}) is the only part
+     * the endpoint accepts; anything else was already rejected at the door, and
+     * a second answer is the closed map's 409.
+     */
+    public OpportunityOffer transitionOffer(UserEntity actor, Long offerId,
+            OpportunityOffer.Status target, String responseNote) {
+        OpportunityOffer offer = offerRepository.findByIdForUpdate(offerId)
+                .orElseThrow(() -> new NoSuchElementException("Offer not found."));
+        return applyOfferTransition(actor, offer, target, responseNote);
+    }
+
+    /** Scope → role → legality → note, then the write and its two side effects. */
+    private OpportunityOffer applyOfferTransition(UserEntity actor, OpportunityOffer offer,
+            OpportunityOffer.Status target, String responseNote) {
         requireOfferScope(actor, offer);
         requireUniversitySupervisor(actor, "Only a university supervisor can act on an offer.");
 
         OpportunityOffer.Status from = offer.getStatus();
         requireLegal(OFFER.get(from), from, target, "offer");
+        if (responseNote != null && responseNote.length() > 500) {
+            throw new IllegalArgumentException("A response note may not exceed 500 characters.");
+        }
 
         offer.setStatus(target);
         if (target == OpportunityOffer.Status.ACCEPTED || target == OpportunityOffer.Status.DECLINED) {
             offer.setRespondedBy(actor.getId());
             offer.setRespondedAt(LocalDateTime.now());
+            if (responseNote != null && !responseNote.isBlank()) {
+                offer.setResponseNote(responseNote.trim());
+            }
         }
         OpportunityOffer saved = offerRepository.save(offer);
 

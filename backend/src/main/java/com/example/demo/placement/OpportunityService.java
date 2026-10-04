@@ -297,6 +297,20 @@ public class OpportunityService {
     }
 
     /**
+     * S5.2 (plan §6.3): {@code GET /offers} — the offers addressed to the
+     * session's own university, {@code universityId} forced from the session
+     * (the request carries no id to scope by [H9]). A supervisor without a
+     * university has no inbox to read and is refused rather than shown
+     * everyone else's.
+     */
+    public List<OpportunityOffer> listOffers(UserEntity actor) {
+        if (actor.getUniversityId() == null) {
+            throw new AccessDeniedException("Your account is not linked to a university.");
+        }
+        return offerRepository.findByUniversityIdOrderByOfferedAtDesc(actor.getUniversityId());
+    }
+
+    /**
      * §2.5: {@code University.universityId} is an {@code Integer} while offers
      * carry a {@code Long} — the conversion happens once, here, and an id that
      * cannot be a real university row is refused rather than wrapped.

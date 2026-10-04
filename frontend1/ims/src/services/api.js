@@ -588,6 +588,31 @@ export async function offerToUniversities(id, universityIds, note) {
   return parseResponse(response);
 }
 
+// University side (S5.2): offers addressed to my university — the server forces
+// universityId from the session, so there is no id in this URL to tamper with.
+export async function fetchOfferInbox() {
+  const response = await fetch(`${API_ROOT}/api/opportunities/offers`, {
+    credentials: 'include',
+  });
+  return parseResponse(response);
+}
+
+// Answer one offer: decision is ACCEPTED or DECLINED, note is optional context.
+// A second answer is a 409 and an offer under the wrong advert path is a 404 —
+// both messages are shown verbatim.
+export async function respondToOffer(advertId, offerId, decision, note) {
+  const response = await fetch(
+    `${API_ROOT}/api/opportunities/${advertId}/offers/${offerId}/respond`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({ decision, note }),
+    },
+  );
+  return parseResponse(response);
+}
+
 export async function fetchPlacementTimeline() {
   const response = await fetch(`${API_ROOT}/api/placements/timeline`, {
     credentials: 'include',

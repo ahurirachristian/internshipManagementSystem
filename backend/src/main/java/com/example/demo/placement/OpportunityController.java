@@ -157,4 +157,59 @@ public class OpportunityController {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(opportunityService.offerToUniversities(actor, id, request));
     }
+
+    /**
+     * S5.2 (plan §6.3): {@code GET /offers} — a university's own offers, with
+     * {@code universityId} forced from the session inside the service. The door
+     * admits supervisors and admins; a student or company is refused before any
+     * row exists, and an admin whose account has no university is refused by
+     * the service rather than shown everyone's offers.
+     */
+    @GetMapping("/offers")
+    @PreAuthorize("hasAnyAuthority('SUPERVISOR', 'ADMIN')")
+    public ResponseEntity<List<OpportunityOffer>> myOffers(Principal principal) {
+        UserEntity actor = principal == null ? null
+                : userRepository.findByUsername(principal.getName()).orElse(null);
+        if (actor == null) {
+            throw new AccessDeniedException("An offer list must come from a known session.");
+        }
+        return ResponseEntity.ok(opportunityService.listOffers(actor));
+    }
+
+    /**
+     * S5.2: {@code POST /{id}/offers/{offerId}/respond} — the university answers
+     * an offer ({@code ACCEPTED} or {@code DECLINED}, plus an optional note).
+     * Only the {@code SUPERVISOR} role passes this gate, so even a super admin
+     * is refused (§6.3 — the university is the one answering, D2). The decision
+     * is parsed here like S4.2 parses the target status: a missing or unknown
+     * value is a 400 carrying the endpoint's own message, never a 500.
+     */
+    @PostMapping("/{id}/offers/{offerId}/respond")
+    @PreAuthorize("hasAuthority('SUPERVISOR')")
+    public ResponseEntity<?> respond(@PathVariable Long id, @PathVariable Long offerId,
+            @RequestBody Map<String, String> body, Principal principal) {
+        UserEntity actor = principal == null ? null
+                : userRepository.findByUsername(principal.getName()).orElse(null);
+        if (actor == null) {
+            throw new AccessDeniedException("A response must come from a known session.");
+        }
+        String decision = body.get("decision");
+        if (decision == null || decision.isBlank()) {
+            return ResponseEntity.badRequest().body(Map.of("error", "A decision is required."));
+        }
+        OpportunityOffer.Status target;
+        try {
+            target = OpportunityOffer.Status.valueOf(decision.trim().toUpperCase(java.util.Locale.ROOT));
+        } catch (IllegalArgumentException ex) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Unknown decision: " + decision));
+        }
+        if (target != OpportunityOffer.Status.ACCEPTED
+                && target != OpportunityOffer.Status.DECLINED) {
+            return ResponseEntity.badRequest()
+                    .body(Map.of("error", "A decision must be ACCEPTED or DECLINED."));
+        }
+        String note = body.get("note");
+        return ResponseEntity.ok(
+                opportunityTransitionService.respondToOffer(actor, id, offerId, target, note));
+    }
 }
