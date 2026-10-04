@@ -156,7 +156,8 @@ class OpportunityTransitionSideEffectsTest {
         UserEntity owner = companyUser(companyId);
         Vacancy advert = vacancy(companyId, Vacancy.Status.PENDING_REVIEW);
 
-        service.transitionAdvert(superAdmin(), advert.getId(), Vacancy.Status.PUBLISHED);
+        service.transitionAdvert(superAdmin(), advert.getId(), Vacancy.Status.PUBLISHED,
+                "Legit offer, evidence checked");
 
         assertThat(inbox(owner))
                 .anyMatch(n -> "OPPORTUNITY_VERIFIED".equals(n.getType())
@@ -171,7 +172,8 @@ class OpportunityTransitionSideEffectsTest {
         UserEntity owner = companyUser(companyId);
         Vacancy advert = vacancy(companyId, Vacancy.Status.PENDING_REVIEW);
 
-        service.transitionAdvert(superAdmin(), advert.getId(), Vacancy.Status.REJECTED);
+        service.transitionAdvert(superAdmin(), advert.getId(), Vacancy.Status.REJECTED,
+                "No evidence behind this offer");
 
         assertThat(inbox(owner))
                 .anyMatch(n -> "OPPORTUNITY_REJECTED".equals(n.getType()));
@@ -201,7 +203,8 @@ class OpportunityTransitionSideEffectsTest {
         UserEntity admin = superAdmin();
         Vacancy advert = vacancy(COMPANY_A, Vacancy.Status.PENDING_REVIEW);
 
-        service.transitionAdvert(admin, advert.getId(), Vacancy.Status.PUBLISHED);
+        service.transitionAdvert(admin, advert.getId(), Vacancy.Status.PUBLISHED,
+                "Verified after review");
         service.transitionAdvert(admin, advert.getId(), Vacancy.Status.CLOSED);
 
         // Two transitions, two audit rows — a double-writing implementation or a
@@ -241,7 +244,8 @@ class OpportunityTransitionSideEffectsTest {
         link.setSubmittedBy(uniSupervisor.getId());
         submissionRepository.save(link);
 
-        service.transitionAdvert(superAdmin(), advert.getId(), Vacancy.Status.PUBLISHED);
+        service.transitionAdvert(superAdmin(), advert.getId(), Vacancy.Status.PUBLISHED,
+                "Supervisor proposal approved");
 
         assertThat(inbox(uniSupervisor))
                 .anyMatch(n -> "OPPORTUNITY_VERIFIED".equals(n.getType()));
@@ -293,7 +297,8 @@ class OpportunityTransitionSideEffectsTest {
         UserEntity rival = companyUser(rivalId);
         Vacancy advert = vacancy(companyId, Vacancy.Status.PENDING_REVIEW);
 
-        service.transitionAdvert(superAdmin(), advert.getId(), Vacancy.Status.REJECTED);
+        service.transitionAdvert(superAdmin(), advert.getId(), Vacancy.Status.REJECTED,
+                "Turned down at review");
 
         assertThat(inbox(rival)).noneMatch(n -> n.getType().startsWith("OPPORTUNITY"));
     }

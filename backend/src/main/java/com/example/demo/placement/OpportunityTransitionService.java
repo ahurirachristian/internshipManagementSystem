@@ -160,8 +160,30 @@ public class OpportunityTransitionService {
      * history row. The timestamps that belong to the move are recorded here because
      * nothing else writes them: {@code published_at} when it goes live,
      * {@code reviewed_at} when the moderator decides, {@code updated_at} always.
+     *
+     * <p>Two-argument form kept for the moves that carry no verdict (withdraw,
+     * close) — it delegates with a null note, which the verdict branch refuses.
      */
     public Vacancy transitionAdvert(UserEntity actor, Long vacancyId, Vacancy.Status target) {
+        return transitionAdvert(actor, vacancyId, target, null);
+    }
+
+    /**
+     * S4.2: the same engine with the verdict's paperwork attached. A
+     * {@code PENDING_REVIEW} advert moving to {@code PUBLISHED} or
+     * {@code REJECTED} is a legitimacy decision and therefore requires a
+     * non-blank note of at most 500 characters (D7: binary verdict, required
+     * note) — missing note → 400 via {@code GlobalExceptionHandler}. The check
+     * runs <i>after</i> legality, so an illegal jump still answers 409 and the
+     * closed map never yields to request validation.
+     *
+     * <p>On a verdict the engine also records who judged and why:
+     * {@code verification_status} → {@code VERIFIED}/{@code REJECTED},
+     * {@code verified_by}/{@code verified_at}, {@code verification_note} — the
+     * [H6] trail the inbox queue then reads (the row leaves
+     * {@code UNVERIFIED} and can never re-enter).
+     */
+    public Vacancy transitionAdvert(UserEntity actor, Long vacancyId, Vacancy.Status target, String verificationNote) {
         Vacancy advert = vacancyRepository.findById(vacancyId)
                 .orElseThrow(() -> new NoSuchElementException("Opportunity not found."));
         requireAdvertScope(actor, advert);
@@ -170,14 +192,25 @@ public class OpportunityTransitionService {
         Vacancy.Status from = advert.getStatus();
         requireLegal(ADVERT.get(from), from, target, "advert");
 
+        boolean verdict = from == Vacancy.Status.PENDING_REVIEW
+                && (target == Vacancy.Status.PUBLISHED || target == Vacancy.Status.REJECTED);
+        if (verdict) {
+            requireVerificationNote(verificationNote);
+        }
+
         advert.setStatus(target);
         advert.setUpdatedAt(LocalDateTime.now());
         if (target == Vacancy.Status.PUBLISHED && advert.getPublishedAt() == null) {
             advert.setPublishedAt(LocalDateTime.now());
         }
-        if (from == Vacancy.Status.PENDING_REVIEW
-                && (target == Vacancy.Status.PUBLISHED || target == Vacancy.Status.REJECTED)) {
+        if (verdict) {
             advert.setReviewedAt(LocalDateTime.now());
+            advert.setVerificationStatus(target == Vacancy.Status.PUBLISHED
+                    ? Vacancy.VerificationStatus.VERIFIED
+                    : Vacancy.VerificationStatus.REJECTED);
+            advert.setVerifiedBy(actor.getId());
+            advert.setVerifiedAt(LocalDateTime.now());
+            advert.setVerificationNote(verificationNote);
         }
         Vacancy saved = vacancyRepository.save(advert);
 
@@ -186,6 +219,17 @@ public class OpportunityTransitionService {
         auditLogService.log(actor.getUsername(), actor.getRole().name(), "OPPORTUNITY_STATUS",
                 "Vacancy", "Opportunity " + saved.getId() + ": " + from + " -> " + target, null);
         return saved;
+    }
+
+    /** D7: the verdict is binary and its reason is part of the verdict. */
+    private void requireVerificationNote(String note) {
+        if (note == null || note.isBlank()) {
+            throw new IllegalArgumentException(
+                    "A verification note is required — record why the advert was approved or rejected.");
+        }
+        if (note.length() > 500) {
+            throw new IllegalArgumentException("A verification note may not exceed 500 characters.");
+        }
     }
 
     /**

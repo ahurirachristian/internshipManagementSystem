@@ -201,9 +201,23 @@ class OpportunityTransitionTest {
                 }
                 Vacancy advert = vacancy(COMPANY_A, from);
 
-                Vacancy result = service.transitionAdvert(admin, advert.getId(), to);
+                Vacancy result = service.transitionAdvert(admin, advert.getId(), to,
+                        "Reviewed: " + from + " -> " + to);
 
                 assertThat(result.getStatus()).as("%s -> %s", from, to).isEqualTo(to);
+                if (from == Vacancy.Status.PENDING_REVIEW
+                        && (to == Vacancy.Status.PUBLISHED || to == Vacancy.Status.REJECTED)) {
+                    // S4.2: a verdict is never bare — it records who judged, when, why.
+                    assertThat(result.getVerificationStatus()).as("%s -> %s verdict", from, to)
+                            .isEqualTo(to == Vacancy.Status.PUBLISHED
+                                    ? Vacancy.VerificationStatus.VERIFIED
+                                    : Vacancy.VerificationStatus.REJECTED);
+                    assertThat(result.getVerifiedBy()).as("%s -> %s judge", from, to)
+                            .isEqualTo(admin.getId());
+                    assertThat(result.getVerifiedAt()).as("%s -> %s time", from, to).isNotNull();
+                    assertThat(result.getVerificationNote()).as("%s -> %s note", from, to)
+                            .isEqualTo("Reviewed: " + from + " -> " + to);
+                }
                 assertThat(historyFor(advert.getId())).as("%s -> %s history", from, to).isEqualTo(1);
                 OpportunityStatusHistory row = historyRepository
                         .findByVacancyIdOrderByChangedAtAsc(advert.getId()).get(0);
@@ -575,12 +589,18 @@ class OpportunityTransitionTest {
     void verifyingRecordsTheModerationTimestamps() {
         Vacancy advert = vacancy(COMPANY_A, Vacancy.Status.PENDING_REVIEW);
 
-        service.transitionAdvert(superAdmin(), advert.getId(), Vacancy.Status.PUBLISHED);
+        service.transitionAdvert(superAdmin(), advert.getId(), Vacancy.Status.PUBLISHED,
+                "Evidence checked");
 
         Vacancy reloaded = vacancyRepository.findById(advert.getId()).orElseThrow();
         assertThat(reloaded.getPublishedAt()).isNotNull();
         assertThat(reloaded.getReviewedAt()).isNotNull();
         assertThat(reloaded.getUpdatedAt()).isNotNull();
+        // S4.2: the verdict's own fields — who judged, when, and why [H6].
+        assertThat(reloaded.getVerifiedBy()).isEqualTo(superAdmin().getId());
+        assertThat(reloaded.getVerifiedAt()).isNotNull();
+        assertThat(reloaded.getVerificationNote()).isEqualTo("Evidence checked");
+        assertThat(reloaded.getVerificationStatus()).isEqualTo(Vacancy.VerificationStatus.VERIFIED);
     }
 
     @Test

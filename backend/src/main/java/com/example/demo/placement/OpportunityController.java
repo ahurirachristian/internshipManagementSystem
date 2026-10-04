@@ -2,6 +2,7 @@ package com.example.demo.placement;
 
 import java.security.Principal;
 import java.util.List;
+import java.util.Map;
 
 import jakarta.validation.Valid;
 
@@ -10,6 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -41,10 +43,13 @@ import com.example.demo.auth.UserRepository;
 public class OpportunityController {
 
     private final OpportunityService opportunityService;
+    private final OpportunityTransitionService opportunityTransitionService;
     private final UserRepository userRepository;
 
-    public OpportunityController(OpportunityService opportunityService, UserRepository userRepository) {
+    public OpportunityController(OpportunityService opportunityService,
+            OpportunityTransitionService opportunityTransitionService, UserRepository userRepository) {
         this.opportunityService = opportunityService;
+        this.opportunityTransitionService = opportunityTransitionService;
         this.userRepository = userRepository;
     }
 
@@ -95,5 +100,40 @@ public class OpportunityController {
             throw new AccessDeniedException("A moderation inbox must come from a known session.");
         }
         return ResponseEntity.ok(opportunityService.listInbox(actor));
+    }
+
+    /**
+     * S4.2: one verb, one closed map — {@code POST /{id}/transition}. The door
+     * admits the three personas that can move an advert at all (the moderator
+     * verifying it, the originator pulling it); students and field supervisors
+     * are refused before any id exists. Everything past the door is the
+     * engine's: scope 404, role 403 [H6], legality 409, and for a
+     * verify/reject verdict a required {@code verificationNote} (400 when
+     * missing — D7). Both spellings of the note key are accepted so the
+     * plan's {@code verification_note} and the API's camelCase agree.
+     */
+    @PostMapping("/{id}/transition")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'COMPANY', 'SUPERVISOR')")
+    public ResponseEntity<?> transition(@PathVariable Long id, @RequestBody Map<String, String> body,
+            Principal principal) {
+        UserEntity actor = principal == null ? null
+                : userRepository.findByUsername(principal.getName()).orElse(null);
+        if (actor == null) {
+            throw new AccessDeniedException("A transition must come from a known session.");
+        }
+        String target = body.get("status");
+        if (target == null || target.isBlank()) {
+            return ResponseEntity.badRequest().body(Map.of("error", "A target status is required."));
+        }
+        Vacancy.Status status;
+        try {
+            status = Vacancy.Status.parse(target.trim());
+        } catch (IllegalArgumentException ex) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Unknown status: " + target));
+        }
+        String note = body.get("verificationNote") != null
+                ? body.get("verificationNote")
+                : body.get("verification_note");
+        return ResponseEntity.ok(opportunityTransitionService.transitionAdvert(actor, id, status, note));
     }
 }
