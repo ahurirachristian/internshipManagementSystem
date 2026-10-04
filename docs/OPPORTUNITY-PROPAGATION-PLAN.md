@@ -1,6 +1,6 @@
 # Opportunity Propagation Plan — company/advisor-submitted internships, relayed Company → Super Admin → University → Student
 
-Status: **Phases 0–2 done (S0.1–S2.3 ✅); Phase 3 in progress — S3.1 ✅, S3.2 ✅, S3.3 ✅, S3.4 ✅.** Next step: **S4.1**, `GET /api/opportunities/inbox`. Phase 0 added characterization tests only; Phases 1–2 added the schema, migration, status vocabulary and the transition engine + audience resolver; Phase 3 opens the endpoints.
+Status: **Phases 0–3 done (S0.1–S3.4 ✅); Phase 4 in progress — S4.1 ✅.** Next step: **S4.2**, verify/reject transition. Phase 0 added characterization tests only; Phases 1–2 added the schema, migration, status vocabulary and the transition engine + audience resolver; Phase 3 opens the endpoints.
 Branch target: `fred`. Every step below is one commit.
 Base commit at time of writing: `f0efc57`.
 Revision: security-scope audit found two gaps in the first draft (`GET /api/vacancies/{id}` unmentioned; `documents`/`audience` reuse unusable). Both corrected — see **D8** in §11 and **§5.11**.
@@ -498,7 +498,7 @@ Two findings from doing Phase 0, both folded back into this plan:
 
 | Step | Goal | Work | Tests | Commit |
 |---|---|---|---|---|
-| **S4.1** | 🔒 `GET /api/opportunities/inbox` | Super-admin-only, `verification_status=UNVERIFIED` + `status=PENDING_REVIEW` | `STUDENT`, `SUPERVISOR`, `COMPANY` → 403. **`STUDENT` cannot see a company's submission** (this is R1, the headline requirement) | `feat(opportunities): super-admin moderation inbox` |
+| **S4.1** ✅ `5fac74d` | 🔒 `GET /api/opportunities/inbox` | Super-admin-only (`super_admin` flag, not the `ADMIN` role — the controller narrows to `ADMIN`, the service then checks the flag), `verification_status=UNVERIFIED` + `status=PENDING_REVIEW`, newest first | `OpportunityInboxTest`, **7 tests**: `STUDENT`, `SUPERVISOR`, `COMPANY`, plain `ADMIN` → 403, anonymous → 401; **`STUDENT` cannot see a company's submission** (R1, the headline); born-published and already-judged rows never enter the queue. Fault-injected the gate (authority + flag): exactly the 4 gate tests flip 403→200 | `feat(opportunities): super-admin moderation inbox` |
 | **S4.2** | Verify / reject | `/transition` with a **required** `verification_note`; sets `verified_by/at`; `PENDING_REVIEW→PUBLISHED` or `→REJECTED`; notifies the submitter | rejecting without a note → 400; only super admin can verify `[H6]`; history row written | `feat(opportunities): verify or reject a submission` |
 | **S4.3** | `OpportunityInbox.jsx` | Super-admin UI: inbox, verify with note, multi-select universities, offer | UI test | `feat(opportunities): super-admin inbox UI` |
 
