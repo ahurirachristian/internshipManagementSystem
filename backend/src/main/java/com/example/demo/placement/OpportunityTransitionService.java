@@ -437,6 +437,33 @@ public class OpportunityTransitionService {
             OpportunitySubmission.Status target) {
         OpportunitySubmission submission = submissionRepository.findByIdForUpdate(submissionId)
                 .orElseThrow(() -> new NoSuchElementException("Submission not found."));
+        return applySubmissionTransition(actor, submission, target, null);
+    }
+
+    /**
+     * S6.2 (plan §6.3): {@code POST /{id}/submissions/{submissionId}/respond} —
+     * the university's review verdict on an R6 proposal, with its optional
+     * {@code review_note}.
+     *
+     * <p>The path's advert id anchors the row the same way S5.2 anchors an
+     * offer: a submission id replayed under another advert's path does not
+     * exist here (404). The note follows the offer's rule — optional, capped
+     * at the §5.9 column's 500 chars, and refused *before* the row moves, so a
+     * too-long note leaves the submission exactly as answerable as it was.
+     */
+    public OpportunitySubmission transitionSubmission(UserEntity actor, Long vacancyId,
+            Long submissionId, OpportunitySubmission.Status target, String reviewNote) {
+        OpportunitySubmission submission = submissionRepository.findByIdForUpdate(submissionId)
+                .orElseThrow(() -> new NoSuchElementException("Submission not found."));
+        if (!submission.getVacancyId().equals(vacancyId)) {
+            throw new NoSuchElementException("Submission not found.");
+        }
+        return applySubmissionTransition(actor, submission, target, reviewNote);
+    }
+
+    /** Scope → role → legality → note, then the write and its two side effects. */
+    private OpportunitySubmission applySubmissionTransition(UserEntity actor,
+            OpportunitySubmission submission, OpportunitySubmission.Status target, String reviewNote) {
         requireSubmissionScope(actor, submission);
         // The reviewing decision belongs to the university being asked — §6.3 gates
         // this endpoint to SUPERVISOR, so even a super admin gets 403 here: the
@@ -445,11 +472,17 @@ public class OpportunityTransitionService {
 
         OpportunitySubmission.Status from = submission.getStatus();
         requireLegal(SUBMISSION.get(from), from, target, "submission");
+        if (reviewNote != null && reviewNote.length() > 500) {
+            throw new IllegalArgumentException("A review note may not exceed 500 characters.");
+        }
 
         submission.setStatus(target);
         if (target == OpportunitySubmission.Status.APPROVED || target == OpportunitySubmission.Status.REJECTED) {
             submission.setReviewedBy(actor.getId());
             submission.setReviewedAt(LocalDateTime.now());
+            if (reviewNote != null && !reviewNote.isBlank()) {
+                submission.setReviewNote(reviewNote.trim());
+            }
         }
         OpportunitySubmission saved = submissionRepository.save(submission);
 

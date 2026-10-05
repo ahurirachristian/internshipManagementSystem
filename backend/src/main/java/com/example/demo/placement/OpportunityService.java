@@ -297,6 +297,21 @@ public class OpportunityService {
     }
 
     /**
+     * S6.2 (plan §6.3): {@code GET /submissions} — the review queue of R6
+     * proposals awaiting this university's verdict, {@code universityId} forced
+     * from the session [H7]. Only {@code PENDING} rows are queue: a decided one
+     * is history, and showing it would invite a second answer the closed map
+     * refuses anyway.
+     */
+    public List<OpportunitySubmission> listSubmissions(UserEntity actor) {
+        if (actor.getUniversityId() == null) {
+            throw new AccessDeniedException("Your account is not linked to a university.");
+        }
+        return submissionRepository.findByUniversityIdAndStatusOrderBySubmittedAtAsc(
+                actor.getUniversityId(), OpportunitySubmission.Status.PENDING);
+    }
+
+    /**
      * S5.2 (plan §6.3): {@code GET /offers} — the offers addressed to the
      * session's own university, {@code universityId} forced from the session
      * (the request carries no id to scope by [H9]). A supervisor without a

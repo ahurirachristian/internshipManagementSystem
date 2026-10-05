@@ -212,4 +212,58 @@ public class OpportunityController {
         return ResponseEntity.ok(
                 opportunityTransitionService.respondToOffer(actor, id, offerId, target, note));
     }
+
+    /**
+     * S6.2 (plan §6.3): {@code GET /submissions} — the R6 review queue for the
+     * session's university. Same door as {@code /offers}: supervisors and admins
+     * in, students and companies refused before any row exists, and the
+     * university itself forced inside the service [H7].
+     */
+    @GetMapping("/submissions")
+    @PreAuthorize("hasAnyAuthority('SUPERVISOR', 'ADMIN')")
+    public ResponseEntity<List<OpportunitySubmission>> submissionQueue(Principal principal) {
+        UserEntity actor = principal == null ? null
+                : userRepository.findByUsername(principal.getName()).orElse(null);
+        if (actor == null) {
+            throw new AccessDeniedException("A submission queue must come from a known session.");
+        }
+        return ResponseEntity.ok(opportunityService.listSubmissions(actor));
+    }
+
+    /**
+     * S6.2: {@code POST /{id}/submissions/{submissionId}/respond} — the university
+     * approves or rejects an R6 proposal (D2: its own pipeline, so {@code SUPERVISOR}
+     * only and a super admin is refused too). The verb is parsed at the door like
+     * the other two responders: missing, unknown or non-reviewable values are a
+     * 400 with this endpoint's own message.
+     */
+    @PostMapping("/{id}/submissions/{submissionId}/respond")
+    @PreAuthorize("hasAuthority('SUPERVISOR')")
+    public ResponseEntity<?> review(@PathVariable Long id, @PathVariable Long submissionId,
+            @RequestBody Map<String, String> body, Principal principal) {
+        UserEntity actor = principal == null ? null
+                : userRepository.findByUsername(principal.getName()).orElse(null);
+        if (actor == null) {
+            throw new AccessDeniedException("A review must come from a known session.");
+        }
+        String decision = body.get("decision");
+        if (decision == null || decision.isBlank()) {
+            return ResponseEntity.badRequest().body(Map.of("error", "A decision is required."));
+        }
+        OpportunitySubmission.Status target;
+        try {
+            target = OpportunitySubmission.Status
+                    .valueOf(decision.trim().toUpperCase(java.util.Locale.ROOT));
+        } catch (IllegalArgumentException ex) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Unknown decision: " + decision));
+        }
+        if (target != OpportunitySubmission.Status.APPROVED
+                && target != OpportunitySubmission.Status.REJECTED) {
+            return ResponseEntity.badRequest()
+                    .body(Map.of("error", "A decision must be APPROVED or REJECTED."));
+        }
+        String note = body.get("note");
+        return ResponseEntity.ok(opportunityTransitionService.transitionSubmission(
+                actor, id, submissionId, target, note));
+    }
 }
