@@ -453,7 +453,10 @@ public class OpportunityTransitionService {
      * {@code OPPORTUNITY_SHARED} fan-out to every student at this university
      * whose programme/department/year matches the targeting (no targeting =
      * the whole roster; recipients looked up server-side, never supplied
-     * [L15]), and one audit row.
+     * [L15]), and one audit row. The fan-out itself is the exception to "one
+     * transaction": it runs through {@link NotificationService#notifyFanout}
+     * so a roster of thousands is written in capped chunks that commit one at
+     * a time [H11] — everything else above stays atomic with the share.
      */
     public OpportunityShare shareWithStudents(UserEntity actor, Long vacancyId,
             OpportunityShareCreateRequest request) {
@@ -562,7 +565,7 @@ public class OpportunityTransitionService {
 
         record(vacancyId, universityId, OpportunityStatusHistory.RELAY_SHARE,
                 null, OpportunityShare.Status.SHARED, actor);
-        notificationService.notify(matchingStudentIds(saved),
+        notificationService.notifyFanout(matchingStudentIds(saved),
                 "OPPORTUNITY_SHARED", "New internship opportunity",
                 "\"" + advert.getTitle() + "\" has been shared with your university.",
                 "/student/dashboard");
