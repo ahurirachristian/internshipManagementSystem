@@ -613,6 +613,47 @@ export async function respondToOffer(advertId, offerId, decision, note) {
   return parseResponse(response);
 }
 
+// Review queue (S6.2): this university's PENDING R6 proposals. The server
+// forces universityId from the session, same as the offers list.
+export async function fetchSubmissionQueue() {
+  const response = await fetch(`${API_ROOT}/api/opportunities/submissions`, {
+    credentials: 'include',
+  });
+  return parseResponse(response);
+}
+
+// Review one submission: decision is APPROVED or REJECTED, note is optional.
+// A second review is a 409, an id under another advert's path is a 404 — the
+// server's message is what the UI shows, verbatim.
+export async function respondToSubmission(advertId, submissionId, decision, note) {
+  const response = await fetch(
+    `${API_ROOT}/api/opportunities/${advertId}/submissions/${submissionId}/respond`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({ decision, note }),
+    },
+  );
+  return parseResponse(response);
+}
+
+// Share an advert with our own students (S6.3). `target` narrows the audience
+// (programme/department ids and years of study); without it the whole university
+// sees it — but only while the advert itself is untargeted: the server refuses
+// anything wider than what was offered (400), anything outside this university
+// (400) and anything this session's university may not share (404), each with
+// its own message, shown verbatim.
+export async function shareOpportunity(advertId, target, note) {
+  const response = await fetch(`${API_ROOT}/api/opportunities/${advertId}/share`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+    body: JSON.stringify({ target, note }),
+  });
+  return parseResponse(response);
+}
+
 export async function fetchPlacementTimeline() {
   const response = await fetch(`${API_ROOT}/api/placements/timeline`, {
     credentials: 'include',
