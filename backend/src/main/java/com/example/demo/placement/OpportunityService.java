@@ -70,6 +70,7 @@ public class OpportunityService {
     private final VacancyRepository vacancyRepository;
     private final OpportunitySubmissionRepository submissionRepository;
     private final OpportunityOfferRepository offerRepository;
+    private final OpportunityShareRepository shareRepository;
     private final OpportunityStatusHistoryRepository historyRepository;
     private final SchoolRepository schoolRepository;
     private final DepartmentRepository departmentRepository;
@@ -82,6 +83,7 @@ public class OpportunityService {
     public OpportunityService(VacancyRepository vacancyRepository,
             OpportunitySubmissionRepository submissionRepository,
             OpportunityOfferRepository offerRepository,
+            OpportunityShareRepository shareRepository,
             OpportunityStatusHistoryRepository historyRepository,
             SchoolRepository schoolRepository,
             DepartmentRepository departmentRepository, ProgrammeRepository programmeRepository,
@@ -91,6 +93,7 @@ public class OpportunityService {
         this.vacancyRepository = vacancyRepository;
         this.submissionRepository = submissionRepository;
         this.offerRepository = offerRepository;
+        this.shareRepository = shareRepository;
         this.historyRepository = historyRepository;
         this.schoolRepository = schoolRepository;
         this.departmentRepository = departmentRepository;
@@ -323,6 +326,20 @@ public class OpportunityService {
             throw new AccessDeniedException("Your account is not linked to a university.");
         }
         return offerRepository.findByUniversityIdOrderByOfferedAtDesc(actor.getUniversityId());
+    }
+
+    /**
+     * S6.3 (plan §6.3): {@code GET /shared} — what this university has put in
+     * front of its own students, newest first. The university is forced from
+     * the session [H7]: the request carries no id to scope by, and an account
+     * with no university has no shares to read and is refused rather than
+     * shown everyone else's (same rule as {@link #listOffers}).
+     */
+    public List<OpportunityShare> listShares(UserEntity actor) {
+        if (actor.getUniversityId() == null) {
+            throw new AccessDeniedException("Your account is not linked to a university.");
+        }
+        return shareRepository.findByUniversityIdOrderBySharedAtDesc(actor.getUniversityId());
     }
 
     /**

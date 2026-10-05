@@ -266,4 +266,41 @@ public class OpportunityController {
         return ResponseEntity.ok(opportunityTransitionService.transitionSubmission(
                 actor, id, submissionId, target, note));
     }
+
+    /**
+     * S6.3 (plan §6.3): {@code POST /{id}/share} — the university puts an
+     * advert in front of its own students (R4/R5/R6). The door is
+     * {@code SUPERVISOR}-only (D2 — even a super admin is refused, like the
+     * other relay answers), and everything past it is the engine's: scope 404
+     * [H9], state 409, targeting 400 [H7][§5.8].
+     */
+    @PostMapping("/{id}/share")
+    @PreAuthorize("hasAuthority('SUPERVISOR')")
+    public ResponseEntity<OpportunityShare> share(@PathVariable Long id,
+            @RequestBody OpportunityShareCreateRequest request, Principal principal) {
+        UserEntity actor = principal == null ? null
+                : userRepository.findByUsername(principal.getName()).orElse(null);
+        if (actor == null) {
+            throw new AccessDeniedException("A share must come from a known session.");
+        }
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(opportunityTransitionService.shareWithStudents(actor, id, request));
+    }
+
+    /**
+     * S6.3: {@code GET /shared} — what my university has shared, newest first.
+     * Same door and the same in-service tenancy as {@code /offers}: supervisors
+     * and admins read, but the university is forced from the session [H7], so
+     * the list is never a request parameter.
+     */
+    @GetMapping("/shared")
+    @PreAuthorize("hasAnyAuthority('SUPERVISOR', 'ADMIN')")
+    public ResponseEntity<List<OpportunityShare>> shared(Principal principal) {
+        UserEntity actor = principal == null ? null
+                : userRepository.findByUsername(principal.getName()).orElse(null);
+        if (actor == null) {
+            throw new AccessDeniedException("A share list must come from a known session.");
+        }
+        return ResponseEntity.ok(opportunityService.listShares(actor));
+    }
 }

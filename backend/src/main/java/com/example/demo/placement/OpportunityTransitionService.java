@@ -5,6 +5,8 @@ import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.Optional;
+import java.util.Set;
 
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
@@ -14,7 +16,13 @@ import com.example.demo.audit.AuditLogService;
 import com.example.demo.auth.Role;
 import com.example.demo.auth.UserEntity;
 import com.example.demo.auth.UserRepository;
+import com.example.demo.department.Department;
+import com.example.demo.department.DepartmentRepository;
 import com.example.demo.notification.NotificationService;
+import com.example.demo.programme.Programme;
+import com.example.demo.programme.ProgrammeRepository;
+import com.example.demo.student.Student;
+import com.example.demo.student.StudentRepository;
 
 /**
  * S2.1 (opportunity plan §8.3): one transition engine for the advert and its three
@@ -136,13 +144,17 @@ public class OpportunityTransitionService {
     private final NotificationService notificationService;
     private final AuditLogService auditLogService;
     private final UserRepository userRepository;
+    private final StudentRepository studentRepository;
+    private final DepartmentRepository departmentRepository;
+    private final ProgrammeRepository programmeRepository;
 
     public OpportunityTransitionService(VacancyRepository vacancyRepository,
             OpportunityOfferRepository offerRepository, OpportunityShareRepository shareRepository,
             OpportunitySubmissionRepository submissionRepository,
             OpportunityStatusHistoryRepository historyRepository,
             NotificationService notificationService, AuditLogService auditLogService,
-            UserRepository userRepository) {
+            UserRepository userRepository, StudentRepository studentRepository,
+            DepartmentRepository departmentRepository, ProgrammeRepository programmeRepository) {
         this.vacancyRepository = vacancyRepository;
         this.offerRepository = offerRepository;
         this.shareRepository = shareRepository;
@@ -151,6 +163,9 @@ public class OpportunityTransitionService {
         this.notificationService = notificationService;
         this.auditLogService = auditLogService;
         this.userRepository = userRepository;
+        this.studentRepository = studentRepository;
+        this.departmentRepository = departmentRepository;
+        this.programmeRepository = programmeRepository;
     }
 
     // --- Advert transitions -------------------------------------------------
@@ -388,6 +403,277 @@ public class OpportunityTransitionService {
     }
 
     // --- Share transitions --------------------------------------------------
+
+    /**
+     * S6.3 (plan §6.3): {@code POST /{id}/share} — the university puts an
+     * advert in front of its own students (R4/R5/R6).
+     *
+     * <p><b>Who may share is decided by the relay rows, never by the body</b>
+     * [H7][H9], scope-first as everywhere else — no claim at all is 404
+     * before any state question is asked:
+     *
+     * <ol>
+     *   <li><b>Offer (R4/R2)</b> — an offer addressed to this session's
+     *       university puts it in scope, and the offer must be
+     *       {@code ACCEPTED}: an offer that was never accepted cannot carry
+     *       the university's students into somebody else's broadcast (409 —
+     *       the S6.1 test deferred to this step).</li>
+     *   <li><b>Submission (R6)</b> — this university's own proposal row puts
+     *       it in scope, and it must be {@code APPROVED} first (409 — the
+     *       guard S6.2 deferred to here: a supervisor cannot push their own
+     *       submission into the feed without the review hop).</li>
+     *   <li><b>University-sourced (R5)</b> — no offer and no submission: the
+     *       claim is the advert's own {@code verified_by}, which S3.1 wrote
+     *       from the session that sourced it. That creator's university —
+     *       read server-side from {@code users} — may share; any other
+     *       university gets 404, so R5's "own university only" rule survives
+     *       {@code vacancies} carrying no university column (D1).</li>
+     * </ol>
+     *
+     * <p><b>The body may narrow the audience, never widen it</b> (§5.8): the
+     * targeting is checked twice, both before anything is written — the ids
+     * must belong to the session's own university [H7], and the resulting
+     * audience must be a subset of the advert's own targeting (an untargeted
+     * advert means the whole university, so anything goes there; an advert
+     * targeting programmes X may be shared at X or a subset of X, never at
+     * "everyone" and never at Y). The note follows the house rule too:
+     * optional, ≤500 chars, refused before the row moves.
+     *
+     * <p>An R6 advert is still {@code PENDING_REVIEW} when its submission is
+     * approved — and D2 says the university *is* the trusted verifier for
+     * R5/R6 — so sharing publishes it (status + {@code published_at}, with an
+     * advert-level §5.10 row). Any other non-{@code PUBLISHED} state is a 409:
+     * nothing rejected, withdrawn or closed ever reaches students.
+     *
+     * <p>Writes, one transaction: (maybe) the advert's publish, the share row
+     * with {@code university_id}/{@code shared_by} from the session and
+     * {@code offer_id} set only when an offer authorised it, the offer's own
+     * {@code ACCEPTED → SHARED} move through this same engine, one §5.10
+     * history row (from {@code null}, like S5.1's offers), the §9
+     * {@code OPPORTUNITY_SHARED} fan-out to every student at this university
+     * whose programme/department/year matches the targeting (no targeting =
+     * the whole roster; recipients looked up server-side, never supplied
+     * [L15]), and one audit row.
+     */
+    public OpportunityShare shareWithStudents(UserEntity actor, Long vacancyId,
+            OpportunityShareCreateRequest request) {
+        Vacancy advert = vacancyRepository.findById(vacancyId)
+                .orElseThrow(() -> new NoSuchElementException("Opportunity not found."));
+        Long universityId = actor.getUniversityId();
+        if (universityId == null) {
+            throw new AccessDeniedException("Your account is not linked to a university.");
+        }
+        requireUniversitySupervisor(actor, "Only a university supervisor can share an opportunity.");
+
+        // --- Scope: does this session's university hold a claim at all? [H9] ---
+        Optional<OpportunityOffer> offer = offerRepository
+                .findByVacancyIdAndUniversityId(vacancyId, universityId);
+        Optional<OpportunitySubmission> submission = submissionRepository.findByVacancyId(vacancyId)
+                .filter(row -> universityId.equals(row.getUniversityId()));
+        boolean universitySourced = advert.getOrigin() == Vacancy.Origin.UNIVERSITY
+                && advert.getVerifiedBy() != null
+                && userRepository.findById(advert.getVerifiedBy())
+                        .map(creator -> universityId.equals(creator.getUniversityId())).orElse(false);
+        if (offer.isEmpty() && submission.isEmpty() && !universitySourced) {
+            throw notFoundAdvert();
+        }
+
+        // One live share per university per advert: the UNIQUE constraint is the
+        // floor, 409 the answer — and a CLOSED share is terminal (§5.8).
+        shareRepository.findByVacancyIdAndUniversityId(vacancyId, universityId)
+                .ifPresent(existing -> {
+                    throw new IllegalStateException(existing.getStatus() == OpportunityShare.Status.SHARED
+                            ? "This opportunity is already shared with your students."
+                            : "This opportunity's share was closed and cannot be reopened.");
+                });
+
+        // --- Legality of the claim's state (409) ---
+        if (offer.isPresent()) {
+            OpportunityOffer.Status offerStatus = offer.get().getStatus();
+            if (offerStatus == OpportunityOffer.Status.OFFERED
+                    || offerStatus == OpportunityOffer.Status.DECLINED) {
+                throw new IllegalStateException(
+                        "This offer must be accepted before it can be shared.");
+            }
+        } else if (submission.isPresent()) {
+            OpportunitySubmission.Status submissionStatus = submission.get().getStatus();
+            if (submissionStatus == OpportunitySubmission.Status.PENDING) {
+                throw new IllegalStateException(
+                        "This submission must be approved before it can be shared.");
+            }
+            if (submissionStatus == OpportunitySubmission.Status.REJECTED) {
+                throw new IllegalStateException(
+                        "A rejected submission cannot be shared with students.");
+            }
+        }
+        boolean needsPublishing = advert.getStatus() == Vacancy.Status.PENDING_REVIEW;
+        if (!needsPublishing && advert.getStatus() != Vacancy.Status.PUBLISHED) {
+            throw new IllegalStateException(
+                    "A " + advert.getStatus() + " opportunity cannot be shared with students.");
+        }
+
+        // --- The body: note cap, then targeting — fully validated before any write ---
+        OpportunityShareCreateRequest.Target target = request == null ? null : request.target();
+        String note = request == null ? null : request.note();
+        if (note != null && note.length() > 500) {
+            throw new IllegalArgumentException("A share note may not exceed 500 characters.");
+        }
+        List<Integer> programmes = target == null || target.programmeIds() == null
+                ? List.of() : target.programmeIds();
+        List<Integer> departments = target == null || target.departmentIds() == null
+                ? List.of() : target.departmentIds();
+        List<Integer> years = target == null || target.yearsOfStudy() == null
+                ? List.of() : target.yearsOfStudy();
+        requireOwnAcademicUnits(actor, programmes, departments);
+        for (Integer year : years) {
+            if (year == null || year < 1) {
+                throw new IllegalArgumentException("Years of study must be positive numbers.");
+            }
+        }
+        requireNoWidening("programme", programmes, advert.getTargetProgrammeIds());
+        requireNoWidening("department", departments, advert.getTargetDepartmentIds());
+        requireNoWidening("year of study", years, advert.getTargetYearOfStudy());
+
+        // --- Writes ---
+        if (needsPublishing) {
+            advert.setStatus(Vacancy.Status.PUBLISHED);
+            advert.setPublishedAt(LocalDateTime.now());
+            advert.setUpdatedAt(LocalDateTime.now());
+            vacancyRepository.save(advert);
+            record(vacancyId, null, null, Vacancy.Status.PENDING_REVIEW,
+                    Vacancy.Status.PUBLISHED, actor);
+        }
+        if (offer.isPresent() && offer.get().getStatus() == OpportunityOffer.Status.ACCEPTED) {
+            // §5.7: ACCEPTED → SHARED is this very act — through the same engine,
+            // so the offer gets its own history row and the super admins' notice.
+            transitionOffer(actor, offer.get().getId(), OpportunityOffer.Status.SHARED, null);
+        }
+
+        OpportunityShare share = new OpportunityShare();
+        share.setVacancyId(vacancyId);
+        share.setUniversityId(universityId);
+        share.setOfferId(offer.map(OpportunityOffer::getId).orElse(null));
+        share.setNote(note == null || note.isBlank() ? null : note.trim());
+        share.setSharedBy(actor.getId());
+        share.setTargetProgrammeIds(csvOrNull(programmes));
+        share.setTargetDepartmentIds(csvOrNull(departments));
+        share.setTargetYearOfStudy(csvOrNull(years));
+        OpportunityShare saved = shareRepository.save(share);
+
+        record(vacancyId, universityId, OpportunityStatusHistory.RELAY_SHARE,
+                null, OpportunityShare.Status.SHARED, actor);
+        notificationService.notify(matchingStudentIds(saved),
+                "OPPORTUNITY_SHARED", "New internship opportunity",
+                "\"" + advert.getTitle() + "\" has been shared with your university.",
+                "/student/dashboard");
+        auditLogService.log(actor.getUsername(), actor.getRole().name(), "OPPORTUNITY_SHARED",
+                "OpportunityShare",
+                "Share " + saved.getId() + " (university " + universityId + "): null -> SHARED"
+                        + (needsPublishing ? "; opportunity published" : ""), null);
+        return saved;
+    }
+
+    /** [H7]: targeting is an academic claim — only the session's own university may make one. */
+    private void requireOwnAcademicUnits(UserEntity actor, List<Integer> programmes,
+            List<Integer> departments) {
+        if (programmes.isEmpty() && departments.isEmpty()) {
+            return;
+        }
+        int universityId = actor.getUniversityId().intValue();
+        Set<Integer> ownProgrammes = programmeRepository.findByUniversityId(universityId).stream()
+                .map(Programme::getProgrammeId).collect(java.util.stream.Collectors.toSet());
+        Set<Integer> ownDepartments = departmentRepository.findByUniversityId(universityId).stream()
+                .map(Department::getDepartmentId).collect(java.util.stream.Collectors.toSet());
+        for (Integer id : programmes) {
+            if (id == null || id < 1 || !ownProgrammes.contains(id)) {
+                throw new IllegalArgumentException(
+                        "Targeting programme " + id + " does not belong to your university.");
+            }
+        }
+        for (Integer id : departments) {
+            if (id == null || id < 1 || !ownDepartments.contains(id)) {
+                throw new IllegalArgumentException(
+                        "Targeting department " + id + " does not belong to your university.");
+            }
+        }
+    }
+
+    /**
+     * §5.8 in one predicate: the share's audience must be a subset of the
+     * advert's. An advert with no targeting offers the whole university, so
+     * anything the university names is a subset; an advert that does target
+     * accepts only the same ids or fewer — an empty share list ("everyone")
+     * and any un-offered id are widenings → 400, before anything is written.
+     */
+    private void requireNoWidening(String noun, List<Integer> requested, String offeredCsv) {
+        Set<Integer> offered = csvInts(offeredCsv);
+        if (offered.isEmpty()) {
+            return;
+        }
+        if (requested.isEmpty()) {
+            throw new IllegalArgumentException("A share may narrow the offered audience, never widen it"
+                    + " — name the " + noun + "s to share with.");
+        }
+        if (!offered.containsAll(requested)) {
+            throw new IllegalArgumentException("A share may narrow the offered audience, never widen it"
+                    + " — the " + noun + " targeting is wider than what was offered.");
+        }
+    }
+
+    /** Ids travel as comma-separated strings on both sides (§5.8, matching {@code Vacancy}). */
+    private String csvOrNull(List<Integer> values) {
+        if (values == null || values.isEmpty()) {
+            return null;
+        }
+        return values.stream().map(String::valueOf).collect(java.util.stream.Collectors.joining(","));
+    }
+
+    /**
+     * Lenient on purpose: an unparseable id on the *advert* side cannot make
+     * this endpoint 400 — it just carries no claim, so the widen check treats
+     * that column as unrestricted. The share's own ids are {@code Integer}s
+     * from the JSON body, so they need no parsing at all.
+     */
+    private Set<Integer> csvInts(String csv) {
+        if (csv == null || csv.isBlank()) {
+            return Set.of();
+        }
+        Set<Integer> parsed = new java.util.LinkedHashSet<>();
+        for (String raw : csv.split(",")) {
+            String value = raw.trim();
+            if (value.isEmpty()) {
+                continue;
+            }
+            try {
+                parsed.add(Integer.parseInt(value));
+            } catch (NumberFormatException ignored) {
+                // Advert-side junk: no defensible subset relation, no claim.
+            }
+        }
+        return parsed;
+    }
+
+    /** §9 fan-out: this university's students, narrowed by the share's targeting. */
+    private List<Long> matchingStudentIds(OpportunityShare share) {
+        Set<Integer> programmes = csvInts(share.getTargetProgrammeIds());
+        Set<Integer> departments = csvInts(share.getTargetDepartmentIds());
+        Set<Integer> years = csvInts(share.getTargetYearOfStudy());
+        return studentRepository.findByUniversityId(share.getUniversityId()).stream()
+                .filter(student -> matches(programmes, student.getProgrammeId()))
+                .filter(student -> matches(departments, student.getDepartmentId()))
+                .filter(student -> matches(years, student.getYearOfStudy()))
+                .map(Student::getUserId)
+                .filter(java.util.Objects::nonNull)
+                .toList();
+    }
+
+    private boolean matches(Set<Integer> filter, Long value) {
+        return filter.isEmpty() || (value != null && filter.contains(value.intValue()));
+    }
+
+    private boolean matches(Set<Integer> filter, Integer value) {
+        return filter.isEmpty() || (value != null && filter.contains(value));
+    }
 
     /** One share transition: a broadcast being called off, by its own university or the super admin. */
     public OpportunityShare transitionShare(UserEntity actor, Long shareId, OpportunityShare.Status target) {
