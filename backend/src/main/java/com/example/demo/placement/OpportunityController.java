@@ -303,4 +303,43 @@ public class OpportunityController {
         }
         return ResponseEntity.ok(opportunityService.listShares(actor));
     }
+
+    /**
+     * S6.4 (plan §6.4): {@code GET /api/opportunities} — the student feed (R7).
+     * The mirror image of every other door on this controller: {@code STUDENT}
+     * alone passes, so the relay personas can never read the audience view
+     * either. What's inside is the service's four predicates — my university's
+     * live share, a published advert, a deadline still ahead, targeting that
+     * matches this student [H2][H4] — with the university forced from the
+     * session [H7].
+     */
+    @GetMapping
+    @PreAuthorize("hasAuthority('STUDENT')")
+    public ResponseEntity<List<OpportunityFeedItem>> feed(Principal principal) {
+        UserEntity actor = principal == null ? null
+                : userRepository.findByUsername(principal.getName()).orElse(null);
+        if (actor == null) {
+            throw new AccessDeniedException("A feed must come from a known session.");
+        }
+        return ResponseEntity.ok(opportunityService.listFeed(actor));
+    }
+
+    /**
+     * S6.4 (plan §6.4): {@code GET /api/opportunities/{id}} — the same read by
+     * id, 404 unless a live share addresses this student [H3]. The door is
+     * {@code STUDENT}-only; past it the S2.3 resolver decides existence (a
+     * guessed, unshared, closed or withdrawn advert is indistinguishable from
+     * a missing one) and the service adds the targeting match, so a student
+     * narrowed out of the share's audience cannot read it by id either [H2].
+     */
+    @GetMapping("/{id}")
+    @PreAuthorize("hasAuthority('STUDENT')")
+    public ResponseEntity<OpportunityFeedItem> feedItem(@PathVariable Long id, Principal principal) {
+        UserEntity actor = principal == null ? null
+                : userRepository.findByUsername(principal.getName()).orElse(null);
+        if (actor == null) {
+            throw new AccessDeniedException("An opportunity must come from a known session.");
+        }
+        return ResponseEntity.ok(opportunityService.feedItem(actor, id));
+    }
 }

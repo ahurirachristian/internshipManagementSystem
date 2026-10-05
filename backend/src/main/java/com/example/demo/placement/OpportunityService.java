@@ -21,6 +21,8 @@ import com.example.demo.programme.Programme;
 import com.example.demo.programme.ProgrammeRepository;
 import com.example.demo.school.School;
 import com.example.demo.school.SchoolRepository;
+import com.example.demo.student.Student;
+import com.example.demo.student.StudentRepository;
 import com.example.demo.university.UniversityRepository;
 
 /**
@@ -72,6 +74,9 @@ public class OpportunityService {
     private final OpportunityOfferRepository offerRepository;
     private final OpportunityShareRepository shareRepository;
     private final OpportunityStatusHistoryRepository historyRepository;
+    private final ApplicationRepository applicationRepository;
+    private final StudentRepository studentRepository;
+    private final OpportunityAudienceResolver audienceResolver;
     private final SchoolRepository schoolRepository;
     private final DepartmentRepository departmentRepository;
     private final ProgrammeRepository programmeRepository;
@@ -85,6 +90,8 @@ public class OpportunityService {
             OpportunityOfferRepository offerRepository,
             OpportunityShareRepository shareRepository,
             OpportunityStatusHistoryRepository historyRepository,
+            ApplicationRepository applicationRepository, StudentRepository studentRepository,
+            OpportunityAudienceResolver audienceResolver,
             SchoolRepository schoolRepository,
             DepartmentRepository departmentRepository, ProgrammeRepository programmeRepository,
             UniversityRepository universityRepository,
@@ -95,6 +102,9 @@ public class OpportunityService {
         this.offerRepository = offerRepository;
         this.shareRepository = shareRepository;
         this.historyRepository = historyRepository;
+        this.applicationRepository = applicationRepository;
+        this.studentRepository = studentRepository;
+        this.audienceResolver = audienceResolver;
         this.schoolRepository = schoolRepository;
         this.departmentRepository = departmentRepository;
         this.programmeRepository = programmeRepository;
@@ -340,6 +350,149 @@ public class OpportunityService {
             throw new AccessDeniedException("Your account is not linked to a university.");
         }
         return shareRepository.findByUniversityIdOrderBySharedAtDesc(actor.getUniversityId());
+    }
+
+    /**
+     * S6.4 (plan §6.4): {@code GET /api/opportunities} — the R7 feed, the only
+     * advert read a student ever gets on this surface.
+     *
+     * <p>Four predicates, in the order they are cheap to reject on:
+     *
+     * <ol>
+     *   <li><b>live share at <i>my</i> university</b> — the repository method
+     *       carries {@code universityId} (forced from the session [H7], never the
+     *       request) and {@code status=SHARED} in its very signature, so a
+     *       {@code CLOSED} share a university deliberately pulled cannot come
+     *       back [H4];</li>
+     *   <li><b>advert {@code PUBLISHED}</b> — a share can be live while the
+     *       advert was later withdrawn; the feed shows neither [H4];</li>
+     *   <li><b>not past the deadline</b> — the feed is a browse list of what can
+     *       still be applied to; an advert whose deadline passed is stale, not
+     *       hidden from the addressed student (see {@link #feedItem});</li>
+     *   <li><b>targeting match</b> — the share's narrowed audience (§5.8) is
+     *       matched against <i>this</i> student's programme/department/year
+     *       [H2]. Empty targeting on the share means "all of my students".
+     *       An advert-level target that a share narrowed away never reaches
+     *       here, because §5.8 guarantees the share is a subset of it.
+     * </ol>
+     *
+     * <p>Everything zero-filled (§2.6): {@code applied} is {@code false} and
+     * {@code applicationCount} is {@code 0} until proven by rows, so the UI
+     * beside the card never interpolates a missing count. Another university's
+     * share, a targeting-mismatched row and a stale row are all simply absent —
+     * the list never discloses that they exist.
+     */
+    public List<OpportunityFeedItem> listFeed(UserEntity actor) {
+        Long universityId = actor.getUniversityId();
+        if (universityId == null) {
+            throw new AccessDeniedException("Your account is not linked to a university.");
+        }
+        Student viewer = requireStudent(actor);
+        java.util.Set<Long> appliedTo = appliedVacancyIds(viewer);
+        java.time.LocalDate today = java.time.LocalDate.now();
+
+        java.util.List<OpportunityFeedItem> feed = new java.util.ArrayList<>();
+        for (OpportunityShare share : shareRepository
+                .findByUniversityIdAndStatusOrderBySharedAtDesc(universityId, OpportunityShare.Status.SHARED)) {
+            Vacancy advert = vacancyRepository.findById(share.getVacancyId()).orElse(null);
+            if (advert == null || advert.getStatus() != Vacancy.Status.PUBLISHED) {
+                continue;
+            }
+            if (advert.getDeadline() != null && advert.getDeadline().isBefore(today)) {
+                continue;
+            }
+            if (!addressesViewer(share, viewer)) {
+                continue;
+            }
+            feed.add(toFeedItem(share, advert, appliedTo));
+        }
+        return feed;
+    }
+
+    /**
+     * S6.4 (plan §6.4): {@code GET /api/opportunities/{id}} — 404 unless a live
+     * share addresses this viewer [H3].
+     *
+     * <p>The read gate itself is the S2.3 resolver ({@link OpportunityAudienceResolver#requireVisible}):
+     * a guessed id for an unshared advert, another university's share, a closed
+     * share and a non-published advert are all the same 404 — never a 403, so
+     * the endpoint cannot be used as an existence oracle. On top of that this
+     * service re-anchors the share row to the session's university and applies
+     * the same targeting match as the feed: a share narrowed to "year 3 only"
+     * does not address a year 2 student, and a student outside the audience
+     * must not be able to read the advert by id [H2].
+     *
+     * <p>Deliberately <b>not</b> deadline-gated: the deadline narrows what the
+     * feed browses, but an advert that addressed this student stays readable
+     * (their existing application's advert must never 404 out from under them).
+     */
+    public OpportunityFeedItem feedItem(UserEntity actor, Long vacancyId) {
+        Vacancy advert = audienceResolver.requireVisible(actor, vacancyId);
+        Long universityId = actor.getUniversityId();
+        OpportunityShare share = universityId == null ? null
+                : shareRepository.findByVacancyIdAndUniversityId(vacancyId, universityId)
+                        .filter(row -> row.getStatus() == OpportunityShare.Status.SHARED)
+                        .orElse(null);
+        if (share == null) {
+            throw new java.util.NoSuchElementException("Opportunity not found.");
+        }
+        Student viewer = requireStudent(actor);
+        if (!addressesViewer(share, viewer)) {
+            throw new java.util.NoSuchElementException("Opportunity not found.");
+        }
+        return toFeedItem(share, advert, appliedVacancyIds(viewer));
+    }
+
+    /** The viewer's {@code students} row — targeting questions are unanswerable without it. */
+    private Student requireStudent(UserEntity actor) {
+        return studentRepository.findByUserId(actor.getId())
+                .orElseThrow(() -> new AccessDeniedException("Your account has no student record."));
+    }
+
+    /** Which adverts this student already applied to — the {@code applied} flag's whole source. */
+    private java.util.Set<Long> appliedVacancyIds(Student viewer) {
+        return applicationRepository.findByStudentId(viewer.getId()).stream()
+                .map(Application::getVacancyId)
+                .collect(java.util.stream.Collectors.toSet());
+    }
+
+    /**
+     * [H2]: does this share address <i>this</i> student? An empty (or blank)
+     * targeting column on the share means "every one of my students"; a
+     * populated one must contain the student's own value, and a student missing
+     * that attribute entirely cannot be confirmed into a narrowed audience.
+     */
+    private boolean addressesViewer(OpportunityShare share, Student viewer) {
+        return csvContains(share.getTargetProgrammeIds(), viewer.getProgrammeId())
+                && csvContains(share.getTargetDepartmentIds(), viewer.getDepartmentId())
+                && csvContains(share.getTargetYearOfStudy(),
+                        viewer.getYearOfStudy() == null ? null : viewer.getYearOfStudy().longValue());
+    }
+
+    private boolean csvContains(String csv, Long value) {
+        if (csv == null || csv.isBlank()) {
+            return true;
+        }
+        if (value == null) {
+            return false;
+        }
+        for (String part : csv.split(",")) {
+            if (part.trim().equals(java.lang.Long.toString(value))) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /** One feed row — the share says why it is here, the advert says what it is, the viewer says what applies. */
+    private OpportunityFeedItem toFeedItem(OpportunityShare share, Vacancy advert,
+            java.util.Set<Long> appliedTo) {
+        return new OpportunityFeedItem(advert.getId(), share.getId(), advert.getTitle(),
+                advert.getDescription(), advert.getLocation(), advert.getExternalOrgName(),
+                advert.getWorkMode() == null ? null : advert.getWorkMode().name(),
+                advert.getDeadline(), advert.getStatus().name(), share.getSharedAt(), share.getNote(),
+                appliedTo.contains(advert.getId()),
+                (int) applicationRepository.countByVacancyId(advert.getId()));
     }
 
     /**
