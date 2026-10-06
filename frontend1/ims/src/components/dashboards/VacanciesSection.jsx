@@ -3,12 +3,20 @@ import { AlertCircle, CheckCircle } from 'lucide-react';
 import {
   applyToVacancy,
   fetchApplications,
-  fetchVacancies,
+  fetchOpportunityFeed,
 } from '../../services/api';
 
 /**
- * PC9: the student side of the vacancy marketplace — browse open vacancies and
- * apply, plus a read-only view of every application already filed.
+ * PC9, repointed at S7.2 (opportunity plan §8.8): the student side of the
+ * marketplace — browse opportunities and apply, plus a read-only view of
+ * every application already filed.
+ *
+ * <p>**S7.2**: the browse list now comes from `GET /api/opportunities`, the
+ * server-scoped feed of my university's live shares — never
+ * `GET /api/vacancies`, the legacy list that answers every logged-in user
+ * with every advert across companies (D1, closed at S7.4). The dashboard
+ * mounts `OpportunitiesSection` for this tab from S7.2 on; this component
+ * stays repointed so no code path of ours depends on the leaky list.
  *
  * <p>Two server rules shape this UI rather than the reverse:
  * <ul>
@@ -37,7 +45,7 @@ export default function VacanciesSection() {
     setError('');
     try {
       const [vacancyRows, applicationRows] = await Promise.all([
-        fetchVacancies(),
+        fetchOpportunityFeed(),
         fetchApplications(),
       ]);
       setVacancies(Array.isArray(vacancyRows) ? vacancyRows : []);
@@ -78,9 +86,9 @@ export default function VacanciesSection() {
   }
 
   const openVacancies = vacancies.filter((vacancy) => {
-    // "OPEN" is the legacy spelling of "PUBLISHED" (opportunity plan §5.6): the
-    // column became an enum, but existing rows and clients keep the old word.
-    // Accept both until S7.2 repoints this tab at the scoped opportunity feed.
+    // The feed only ever carries live PUBLISHED shares (S6.4); "OPEN" is kept
+    // accepted as the legacy spelling of "PUBLISHED" (opportunity plan §5.6)
+    // so a stale row shape can never blank the whole list.
     const status = String(vacancy.status || '').toUpperCase();
     return status === 'OPEN' || status === 'PUBLISHED';
   });
@@ -127,6 +135,7 @@ export default function VacanciesSection() {
                       <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-2">
                         {vacancy.location || 'Location not specified'}
                         {vacancy.deadline ? ` · Closes ${vacancy.deadline}` : ''}
+                        {vacancy.workMode ? ` · ${vacancy.workMode}` : ''}
                       </p>
                     </div>
                     <button

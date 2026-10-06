@@ -654,6 +654,17 @@ export async function shareOpportunity(advertId, target, note) {
   return parseResponse(response);
 }
 
+// The student's advert read (S6.4, plan §6.4): my university's live shares,
+// narrowed to the targeting that addresses *me*. This — never /api/vacancies —
+// is what the student browse tab calls from S7.2 on: the legacy list answers
+// every logged-in user with every advert (D1), which S7.4 closes.
+export async function fetchOpportunityFeed() {
+  const response = await fetch(`${API_ROOT}/api/opportunities`, {
+    credentials: 'include',
+  });
+  return parseResponse(response);
+}
+
 export async function fetchPlacementTimeline() {
   const response = await fetch(`${API_ROOT}/api/placements/timeline`, {
     credentials: 'include',
