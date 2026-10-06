@@ -305,6 +305,27 @@ public class OpportunityController {
     }
 
     /**
+     * S6.6 (plan §6.3): {@code POST /{id}/share/close} — the university
+     * withdraws its share and the advert leaves the student feed at once [H4].
+     * The door is {@code SUPERVISOR} only (D2 — even a super admin is refused,
+     * exactly like the share itself); past it the service resolves the row from
+     * the path's advert + the session's university [H9], so no share id ever
+     * travels over the wire: no share here → 404, a second close → 409
+     * (CLOSED is terminal), and every matching student receives §9's
+     * {@code OPPORTUNITY_WITHDRAWN} through the chunked fan-out [H11].
+     */
+    @PostMapping("/{id}/share/close")
+    @PreAuthorize("hasAuthority('SUPERVISOR')")
+    public ResponseEntity<OpportunityShare> closeShare(@PathVariable Long id, Principal principal) {
+        UserEntity actor = principal == null ? null
+                : userRepository.findByUsername(principal.getName()).orElse(null);
+        if (actor == null) {
+            throw new AccessDeniedException("A close must come from a known session.");
+        }
+        return ResponseEntity.ok(opportunityTransitionService.closeShare(actor, id));
+    }
+
+    /**
      * S6.4 (plan §6.4): {@code GET /api/opportunities} — the student feed (R7).
      * The mirror image of every other door on this controller: {@code STUDENT}
      * alone passes, so the relay personas can never read the audience view

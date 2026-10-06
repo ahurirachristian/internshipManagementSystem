@@ -678,6 +678,30 @@ public class OpportunityTransitionService {
         return filter.isEmpty() || (value != null && filter.contains(value));
     }
 
+    /**
+     * S6.6 (plan §6.3): {@code POST /{id}/share/close} — the university pulls
+     * its own share out of the student feed.
+     *
+     * <p>The request carries no id to tamper with [H9]: the share is resolved
+     * from the path's <b>advert</b> plus the session's <b>university</b>, so
+     * another university's share cannot be named — it simply does not exist
+     * for this caller (404, never 403), and an advert nobody shared here gets
+     * the same 404 as a missing advert, which is no answer at all. An account
+     * with no university is refused by the service (403) rather than shown
+     * anyone's shares, then {@link #transitionShare} applies its own scope,
+     * role (SUPERVISOR — D2, even a super admin is refused) and legality
+     * (a second close is 409: CLOSED is terminal).
+     */
+    public OpportunityShare closeShare(UserEntity actor, Long vacancyId) {
+        Long universityId = actor.getUniversityId();
+        if (universityId == null) {
+            throw new AccessDeniedException("Your account is not linked to a university.");
+        }
+        OpportunityShare share = shareRepository.findByVacancyIdAndUniversityId(vacancyId, universityId)
+                .orElseThrow(() -> new NoSuchElementException("Share not found."));
+        return transitionShare(actor, share.getId(), OpportunityShare.Status.CLOSED);
+    }
+
     /** One share transition: a broadcast being called off, by its own university or the super admin. */
     public OpportunityShare transitionShare(UserEntity actor, Long shareId, OpportunityShare.Status target) {
         OpportunityShare share = shareRepository.findByIdForUpdate(shareId)
@@ -698,6 +722,9 @@ public class OpportunityTransitionService {
         record(saved.getVacancyId(), saved.getUniversityId(),
                 OpportunityStatusHistory.RELAY_SHARE, from, target, actor);
         notifySharingUniversitySupervisors(saved, target);
+        if (target == OpportunityShare.Status.CLOSED) {
+            notifyStudentsAboutClose(saved);
+        }
         auditLogService.log(actor.getUsername(), actor.getRole().name(), "OPPORTUNITY_SHARE_STATUS",
                 "OpportunityShare",
                 "Share " + saved.getId() + " (university " + saved.getUniversityId() + "): "
@@ -892,11 +919,11 @@ public class OpportunityTransitionService {
     }
 
     /**
-     * A share's close is felt by its university first. The catalog's
-     * {@code OPPORTUNITY_WITHDRAWN} notice to every matching <b>student</b> needs
-     * the targeting-aware, chunked fan-out [H11] and belongs to S6.5/S6.6 — sending
-     * it from here would fan out untargeted and unchunked from the very first
-     * close. The supervisors who shared it are told now.
+     * A share's close is felt by its university first — the supervisors who
+     * shared it are told straight away. The catalog's {@code OPPORTUNITY_WITHDRAWN}
+     * notice to every matching <b>student</b> no longer waits on anything: S6.5
+     * shipped the targeting-aware, chunked fan-out [H11], and S6.6 sends it from
+     * {@link #notifyStudentsAboutClose} the moment a close lands.
      */
     private void notifySharingUniversitySupervisors(OpportunityShare share, OpportunityShare.Status target) {
         String body = "Shared opportunity on advert " + share.getVacancyId() + " is now " + target + ".";
@@ -904,6 +931,23 @@ public class OpportunityTransitionService {
                 target == OpportunityShare.Status.CLOSED ? "A shared opportunity was withdrawn"
                         : "Share updated",
                 body, "/university/dashboard");
+    }
+
+    /**
+     * §9's {@code OPPORTUNITY_WITHDRAWN}: the students this share was in front
+     * of learn it is gone — targeting-aware (the share's own narrowed audience,
+     * not the whole roster) and through the chunked fan-out [H11], so closing
+     * an advert at a thousand-student university is a handful of small
+     * transactions, not one huge one. An advert that vanished leaves a generic
+     * title rather than a 500 on the way out.
+     */
+    private void notifyStudentsAboutClose(OpportunityShare share) {
+        String title = vacancyRepository.findById(share.getVacancyId())
+                .map(Vacancy::getTitle).orElse("An opportunity");
+        notificationService.notifyFanout(matchingStudentIds(share), "OPPORTUNITY_WITHDRAWN",
+                "An opportunity is no longer available",
+                "\"" + title + "\" is no longer available.",
+                "/student/dashboard");
     }
 
     /** The counterpart of §9's {@code OPPORTUNITY_SUBMISSION}: the submitter learns their own verdict. */
