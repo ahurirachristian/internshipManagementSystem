@@ -6,16 +6,22 @@ import java.util.Map;
 
 import jakarta.validation.Valid;
 
+import org.springframework.core.io.Resource;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.example.demo.auth.UserEntity;
 import com.example.demo.auth.UserRepository;
@@ -44,12 +50,15 @@ public class OpportunityController {
 
     private final OpportunityService opportunityService;
     private final OpportunityTransitionService opportunityTransitionService;
+    private final OpportunityAttachmentService opportunityAttachmentService;
     private final UserRepository userRepository;
 
     public OpportunityController(OpportunityService opportunityService,
-            OpportunityTransitionService opportunityTransitionService, UserRepository userRepository) {
+            OpportunityTransitionService opportunityTransitionService,
+            OpportunityAttachmentService opportunityAttachmentService, UserRepository userRepository) {
         this.opportunityService = opportunityService;
         this.opportunityTransitionService = opportunityTransitionService;
+        this.opportunityAttachmentService = opportunityAttachmentService;
         this.userRepository = userRepository;
     }
 
@@ -362,5 +371,114 @@ public class OpportunityController {
             throw new AccessDeniedException("An opportunity must come from a known session.");
         }
         return ResponseEntity.ok(opportunityService.feedItem(actor, id));
+    }
+
+    // --- S6.7 (plan §6.6): attachments ---------------------------------
+
+    /**
+     * S6.7 (plan §6.6): {@code POST /{id}/attachments} — attach a file to an
+     * advert. The door admits the personas that can be an advertising side or
+     * the moderator (students are refused before any id exists); past it the
+     * service proves the claim — super admin, owning company, or offering
+     * university — and forces {@code universityId} from the session [H7], so a
+     * supervisor's file lands scoped to their own students no matter what the
+     * multipart form carries. Targeting follows §5.8, and a blob whose row
+     * fails to persist is deleted again [H14].
+     */
+    @PostMapping("/{id}/attachments")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'COMPANY', 'INDUSTRIAL_SUPERVISOR', 'SUPERVISOR')")
+    public ResponseEntity<OpportunityAttachmentItem> uploadAttachment(@PathVariable Long id,
+            @RequestParam("file") MultipartFile file,
+            @RequestParam(value = "targetProgrammeIds", required = false) String targetProgrammeIds,
+            @RequestParam(value = "targetYearOfStudy", required = false) String targetYearOfStudy,
+            Principal principal) {
+        UserEntity actor = principal == null ? null
+                : userRepository.findByUsername(principal.getName()).orElse(null);
+        if (actor == null) {
+            throw new AccessDeniedException("An attachment must come from a known session.");
+        }
+        return ResponseEntity.status(HttpStatus.CREATED).body(opportunityAttachmentService
+                .upload(actor, id, file, targetProgrammeIds, targetYearOfStudy));
+    }
+
+    /**
+     * S6.7: {@code GET /{id}/attachments} — metadata only, never
+     * {@code fileName}/{@code storagePath} [H14]. The door admits every
+     * audience the resolver can answer for; what each caller actually gets is
+     * decided inside: the advertising side sees all rows, a student only their
+     * own university's files that clear both the share's and the file's
+     * targeting, and anyone outside the advert's audience is 404 [H3].
+     */
+    @GetMapping("/{id}/attachments")
+    @PreAuthorize("hasAnyAuthority('STUDENT', 'SUPERVISOR', 'INDUSTRIAL_SUPERVISOR', 'ADMIN', 'COMPANY')")
+    public ResponseEntity<List<OpportunityAttachmentItem>> listAttachments(@PathVariable Long id,
+            Principal principal) {
+        UserEntity actor = principal == null ? null
+                : userRepository.findByUsername(principal.getName()).orElse(null);
+        if (actor == null) {
+            throw new AccessDeniedException("An attachment list must come from a known session.");
+        }
+        return ResponseEntity.ok(opportunityAttachmentService.list(actor, id));
+    }
+
+    /**
+     * S6.7 (plan §6.6): {@code GET /{attachmentId}/download} — the bytes, under
+     * the same resolver as the listing: 404 for anyone the file does not
+     * address (out of the advert's audience, another university's row, a student
+     * outside either targeting layer), a traversal-shaped {@code fileName} is
+     * refused by the storage root's own guard [H14], and the download name is
+     * {@code original_file_name} — the on-disk UUID never appears in the
+     * response.
+     */
+    @GetMapping("/{attachmentId}/download")
+    @PreAuthorize("hasAnyAuthority('STUDENT', 'SUPERVISOR', 'INDUSTRIAL_SUPERVISOR', 'ADMIN', 'COMPANY')")
+    public ResponseEntity<Resource> downloadAttachment(@PathVariable Long attachmentId,
+            Principal principal) throws java.io.IOException {
+        UserEntity actor = principal == null ? null
+                : userRepository.findByUsername(principal.getName()).orElse(null);
+        if (actor == null) {
+            throw new AccessDeniedException("A download must come from a known session.");
+        }
+        OpportunityAttachmentDownload download = opportunityAttachmentService.download(actor,
+                attachmentId);
+        MediaType type;
+        try {
+            type = MediaType.parseMediaType(download.contentType());
+        } catch (RuntimeException ex) {
+            type = MediaType.APPLICATION_OCTET_STREAM;
+        }
+        return ResponseEntity.ok()
+                .contentType(type)
+                .header(HttpHeaders.CONTENT_DISPOSITION,
+                        "attachment; filename=\"" + sanitizeForHeader(download.originalFileName()) + "\"")
+                .body(download.resource());
+    }
+
+    /**
+     * S6.7: {@code DELETE /{id}/attachments/{attachmentId}} — row and blob
+     * together. The path's advert id anchors the attachment (a replayed id is
+     * 404, the S5.2/S6.2 shape), then the resolver and the per-file layers, and
+     * only then the role question: uploader, advertising side, or super admin —
+     * a student is refused at the door, a plain admin by the service.
+     */
+    @DeleteMapping("/{id}/attachments/{attachmentId}")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'COMPANY', 'INDUSTRIAL_SUPERVISOR', 'SUPERVISOR')")
+    public ResponseEntity<Void> deleteAttachment(@PathVariable Long id,
+            @PathVariable Long attachmentId, Principal principal) {
+        UserEntity actor = principal == null ? null
+                : userRepository.findByUsername(principal.getName()).orElse(null);
+        if (actor == null) {
+            throw new AccessDeniedException("A delete must come from a known session.");
+        }
+        opportunityAttachmentService.delete(actor, id, attachmentId);
+        return ResponseEntity.noContent().build();
+    }
+
+    /** Strip CR/LF and quotes so a filename cannot inject extra headers (as FileController does). */
+    private static String sanitizeForHeader(String name) {
+        if (name == null || name.isBlank()) {
+            return "download";
+        }
+        return name.replaceAll("[\\r\\n\"]", "_");
     }
 }
