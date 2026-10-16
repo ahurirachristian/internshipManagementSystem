@@ -148,9 +148,10 @@ git rev-parse --short origin/fred            # f424289
 git ls-remote --tags origin                  # archive/fred-38-commits -> 2764d9b
 ```
 
-Two things a clone will not bring back, by design:
+Three things a clone will not bring back, by design:
 
 - **The second worktree** (`.kilo/worktrees/typical-consonant`) is a local worktree registration, not a branch. It was clean and detached at `5044acb`, which is `origin/main` — recreate it from that commit if it is still wanted.
+- **`IMS_ignore/`** — the holding folder for the git-ignored files (last builds, `riho-admin-dashboard/`, the three "never commit" local docs, and `backend/.env`). It is untracked on purpose and is the only copy of those files, `backend/.env` included, so copy it back from external storage after the reinstall. Contents and exclusions are itemised in `IMS_ignore/MANIFEST.md`.
 - **Local-only configuration**: the `master` tracking gap, the `chris-review` → `origin/Chris` upstream, and any machine-specific IDE settings outside the tracked `.vscode/settings.json`.
 
 Also worth knowing before reopening the project: `backend/` binds to a real MySQL on port 3306 with profile `mysql`, the runbook in `CODEBASE_ANALYSIS.md §0` is the fastest way back to a running stack, and the rollback dump taken before the demo seed lives at `backups/pre-demo-seed-20261006-091005.sql`.
