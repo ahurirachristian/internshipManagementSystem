@@ -52,10 +52,13 @@ Two edits were sitting unstaged and were committed on `working-fred` first, so t
 
 Then **all 53 local branches and the tag** were pushed to `origin`:
 
-- **46 were new to GitHub** — including all 40 remaining `port/*` branches, `working-fred`, and both `backup/*` branches.
-- **7 already existed and were updated or already current** — `fred` (60 commits ahead, now pushed), `chris-review`, `migration/schema-b`, `port/detail-tabs`, `port/diary-fields`, `port/overview-dashboard`, `port/student-settings`.
+- **46 were newly created on GitHub** — `working-fred`, both `backup/*` branches, `chris-review`, and 42 of the 46 `port/*` branches.
+- **6 already existed and were updated or were already current** — `fred` (60 commits ahead, now pushed), `migration/schema-b`, `port/detail-tabs`, `port/diary-fields`, `port/overview-dashboard`, `port/student-settings`.
+- **1 already existed and was deliberately left alone** — `master` (see §6).
 - **1 tag** — `archive/fred-38-commits` (points at the same commit as both `backup/*` branches).
-- `chris-review` is byte-identical to `origin/Chris`; pushing it created a second remote branch at the same commit rather than adding new work.
+- `chris-review` is byte-identical to `origin/Chris` at `7a41d74`; creating `origin/chris-review` added a second remote branch at that same commit rather than any new work.
+
+46 + 6 + 1 accounts for all 53 local branches.
 
 ## 5. Branch inventory (state after the push)
 
