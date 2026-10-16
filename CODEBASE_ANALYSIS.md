@@ -136,7 +136,7 @@ cd "/home/nuera/Forge/satesoft/Internship Management System/frontend1/ims" && np
 
 | Username | Password | Role | Profile |
 |----------|----------|------|---------|
-| `2400101003` | `Student@123` | STUDENT | Kasagga Fred — Nkumba, placed at MicroVest |
+| `2400101003` | `qwertyuiop` | STUDENT | Kasagga Fred — Nkumba, placed at MicroVest |
 | `STU-2026-001` | `Student@123` | STUDENT | Alex Johnson — Nkumba, placed at Airtel Uganda |
 | `STU-2026-002` | `Student@123` | STUDENT | Sarah Owen — Nkumba, placed at Airtel Uganda |
 | `university` | `university123` | SUPERVISOR | Linked to Nkumba University (id=19) |
