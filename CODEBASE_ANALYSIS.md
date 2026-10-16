@@ -4,6 +4,8 @@ A comprehensive analysis of the codebase: structure, data flow, and how everythi
 
 > **New here?** Start with [`ONBOARDING.md`](ONBOARDING.md) — a first-week guide with endpoint inventory, gotchas, and recipes. This document is the deeper reference (machine runbook §0, entity/column reference).
 >
+> **Repository state snapshot (2026-10-16)**: all 53 branches, the archive tag, and both worktrees of the pre-reinstall clone are recorded in [`docs/BRANCH-STATUS.md`](docs/BRANCH-STATUS.md) — use it to confirm a fresh clone came back intact.
+>
 > **Model B migration note (2026-08-25)**: The Model A → Model B migration is complete through M7. Model B is the sole active schema. Model A entities (`academic/`, `StudentProfile`, `Company`) were purged in M6c. Active packages: `school/`, `department/`, `programme/`, `student/Student`, `company/InternshipCompany`, `supervisor/`. See `ONBOARDING.md §1` and `docs/MIGRATION-MODELB-LOG.md` for the full decision log.
 
 > **Last updated**: 2026-08-25 — after Model B migration M0–M7. System MySQL 8.0.46 is the primary database. 20 tables in `schema.sql`, 15 live in production (4 A-side tables dropped in M7).
